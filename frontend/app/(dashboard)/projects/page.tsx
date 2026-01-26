@@ -1,0 +1,364 @@
+"use client"
+
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { Plus, Calendar, Users, FolderKanban, ArrowRight, Loader2 } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Progress } from "@/components/ui/progress"
+import { PageHeader } from "@/components/shared/page-header"
+import { useProjects, useOrganizations, useTasks } from "@/lib/hooks/use-api"
+import { projectsService } from "@/lib/api"
+import type { Project } from "@/lib/types"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useToast } from "@/hooks/use-toast"
+
+const statusColors: Record<string, string> = {
+  active: "bg-primary/10 text-primary",
+  completed: "bg-chart-2/10 text-chart-2",
+  draft: "bg-muted text-muted-foreground",
+}
+
+interface ProjectCardProps {
+  project: Project
+  organizations: { id: string; name: string; type: string }[]
+  tasks: { projectId: string; target?: number; achieved?: number }[]
+}
+
+function ProjectCard({ project, organizations, tasks }: ProjectCardProps) {
+  const router = useRouter()
+  const funder = organizations.find(o => o.id === project.funderId)
+  const projectTasks = tasks.filter(t => t.projectId === project.id)
+  
+  const totalTarget = projectTasks.reduce((sum, t) => sum + (t.target || 0), 0)
+  const totalAchieved = projectTasks.reduce((sum, t) => sum + (t.achieved || 0), 0)
+  const progress = totalTarget > 0 ? Math.round((totalAchieved / totalTarget) * 100) : 0
+  
+  const startDate = new Date(project.startDate)
+  const endDate = new Date(project.endDate)
+  const now = new Date()
+  const totalDays = (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
+  const daysPassed = (now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
+  const timeProgress = Math.min(100, Math.max(0, Math.round((daysPassed / totalDays) * 100)))
+
+  return (
+    <div
+      className="group cursor-pointer rounded-xl border border-border bg-card p-6 transition-colors hover:border-primary/50"
+      onClick={() => router.push(`/projects/${project.id}`)}
+    >
+      <div className="mb-4 flex items-start justify-between">
+        <div>
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary" className={statusColors[project.status] || ""}>
+              {project.status.charAt(0).toUpperCase() + project.status.slice(1)}
+            </Badge>
+            <span className="text-sm text-muted-foreground">{project.code}</span>
+          </div>
+          <h3 className="mt-2 text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
+            {project.name}
+          </h3>
+          {project.description && (
+            <p className="mt-1 text-sm text-muted-foreground line-clamp-2">
+              {project.description}
+            </p>
+          )}
+        </div>
+        <ArrowRight className="h-5 w-5 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+      </div>
+
+      {/* Project details */}
+      <div className="mb-4 flex flex-wrap gap-4 text-sm text-muted-foreground">
+        <div className="flex items-center gap-1">
+          <Calendar className="h-4 w-4" />
+          <span>{startDate.toLocaleDateString()} - {endDate.toLocaleDateString()}</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <Users className="h-4 w-4" />
+          <span>{project.organizationIds.length} organizations</span>
+        </div>
+        {funder && (
+          <div className="flex items-center gap-1">
+            <FolderKanban className="h-4 w-4" />
+            <span>{funder.name}</span>
+          </div>
+        )}
+      </div>
+
+      {/* Progress */}
+      <div className="space-y-3">
+        <div className="space-y-1">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">Target Progress</span>
+            <span className="font-medium text-foreground">{progress}%</span>
+          </div>
+          <Progress value={progress} className="h-2" />
+        </div>
+        <div className="space-y-1">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">Time Elapsed</span>
+            <span className="font-medium text-foreground">{timeProgress}%</span>
+          </div>
+          <Progress value={timeProgress} className="h-2 [&>div]:bg-chart-3" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default function ProjectsPage() {
+  const { toast } = useToast()
+  const { data: projectsData, isLoading, error, mutate } = useProjects()
+  const { data: orgsData } = useOrganizations()
+  const { data: tasksData } = useTasks()
+  const [isCreateOpen, setIsCreateOpen] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [activeTab, setActiveTab] = useState("all")
+  const [formData, setFormData] = useState({
+    name: "",
+    code: "",
+    description: "",
+    startDate: "",
+    endDate: "",
+    funderId: "",
+  })
+
+  const projects = projectsData?.results || []
+  const organizations = orgsData?.results || []
+  const tasks = tasksData?.results || []
+  const funders = organizations.filter(o => o.type === 'funder')
+
+  const filteredProjects = activeTab === "all"
+    ? projects
+    : projects.filter(p => p.status === activeTab)
+
+  const handleCreate = async () => {
+    if (!formData.name || !formData.code || !formData.startDate || !formData.endDate) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setIsSubmitting(true)
+    try {
+      await projectsService.create({
+        name: formData.name,
+        code: formData.code,
+        description: formData.description || undefined,
+        startDate: formData.startDate,
+        endDate: formData.endDate,
+        funderId: formData.funderId || undefined,
+        status: "draft",
+        organizationIds: [],
+      })
+      toast({
+        title: "Success",
+        description: "Project created successfully",
+      })
+      setIsCreateOpen(false)
+      setFormData({ name: "", code: "", description: "", startDate: "", endDate: "", funderId: "" })
+      mutate()
+    } catch {
+      toast({
+        title: "Error",
+        description: "Failed to create project",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex h-[60vh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-[60vh] flex-col items-center justify-center gap-4">
+        <p className="text-muted-foreground">Failed to load projects</p>
+        <Button onClick={() => mutate()}>Retry</Button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        title="Projects"
+        description="Manage projects, tasks, and targets"
+        breadcrumbs={[
+          { label: "Dashboard", href: "/dashboard" },
+          { label: "Projects" },
+        ]}
+        actions={
+          <Button onClick={() => setIsCreateOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            New Project
+          </Button>
+        }
+      />
+
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="bg-secondary">
+          <TabsTrigger value="all">
+            All ({projects.length})
+          </TabsTrigger>
+          <TabsTrigger value="active">
+            Active ({projects.filter(p => p.status === 'active').length})
+          </TabsTrigger>
+          <TabsTrigger value="completed">
+            Completed ({projects.filter(p => p.status === 'completed').length})
+          </TabsTrigger>
+          <TabsTrigger value="draft">
+            Draft ({projects.filter(p => p.status === 'draft').length})
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value={activeTab} className="mt-6">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {filteredProjects.map((project) => (
+              <ProjectCard
+                key={project.id}
+                project={project}
+                organizations={organizations}
+                tasks={tasks}
+              />
+            ))}
+          </div>
+          {filteredProjects.length === 0 && (
+            <div className="flex h-40 items-center justify-center rounded-lg border border-dashed border-border">
+              <p className="text-muted-foreground">No projects found</p>
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
+
+      {/* Create Dialog */}
+      <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Create Project</DialogTitle>
+            <DialogDescription>
+              Create a new project to track indicators and targets
+            </DialogDescription>
+          </DialogHeader>
+          <form
+            className="space-y-4"
+            onSubmit={(e) => {
+              e.preventDefault()
+              handleCreate()
+            }}
+          >
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Project Name *</Label>
+                <Input
+                  id="name"
+                  placeholder="Enter project name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="code">Project Code *</Label>
+                <Input
+                  id="code"
+                  placeholder="e.g., HPP2025"
+                  value={formData.code}
+                  onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                placeholder="Brief description of the project"
+                rows={3}
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="startDate">Start Date *</Label>
+                <Input
+                  id="startDate"
+                  type="date"
+                  value={formData.startDate}
+                  onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="endDate">End Date *</Label>
+                <Input
+                  id="endDate"
+                  type="date"
+                  value={formData.endDate}
+                  onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="funder">Funder</Label>
+              <Select
+                value={formData.funderId}
+                onValueChange={(value) => setFormData({ ...formData, funderId: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select funder" />
+                </SelectTrigger>
+                <SelectContent>
+                  {funders.map((org) => (
+                    <SelectItem key={org.id} value={org.id}>
+                      {org.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsCreateOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Create Project
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </div>
+  )
+}
