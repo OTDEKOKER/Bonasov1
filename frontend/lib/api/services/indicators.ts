@@ -28,8 +28,11 @@ export interface CreateIndicatorRequest {
   type: IndicatorType;
   category?: string;
   unit?: string;
-  options?: string[]; // For multiselect/single_select types
-  target_value?: number;
+  options?: Array<string | { label: string; value: string }>;
+  sub_labels?: string[];
+  aggregation_method?: 'sum' | 'average' | 'count' | 'latest';
+  is_active?: boolean;
+  organizations?: number[];
 }
 
 export interface UpdateIndicatorRequest extends Partial<CreateIndicatorRequest> {
@@ -37,35 +40,22 @@ export interface UpdateIndicatorRequest extends Partial<CreateIndicatorRequest> 
 }
 
 export interface AssessmentFilters {
-  indicator?: string;
-  respondent?: string;
-  project?: string;
-  date_from?: string;
-  date_to?: string;
+  is_active?: string;
+  organizations?: string;
   page?: string;
   page_size?: string;
 }
 
 export interface CreateAssessmentRequest {
-  indicator_id: number;
-  respondent_id?: number;
-  project_id: number;
-  value: string | number | boolean | string[];
-  date: string;
-  notes?: string;
+  name: string;
+  description?: string;
+  indicators?: number[];
+  logic_rules?: Record<string, unknown>;
+  is_active?: boolean;
+  organizations?: number[];
 }
 
 export interface UpdateAssessmentRequest extends Partial<CreateAssessmentRequest> {}
-
-export interface BulkAssessmentRequest {
-  project_id: number;
-  respondent_id?: number;
-  date: string;
-  assessments: Array<{
-    indicator_id: number;
-    value: string | number | boolean | string[];
-  }>;
-}
 
 // ============================================================================
 // Indicators Service
@@ -80,6 +70,33 @@ export const indicatorsService = {
     const params = filters as Record<string, string> | undefined;
     const { data } = await api.get<PaginatedResponse<Indicator>>('/indicators/', params);
     return data;
+  },
+  /**
+   * List all indicators across all pages
+   */
+  async listAll(filters?: IndicatorFilters): Promise<Indicator[]> {
+    const results: Indicator[] = [];
+    let page = filters?.page ? String(filters.page) : "1";
+    const baseFilters = { ...(filters || {}) } as Record<string, string>;
+    delete (baseFilters as any).page;
+
+    while (true) {
+      const { data } = await api.get<PaginatedResponse<Indicator>>('/indicators/', {
+        ...baseFilters,
+        page,
+      });
+      results.push(...(data.results || []));
+      if (!data.next) break;
+      try {
+        const nextUrl = new URL(data.next);
+        const nextPage = nextUrl.searchParams.get("page");
+        if (!nextPage) break;
+        page = nextPage;
+      } catch {
+        break;
+      }
+    }
+    return results;
   },
 
   /**
@@ -121,8 +138,8 @@ export const indicatorsService = {
    * Get indicator categories for filtering
    * Django endpoint: GET /api/indicators/categories/
    */
-  async getCategories(): Promise<string[]> {
-    const { data } = await api.get<string[]>('/indicators/categories/');
+  async getCategories(): Promise<Array<{ value: string; label: string }>> {
+    const { data } = await api.get<Array<{ value: string; label: string }>>('/indicators/categories/');
     return data;
   },
 
@@ -131,7 +148,7 @@ export const indicatorsService = {
    * Django endpoint: GET /api/indicators/choices/
    */
   async getChoices(): Promise<Array<{ id: number; name: string; code: string }>> {
-    const { data } = await api.get<Array<{ id: number; name: string; code: string }>>('/indicators/choices/');
+    const { data } = await api.get<Array<{ id: number; name: string; code: string }>>('/indicators/simple/');
     return data;
   },
 
@@ -157,65 +174,65 @@ export const indicatorsService = {
 export const assessmentsService = {
   /**
    * List all assessments with optional filters
-   * Django endpoint: GET /api/assessments/
+   * Django endpoint: GET /api/indicators/assessments/
    */
   async list(filters?: AssessmentFilters): Promise<PaginatedResponse<Assessment>> {
     const params = filters as Record<string, string> | undefined;
-    const { data } = await api.get<PaginatedResponse<Assessment>>('/assessments/', params);
+    const { data } = await api.get<PaginatedResponse<Assessment>>('/indicators/assessments/', params);
     return data;
   },
 
   /**
    * Get a single assessment by ID
-   * Django endpoint: GET /api/assessments/:id/
+   * Django endpoint: GET /api/indicators/assessments/:id/
    */
   async get(id: number): Promise<Assessment> {
-    const { data } = await api.get<Assessment>(`/assessments/${id}/`);
+    const { data } = await api.get<Assessment>(`/indicators/assessments/${id}/`);
     return data;
   },
 
   /**
    * Create a new assessment
-   * Django endpoint: POST /api/assessments/
+   * Django endpoint: POST /api/indicators/assessments/
    */
   async create(request: CreateAssessmentRequest): Promise<Assessment> {
-    const { data } = await api.post<Assessment>('/assessments/', request);
+    const { data } = await api.post<Assessment>('/indicators/assessments/', request);
     return data;
   },
 
   /**
    * Update an assessment
-   * Django endpoint: PATCH /api/assessments/:id/
+   * Django endpoint: PATCH /api/indicators/assessments/:id/
    */
   async update(id: number, request: UpdateAssessmentRequest): Promise<Assessment> {
-    const { data } = await api.patch<Assessment>(`/assessments/${id}/`, request);
+    const { data } = await api.patch<Assessment>(`/indicators/assessments/${id}/`, request);
     return data;
   },
 
   /**
    * Delete an assessment
-   * Django endpoint: DELETE /api/assessments/:id/
+   * Django endpoint: DELETE /api/indicators/assessments/:id/
    */
   async delete(id: number): Promise<void> {
-    await api.delete(`/assessments/${id}/`);
+    await api.delete(`/indicators/assessments/${id}/`);
+  },
+  async addIndicator(
+    assessmentId: number,
+    indicatorId: number,
+    order: number = 0,
+    isRequired: boolean = true,
+  ): Promise<void> {
+    await api.post(`/indicators/assessments/${assessmentId}/add_indicator/`, {
+      indicator_id: indicatorId,
+      order,
+      is_required: isRequired,
+    });
   },
 
-  /**
-   * Bulk create assessments (for forms with multiple indicators)
-   * Django endpoint: POST /api/assessments/bulk/
-   */
-  async bulkCreate(request: BulkAssessmentRequest): Promise<Assessment[]> {
-    const { data } = await api.post<Assessment[]>('/assessments/bulk/', request);
-    return data;
-  },
-
-  /**
-   * Get assessment history for a respondent
-   * Django endpoint: GET /api/assessments/respondent/:id/history/
-   */
-  async getRespondentHistory(respondentId: number): Promise<Assessment[]> {
-    const { data } = await api.get<Assessment[]>(`/assessments/respondent/${respondentId}/history/`);
-    return data;
+  async removeIndicator(assessmentId: number, indicatorId: number): Promise<void> {
+    await api.post(`/indicators/assessments/${assessmentId}/remove_indicator/`, {
+      indicator_id: indicatorId,
+    });
   },
 };
 

@@ -119,8 +119,8 @@ export function DataTable<T extends { id: string }>({
       </div>
 
       {/* Table */}
-      <div className="rounded-lg border border-border">
-        <Table>
+      <div className="rounded-lg border border-border overflow-x-auto">
+        <Table className="min-w-[720px]">
           <TableHeader>
             <TableRow className="hover:bg-transparent">
               {columns.map((column) => (

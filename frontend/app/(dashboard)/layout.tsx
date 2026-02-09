@@ -1,15 +1,42 @@
 "use client"
 
-import React from "react"
-import { useState } from "react"
-import { AppSidebar } from "@/components/layout/app-sidebar"
-import { AppHeader } from "@/components/layout/app-header"
-import { AuthProvider } from "@/lib/contexts/auth-context"
+import React, { useEffect, useState } from "react"
+import dynamic from "next/dynamic"
+import { useRouter } from "next/navigation"
+import { AuthProvider, useAuth } from "@/lib/contexts/auth-context"
 import { cn } from "@/lib/utils"
 import { X } from "lucide-react"
 
+const AppSidebarClient = dynamic(
+  () => import("@/components/layout/app-sidebar").then((mod) => mod.AppSidebar),
+  { ssr: false },
+)
+const AppHeaderClient = dynamic(
+  () => import("@/components/layout/app-header").then((mod) => mod.AppHeader),
+  { ssr: false },
+)
+
 function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
+  const router = useRouter()
+  const { isAuthenticated, isLoading } = useAuth()
   const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.replace("/login")
+    }
+  }, [isAuthenticated, isLoading, router])
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background p-6">
+        <div className="text-sm text-muted-foreground">Loading...</div>
+      </div>
+    )
+  }
+
+  // While the redirect is happening, don't render the dashboard shell.
+  if (!isAuthenticated) return null
 
   return (
     <div className="min-h-screen bg-background">
@@ -28,7 +55,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        <AppSidebar />
+        <AppSidebarClient />
         <button
           className="absolute right-2 top-4 rounded-lg p-1 text-sidebar-foreground/70 hover:bg-sidebar-accent"
           onClick={() => setSidebarOpen(false)}
@@ -39,13 +66,15 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
 
       {/* Desktop sidebar */}
       <div className="hidden lg:block">
-        <AppSidebar />
+        <AppSidebarClient />
       </div>
 
       {/* Main content */}
       <div className="lg:pl-64">
-        <AppHeader onMenuClick={() => setSidebarOpen(true)} />
-        <main className="min-h-[calc(100vh-4rem)] p-4 lg:p-6">{children}</main>
+        <AppHeaderClient onMenuClick={() => setSidebarOpen(true)} />
+        <main className="h-[calc(100vh-4rem)] overflow-y-auto p-4 lg:p-6">
+          {children}
+        </main>
       </div>
     </div>
   )

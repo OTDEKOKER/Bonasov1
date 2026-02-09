@@ -12,13 +12,15 @@ export function IndicatorProgress({ data }: IndicatorProgressProps) {
       <h3 className="mb-4 text-sm font-medium text-muted-foreground">Indicator Progress</h3>
       <div className="space-y-6">
         {data.map((item) => {
-          const percentage = Math.round((item.achieved / item.target) * 100)
+          const target = Number(item.target) || 0
+          const achieved = Number(item.achieved) || 0
+          const percentage = target > 0 ? Math.round((achieved / target) * 100) : 0
           return (
             <div key={item.name} className="space-y-2">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-card-foreground">{item.name}</span>
                 <span className="text-muted-foreground">
-                  {item.achieved.toLocaleString()} / {item.target.toLocaleString()}
+                  {achieved.toLocaleString()} / {target.toLocaleString()}
                 </span>
               </div>
               <div className="flex items-center gap-3">

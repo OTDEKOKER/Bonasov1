@@ -1,19 +1,5 @@
-import type {
-  User,
-  Organization,
-  Project,
-  Indicator,
-  Assessment,
-  Task,
-  Respondent,
-  Event,
-  SocialMediaPost,
-  Flag,
-  ProjectDeadline,
-} from './types'
-
 // Users
-export const mockUsers: User[] = [
+export const mockUsers = [
   {
     id: '1',
     email: 'admin@bonaso.org',
@@ -59,7 +45,7 @@ export const mockUsers: User[] = [
 ]
 
 // Organizations
-export const mockOrganizations: Organization[] = [
+export const mockOrganizations = [
   {
     id: '1',
     name: 'BONASO',
@@ -102,13 +88,13 @@ export const mockOrganizations: Organization[] = [
 ]
 
 // Indicators
-export const mockIndicators: Indicator[] = [
+export const mockIndicators = [
   {
     id: '1',
     name: 'HIV Testing Completed',
     code: 'HIV_TEST',
     description: 'Number of individuals who completed HIV testing',
-    category: 'assessment',
+    category: 'hiv_prevention',
     type: 'yes_no',
     allowAggregate: true,
     isRequired: true,
@@ -120,7 +106,7 @@ export const mockIndicators: Indicator[] = [
     name: 'HIV Test Result',
     code: 'HIV_RESULT',
     description: 'Result of HIV test',
-    category: 'assessment',
+    category: 'hiv_prevention',
     type: 'single_select',
     allowAggregate: true,
     isRequired: true,
@@ -137,7 +123,7 @@ export const mockIndicators: Indicator[] = [
     name: 'Referral to Care',
     code: 'REFERRAL',
     description: 'Was the individual referred to care services',
-    category: 'assessment',
+    category: 'hiv_prevention',
     type: 'yes_no',
     allowAggregate: true,
     isRequired: false,
@@ -149,7 +135,7 @@ export const mockIndicators: Indicator[] = [
     name: 'Social Media Reach',
     code: 'SOCIAL_REACH',
     description: 'Number of people reached through social media',
-    category: 'social',
+    category: 'hiv_prevention',
     type: 'number',
     allowAggregate: false,
     isRequired: true,
@@ -160,7 +146,7 @@ export const mockIndicators: Indicator[] = [
     name: 'Training Events Conducted',
     code: 'TRAINING_EVENTS',
     description: 'Number of training events conducted',
-    category: 'event_count',
+    category: 'events',
     type: 'number',
     allowAggregate: true,
     isRequired: true,
@@ -171,7 +157,7 @@ export const mockIndicators: Indicator[] = [
     name: 'Organizations Trained',
     code: 'ORGS_TRAINED',
     description: 'Number of organizations that received training',
-    category: 'orgs_capacitated',
+    category: 'events',
     type: 'number',
     allowAggregate: true,
     isRequired: true,
@@ -180,7 +166,7 @@ export const mockIndicators: Indicator[] = [
 ]
 
 // Assessments
-export const mockAssessments: Assessment[] = [
+export const mockAssessments = [
   {
     id: '1',
     name: 'HIV Testing Assessment',
@@ -191,7 +177,7 @@ export const mockAssessments: Assessment[] = [
 ]
 
 // Projects
-export const mockProjects: Project[] = [
+export const mockProjects = [
   {
     id: '1',
     name: 'HIV Prevention Program 2025',
@@ -232,7 +218,7 @@ export const mockProjects: Project[] = [
 ]
 
 // Tasks
-export const mockTasks: Task[] = [
+export const mockTasks = [
   {
     id: '1',
     projectId: '1',
@@ -272,7 +258,7 @@ export const mockTasks: Task[] = [
 ]
 
 // Deadlines
-export const mockDeadlines: ProjectDeadline[] = [
+export const mockDeadlines = [
   {
     id: '1',
     projectId: '1',
@@ -300,7 +286,7 @@ export const mockDeadlines: ProjectDeadline[] = [
 ]
 
 // Respondents
-export const mockRespondents: Respondent[] = [
+export const mockRespondents = [
   {
     id: '1',
     idNumber: 'BW1234567',
@@ -341,7 +327,7 @@ export const mockRespondents: Respondent[] = [
 ]
 
 // Events
-export const mockEvents: Event[] = [
+export const mockEvents = [
   {
     id: '1',
     name: 'HIV Awareness Workshop',
@@ -370,7 +356,7 @@ export const mockEvents: Event[] = [
 ]
 
 // Social Media Posts
-export const mockSocialPosts: SocialMediaPost[] = [
+export const mockSocialPosts = [
   {
     id: '1',
     platform: 'facebook',
@@ -422,7 +408,7 @@ export const mockSocialPosts: SocialMediaPost[] = [
 ]
 
 // Flags
-export const mockFlags: Flag[] = [
+export const mockFlags = [
   {
     id: '1',
     type: 'duplicate',

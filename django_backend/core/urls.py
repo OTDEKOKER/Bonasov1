@@ -6,6 +6,13 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from rest_framework.routers import DefaultRouter
+from projects.views import ProjectViewSet, TaskViewSet, DeadlineViewSet
+
+manage_router = DefaultRouter()
+manage_router.register('projects', ProjectViewSet, basename='manage-projects')
+manage_router.register('tasks', TaskViewSet, basename='manage-tasks')
+manage_router.register('deadlines', DeadlineViewSet, basename='manage-deadlines')
 
 urlpatterns = [
     # Admin site
@@ -17,7 +24,10 @@ urlpatterns = [
     # Core apps
     path('api/organizations/', include('organizations.urls')),
     path('api/indicators/', include('indicators.urls')),
-    path('api/projects/', include('projects.urls')),  # changed from 'manage/' to 'projects/'
+
+    # Projects & deadlines
+    path('api/projects/', include('projects.urls')),  # new path
+    path('api/manage/', include(manage_router.urls)),  # legacy frontend paths
 
     # Data collection apps
     path('api/record/', include('respondents.urls')),
@@ -27,10 +37,11 @@ urlpatterns = [
 
     # Utility apps
     path('api/flags/', include('flags.urls')),
-    path('api/analysis/', include('analysis.urls')),
+    path('api/analysis/', include('analysis.urls')),  # dashboard lives here
     path('api/profiles/', include('profiles.urls')),
     path('api/uploads/', include('uploads.urls')),
     path('api/messages/', include('messaging.urls')),
+    path('api/manage/users/', include('djoser.urls')),
 ]
 
 # Serve media files during development

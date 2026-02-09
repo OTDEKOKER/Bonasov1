@@ -1,4 +1,4 @@
-/**
+﻿/**
  * BONASO Data Portal - API Services
  * 
  * Central export for all API services.
@@ -88,18 +88,19 @@ export type {
   RespondentExportRequest,
 } from './services/respondents';
 
-// Events & Social Media
-export { eventsService, socialPostsService } from './services/events';
+// Events
+export { eventsService } from './services/events';
 export type {
   EventFilters,
   CreateEventRequest,
   UpdateEventRequest,
   EventParticipant,
   AddParticipantRequest,
-  SocialPostFilters,
-  CreateSocialPostRequest,
-  UpdateSocialPostRequest,
 } from './services/events';
+
+// Social Media
+export { socialPostsService } from './services/social';
+export type { SocialPostFilters, CreateSocialPostRequest, UpdateSocialPostRequest } from './services/social';
 
 // Aggregates
 export { aggregatesService } from './services/aggregates';
@@ -112,9 +113,10 @@ export type {
 } from './services/aggregates';
 
 // Reports, Analysis & Flags
-export { reportsService, analysisService, flagsService } from './services/reports';
+export { reportsService, analysisService, flagsService, dashboardChartsService } from './services/reports';
 export type {
   Report,
+  DashboardChart,
   ReportFilters,
   CreateReportRequest,
   ScheduledReport,
@@ -125,3 +127,11 @@ export type {
   CreateFlagRequest,
   UpdateFlagRequest,
 } from './services/reports';
+
+
+
+// Uploads
+export { uploadsService } from './services/uploads';
+export type { UploadFilters, CreateUploadRequest, UpdateUploadRequest, UploadRecord, ImportJob } from './services/uploads';
+
+

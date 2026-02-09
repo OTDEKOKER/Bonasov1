@@ -27,8 +27,10 @@ export interface CreateUserRequest {
   first_name: string;
   last_name: string;
   password: string;
+  password_confirm: string;
   role: UserRole;
-  organization_id: number;
+  organization?: number;
+  phone?: string;
 }
 
 export interface UpdateUserRequest {
@@ -36,7 +38,7 @@ export interface UpdateUserRequest {
   first_name?: string;
   last_name?: string;
   role?: UserRole;
-  organization_id?: number;
+  organization?: number;
   is_active?: boolean;
 }
 
@@ -115,6 +117,17 @@ export const usersService = {
   async deactivate(id: number): Promise<User> {
     const { data } = await api.post<User>(`/users/${id}/deactivate/`);
     return data;
+  },
+
+  /**
+   * Admin reset password
+   * Django endpoint: POST /api/users/admin-reset-password/
+   */
+  async adminResetPassword(userId: number, newPassword: string): Promise<void> {
+    await api.post(`/users/admin-reset-password/`, {
+      user_id: userId,
+      new_password: newPassword,
+    });
   },
 
   /**

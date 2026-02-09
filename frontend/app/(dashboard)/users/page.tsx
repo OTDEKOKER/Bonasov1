@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { PageHeader } from "@/components/shared/page-header"
 import { DataTable } from "@/components/shared/data-table"
-import { useUsers, useOrganizations } from "@/lib/hooks/use-api"
+import { useUsers, useAllOrganizations } from "@/lib/hooks/use-api"
 import { usersService } from "@/lib/api"
 import type { User } from "@/lib/types"
 import {
@@ -48,15 +48,23 @@ export default function UsersPage() {
   const router = useRouter()
   const { toast } = useToast()
   const { data: usersData, isLoading, error, mutate } = useUsers()
-  const { data: orgsData } = useOrganizations()
+  const { data: orgsData } = useAllOrganizations()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isResetOpen, setIsResetOpen] = useState(false)
+  const [resetUser, setResetUser] = useState<User | null>(null)
+  const [resetPassword, setResetPassword] = useState("")
+  const [resetPasswordConfirm, setResetPasswordConfirm] = useState("")
+  const [isResetting, setIsResetting] = useState(false)
   const [formData, setFormData] = useState({
+    username: "",
     firstName: "",
     lastName: "",
     email: "",
     role: "",
     organizationId: "",
+    password: "",
+    passwordConfirm: "",
   })
 
   const users = usersData?.results || []
@@ -71,7 +79,8 @@ export default function UsersPage() {
         <div className="flex items-center gap-3">
           <Avatar className="h-10 w-10">
             <AvatarFallback className="bg-primary/10 text-primary">
-              {user.firstName[0]}{user.lastName[0]}
+              {(user.firstName?.[0] || "").toUpperCase()}
+              {(user.lastName?.[0] || "").toUpperCase()}
             </AvatarFallback>
           </Avatar>
           <div>
@@ -101,7 +110,7 @@ export default function UsersPage() {
         const org = organizations.find(o => o.id === user.organizationId)
         return (
           <span className="text-sm text-muted-foreground">
-            {org?.name || "—"}
+            {org?.name || "â€”"}
           </span>
         )
       },
@@ -122,10 +131,26 @@ export default function UsersPage() {
   ]
 
   const handleCreate = async () => {
-    if (!formData.firstName || !formData.lastName || !formData.email || !formData.role) {
+    if (!formData.username || !formData.firstName || !formData.lastName || !formData.email || !formData.role) {
       toast({
         title: "Validation Error",
         description: "Please fill in all required fields",
+        variant: "destructive",
+      })
+      return
+    }
+    if (!formData.password || !formData.passwordConfirm) {
+      toast({
+        title: "Validation Error",
+        description: "Please provide a password and confirm it.",
+        variant: "destructive",
+      })
+      return
+    }
+    if (formData.password !== formData.passwordConfirm) {
+      toast({
+        title: "Validation Error",
+        description: "Passwords do not match.",
         variant: "destructive",
       })
       return
@@ -134,23 +159,42 @@ export default function UsersPage() {
     setIsSubmitting(true)
     try {
       await usersService.create({
-        firstName: formData.firstName,
-        lastName: formData.lastName,
+        username: formData.username,
+        first_name: formData.firstName,
+        last_name: formData.lastName,
         email: formData.email,
         role: formData.role as User["role"],
-        organizationId: formData.organizationId || undefined,
+        organization: formData.organizationId && formData.organizationId !== "all"
+          ? Number(formData.organizationId)
+          : undefined,
+        password: formData.password,
+        password_confirm: formData.passwordConfirm,
       })
       toast({
         title: "Success",
         description: "User created successfully",
       })
       setIsCreateOpen(false)
-      setFormData({ firstName: "", lastName: "", email: "", role: "", organizationId: "" })
+      setFormData({
+        username: "",
+        firstName: "",
+        lastName: "",
+        email: "",
+        role: "",
+        organizationId: "",
+        password: "",
+        passwordConfirm: "",
+      })
       mutate()
-    } catch {
+    } catch (err: any) {
+      console.warn("Create user failed", err)
+      const errorMessage =
+        err?.errors
+          ? JSON.stringify(err.errors)
+          : err?.message || "Failed to create user"
       toast({
         title: "Error",
-        description: "Failed to create user",
+        description: errorMessage,
         variant: "destructive",
       })
     } finally {
@@ -159,18 +203,46 @@ export default function UsersPage() {
   }
 
   const handleResetPassword = async (user: User) => {
+    setResetUser(user)
+    setResetPassword("")
+    setResetPasswordConfirm("")
+    setIsResetOpen(true)
+  }
+
+  const handleConfirmReset = async () => {
+    if (!resetUser) return
+    if (!resetPassword || !resetPasswordConfirm) {
+      toast({
+        title: "Validation Error",
+        description: "Please provide and confirm the new password.",
+        variant: "destructive",
+      })
+      return
+    }
+    if (resetPassword !== resetPasswordConfirm) {
+      toast({
+        title: "Validation Error",
+        description: "Passwords do not match.",
+        variant: "destructive",
+      })
+      return
+    }
+    setIsResetting(true)
     try {
-      await usersService.resetPassword(user.id)
+      await usersService.adminResetPassword(resetUser.id, resetPassword)
       toast({
         title: "Success",
-        description: "Password reset email sent",
+        description: "Password reset successfully.",
       })
+      setIsResetOpen(false)
     } catch {
       toast({
         title: "Error",
-        description: "Failed to send password reset",
+        description: "Failed to reset password",
         variant: "destructive",
       })
+    } finally {
+      setIsResetting(false)
     }
   }
 
@@ -193,11 +265,30 @@ export default function UsersPage() {
     }
   }
 
+  const handleActivate = async (user: User) => {
+    if (!confirm(`Activate ${user.firstName} ${user.lastName}?`)) return
+    try {
+      await usersService.activate(user.id)
+      toast({
+        title: "Success",
+        description: "User activated successfully",
+      })
+      mutate()
+    } catch {
+      toast({
+        title: "Error",
+        description: "Failed to activate user",
+        variant: "destructive",
+      })
+    }
+  }
+
   const actions = (user: User) => [
-    { label: "View Profile", onClick: () => router.push(`/users/${user.id}`) },
     { label: "Edit", onClick: () => router.push(`/users/${user.id}/edit`) },
     { label: "Reset Password", onClick: () => handleResetPassword(user) },
-    { label: "Deactivate", onClick: () => handleDeactivate(user), destructive: true },
+    user.is_active
+      ? { label: "Deactivate", onClick: () => handleDeactivate(user), destructive: true }
+      : { label: "Activate", onClick: () => handleActivate(user) },
   ]
 
   if (isLoading) {
@@ -239,7 +330,7 @@ export default function UsersPage() {
       />
 
       {/* Stats cards */}
-      <div className="grid gap-4 sm:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-lg border border-border bg-card p-4">
           <p className="text-sm text-muted-foreground">Total Users</p>
           <p className="text-2xl font-bold text-foreground">{users.length}</p>
@@ -269,7 +360,7 @@ export default function UsersPage() {
 
       {/* Create Dialog */}
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent>
+        <DialogContent className="w-[95vw] sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Add User</DialogTitle>
             <DialogDescription>
@@ -283,7 +374,16 @@ export default function UsersPage() {
               handleCreate()
             }}
           >
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="username">Username *</Label>
+                <Input
+                  id="username"
+                  placeholder="jdoe"
+                  value={formData.username}
+                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                />
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="firstName">First Name *</Label>
                 <Input
@@ -313,6 +413,28 @@ export default function UsersPage() {
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               />
             </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="password">Password *</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="********"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="passwordConfirm">Confirm Password *</Label>
+                <Input
+                  id="passwordConfirm"
+                  type="password"
+                  placeholder="********"
+                  value={formData.passwordConfirm}
+                  onChange={(e) => setFormData({ ...formData, passwordConfirm: e.target.value })}
+                />
+              </div>
+            </div>
             <div className="space-y-2">
               <Label htmlFor="role">Role *</Label>
               <Select
@@ -331,23 +453,15 @@ export default function UsersPage() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="organization">Organization</Label>
-              <Select
-                value={formData.organizationId}
-                onValueChange={(value) => setFormData({ ...formData, organizationId: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select organization" />
-                </SelectTrigger>
-                <SelectContent>
-                  {organizations.map((org) => (
-                    <SelectItem key={org.id} value={org.id}>
-                      {org.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+                            <Label htmlFor="organization">Organization</Label>
+              <OrganizationSelect
+                organizations={organizations}
+                value={form.organization}
+                onChange={(value) => setForm({ ...form, organization: value })}
+                includeAll
+                allLabel="All organizations"
+                placeholder="Select organization"
+              /></div>
             <DialogFooter>
               <Button
                 type="button"
@@ -364,6 +478,55 @@ export default function UsersPage() {
           </form>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={isResetOpen} onOpenChange={setIsResetOpen}>
+        <DialogContent className="w-[95vw] sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Reset Password</DialogTitle>
+            <DialogDescription>
+              Set a new password for {resetUser?.firstName} {resetUser?.lastName}.
+            </DialogDescription>
+          </DialogHeader>
+          <form
+            className="space-y-4"
+            onSubmit={(e) => {
+              e.preventDefault()
+              handleConfirmReset()
+            }}
+          >
+            <div className="space-y-2">
+              <Label htmlFor="resetPassword">New Password</Label>
+              <Input
+                id="resetPassword"
+                type="password"
+                value={resetPassword}
+                onChange={(e) => setResetPassword(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="resetPasswordConfirm">Confirm Password</Label>
+              <Input
+                id="resetPasswordConfirm"
+                type="password"
+                value={resetPasswordConfirm}
+                onChange={(e) => setResetPasswordConfirm(e.target.value)}
+              />
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setIsResetOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isResetting}>
+                {isResetting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Reset Password
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
+
+
+

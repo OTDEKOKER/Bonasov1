@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Aggregates Service
  * 
  * CRUD operations for aggregate data (tabular data without respondent linking).
@@ -25,29 +25,25 @@ export interface AggregateFilters {
 }
 
 export interface CreateAggregateRequest {
-  indicator_id: number;
-  project_id: number;
-  organization_id: number;
-  period: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly';
+  indicator: number;
+  project: number;
+  organization: number;
   period_start: string;
   period_end: string;
-  value: number;
-  disaggregation?: Record<string, number>; // e.g., { "male": 50, "female": 60 }
+  value: unknown;
   notes?: string;
 }
 
 export interface UpdateAggregateRequest extends Partial<CreateAggregateRequest> {}
 
 export interface BulkAggregateRequest {
-  project_id: number;
-  organization_id: number;
-  period: string;
+  project: number;
+  organization: number;
   period_start: string;
   period_end: string;
   data: Array<{
-    indicator_id: number;
-    value: number;
-    disaggregation?: Record<string, number>;
+    indicator: number;
+    value: unknown;
   }>;
 }
 
@@ -63,6 +59,17 @@ export interface AggregateTemplate {
   }>;
 }
 
+// Drop undefined/empty filters so we do not send project=undefined.
+const cleanParams = (filters?: Record<string, string | undefined | null>) => {
+  if (!filters) return undefined;
+  const params: Record<string, string> = {};
+  for (const [key, value] of Object.entries(filters)) {
+    if (value === undefined || value === null || value === "") continue;
+    params[key] = String(value);
+  }
+  return Object.keys(params).length ? params : undefined;
+};
+
 // ============================================================================
 // Aggregates Service
 // ============================================================================
@@ -73,9 +80,36 @@ export const aggregatesService = {
    * Django endpoint: GET /api/aggregates/
    */
   async list(filters?: AggregateFilters): Promise<PaginatedResponse<Aggregate>> {
-    const params = filters as Record<string, string> | undefined;
+    const params = cleanParams(filters as Record<string, string | undefined>);
     const { data } = await api.get<PaginatedResponse<Aggregate>>('/aggregates/', params);
     return data;
+  },
+  /**
+   * List all aggregates across all pages
+   */
+  async listAll(filters?: AggregateFilters): Promise<Aggregate[]> {
+    const results: Aggregate[] = [];
+    let page = filters?.page ? String(filters.page) : "1";
+    const baseFilters = cleanParams({ ...(filters || {}) } as Record<string, string | undefined>) || {}
+    delete (baseFilters as any).page;
+
+    while (true) {
+      const { data } = await api.get<PaginatedResponse<Aggregate>>('/aggregates/', {
+        ...baseFilters,
+        page,
+      });
+      results.push(...(data.results || []));
+      if (!data.next) break;
+      try {
+        const nextUrl = new URL(data.next);
+        const nextPage = nextUrl.searchParams.get("page");
+        if (!nextPage) break;
+        page = nextPage;
+      } catch {
+        break;
+      }
+    }
+    return results;
   },
 
   /**
@@ -115,19 +149,20 @@ export const aggregatesService = {
 
   /**
    * Bulk create aggregates
-   * Django endpoint: POST /api/aggregates/bulk/
+   * Django endpoint: POST /api/aggregates/bulk_create/
    */
   async bulkCreate(request: BulkAggregateRequest): Promise<Aggregate[]> {
-    const { data } = await api.post<Aggregate[]>('/aggregates/bulk/', request);
-    return data;
+    const { data } = await api.post<{ results: Aggregate[] }>('/aggregates/bulk_create/', request);
+    return data.results || [];
   },
 
   /**
    * Get aggregate templates (predefined indicator sets)
    * Django endpoint: GET /api/aggregates/templates/
    */
-  async getTemplates(): Promise<AggregateTemplate[]> {
-    const { data } = await api.get<AggregateTemplate[]>('/aggregates/templates/');
+  async getTemplates(filters?: { project?: string; organization?: string }): Promise<AggregateTemplate[]> {
+    const params = cleanParams(filters as Record<string, string | undefined>);
+    const { data } = await api.get<AggregateTemplate[]>('/aggregates/templates/', params);
     return data;
   },
 
@@ -147,9 +182,15 @@ export const aggregatesService = {
     period_count: number;
     trend: 'up' | 'down' | 'stable';
   }>> {
-    const params = filters as Record<string, string> | undefined;
+    const params = cleanParams(filters as Record<string, string | undefined>);
     const { data } = await api.get('/aggregates/summary/', params);
-    return data;
+    return data as Array<{
+      indicator_id: number;
+      indicator_name: string;
+      total_value: number;
+      period_count: number;
+      trend: 'up' | 'down' | 'stable';
+    }>;
   },
 
   /**
@@ -157,17 +198,17 @@ export const aggregatesService = {
    * Django endpoint: GET /api/aggregates/export/
    */
   async export(filters?: AggregateFilters & { format?: 'csv' | 'excel' }): Promise<Blob> {
-    const params = filters as Record<string, string>;
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/aggregates/export/?${new URLSearchParams(params)}`,
-      {
-        headers: {
-          Authorization: `Token ${localStorage.getItem('auth_token')}`,
-        },
-      }
-    );
+    const params = cleanParams(filters as Record<string, string | undefined>);
+    const qs = params ? `?${new URLSearchParams(params).toString()}` : '';
+    const token = localStorage.getItem('access_token');
+    const response = await fetch(`/api/aggregates/export/${qs}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
     return response.blob();
-  },
+  }
 };
 
 export default aggregatesService;
+
+
+

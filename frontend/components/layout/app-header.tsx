@@ -12,14 +12,20 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { mockUsers } from "@/lib/mock-data"
+import { useAuth } from "@/lib/contexts/auth-context"
+import { useRouter } from "next/navigation"
 
 interface AppHeaderProps {
   onMenuClick?: () => void
 }
 
 export function AppHeader({ onMenuClick }: AppHeaderProps) {
-  const currentUser = mockUsers[0] // Mock current user
+  const router = useRouter()
+  const { user, logout } = useAuth()
+  const currentUser = user
+  const handleLogout = async () => {
+    await logout()
+  }
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 lg:px-6">
@@ -96,15 +102,16 @@ export function AppHeader({ onMenuClick }: AppHeaderProps) {
             <Button variant="ghost" className="flex items-center gap-2 px-2">
               <Avatar className="h-8 w-8">
                 <AvatarFallback className="bg-primary text-primary-foreground text-sm">
-                  {currentUser.firstName[0]}{currentUser.lastName[0]}
+                  {(currentUser?.firstName?.[0] || "U").toUpperCase()}
+                  {(currentUser?.lastName?.[0] || "").toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               <div className="hidden flex-col items-start text-left md:flex">
                 <span className="text-sm font-medium">
-                  {currentUser.firstName} {currentUser.lastName}
+                  {currentUser ? `${currentUser.firstName} ${currentUser.lastName}` : "My Account"}
                 </span>
                 <span className="text-xs text-muted-foreground capitalize">
-                  {currentUser.role.replace('_', ' ')}
+                  {currentUser?.role ? currentUser.role.replace('_', ' ') : "user"}
                 </span>
               </div>
             </Button>
@@ -112,11 +119,23 @@ export function AppHeader({ onMenuClick }: AppHeaderProps) {
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel>My Account</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Profile</DropdownMenuItem>
-            <DropdownMenuItem>Settings</DropdownMenuItem>
-            <DropdownMenuItem>Activity Log</DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => currentUser && router.push(`/users/${currentUser.id}`)}
+              disabled={!currentUser}
+            >
+              Profile
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => router.push("/settings")}>
+              Settings
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => currentUser && router.push(`/users/${currentUser.id}#activity`)}
+              disabled={!currentUser}
+            >
+              Activity Log
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive">
+            <DropdownMenuItem className="text-destructive" onClick={handleLogout}>
               Sign Out
             </DropdownMenuItem>
           </DropdownMenuContent>

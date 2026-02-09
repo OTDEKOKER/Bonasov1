@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django.utils import timezone
+from django.db import models
 from django.db.models import Count, Sum, Avg
 from django.http import HttpResponse
 import csv
@@ -84,6 +85,10 @@ class DashboardView(viewsets.ViewSet):
     """Dashboard analytics endpoints."""
     
     permission_classes = [IsAuthenticated]
+
+    def list(self, request):
+        """Support /analysis/dashboard/ by delegating to overview."""
+        return self.overview(request)
     
     @action(detail=False, methods=['get'])
     def overview(self, request):

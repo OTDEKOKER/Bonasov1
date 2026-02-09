@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 /**
  * SWR Hooks for API Data Fetching
@@ -22,10 +22,12 @@ import {
   interactionsService,
   eventsService,
   socialPostsService,
+  uploadsService,
   aggregatesService,
   reportsService,
   analysisService,
   flagsService,
+  dashboardChartsService,
   type ProjectFilters,
   type TaskFilters,
   type DeadlineFilters,
@@ -37,6 +39,7 @@ import {
   type InteractionFilters,
   type EventFilters,
   type SocialPostFilters,
+  type UploadFilters,
   type AggregateFilters,
   type ReportFilters,
   type FlagFilters,
@@ -56,6 +59,17 @@ export function useOrganizations(filters?: OrganizationFilters, config?: SWRConf
   return useSWR(
     ['organizations', filters],
     () => organizationsService.list(filters),
+    { ...defaultConfig, ...config }
+  );
+}
+
+export function useAllOrganizations(filters?: OrganizationFilters, config?: SWRConfiguration) {
+  return useSWR(
+    ['organizations-all', filters],
+    async () => {
+      const results = await organizationsService.listAll(filters);
+      return { count: results.length, next: null, previous: null, results };
+    },
     { ...defaultConfig, ...config }
   );
 }
@@ -116,6 +130,16 @@ export function useProject(id: number | null, config?: SWRConfiguration) {
   );
 }
 
+export function useAllProjects(filters?: ProjectFilters, config?: SWRConfiguration) {
+  return useSWR(
+    ['projects-all', filters],
+    async () => {
+      const results = await projectsService.listAll(filters);
+      return { count: results.length, next: null, previous: null, results };
+    },
+    { ...defaultConfig, ...config }
+  );
+}
 export function useProjectStats(id: number | null, config?: SWRConfiguration) {
   return useSWR(
     id ? ['project-stats', id] : null,
@@ -176,6 +200,14 @@ export function useIndicators(filters?: IndicatorFilters, config?: SWRConfigurat
   );
 }
 
+export function useAllIndicators(filters?: IndicatorFilters, config?: SWRConfiguration) {
+  return useSWR(
+    ['indicators-all', filters],
+    () => indicatorsService.listAll(filters),
+    { ...defaultConfig, ...config }
+  );
+}
+
 export function useIndicator(id: number | null, config?: SWRConfiguration) {
   return useSWR(
     id ? ['indicator', id] : null,
@@ -200,6 +232,14 @@ export function useAssessments(filters?: AssessmentFilters, config?: SWRConfigur
   return useSWR(
     ['assessments', filters],
     () => assessmentsService.list(filters),
+    { ...defaultConfig, ...config }
+  );
+}
+
+export function useAssessment(id: number | null, config?: SWRConfiguration) {
+  return useSWR(
+    id ? ['assessment', id] : null,
+    () => assessmentsService.get(id!),
     { ...defaultConfig, ...config }
   );
 }
@@ -292,14 +332,41 @@ export function useSocialPosts(filters?: SocialPostFilters, config?: SWRConfigur
   );
 }
 
-export function useSocialStats(config?: SWRConfiguration) {
+// ============================================================================
+// Uploads Hooks
+// ============================================================================
+
+export function useUploads(filters?: UploadFilters, config?: SWRConfiguration) {
   return useSWR(
-    'social-stats',
-    () => socialPostsService.getStats(),
+    ['uploads', filters],
+    () => uploadsService.list(filters),
     { ...defaultConfig, ...config }
   );
 }
 
+export function useAllUploads(filters?: UploadFilters, config?: SWRConfiguration) {
+  return useSWR(
+    ['uploads-all', filters],
+    () => uploadsService.listAll(filters),
+    { ...defaultConfig, ...config }
+  );
+}
+
+export function useUpload(id: number | null, config?: SWRConfiguration) {
+  return useSWR(
+    id ? ['upload', id] : null,
+    () => uploadsService.get(id!),
+    { ...defaultConfig, ...config }
+  );
+}
+
+export function useImportJobs(filters?: { status?: string; upload?: string }, config?: SWRConfiguration) {
+  return useSWR(
+    ['import-jobs', filters],
+    () => uploadsService.listImports(filters),
+    { ...defaultConfig, ...config }
+  );
+}
 // ============================================================================
 // Aggregates Hooks
 // ============================================================================
@@ -312,10 +379,21 @@ export function useAggregates(filters?: AggregateFilters, config?: SWRConfigurat
   );
 }
 
-export function useAggregateTemplates(config?: SWRConfiguration) {
+export function useAllAggregates(filters?: AggregateFilters, config?: SWRConfiguration) {
   return useSWR(
-    'aggregate-templates',
-    () => aggregatesService.getTemplates(),
+    ['aggregates-all', filters],
+    () => aggregatesService.listAll(filters),
+    { ...defaultConfig, ...config }
+  );
+}
+
+export function useAggregateTemplates(
+  filters?: { project?: string; organization?: string },
+  config?: SWRConfiguration
+) {
+  return useSWR(
+    ['aggregate-templates', filters],
+    () => aggregatesService.getTemplates(filters),
     { ...defaultConfig, ...config }
   );
 }
@@ -328,6 +406,14 @@ export function useReports(filters?: ReportFilters, config?: SWRConfiguration) {
   return useSWR(
     ['reports', filters],
     () => reportsService.list(filters),
+    { ...defaultConfig, ...config }
+  );
+}
+
+export function useDashboardCharts(config?: SWRConfiguration) {
+  return useSWR(
+    'dashboard-charts',
+    () => dashboardChartsService.list(),
     { ...defaultConfig, ...config }
   );
 }
@@ -352,10 +438,38 @@ export function useDashboardStats(projectId?: number, config?: SWRConfiguration)
   );
 }
 
-export function useIndicatorTrends(indicatorId: number | null, months?: number, config?: SWRConfiguration) {
+export function useIndicatorTrends(
+  indicatorId: number | null,
+  params?: {
+    months?: number;
+    projectId?: number | null;
+    organizationId?: number | null;
+    dateFrom?: string;
+    dateTo?: string;
+  },
+  config?: SWRConfiguration,
+) {
   return useSWR(
-    indicatorId ? ['indicator-trends', indicatorId, months] : null,
-    () => analysisService.getIndicatorTrends(indicatorId!, months),
+    indicatorId ? ['indicator-trends', indicatorId, params] : null,
+    () => analysisService.getIndicatorTrends(indicatorId!, params),
+    { ...defaultConfig, ...config }
+  );
+}
+
+export function useIndicatorTrendsBulk(
+  indicatorIds: number[] | null,
+  params?: {
+    months?: number;
+    projectId?: number | null;
+    organizationId?: number | null;
+    dateFrom?: string;
+    dateTo?: string;
+  },
+  config?: SWRConfiguration,
+) {
+  return useSWR(
+    indicatorIds && indicatorIds.length ? ['indicator-trends-bulk', indicatorIds, params] : null,
+    () => analysisService.getIndicatorTrendsBulk(indicatorIds!, params),
     { ...defaultConfig, ...config }
   );
 }
@@ -379,3 +493,13 @@ export function useFlagStats(config?: SWRConfiguration) {
     { ...defaultConfig, ...config }
   );
 }
+
+
+
+
+
+
+
+
+
+

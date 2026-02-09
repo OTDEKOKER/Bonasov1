@@ -1,4 +1,4 @@
-import React from "react"
+﻿import React from "react"
 import type { Metadata } from 'next'
 import { Inter, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
@@ -13,21 +13,8 @@ export const metadata: Metadata = {
   description: 'Enterprise data management system for health indicators, projects, and analytics',
   generator: 'v0.app',
   icons: {
-    icon: [
-      {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
-      },
-    ],
-    apple: '/apple-icon.png',
+    icon: '/favicon.ico',
+    apple: '/favicon.ico',
   },
 }
 
@@ -41,7 +28,7 @@ export default function RootLayout({
       <body className={`font-sans antialiased`}>
         {children}
         <Toaster />
-        <Analytics />
+        <Analytics debug={false} />
       </body>
     </html>
   )

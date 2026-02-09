@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { PageHeader } from "@/components/shared/page-header"
-import { useProjects, useOrganizations, useTasks } from "@/lib/hooks/use-api"
+import { useProjects, useAllOrganizations } from "@/lib/hooks/use-api"
 import { projectsService } from "@/lib/api"
 import type { Project } from "@/lib/types"
 import {
@@ -21,6 +21,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   Select,
   SelectContent,
@@ -35,29 +36,26 @@ const statusColors: Record<string, string> = {
   active: "bg-primary/10 text-primary",
   completed: "bg-chart-2/10 text-chart-2",
   draft: "bg-muted text-muted-foreground",
+  archived: "bg-muted text-muted-foreground",
 }
 
 interface ProjectCardProps {
   project: Project
   organizations: { id: string; name: string; type: string }[]
-  tasks: { projectId: string; target?: number; achieved?: number }[]
 }
 
-function ProjectCard({ project, organizations, tasks }: ProjectCardProps) {
+function ProjectCard({ project, organizations }: ProjectCardProps) {
   const router = useRouter()
-  const funder = organizations.find(o => o.id === project.funderId)
-  const projectTasks = tasks.filter(t => t.projectId === project.id)
-  
-  const totalTarget = projectTasks.reduce((sum, t) => sum + (t.target || 0), 0)
-  const totalAchieved = projectTasks.reduce((sum, t) => sum + (t.achieved || 0), 0)
-  const progress = totalTarget > 0 ? Math.round((totalAchieved / totalTarget) * 100) : 0
-  
-  const startDate = new Date(project.startDate)
-  const endDate = new Date(project.endDate)
+  const progress = project.progress_percentage ?? 0
+  const startDate = new Date(project.start_date)
+  const endDate = new Date(project.end_date)
   const now = new Date()
   const totalDays = (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
   const daysPassed = (now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
-  const timeProgress = Math.min(100, Math.max(0, Math.round((daysPassed / totalDays) * 100)))
+  const timeProgress =
+    Number.isFinite(totalDays) && totalDays > 0
+      ? Math.min(100, Math.max(0, Math.round((daysPassed / totalDays) * 100)))
+      : 0
 
   return (
     <div
@@ -92,12 +90,12 @@ function ProjectCard({ project, organizations, tasks }: ProjectCardProps) {
         </div>
         <div className="flex items-center gap-1">
           <Users className="h-4 w-4" />
-          <span>{project.organizationIds.length} organizations</span>
+          <span>{project.organizations?.length || 0} organizations</span>
         </div>
-        {funder && (
+        {project.funder && (
           <div className="flex items-center gap-1">
             <FolderKanban className="h-4 w-4" />
-            <span>{funder.name}</span>
+            <span>{project.funder}</span>
           </div>
         )}
       </div>
@@ -126,31 +124,32 @@ function ProjectCard({ project, organizations, tasks }: ProjectCardProps) {
 export default function ProjectsPage() {
   const { toast } = useToast()
   const { data: projectsData, isLoading, error, mutate } = useProjects()
-  const { data: orgsData } = useOrganizations()
-  const { data: tasksData } = useTasks()
+  const { data: orgsData } = useAllOrganizations()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [activeTab, setActiveTab] = useState("all")
+  const [selectedOrganizations, setSelectedOrganizations] = useState<string[]>([])
   const [formData, setFormData] = useState({
     name: "",
     code: "",
     description: "",
-    startDate: "",
-    endDate: "",
+    start_date: "",
+    end_date: "",
     funderId: "",
   })
 
   const projects = projectsData?.results || []
   const organizations = orgsData?.results || []
-  const tasks = tasksData?.results || []
   const funders = organizations.filter(o => o.type === 'funder')
+  const partnerOrganizations = organizations.filter(o => o.type !== 'funder')
+  const filteredPartnerOrganizations = partnerOrganizations.filter((org) => org.name.toLowerCase().includes(orgSearch.toLowerCase()))
 
   const filteredProjects = activeTab === "all"
     ? projects
     : projects.filter(p => p.status === activeTab)
 
   const handleCreate = async () => {
-    if (!formData.name || !formData.code || !formData.startDate || !formData.endDate) {
+    if (!formData.name || !formData.code || !formData.start_date || !formData.end_date) {
       toast({
         title: "Validation Error",
         description: "Please fill in all required fields",
@@ -158,30 +157,57 @@ export default function ProjectsPage() {
       })
       return
     }
+    const codeExists = projects.some(
+      (project) => project.code?.toLowerCase() === formData.code.trim().toLowerCase()
+    )
+    if (codeExists) {
+      toast({
+        title: "Project code already exists",
+        description: "Choose a unique project code.",
+        variant: "destructive",
+      })
+      return
+    }
 
     setIsSubmitting(true)
     try {
+      const funderOrg = organizations.find((org) => org.id === formData.funderId)
       await projectsService.create({
         name: formData.name,
         code: formData.code,
         description: formData.description || undefined,
-        startDate: formData.startDate,
-        endDate: formData.endDate,
-        funderId: formData.funderId || undefined,
-        status: "draft",
-        organizationIds: [],
+        start_date: formData.start_date,
+        end_date: formData.end_date,
+        funder: funderOrg?.name,
+        organizations: selectedOrganizations.length
+          ? selectedOrganizations.map((id) => Number(id))
+          : undefined,
       })
       toast({
         title: "Success",
         description: "Project created successfully",
       })
       setIsCreateOpen(false)
-      setFormData({ name: "", code: "", description: "", startDate: "", endDate: "", funderId: "" })
+      setFormData({ name: "", code: "", description: "", start_date: "", end_date: "", funderId: "" })
+      setSelectedOrganizations([])
       mutate()
-    } catch {
+    } catch (err: unknown) {
+      const message =
+        err && typeof err === "object" && "message" in err
+          ? (err as { message: string }).message
+          : "Failed to create project"
+      const errors =
+        err && typeof err === "object" && "errors" in err
+          ? (err as { errors: Record<string, string[]> }).errors
+          : null
+      const details = errors
+        ? Object.entries(errors)
+            .map(([field, issues]) => `${field}: ${issues.join(", ")}`)
+            .join(" | ")
+        : ""
       toast({
         title: "Error",
-        description: "Failed to create project",
+        description: details ? `${message}. ${details}` : message,
         variant: "destructive",
       })
     } finally {
@@ -247,7 +273,6 @@ export default function ProjectsPage() {
                 key={project.id}
                 project={project}
                 organizations={organizations}
-                tasks={tasks}
               />
             ))}
           </div>
@@ -261,7 +286,7 @@ export default function ProjectsPage() {
 
       {/* Create Dialog */}
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="w-[95vw] sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Create Project</DialogTitle>
             <DialogDescription>
@@ -275,7 +300,7 @@ export default function ProjectsPage() {
               handleCreate()
             }}
           >
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="name">Project Name *</Label>
                 <Input
@@ -305,14 +330,14 @@ export default function ProjectsPage() {
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="startDate">Start Date *</Label>
                 <Input
                   id="startDate"
                   type="date"
-                  value={formData.startDate}
-                  onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                  value={formData.start_date}
+                  onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
                 />
               </div>
               <div className="space-y-2">
@@ -320,8 +345,8 @@ export default function ProjectsPage() {
                 <Input
                   id="endDate"
                   type="date"
-                  value={formData.endDate}
-                  onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                  value={formData.end_date}
+                  onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
                 />
               </div>
             </div>
@@ -343,6 +368,37 @@ export default function ProjectsPage() {
                 </SelectContent>
               </Select>
             </div>
+            <div className="space-y-2">
+              <Label>Participating Organizations</Label>\n              <Input\n                value={orgSearch}\n                onChange={(e) => setOrgSearch(e.target.value)}\n                placeholder="Search organizations..."\n              />\n<div className="max-h-40 space-y-2 overflow-auto rounded-lg border border-border p-3">
+                {partnerOrganizations.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">
+                    No organizations available.
+                  </p>
+                ) : (
+                  partnerOrganizations.map((org) => {
+                    const id = String(org.id)
+                    const checked = selectedOrganizations.includes(id)
+                    return (
+                      <label key={id} className="flex items-center gap-2 text-sm">
+                        <Checkbox
+                          checked={checked}
+                          onCheckedChange={(value) => {
+                            setSelectedOrganizations((prev) => {
+                              if (value === true) return prev.includes(id) ? prev : [...prev, id]
+                              return prev.filter((item) => item !== id)
+                            })
+                          }}
+                        />
+                        <span>{org.name}</span>
+                      </label>
+                    )
+                  })
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Leave empty to make the project visible only to admins.
+              </p>
+            </div>
             <DialogFooter>
               <Button
                 type="button"
@@ -362,3 +418,5 @@ export default function ProjectsPage() {
     </div>
   )
 }
+
+

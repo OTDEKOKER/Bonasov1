@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Projects Service
  * 
  * CRUD operations for projects, tasks, targets, and deadlines.
@@ -24,16 +24,15 @@ export interface ProjectFilters {
 export interface CreateProjectRequest {
   name: string;
   code: string;
-  funder: string;
+  funder?: string;
   description?: string;
   start_date: string;
   end_date: string;
-  organization_id: number;
-  indicator_ids?: number[];
+  organizations?: number[];
 }
 
 export interface UpdateProjectRequest extends Partial<CreateProjectRequest> {
-  status?: 'active' | 'completed' | 'on_hold';
+  status?: 'draft' | 'active' | 'completed' | 'archived';
 }
 
 export interface TaskFilters {
@@ -46,16 +45,16 @@ export interface TaskFilters {
 }
 
 export interface CreateTaskRequest {
-  title: string;
+  name: string;
   description?: string;
-  project_id: number;
-  assigned_to_id?: number;
-  due_date: string;
-  priority: 'low' | 'medium' | 'high';
+  project: number;
+  assigned_to?: number;
+  due_date?: string;
+  priority: 'low' | 'medium' | 'high' | 'urgent';
 }
 
 export interface UpdateTaskRequest extends Partial<CreateTaskRequest> {
-  status?: 'pending' | 'in_progress' | 'completed' | 'overdue';
+  status?: 'pending' | 'in_progress' | 'completed' | 'cancelled';
 }
 
 export interface DeadlineFilters {
@@ -67,24 +66,21 @@ export interface DeadlineFilters {
 }
 
 export interface CreateDeadlineRequest {
-  project_id: number;
-  indicator_id: number;
+  project: number;
+  name: string;
+  description?: string;
   due_date: string;
-  target_value: number;
-  notes?: string;
+  indicators?: number[];
 }
 
 export interface UpdateDeadlineRequest extends Partial<CreateDeadlineRequest> {
-  status?: 'upcoming' | 'due_soon' | 'overdue' | 'completed';
-  actual_value?: number;
+  status?: 'pending' | 'submitted' | 'approved' | 'overdue';
 }
 
 export interface TargetRequest {
-  project_id: number;
   indicator_id: number;
   target_value: number;
-  period_start: string;
-  period_end: string;
+  baseline_value?: number;
 }
 
 // ============================================================================
@@ -100,6 +96,33 @@ export const projectsService = {
     const params = filters as Record<string, string> | undefined;
     const { data } = await api.get<PaginatedResponse<Project>>('/manage/projects/', params);
     return data;
+  },
+  /**
+   * List all projects across all pages
+   */
+  async listAll(filters?: ProjectFilters): Promise<Project[]> {
+    const results: Project[] = [];
+    let page = filters?.page ? String(filters.page) : "1";
+    const baseFilters = { ...(filters || {}) } as Record<string, string>;
+    delete (baseFilters as any).page;
+
+    while (true) {
+      const { data } = await api.get<PaginatedResponse<Project>>('/manage/projects/', {
+        ...baseFilters,
+        page,
+      });
+      results.push(...(data.results || []));
+      if (!data.next) break;
+      try {
+        const nextUrl = new URL(data.next);
+        const nextPage = nextUrl.searchParams.get("page");
+        if (!nextPage) break;
+        page = nextPage;
+      } catch {
+        break;
+      }
+    }
+    return results;
   },
 
   /**
@@ -156,7 +179,7 @@ export const projectsService = {
    * Django endpoint: POST /api/manage/projects/:id/assign-indicators/
    */
   async assignIndicators(id: number, indicatorIds: number[]): Promise<void> {
-    await api.post(`/manage/projects/${id}/assign-indicators/`, { indicator_ids: indicatorIds });
+    await api.post(`/manage/projects/${id}/assign_indicators/`, { indicator_ids: indicatorIds });
   },
 
   /**
@@ -164,7 +187,7 @@ export const projectsService = {
    * Django endpoint: POST /api/manage/projects/:id/targets/
    */
   async setTarget(id: number, request: TargetRequest): Promise<void> {
-    await api.post(`/manage/projects/${id}/targets/`, request);
+    await api.post(`/manage/projects/${id}/set_target/`, request);
   },
 };
 
@@ -286,6 +309,17 @@ export const deadlinesService = {
     const { data } = await api.get<Deadline[]>('/manage/deadlines/upcoming/', { days: days.toString() });
     return data;
   },
+
+  /**
+   * Submit deadline
+   * Django endpoint: POST /api/manage/deadlines/:id/submit/
+   */
+  async submit(id: number): Promise<Deadline> {
+    const { data } = await api.post<Deadline>(`/manage/deadlines/${id}/submit/`);
+    return data;
+  },
 };
 
 ;
+
+

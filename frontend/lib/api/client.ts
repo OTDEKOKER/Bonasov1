@@ -1,11 +1,11 @@
-/**
+﻿/**
  * BONASO Data Portal - API Client
  * 
  * This is the base HTTP client for communicating with your Django backend.
  * Configure NEXT_PUBLIC_API_URL in your environment variables.
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 
 export interface ApiResponse<T> {
   data: T;
@@ -13,10 +13,17 @@ export interface ApiResponse<T> {
   status: number;
 }
 
-export interface ApiError {
-  message: string;
+export type ApiError = Error & {
   status: number;
-  errors?: Record<string, string[]>;
+  errors?: unknown;
+};
+
+function makeApiError(message: string, status: number, errors?: unknown): ApiError {
+  const err = new Error(message) as ApiError;
+  err.name = 'ApiError';
+  err.status = status;
+  err.errors = errors;
+  return err;
 }
 
 export interface PaginatedResponse<T> {
@@ -67,36 +74,108 @@ export const setAuthToken = (token: string) => setAuthTokens(token, '');
 export const clearAuthToken = clearAuthTokens;
 
 /**
+ * Refresh the access token using the refresh token (no recursion into apiRequest).
+ */
+async function refreshAccessToken(): Promise<string | null> {
+  const refresh = getRefreshToken();
+  if (!refresh) return null;
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/users/token/refresh/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ refresh }),
+    });
+
+    if (!response.ok) {
+      clearAuthTokens();
+      return null;
+    }
+
+    const data = await response.json();
+    if (!data?.access) {
+      clearAuthTokens();
+      return null;
+    }
+
+    setAuthTokens(data.access, refresh);
+    return data.access as string;
+  } catch {
+    clearAuthTokens();
+    return null;
+  }
+}
+
+/**
  * Base fetch wrapper with authentication and error handling
  */
 async function apiRequest<T>(
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
+  retry: boolean = true
 ): Promise<ApiResponse<T>> {
   const token = getAuthToken();
-  
+
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
     ...options.headers,
   };
-  
+
   if (token) {
     (headers as Record<string, string>)['Authorization'] = `Bearer ${token}`;
   }
-  
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-    ...options,
-    headers,
-  });
+
+  const requestUrl = `${API_BASE_URL}${endpoint}`;
+
+  const doFetch = async (overrideHeaders?: HeadersInit) =>
+    fetch(requestUrl, {
+      ...options,
+      headers: overrideHeaders ?? headers,
+    });
+
+  let response: Response;
+  try {
+    response = await doFetch();
+  } catch (err) {
+    // Browser network errors (DNS, refused, offline) throw TypeError("Failed to fetch").
+    const debugUrl =
+      typeof window !== 'undefined' && requestUrl.startsWith('/')
+        ? `${window.location.origin}${requestUrl}`
+        : requestUrl;
+    throw makeApiError(
+      `Failed to fetch ${debugUrl}`,
+      0,
+      err instanceof Error ? { name: err.name, message: err.message } : err,
+    );
+  }
+
+  if (
+    response.status === 401 &&
+    retry &&
+    !endpoint.startsWith('/users/token/refresh/') &&
+    !endpoint.startsWith('/users/request-token/')
+  ) {
+    const newToken = await refreshAccessToken();
+    if (newToken) {
+      const retryHeaders: HeadersInit = {
+        ...headers,
+        Authorization: `Bearer ${newToken}`,
+      };
+      response = await doFetch(retryHeaders);
+    }
+  }
   
   // Handle non-JSON responses
   const contentType = response.headers.get('content-type');
   if (!contentType?.includes('application/json')) {
     if (!response.ok) {
-      throw {
-        message: 'Server error',
-        status: response.status,
-      } as ApiError;
+      let bodyText = '';
+      try {
+        bodyText = await response.text();
+      } catch {}
+      throw makeApiError(bodyText || 'Server error', response.status);
     }
     return { data: {} as T, status: response.status };
   }
@@ -104,11 +183,24 @@ async function apiRequest<T>(
   const data = await response.json();
   
   if (!response.ok) {
-    throw {
-      message: data.detail || data.message || 'An error occurred',
-      status: response.status,
-      errors: data.errors || data,
-    } as ApiError;
+    if (response.status === 401) {
+      const detail = data?.detail || data?.message || '';
+      const code = data?.code || data?.errors?.code;
+      const tokenInvalid =
+        code === 'token_not_valid' ||
+        String(detail).toLowerCase().includes('token not valid');
+      if (tokenInvalid) {
+        clearAuthTokens();
+        if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+          window.location.href = '/login';
+        }
+      }
+    }
+    throw makeApiError(
+      data?.detail || data?.message || 'An error occurred',
+      response.status,
+      data?.errors || data,
+    );
   }
   
   return { data, status: response.status };
@@ -148,3 +240,4 @@ export const api = {
 };
 
 export default api;
+

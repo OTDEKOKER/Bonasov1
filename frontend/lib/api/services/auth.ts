@@ -8,6 +8,8 @@
 import { api, setAuthTokens, clearAuthTokens, getRefreshToken } from '../client';
 import type { User } from '@/lib/types';
 
+const USERS_BASE_PATH = '/users';
+
 // ============================================================================
 // Types
 // ============================================================================
@@ -57,10 +59,13 @@ export interface AdminResetPasswordRequest {
 export const authService = {
   /**
    * Login with username/email and password
-   * Django endpoint: POST /api/request-token/
+   * Django endpoint: POST /api/users/request-token/
    */
   async login(credentials: LoginCredentials): Promise<LoginResponse> {
-    const { data } = await api.post<JWTTokenResponse>('/request-token/', credentials);
+    const { data } = await api.post<JWTTokenResponse>(
+      `${USERS_BASE_PATH}/request-token/`,
+      credentials
+    );
     setAuthTokens(data.access, data.refresh);
     
     // Fetch user info after login
@@ -74,24 +79,32 @@ export const authService = {
 
   /**
    * Refresh the access token
-   * Django endpoint: POST /api/token/refresh/
+   * Django endpoint: POST /api/users/token/refresh/
    */
   async refreshToken(): Promise<string> {
     const refresh = getRefreshToken();
     if (!refresh) throw new Error('No refresh token available');
     
-    const { data } = await api.post<{ access: string }>('/token/refresh/', { refresh });
+    const { data } = await api.post<{ access: string }>(
+      `${USERS_BASE_PATH}/token/refresh/`,
+      { refresh }
+    );
     setAuthTokens(data.access, refresh);
     return data.access;
   },
 
   /**
    * Logout current user
-   * Django endpoint: POST /api/logout/
+   * Django endpoint: POST /api/users/logout/
    */
   async logout(): Promise<void> {
     try {
-      await api.post('/logout/');
+      await api.post(`${USERS_BASE_PATH}/logout/`, {
+        refresh: getRefreshToken(),
+      });
+    } catch (err) {
+      // Backend may not support token blacklist; treat logout as best-effort.
+      console.warn("Logout failed on server, clearing local tokens.", err);
     } finally {
       clearAuthTokens();
     }
@@ -99,28 +112,31 @@ export const authService = {
 
   /**
    * Get current authenticated user
-   * Django endpoint: GET /api/me/
+   * Django endpoint: GET /api/users/me/
    */
   async getCurrentUser(): Promise<User> {
-    const { data } = await api.get<User>('/me/');
+    const { data } = await api.get<User>(`${USERS_BASE_PATH}/me/`);
     return data;
   },
 
   /**
    * Create a new user (registration)
-   * Django endpoint: POST /api/create-user/
+   * Django endpoint: POST /api/users/create-user/
    */
   async createUser(userData: Partial<User> & { password: string }): Promise<User> {
-    const { data } = await api.post<User>('/create-user/', userData);
+    const { data } = await api.post<User>(
+      `${USERS_BASE_PATH}/create-user/`,
+      userData
+    );
     return data;
   },
 
   /**
    * Admin reset password for a user
-   * Django endpoint: POST /api/admin-reset-password/
+   * Django endpoint: POST /api/users/admin-reset-password/
    */
   async adminResetPassword(request: AdminResetPasswordRequest): Promise<void> {
-    await api.post('/admin-reset-password/', request);
+    await api.post(`${USERS_BASE_PATH}/admin-reset-password/`, request);
   },
 
   /**
@@ -153,11 +169,11 @@ export const authService = {
 
   /**
    * Test connection to backend
-   * Django endpoint: GET /api/test-connection/
+   * Django endpoint: GET /api/users/test-connection/
    */
   async testConnection(): Promise<boolean> {
     try {
-      await api.get('/test-connection/');
+      await api.get(`${USERS_BASE_PATH}/test-connection/`);
       return true;
     } catch {
       return false;

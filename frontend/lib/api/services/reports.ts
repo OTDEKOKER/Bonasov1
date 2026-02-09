@@ -1,11 +1,13 @@
-/**
+﻿/**
  * Reports & Analysis Service
  * 
  * Operations for generating reports, data analysis, and flags.
- * Django endpoint base: /api/reports/ and /api/analysis/
+ * Django endpoint base: /api/analysis/reports/ and /api/analysis/
  */
 
 import { api, type PaginatedResponse } from '../client';
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 import type { Flag } from '@/lib/types';
 
 // ============================================================================
@@ -18,10 +20,34 @@ export interface Report {
   type: 'indicator_summary' | 'project_progress' | 'respondent_demographics' | 'custom';
   status: 'pending' | 'processing' | 'completed' | 'failed';
   parameters: Record<string, unknown>;
-  file_url?: string;
   created_at: string;
-  completed_at?: string;
-  created_by: number;
+  created_by?: number | null;
+
+  // Backend fields from analysis.ReportSerializer
+  description?: string;
+  report_type?: 'dashboard' | 'indicator' | 'project' | 'custom';
+  cached_data?: unknown;
+  last_generated?: string | null;
+  organization?: number | null;
+  organization_name?: string;
+  is_public?: boolean;
+  updated_at?: string;
+  created_by_name?: string;
+}
+
+export interface DashboardChart {
+  id: number;
+  name: string;
+  description?: string;
+  report_type: 'dashboard' | 'indicator' | 'project' | 'custom';
+  parameters: Record<string, unknown>;
+  organization?: number | null;
+  organization_name?: string;
+  is_public: boolean;
+  created_at: string;
+  updated_at: string;
+  created_by: number | null;
+  created_by_name?: string;
 }
 
 export interface ReportFilters {
@@ -47,6 +73,32 @@ export interface CreateReportRequest {
     format?: 'pdf' | 'excel' | 'csv';
   };
 }
+
+const normalizeReportType = (reportType?: string): Report['type'] => {
+  switch (reportType) {
+    case 'dashboard':
+      return 'custom';
+    case 'indicator':
+      return 'indicator_summary';
+    case 'project':
+      return 'project_progress';
+    case 'custom':
+    default:
+      return 'custom';
+  }
+};
+
+const normalizeReportStatus = (report: any): Report['status'] => {
+  if (report?.status) return report.status;
+  if (report?.last_generated) return 'completed';
+  return 'pending';
+};
+
+const normalizeReport = (report: any): Report => ({
+  ...report,
+  type: normalizeReportType(report.report_type || report.type),
+  status: normalizeReportStatus(report),
+});
 
 export interface ScheduledReport {
   id: number;
@@ -98,29 +150,30 @@ export interface AnalysisResult {
 
 export interface FlagFilters {
   search?: string;
-  type?: string;
+  flag_type?: string;
   status?: string;
-  severity?: string;
-  indicator?: string;
+  priority?: string;
+  organization?: string;
+  assigned_to?: string;
   page?: string;
   page_size?: string;
 }
 
 export interface CreateFlagRequest {
-  type: 'missing_data' | 'outlier' | 'duplicate' | 'inconsistent' | 'other';
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  flag_type: 'data_quality' | 'follow_up' | 'urgent' | 'review' | 'other';
+  priority: 'low' | 'medium' | 'high' | 'critical';
   title: string;
   description: string;
-  indicator_id?: number;
-  respondent_id?: number;
-  record_id?: number;
-  record_type?: string;
+  content_type: string;
+  object_id: number;
+  organization: number;
+  assigned_to?: number;
 }
 
 export interface UpdateFlagRequest {
-  status?: 'open' | 'in_review' | 'resolved' | 'dismissed';
+  status?: 'open' | 'in_progress' | 'resolved' | 'dismissed';
   resolution_notes?: string;
-  assigned_to_id?: number;
+  assigned_to?: number;
 }
 
 // ============================================================================
@@ -130,47 +183,74 @@ export interface UpdateFlagRequest {
 export const reportsService = {
   /**
    * List all reports with optional filters
-   * Django endpoint: GET /api/reports/
+   * Django endpoint: GET /api/analysis/reports/
    */
   async list(filters?: ReportFilters): Promise<PaginatedResponse<Report>> {
     const params = filters as Record<string, string> | undefined;
-    const { data } = await api.get<PaginatedResponse<Report>>('/reports/', params);
-    return data;
+    const { data } = await api.get<PaginatedResponse<Report>>('/analysis/reports/', params);
+    return {
+      ...data,
+      results: (data.results || []).map(normalizeReport),
+    };
   },
 
   /**
    * Get a single report by ID
-   * Django endpoint: GET /api/reports/:id/
+   * Django endpoint: GET /api/analysis/reports/:id/
    */
   async get(id: number): Promise<Report> {
-    const { data } = await api.get<Report>(`/reports/${id}/`);
-    return data;
+    const { data } = await api.get<Report>(`/analysis/reports/${id}/`);
+    return normalizeReport(data);
   },
 
   /**
    * Generate a new report
-   * Django endpoint: POST /api/reports/
+   * Django endpoint: POST /api/analysis/reports/
    */
   async create(request: CreateReportRequest): Promise<Report> {
-    const { data } = await api.post<Report>('/reports/', request);
-    return data;
+    const typeMap: Record<CreateReportRequest['type'], string> = {
+      indicator_summary: 'indicator',
+      project_progress: 'project',
+      respondent_demographics: 'custom',
+      custom: 'custom',
+    };
+    const payload = {
+      name: request.name,
+      report_type: typeMap[request.type] || 'custom',
+      parameters: request.parameters,
+    };
+    const { data } = await api.post<Report>('/analysis/reports/', payload);
+    return normalizeReport(data);
+  },
+
+  /**
+   * Generate/refresh cached report data
+   * Django endpoint: POST /api/analysis/reports/:id/generate/
+   */
+  async generate(id: number): Promise<Report> {
+    const { data } = await api.post<Report>(`/analysis/reports/${id}/generate/`, {});
+    return normalizeReport(data);
   },
 
   /**
    * Delete a report
-   * Django endpoint: DELETE /api/reports/:id/
+   * Django endpoint: DELETE /api/analysis/reports/:id/
    */
   async delete(id: number): Promise<void> {
-    await api.delete(`/reports/${id}/`);
+    await api.delete(`/analysis/reports/${id}/`);
   },
 
   /**
    * Download report file
-   * Django endpoint: GET /api/reports/:id/download/
+   * Django endpoint: GET /api/analysis/reports/:id/download/
    */
-  async download(id: number): Promise<Blob> {
+  async download(id: number, format?: 'pdf' | 'excel' | 'csv'): Promise<Blob> {
+    const query = format ? `?format=${encodeURIComponent(format)}` : '';
+    const base = API_BASE_URL.startsWith('/') && typeof window !== 'undefined'
+      ? `${window.location.origin}${API_BASE_URL}`
+      : API_BASE_URL;
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/reports/${id}/download/`,
+      `${base}/analysis/reports/${id}/download/${query}`,
       {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('access_token')}`,
@@ -182,49 +262,122 @@ export const reportsService = {
 
   /**
    * List scheduled reports
-   * Django endpoint: GET /api/reports/scheduled/
+   * Django endpoint: GET /api/analysis/scheduled-reports/
    */
   async listScheduled(): Promise<ScheduledReport[]> {
-    const { data } = await api.get<ScheduledReport[]>('/reports/scheduled/');
-    return data;
+    const { data } = await api.get<PaginatedResponse<ScheduledReport>>('/analysis/scheduled-reports/');
+    return data.results || [];
   },
 
   /**
    * Create a scheduled report
-   * Django endpoint: POST /api/reports/scheduled/
+   * Django endpoint: POST /api/analysis/scheduled-reports/
    */
   async createScheduled(request: CreateScheduledReportRequest): Promise<ScheduledReport> {
-    const { data } = await api.post<ScheduledReport>('/reports/scheduled/', request);
+    const typeMap: Record<CreateScheduledReportRequest['report_type'], string> = {
+      indicator_summary: 'indicator',
+      project_progress: 'project',
+      respondent_demographics: 'custom',
+      custom: 'custom',
+    };
+    const payload = {
+      report_name: request.report_name,
+      report_type: typeMap[request.report_type] || 'custom',
+      parameters: request.parameters,
+      frequency: request.frequency,
+      recipients: request.recipients,
+    };
+    const { data } = await api.post<ScheduledReport>('/analysis/scheduled-reports/', payload);
     return data;
   },
 
   /**
    * Update a scheduled report
-   * Django endpoint: PATCH /api/reports/scheduled/:id/
+   * Django endpoint: PATCH /api/analysis/scheduled-reports/:id/
    */
   async updateScheduled(
     id: number, 
     request: Partial<CreateScheduledReportRequest> & { is_active?: boolean }
   ): Promise<ScheduledReport> {
-    const { data } = await api.patch<ScheduledReport>(`/reports/scheduled/${id}/`, request);
+    const typeMap: Record<string, string> = {
+      indicator_summary: 'indicator',
+      project_progress: 'project',
+      respondent_demographics: 'custom',
+      custom: 'custom',
+    };
+    const payload: Record<string, unknown> = { ...request };
+    if (payload.report_type && typeof payload.report_type === 'string') {
+      payload.report_type = typeMap[payload.report_type] || 'custom';
+    }
+    const { data } = await api.patch<ScheduledReport>(`/analysis/scheduled-reports/${id}/`, payload);
     return data;
   },
 
   /**
    * Delete a scheduled report
-   * Django endpoint: DELETE /api/reports/scheduled/:id/
+   * Django endpoint: DELETE /api/analysis/scheduled-reports/:id/
    */
   async deleteScheduled(id: number): Promise<void> {
-    await api.delete(`/reports/scheduled/${id}/`);
+    await api.delete(`/analysis/scheduled-reports/${id}/`);
   },
 
   /**
    * Get available report types
-   * Django endpoint: GET /api/reports/types/
+   * Django endpoint: Not implemented in backend (placeholder)
    */
   async getTypes(): Promise<Array<{ value: string; label: string; description: string }>> {
-    const { data } = await api.get('/reports/types/');
+    return [
+      { value: 'indicator_summary', label: 'Indicator Summary', description: 'Summary by indicator' },
+      { value: 'project_progress', label: 'Project Progress', description: 'Progress by project' },
+      { value: 'respondent_demographics', label: 'Respondent Demographics', description: 'Demographics overview' },
+      { value: 'custom', label: 'Custom', description: 'Custom report' },
+    ];
+  },
+};
+
+export const dashboardChartsService = {
+  async list(): Promise<PaginatedResponse<DashboardChart>> {
+    const { data } = await api.get<PaginatedResponse<DashboardChart>>('/analysis/reports/', {
+      report_type: 'dashboard',
+    });
     return data;
+  },
+
+  async create(request: {
+    name: string;
+    description?: string;
+    parameters: Record<string, unknown>;
+    organization?: number | null;
+    is_public?: boolean;
+  }): Promise<DashboardChart> {
+    const payload = {
+      name: request.name,
+      description: request.description ?? '',
+      report_type: 'dashboard',
+      parameters: request.parameters,
+      organization: request.organization ?? null,
+      is_public: request.is_public ?? false,
+    };
+    const { data } = await api.post<DashboardChart>('/analysis/reports/', payload);
+    return data;
+  },
+
+  async update(
+    id: number,
+    request: Partial<{
+      name: string;
+      description: string;
+      parameters: Record<string, unknown>;
+      organization: number | null;
+      is_public: boolean;
+    }>,
+  ): Promise<DashboardChart> {
+    const { data } = await api.patch<DashboardChart>(`/analysis/reports/${id}/`, request);
+    return data;
+  },
+
+  async delete(id: number): Promise<void> {
+    await api.delete(`/analysis/reports/${id}/`);
   },
 };
 
@@ -244,13 +397,13 @@ export const analysisService = {
 
   /**
    * Get dashboard stats
-   * Django endpoint: GET /api/analysis/dashboard/
+   * Django endpoint: GET /api/analysis/dashboard/overview/
    */
   async getDashboard(projectId?: number): Promise<{
     total_respondents: number;
     total_assessments: number;
     active_projects: number;
-    indicators_on_track: number;
+    total_indicators: number;
     indicators_behind: number;
     recent_activity: Array<{
       type: string;
@@ -259,7 +412,7 @@ export const analysisService = {
     }>;
   }> {
     const params = projectId ? { project: projectId.toString() } : undefined;
-    const { data } = await api.get('/analysis/dashboard/', params);
+    const { data } = await api.get('/analysis/dashboard/overview/', params);
     return data;
   },
 
@@ -267,12 +420,56 @@ export const analysisService = {
    * Get indicator trends
    * Django endpoint: GET /api/analysis/trends/:indicatorId/
    */
-  async getIndicatorTrends(indicatorId: number, months: number = 12): Promise<{
+  async getIndicatorTrends(
+    indicatorId: number,
+    params?: {
+      months?: number;
+      projectId?: number | null;
+      organizationId?: number | null;
+      dateFrom?: string;
+      dateTo?: string;
+    },
+  ): Promise<{
     data: Array<{ month: string; value: number; target: number }>;
     trend: 'up' | 'down' | 'stable';
     forecast: number;
   }> {
-    const { data } = await api.get(`/analysis/trends/${indicatorId}/`, { months: months.toString() });
+    const query: Record<string, string> = {};
+    const months = params?.months ?? 12;
+    if (months) query.months = months.toString();
+    if (params?.projectId) query.project = String(params.projectId);
+    if (params?.organizationId) query.organization = String(params.organizationId);
+    if (params?.dateFrom) query.date_from = params.dateFrom;
+    if (params?.dateTo) query.date_to = params.dateTo;
+    const { data } = await api.get(`/analysis/trends/${indicatorId}/`, query);
+    return data;
+  },
+
+  async getIndicatorTrendsBulk(
+    indicatorIds: number[],
+    params?: {
+      months?: number;
+      projectId?: number | null;
+      organizationId?: number | null;
+      dateFrom?: string;
+      dateTo?: string;
+    },
+  ): Promise<{
+    series: Array<{
+      indicator_id: number;
+      indicator_name: string;
+      data: Array<{ month: string; value: number; target: number }>;
+    }>;
+  }> {
+    const query: Record<string, string> = {};
+    const months = params?.months ?? 12;
+    if (months) query.months = months.toString();
+    if (params?.projectId) query.project = String(params.projectId);
+    if (params?.organizationId) query.organization = String(params.organizationId);
+    if (params?.dateFrom) query.date_from = params.dateFrom;
+    if (params?.dateTo) query.date_to = params.dateTo;
+    query.indicator_ids = indicatorIds.join(',');
+    const { data } = await api.get('/analysis/trends/', query);
     return data;
   },
 
@@ -353,9 +550,11 @@ export const flagsService = {
    */
   async getStats(): Promise<{
     total: number;
-    by_status: Record<string, number>;
-    by_severity: Record<string, number>;
-    by_type: Record<string, number>;
+    open: number;
+    in_progress: number;
+    resolved: number;
+    by_type: Array<{ flag_type: string; count: number }>;
+    by_priority: Array<{ priority: string; count: number }>;
   }> {
     const { data } = await api.get('/flags/stats/');
     return data;
@@ -375,3 +574,4 @@ export const flagsService = {
 };
 
 export default reportsService;
+

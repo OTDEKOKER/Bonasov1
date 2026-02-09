@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { PageHeader } from "@/components/shared/page-header";
 import { DataTable, type Column } from "@/components/shared/data-table";
 import { Button } from "@/components/ui/button";
@@ -27,167 +27,136 @@ import {
   AlertTriangle,
   CheckCircle2,
   Clock,
-  Flag,
+  Flag as FlagIcon,
   XCircle,
   Filter,
   Eye,
+  Loader2,
 } from "lucide-react";
+import { flagsService } from "@/lib/api";
+import { useFlags, useFlagStats } from "@/lib/hooks/use-api";
+import type { Flag } from "@/lib/types";
+import { useToast } from "@/hooks/use-toast";
 
-interface DataFlag {
-  id: string;
-  type: "missing_data" | "outlier" | "duplicate" | "inconsistent" | "incomplete";
-  severity: "low" | "medium" | "high" | "critical";
-  status: "open" | "in_review" | "resolved" | "dismissed";
-  description: string;
-  affectedRecord: string;
-  recordType: string;
-  indicator?: string;
-  project?: string;
-  createdAt: string;
-  resolvedAt?: string;
-  resolvedBy?: string;
-  resolution?: string;
-}
-
-const mockFlags: DataFlag[] = [
-  {
-    id: "flag-1",
-    type: "outlier",
-    severity: "high",
-    status: "open",
-    description: "Value 250% above expected range for HIV testing indicator",
-    affectedRecord: "RSP-1234",
-    recordType: "Response",
-    indicator: "HIV Testing Rate",
-    project: "USAID Health Initiative",
-    createdAt: "2024-01-15T10:30:00Z",
-  },
-  {
-    id: "flag-2",
-    type: "missing_data",
-    severity: "medium",
-    status: "in_review",
-    description: "Missing demographic data for 45 respondents",
-    affectedRecord: "Batch Upload #892",
-    recordType: "Respondent",
-    project: "Global Fund Round 12",
-    createdAt: "2024-01-14T14:20:00Z",
-  },
-  {
-    id: "flag-3",
-    type: "duplicate",
-    severity: "low",
-    status: "resolved",
-    description: "Duplicate respondent entry detected",
-    affectedRecord: "RSP-5678",
-    recordType: "Respondent",
-    createdAt: "2024-01-13T09:15:00Z",
-    resolvedAt: "2024-01-13T11:30:00Z",
-    resolvedBy: "Sarah Johnson",
-    resolution: "Merged duplicate records",
-  },
-  {
-    id: "flag-4",
-    type: "inconsistent",
-    severity: "critical",
-    status: "open",
-    description: "Age recorded as negative value in multiple records",
-    affectedRecord: "Multiple (12 records)",
-    recordType: "Response",
-    indicator: "Youth Demographics",
-    project: "PEPFAR OVC",
-    createdAt: "2024-01-15T08:00:00Z",
-  },
-  {
-    id: "flag-5",
-    type: "incomplete",
-    severity: "medium",
-    status: "dismissed",
-    description: "Assessment form submitted without all required fields",
-    affectedRecord: "ASM-4521",
-    recordType: "Assessment",
-    indicator: "Service Delivery",
-    createdAt: "2024-01-12T16:45:00Z",
-    resolvedAt: "2024-01-12T17:00:00Z",
-    resolvedBy: "Admin",
-    resolution: "Fields are optional for this indicator type",
-  },
-];
-
-const severityColors = {
+const priorityColors: Record<string, string> = {
   low: "bg-info/20 text-info border-info/30",
   medium: "bg-warning/20 text-warning border-warning/30",
   high: "bg-accent/20 text-accent border-accent/30",
   critical: "bg-destructive/20 text-destructive border-destructive/30",
 };
 
-const statusColors = {
+const statusColors: Record<string, string> = {
   open: "bg-destructive/20 text-destructive border-destructive/30",
-  in_review: "bg-warning/20 text-warning border-warning/30",
+  in_progress: "bg-warning/20 text-warning border-warning/30",
   resolved: "bg-primary/20 text-primary border-primary/30",
   dismissed: "bg-muted text-muted-foreground border-border",
 };
 
-const typeLabels = {
-  missing_data: "Missing Data",
-  outlier: "Outlier",
-  duplicate: "Duplicate",
-  inconsistent: "Inconsistent",
-  incomplete: "Incomplete",
+const typeLabels: Record<string, string> = {
+  data_quality: "Data Quality",
+  follow_up: "Follow Up",
+  urgent: "Urgent",
+  review: "Needs Review",
+  other: "Other",
 };
 
 export default function FlagsPage() {
-  const [flags] = useState<DataFlag[]>(mockFlags);
-  const [selectedFlag, setSelectedFlag] = useState<DataFlag | null>(null);
+  const { toast } = useToast();
+  const { data: flagsData, isLoading, error, mutate } = useFlags();
+  const { data: statsData } = useFlagStats();
+  const [selectedFlag, setSelectedFlag] = useState<Flag | null>(null);
   const [isResolveDialogOpen, setIsResolveDialogOpen] = useState(false);
   const [resolution, setResolution] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
-  const [filterSeverity, setFilterSeverity] = useState<string>("all");
+  const [filterPriority, setFilterPriority] = useState<string>("all");
+  const [isUpdating, setIsUpdating] = useState(false);
 
-  const filteredFlags = flags.filter((flag) => {
-    if (filterStatus !== "all" && flag.status !== filterStatus) return false;
-    if (filterSeverity !== "all" && flag.severity !== filterSeverity) return false;
-    return true;
-  });
+  const flags = flagsData?.results || [];
 
-  const stats = {
-    open: flags.filter((f) => f.status === "open").length,
-    inReview: flags.filter((f) => f.status === "in_review").length,
-    resolved: flags.filter((f) => f.status === "resolved").length,
-    critical: flags.filter((f) => f.severity === "critical" && f.status === "open").length,
+  const filteredFlags = useMemo(() => {
+    return flags.filter((flag) => {
+      if (filterStatus !== "all" && flag.status !== filterStatus) return false;
+      if (filterPriority !== "all" && flag.priority !== filterPriority) return false;
+      return true;
+    });
+  }, [filterPriority, filterStatus, flags]);
+
+  const computedStats = useMemo(() => {
+    return {
+      open: flags.filter((f) => f.status === "open").length,
+      inProgress: flags.filter((f) => f.status === "in_progress").length,
+      resolved: flags.filter((f) => f.status === "resolved").length,
+      critical: flags.filter((f) => f.priority === "critical" && f.status === "open").length,
+    };
+  }, [flags]);
+
+  const stats = statsData
+    ? {
+        open: statsData.open,
+        inProgress: statsData.in_progress,
+        resolved: statsData.resolved,
+        critical: statsData.by_priority.find((p) => p.priority === "critical")?.count || 0,
+      }
+    : computedStats;
+
+  const handleResolve = async () => {
+    if (!selectedFlag) return;
+    setIsUpdating(true);
+    try {
+      await flagsService.update(Number(selectedFlag.id), {
+        status: "resolved",
+        resolution_notes: resolution || undefined,
+      });
+      toast({
+        title: "Flag resolved",
+        description: "The flag has been marked as resolved.",
+      });
+      setIsResolveDialogOpen(false);
+      setSelectedFlag(null);
+      setResolution("");
+      mutate();
+    } catch (err) {
+      console.error("Failed to resolve flag", err);
+      toast({
+        title: "Error",
+        description: "Failed to resolve flag.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
-  const columns: Column<DataFlag>[] = [
+  const columns: Column<Flag>[] = [
     {
-      key: "severity",
-      header: "Severity",
+      key: "priority",
+      header: "Priority",
       sortable: true,
       render: (flag) => (
-        <Badge variant="outline" className={severityColors[flag.severity]}>
-          {flag.severity.charAt(0).toUpperCase() + flag.severity.slice(1)}
+        <Badge variant="outline" className={priorityColors[flag.priority] || ""}>
+          {flag.priority.charAt(0).toUpperCase() + flag.priority.slice(1)}
         </Badge>
       ),
     },
     {
-      key: "type",
+      key: "flag_type",
       header: "Type",
       sortable: true,
-      render: (flag) => typeLabels[flag.type],
+      render: (flag) => typeLabels[flag.flag_type] || flag.flag_type,
     },
     {
-      key: "description",
-      header: "Description",
-      render: (flag) => (
-        <span className="text-sm line-clamp-2">{flag.description}</span>
-      ),
+      key: "title",
+      header: "Title",
+      sortable: true,
+      render: (flag) => <span className="text-sm line-clamp-2">{flag.title}</span>,
     },
     {
-      key: "affectedRecord",
+      key: "content",
       header: "Affected Record",
       render: (flag) => (
         <div>
-          <p className="font-medium">{flag.affectedRecord}</p>
-          <p className="text-xs text-muted-foreground">{flag.recordType}</p>
+          <p className="font-medium">#{flag.object_id}</p>
+          <p className="text-xs text-muted-foreground">{flag.content_type}</p>
         </div>
       ),
     },
@@ -196,29 +165,25 @@ export default function FlagsPage() {
       header: "Status",
       sortable: true,
       render: (flag) => (
-        <Badge variant="outline" className={statusColors[flag.status]}>
-          {flag.status === "in_review"
-            ? "In Review"
+        <Badge variant="outline" className={statusColors[flag.status] || ""}>
+          {flag.status === "in_progress"
+            ? "In Progress"
             : flag.status.charAt(0).toUpperCase() + flag.status.slice(1)}
         </Badge>
       ),
     },
     {
-      key: "createdAt",
+      key: "created_at",
       header: "Created",
       sortable: true,
-      render: (flag) => new Date(flag.createdAt).toLocaleDateString(),
+      render: (flag) => new Date(flag.created_at).toLocaleDateString(),
     },
     {
       key: "actions",
       header: "Actions",
       render: (flag) => (
         <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setSelectedFlag(flag)}
-          >
+          <Button variant="ghost" size="sm" onClick={() => setSelectedFlag(flag)}>
             <Eye className="h-4 w-4" />
           </Button>
           {flag.status === "open" && (
@@ -237,6 +202,23 @@ export default function FlagsPage() {
       ),
     },
   ];
+
+  if (isLoading) {
+    return (
+      <div className="flex h-[60vh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-[60vh] flex-col items-center justify-center gap-4">
+        <p className="text-muted-foreground">Failed to load flags</p>
+        <Button onClick={() => mutate()}>Retry</Button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -260,12 +242,12 @@ export default function FlagsPage() {
         <Card className="bg-card border-border">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              In Review
+              In Progress
             </CardTitle>
             <Clock className="h-4 w-4 text-warning" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-foreground">{stats.inReview}</div>
+            <div className="text-2xl font-bold text-foreground">{stats.inProgress}</div>
           </CardContent>
         </Card>
         <Card className="bg-card border-border">
@@ -282,7 +264,7 @@ export default function FlagsPage() {
         <Card className="bg-card border-border">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Critical
+              Critical Open
             </CardTitle>
             <XCircle className="h-4 w-4 text-destructive" />
           </CardHeader>
@@ -296,30 +278,30 @@ export default function FlagsPage() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="text-foreground flex items-center gap-2">
-              <Flag className="h-5 w-5" />
+              <FlagIcon className="h-5 w-5" />
               All Flags
             </CardTitle>
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
                 <Filter className="h-4 w-4 text-muted-foreground" />
                 <Select value={filterStatus} onValueChange={setFilterStatus}>
-                  <SelectTrigger className="w-[140px] bg-input border-border">
+                  <SelectTrigger className="w-full sm:w-[140px] bg-input border-border">
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Status</SelectItem>
                     <SelectItem value="open">Open</SelectItem>
-                    <SelectItem value="in_review">In Review</SelectItem>
+                    <SelectItem value="in_progress">In Progress</SelectItem>
                     <SelectItem value="resolved">Resolved</SelectItem>
                     <SelectItem value="dismissed">Dismissed</SelectItem>
                   </SelectContent>
                 </Select>
-                <Select value={filterSeverity} onValueChange={setFilterSeverity}>
-                  <SelectTrigger className="w-[140px] bg-input border-border">
-                    <SelectValue placeholder="Severity" />
+                <Select value={filterPriority} onValueChange={setFilterPriority}>
+                  <SelectTrigger className="w-full sm:w-[140px] bg-input border-border">
+                    <SelectValue placeholder="Priority" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Severity</SelectItem>
+                    <SelectItem value="all">All Priority</SelectItem>
                     <SelectItem value="critical">Critical</SelectItem>
                     <SelectItem value="high">High</SelectItem>
                     <SelectItem value="medium">Medium</SelectItem>
@@ -340,8 +322,10 @@ export default function FlagsPage() {
         </CardContent>
       </Card>
 
-      {/* Flag Detail Dialog */}
-      <Dialog open={!!selectedFlag && !isResolveDialogOpen} onOpenChange={() => setSelectedFlag(null)}>
+      <Dialog
+        open={!!selectedFlag && !isResolveDialogOpen}
+        onOpenChange={() => setSelectedFlag(null)}
+      >
         <DialogContent className="bg-card border-border">
           <DialogHeader>
             <DialogTitle className="text-foreground">Flag Details</DialogTitle>
@@ -353,23 +337,37 @@ export default function FlagsPage() {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-muted-foreground">Severity</Label>
-                  <Badge variant="outline" className={severityColors[selectedFlag.severity]}>
-                    {selectedFlag.severity.charAt(0).toUpperCase() + selectedFlag.severity.slice(1)}
+                  <Label className="text-muted-foreground">Priority</Label>
+                  <Badge
+                    variant="outline"
+                    className={priorityColors[selectedFlag.priority]}
+                  >
+                    {selectedFlag.priority.charAt(0).toUpperCase() +
+                      selectedFlag.priority.slice(1)}
                   </Badge>
                 </div>
                 <div>
                   <Label className="text-muted-foreground">Status</Label>
-                  <Badge variant="outline" className={statusColors[selectedFlag.status]}>
-                    {selectedFlag.status === "in_review"
-                      ? "In Review"
-                      : selectedFlag.status.charAt(0).toUpperCase() + selectedFlag.status.slice(1)}
+                  <Badge
+                    variant="outline"
+                    className={statusColors[selectedFlag.status]}
+                  >
+                    {selectedFlag.status === "in_progress"
+                      ? "In Progress"
+                      : selectedFlag.status.charAt(0).toUpperCase() +
+                        selectedFlag.status.slice(1)}
                   </Badge>
                 </div>
               </div>
               <div>
                 <Label className="text-muted-foreground">Type</Label>
-                <p className="text-foreground">{typeLabels[selectedFlag.type]}</p>
+                <p className="text-foreground">
+                  {typeLabels[selectedFlag.flag_type] || selectedFlag.flag_type}
+                </p>
+              </div>
+              <div>
+                <Label className="text-muted-foreground">Title</Label>
+                <p className="text-foreground">{selectedFlag.title}</p>
               </div>
               <div>
                 <Label className="text-muted-foreground">Description</Label>
@@ -378,29 +376,19 @@ export default function FlagsPage() {
               <div>
                 <Label className="text-muted-foreground">Affected Record</Label>
                 <p className="text-foreground">
-                  {selectedFlag.affectedRecord} ({selectedFlag.recordType})
+                  {selectedFlag.content_type} #{selectedFlag.object_id}
                 </p>
               </div>
-              {selectedFlag.indicator && (
-                <div>
-                  <Label className="text-muted-foreground">Indicator</Label>
-                  <p className="text-foreground">{selectedFlag.indicator}</p>
-                </div>
-              )}
-              {selectedFlag.project && (
-                <div>
-                  <Label className="text-muted-foreground">Project</Label>
-                  <p className="text-foreground">{selectedFlag.project}</p>
-                </div>
-              )}
-              {selectedFlag.resolution && (
+              {selectedFlag.resolution_notes && (
                 <div>
                   <Label className="text-muted-foreground">Resolution</Label>
-                  <p className="text-foreground">{selectedFlag.resolution}</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Resolved by {selectedFlag.resolvedBy} on{" "}
-                    {new Date(selectedFlag.resolvedAt!).toLocaleDateString()}
-                  </p>
+                  <p className="text-foreground">{selectedFlag.resolution_notes}</p>
+                  {selectedFlag.resolved_at && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Resolved on{" "}
+                      {new Date(selectedFlag.resolved_at).toLocaleDateString()}
+                    </p>
+                  )}
                 </div>
               )}
             </div>
@@ -418,8 +406,13 @@ export default function FlagsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Resolve Dialog */}
-      <Dialog open={isResolveDialogOpen} onOpenChange={setIsResolveDialogOpen}>
+      <Dialog
+        open={isResolveDialogOpen}
+        onOpenChange={(open) => {
+          setIsResolveDialogOpen(open);
+          if (!open) setResolution("");
+        }}
+      >
         <DialogContent className="bg-card border-border">
           <DialogHeader>
             <DialogTitle className="text-foreground">Resolve Flag</DialogTitle>
@@ -450,17 +443,16 @@ export default function FlagsPage() {
                 setResolution("");
               }}
               className="border-border"
+              disabled={isUpdating}
             >
               Cancel
             </Button>
             <Button
-              onClick={() => {
-                setIsResolveDialogOpen(false);
-                setSelectedFlag(null);
-                setResolution("");
-              }}
+              onClick={handleResolve}
               className="bg-primary text-primary-foreground hover:bg-primary/90"
+              disabled={isUpdating}
             >
+              {isUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Mark as Resolved
             </Button>
           </DialogFooter>

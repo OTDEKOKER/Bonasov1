@@ -27,15 +27,14 @@ export interface RespondentFilters {
 
 export interface CreateRespondentRequest {
   unique_id: string;
-  first_name?: string;
-  last_name?: string;
+  first_name: string;
+  last_name: string;
   gender?: 'male' | 'female' | 'other';
   date_of_birth?: string;
   phone?: string;
   email?: string;
-  location?: string;
-  organization_id: number;
-  custom_fields?: Record<string, unknown>;
+  address?: string;
+  organization: number;
 }
 
 export interface UpdateRespondentRequest extends Partial<CreateRespondentRequest> {
@@ -53,12 +52,15 @@ export interface InteractionFilters {
 }
 
 export interface CreateInteractionRequest {
-  respondent_id: number;
-  type: string;
+  respondent: number;
+  assessment?: number;
+  project?: number;
   date: string;
   notes?: string;
-  project_id?: number;
-  recorded_by_id?: number;
+  responses?: Array<{
+    indicator: number;
+    value: unknown;
+  }>;
 }
 
 export interface UpdateInteractionRequest extends Partial<CreateInteractionRequest> {}
@@ -81,69 +83,66 @@ export interface RespondentExportRequest {
 export const respondentsService = {
   /**
    * List all respondents with optional filters
-   * Django endpoint: GET /api/respondents/
+   * Django endpoint: GET /api/record/respondents/
    */
   async list(filters?: RespondentFilters): Promise<PaginatedResponse<Respondent>> {
     const params = filters as Record<string, string> | undefined;
-    const { data } = await api.get<PaginatedResponse<Respondent>>('/record/', params);
+    const { data } = await api.get<PaginatedResponse<Respondent>>('/record/respondents/', params);
     return data;
   },
 
   /**
    * Get a single respondent by ID
-   * Django endpoint: GET /api/record/:id/
+   * Django endpoint: GET /api/record/respondents/:id/
    */
   async get(id: number): Promise<Respondent> {
-    const { data } = await api.get<Respondent>(`/record/${id}/`);
+    const { data } = await api.get<Respondent>(`/record/respondents/${id}/`);
     return data;
   },
 
   /**
    * Create a new respondent
-   * Django endpoint: POST /api/record/
+   * Django endpoint: POST /api/record/respondents/
    */
   async create(request: CreateRespondentRequest): Promise<Respondent> {
-    const { data } = await api.post<Respondent>('/record/', request);
+    const { data } = await api.post<Respondent>('/record/respondents/', request);
     return data;
   },
 
   /**
    * Update a respondent
-   * Django endpoint: PATCH /api/record/:id/
+   * Django endpoint: PATCH /api/record/respondents/:id/
    */
   async update(id: number, request: UpdateRespondentRequest): Promise<Respondent> {
-    const { data } = await api.patch<Respondent>(`/record/${id}/`, request);
+    const { data } = await api.patch<Respondent>(`/record/respondents/${id}/`, request);
     return data;
   },
 
   /**
    * Delete a respondent
-   * Django endpoint: DELETE /api/record/:id/
+   * Django endpoint: DELETE /api/record/respondents/:id/
    */
   async delete(id: number): Promise<void> {
-    await api.delete(`/record/${id}/`);
+    await api.delete(`/record/respondents/${id}/`);
   },
 
   /**
    * Get respondent with full profile and history
-   * Django endpoint: GET /api/record/:id/profile/
+   * Django endpoint: GET /api/record/respondents/:id/profile/
    */
-  async getProfile(id: number): Promise<{
-    respondent: Respondent;
-    interactions: Interaction[];
-    assessments_count: number;
-    last_interaction: string | null;
-  }> {
-    const { data } = await api.get(`/record/${id}/profile/`);
+  async getProfile(id: number): Promise<Respondent & { interactions?: Interaction[] }> {
+    const { data } = await api.get<Respondent & { interactions?: Interaction[] }>(
+      `/record/respondents/${id}/profile/`
+    );
     return data;
   },
 
   /**
    * Search respondents by unique ID
-   * Django endpoint: GET /api/record/search/
+   * Django endpoint: GET /api/record/respondents/search/
    */
   async search(query: string): Promise<Respondent[]> {
-    const { data } = await api.get<Respondent[]>('/record/search/', { q: query });
+    const { data } = await api.get<Respondent[]>('/record/respondents/search/', { q: query });
     return data;
   },
 
@@ -163,14 +162,13 @@ export const respondentsService = {
       formData.append('project_id', request.project_id.toString());
     }
     
+    const token = localStorage.getItem('access_token');
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/record/import/`,
+      `${process.env.NEXT_PUBLIC_API_URL}/record/respondents/import/`,
       {
         method: 'POST',
         body: formData,
-        headers: {
-          Authorization: `Token ${localStorage.getItem('auth_token')}`,
-        },
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
       }
     );
     
@@ -187,12 +185,11 @@ export const respondentsService = {
       ...(request.filters as Record<string, string>),
     };
     
+    const token = localStorage.getItem('access_token');
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/record/export/?${new URLSearchParams(params)}`,
+      `${process.env.NEXT_PUBLIC_API_URL}/record/respondents/export/?${new URLSearchParams(params)}`,
       {
-        headers: {
-          Authorization: `Token ${localStorage.getItem('auth_token')}`,
-        },
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
       }
     );
     
@@ -201,7 +198,7 @@ export const respondentsService = {
 
   /**
    * Get respondent statistics
-   * Django endpoint: GET /api/respondents/stats/
+   * Django endpoint: GET /api/record/respondents/stats/
    */
   async getStats(): Promise<{
     total: number;
@@ -210,7 +207,7 @@ export const respondentsService = {
     by_location: Record<string, number>;
     new_this_month: number;
   }> {
-    const { data } = await api.get('/record/stats/');
+    const { data } = await api.get('/record/respondents/stats/');
     return data;
   },
 };
@@ -222,56 +219,55 @@ export const respondentsService = {
 export const interactionsService = {
   /**
    * List all interactions with optional filters
-   * Django endpoint: GET /api/interactions/
+   * Django endpoint: GET /api/record/interactions/
    */
   async list(filters?: InteractionFilters): Promise<PaginatedResponse<Interaction>> {
     const params = filters as Record<string, string> | undefined;
-    const { data } = await api.get<PaginatedResponse<Interaction>>('/interactions/', params);
+    const { data } = await api.get<PaginatedResponse<Interaction>>('/record/interactions/', params);
     return data;
   },
 
   /**
    * Get a single interaction by ID
-   * Django endpoint: GET /api/interactions/:id/
+   * Django endpoint: GET /api/record/interactions/:id/
    */
   async get(id: number): Promise<Interaction> {
-    const { data } = await api.get<Interaction>(`/interactions/${id}/`);
+    const { data } = await api.get<Interaction>(`/record/interactions/${id}/`);
     return data;
   },
 
   /**
    * Create a new interaction
-   * Django endpoint: POST /api/interactions/
+   * Django endpoint: POST /api/record/interactions/
    */
   async create(request: CreateInteractionRequest): Promise<Interaction> {
-    const { data } = await api.post<Interaction>('/interactions/', request);
+    const { data } = await api.post<Interaction>('/record/interactions/', request);
     return data;
   },
 
   /**
    * Update an interaction
-   * Django endpoint: PATCH /api/interactions/:id/
+   * Django endpoint: PATCH /api/record/interactions/:id/
    */
   async update(id: number, request: UpdateInteractionRequest): Promise<Interaction> {
-    const { data } = await api.patch<Interaction>(`/interactions/${id}/`, request);
+    const { data } = await api.patch<Interaction>(`/record/interactions/${id}/`, request);
     return data;
   },
 
   /**
    * Delete an interaction
-   * Django endpoint: DELETE /api/interactions/:id/
+   * Django endpoint: DELETE /api/record/interactions/:id/
    */
   async delete(id: number): Promise<void> {
-    await api.delete(`/interactions/${id}/`);
+    await api.delete(`/record/interactions/${id}/`);
   },
 
   /**
    * Get interaction types for filtering
-   * Django endpoint: GET /api/interactions/types/
+   * Django endpoint: Not implemented in backend (placeholder)
    */
   async getTypes(): Promise<string[]> {
-    const { data } = await api.get<string[]>('/interactions/types/');
-    return data;
+    return [];
   },
 };
 

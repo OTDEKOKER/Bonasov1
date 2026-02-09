@@ -1,6 +1,6 @@
 "use client"
 
-import React from "react"
+import React, { useEffect } from "react"
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -19,7 +19,6 @@ import {
   Settings,
   LogOut,
   ChevronDown,
-  Activity,
   Upload,
 } from "lucide-react"
 import {
@@ -41,9 +40,15 @@ interface NavItemProps {
 function NavItem({ title, href, icon, badge, isActive, children }: NavItemProps) {
   const [isOpen, setIsOpen] = useState(false)
   const pathname = usePathname()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+  const safePathname = mounted ? pathname : ""
 
   if (children) {
-    const hasActiveChild = children.some(child => pathname === child.href)
+    const hasActiveChild = children.some(child => safePathname === child.href)
     
     return (
       <Collapsible open={isOpen || hasActiveChild} onOpenChange={setIsOpen}>
@@ -66,7 +71,7 @@ function NavItem({ title, href, icon, badge, isActive, children }: NavItemProps)
               href={child.href}
               className={cn(
                 "block rounded-lg px-3 py-2 text-sm transition-colors",
-                pathname === child.href
+                safePathname === child.href
                   ? "bg-primary/10 text-primary"
                   : "text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
               )}
@@ -130,7 +135,7 @@ const navigation = [
     children: [
       { title: "All Respondents", href: "/respondents" },
       { title: "Interactions", href: "/respondents/interactions" },
-      { title: "Aggregates", href: "/respondents/aggregates" },
+      { title: "Aggregates", href: "/aggregates" },
     ],
   },
   { title: "Events", href: "/events", icon: <CalendarDays className="h-4 w-4" /> },
@@ -156,8 +161,12 @@ export function AppSidebar() {
     <aside className="fixed left-0 top-0 z-40 flex h-screen w-64 flex-col border-r border-sidebar-border bg-sidebar">
       {/* Logo */}
       <div className="flex h-16 items-center gap-2 border-b border-sidebar-border px-4">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-          <Activity className="h-5 w-5 text-primary-foreground" />
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white">
+          <img
+            src="/favicon.ico"
+            alt="BONASO"
+            className="h-6 w-6"
+          />
         </div>
         <div className="flex flex-col">
           <span className="text-sm font-semibold text-sidebar-foreground">BONASO</span>

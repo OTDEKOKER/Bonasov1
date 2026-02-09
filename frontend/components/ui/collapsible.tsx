@@ -1,7 +1,6 @@
 'use client'
 
 import * as CollapsiblePrimitive from '@radix-ui/react-collapsible'
-import { useId } from 'react'
 
 function Collapsible({
   ...props
@@ -9,33 +8,16 @@ function Collapsible({
   return <CollapsiblePrimitive.Root data-slot="collapsible" {...props} />
 }
 
-function CollapsibleTrigger({
-  id,
-  ...props
-}: React.ComponentProps<typeof CollapsiblePrimitive.CollapsibleTrigger> & { id?: string }) {
-  // Generate a stable ID if none is provided
-  const generatedId = useId()
-  return (
-    <CollapsiblePrimitive.CollapsibleTrigger
-      data-slot="collapsible-trigger"
-      id={id ?? generatedId}
-      {...props}
-    />
-  )
+function CollapsibleTrigger(
+  props: React.ComponentProps<typeof CollapsiblePrimitive.CollapsibleTrigger>
+) {
+  return <CollapsiblePrimitive.CollapsibleTrigger data-slot="collapsible-trigger" {...props} />
 }
 
-function CollapsibleContent({
-  id,
-  ...props
-}: React.ComponentProps<typeof CollapsiblePrimitive.CollapsibleContent> & { id?: string }) {
-  const generatedId = useId()
-  return (
-    <CollapsiblePrimitive.CollapsibleContent
-      data-slot="collapsible-content"
-      id={id ?? generatedId}
-      {...props}
-    />
-  )
+function CollapsibleContent(
+  props: React.ComponentProps<typeof CollapsiblePrimitive.CollapsibleContent>
+) {
+  return <CollapsiblePrimitive.CollapsibleContent data-slot="collapsible-content" {...props} />
 }
 
 export { Collapsible, CollapsibleTrigger, CollapsibleContent }

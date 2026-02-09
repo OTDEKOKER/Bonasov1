@@ -1,7 +1,8 @@
-"use client";
+﻿"use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { PageHeader } from "@/components/shared/page-header";
+import { OrganizationSelect } from "@/components/shared/organization-select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,15 +31,24 @@ import {
   Save,
   Upload,
 } from "lucide-react";
+import { useAuth } from "@/lib/contexts/auth-context";
+import { useAllOrganizations } from "@/lib/hooks/use-api";
+import { usersService } from "@/lib/api";
+import { useToast } from "@/hooks/use-toast";
 
 export default function SettingsPage() {
+  const { user, refreshUser } = useAuth();
+  const { toast } = useToast();
+  const { data: orgsData } = useAllOrganizations();
+  const organizations = orgsData?.results || [];
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [profile, setProfile] = useState({
-    firstName: "John",
-    lastName: "Doe",
-    email: "john.doe@bonaso.org",
-    phone: "+267 71 234 567",
-    role: "M&E Manager",
-    organization: "BONASO National",
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    role: "",
+    organizationId: "",
   });
 
   const [notifications, setNotifications] = useState({
@@ -56,6 +66,48 @@ export default function SettingsPage() {
     dateFormat: "DD/MM/YYYY",
     defaultProject: "all",
   });
+
+  useEffect(() => {
+    if (!user) return;
+    setProfile({
+      firstName: (user as any)?.firstName || (user as any)?.first_name || "",
+      lastName: (user as any)?.lastName || (user as any)?.last_name || "",
+      email: (user as any)?.email || "",
+      phone: (user as any)?.phone || "",
+      role: (user as any)?.role || "",
+      organizationId: String((user as any)?.organizationId ?? (user as any)?.organization ?? ""),
+    });
+  }, [user]);
+
+  const handleSaveProfile = async () => {
+    if (!user) return;
+    setIsSavingProfile(true);
+    try {
+      await usersService.update(Number(user.id), {
+        first_name: profile.firstName || undefined,
+        last_name: profile.lastName || undefined,
+        email: profile.email || undefined,
+        role: profile.role ? (profile.role as any) : undefined,
+        organization: profile.organizationId ? Number(profile.organizationId) : undefined,
+      });
+      toast({
+        title: "Profile updated",
+        description: "Your profile information has been saved.",
+      });
+      await refreshUser();
+    } catch (err: any) {
+      toast({
+        title: "Error",
+        description: err?.message || "Failed to update profile.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSavingProfile(false);
+    }
+  };
+
+  const currentOrgName =
+    organizations.find((org) => String(org.id) === profile.organizationId)?.name || "â€”";
 
   return (
     <div className="space-y-6">
@@ -101,7 +153,8 @@ export default function SettingsPage() {
                 <Avatar className="h-20 w-20">
                   <AvatarImage src="/placeholder-avatar.jpg" />
                   <AvatarFallback className="bg-primary text-primary-foreground text-xl">
-                    {profile.firstName[0]}{profile.lastName[0]}
+                    {(profile.firstName?.[0] || "U").toUpperCase()}
+                    {(profile.lastName?.[0] || "").toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div>
@@ -162,7 +215,7 @@ export default function SettingsPage() {
                   <Label className="text-foreground">Role</Label>
                   <div className="flex items-center gap-2">
                     <Badge className="bg-primary/20 text-primary border-primary/30">
-                      {profile.role}
+                      {profile.role ? profile.role.replace("_", " ") : "â€”"}
                     </Badge>
                     <span className="text-xs text-muted-foreground">
                       Contact admin to change
@@ -170,249 +223,15 @@ export default function SettingsPage() {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-foreground">Organization</Label>
-                  <p className="text-foreground">{profile.organization}</p>
-                </div>
-              </div>
-
-              <div className="flex justify-end">
-                <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
-                  <Save className="h-4 w-4 mr-2" />
-                  Save Changes
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="notifications" className="space-y-6">
-          <Card className="bg-card border-border">
-            <CardHeader>
-              <CardTitle className="text-foreground">Notification Preferences</CardTitle>
-              <CardDescription>
-                Choose which notifications you want to receive
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label className="text-foreground">Email Alerts</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Receive important alerts via email
-                    </p>
-                  </div>
-                  <Switch
-                    checked={notifications.emailAlerts}
-                    onCheckedChange={(checked) =>
-                      setNotifications({ ...notifications, emailAlerts: checked })
-                    }
-                  />
-                </div>
-                <Separator className="bg-border" />
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label className="text-foreground">Task Reminders</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Get reminded about upcoming deadlines
-                    </p>
-                  </div>
-                  <Switch
-                    checked={notifications.taskReminders}
-                    onCheckedChange={(checked) =>
-                      setNotifications({ ...notifications, taskReminders: checked })
-                    }
-                  />
-                </div>
-                <Separator className="bg-border" />
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label className="text-foreground">Data Quality Alerts</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Be notified when data quality issues are detected
-                    </p>
-                  </div>
-                  <Switch
-                    checked={notifications.dataQualityAlerts}
-                    onCheckedChange={(checked) =>
-                      setNotifications({ ...notifications, dataQualityAlerts: checked })
-                    }
-                  />
-                </div>
-                <Separator className="bg-border" />
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label className="text-foreground">Report Ready</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Notify when scheduled reports are generated
-                    </p>
-                  </div>
-                  <Switch
-                    checked={notifications.reportReady}
-                    onCheckedChange={(checked) =>
-                      setNotifications({ ...notifications, reportReady: checked })
-                    }
-                  />
-                </div>
-                <Separator className="bg-border" />
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label className="text-foreground">Weekly Digest</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Receive a weekly summary of activities
-                    </p>
-                  </div>
-                  <Switch
-                    checked={notifications.weeklyDigest}
-                    onCheckedChange={(checked) =>
-                      setNotifications({ ...notifications, weeklyDigest: checked })
-                    }
-                  />
-                </div>
-                <Separator className="bg-border" />
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label className="text-foreground">Project Updates</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Get notified about project milestone changes
-                    </p>
-                  </div>
-                  <Switch
-                    checked={notifications.projectUpdates}
-                    onCheckedChange={(checked) =>
-                      setNotifications({ ...notifications, projectUpdates: checked })
-                    }
-                  />
-                </div>
-              </div>
-
-              <div className="flex justify-end">
-                <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
-                  <Save className="h-4 w-4 mr-2" />
-                  Save Preferences
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="security" className="space-y-6">
-          <Card className="bg-card border-border">
-            <CardHeader>
-              <CardTitle className="text-foreground">Change Password</CardTitle>
-              <CardDescription>
-                Update your password to keep your account secure
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="currentPassword" className="text-foreground">Current Password</Label>
-                <Input
-                  id="currentPassword"
-                  type="password"
-                  className="bg-input border-border text-foreground max-w-md"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="newPassword" className="text-foreground">New Password</Label>
-                <Input
-                  id="newPassword"
-                  type="password"
-                  className="bg-input border-border text-foreground max-w-md"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword" className="text-foreground">Confirm New Password</Label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  className="bg-input border-border text-foreground max-w-md"
-                />
-              </div>
-              <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
-                <Key className="h-4 w-4 mr-2" />
-                Update Password
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-card border-border">
-            <CardHeader>
-              <CardTitle className="text-foreground">Two-Factor Authentication</CardTitle>
-              <CardDescription>
-                Add an extra layer of security to your account
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-foreground font-medium">Status: Not Enabled</p>
-                  <p className="text-sm text-muted-foreground">
-                    Protect your account with 2FA using an authenticator app
-                  </p>
-                </div>
-                <Button variant="outline" className="border-border bg-transparent">
-                  <Shield className="h-4 w-4 mr-2" />
-                  Enable 2FA
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-card border-border">
-            <CardHeader>
-              <CardTitle className="text-foreground">Active Sessions</CardTitle>
-              <CardDescription>
-                Manage your active login sessions
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-secondary rounded-lg">
-                <div className="flex items-center gap-4">
-                  <Globe className="h-8 w-8 text-primary" />
-                  <div>
-                    <p className="text-foreground font-medium">Current Session</p>
-                    <p className="text-sm text-muted-foreground">
-                      Chrome on Windows - Gaborone, Botswana
-                    </p>
-                    <p className="text-xs text-muted-foreground">Started: Today at 9:30 AM</p>
-                  </div>
-                </div>
-                <Badge className="bg-primary/20 text-primary border-primary/30">Active</Badge>
-              </div>
-              <Button variant="outline" className="border-destructive text-destructive hover:bg-destructive/10 bg-transparent">
-                Sign Out All Other Sessions
-              </Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="preferences" className="space-y-6">
-          <Card className="bg-card border-border">
-            <CardHeader>
-              <CardTitle className="text-foreground">Regional Settings</CardTitle>
-              <CardDescription>
-                Customize language, timezone, and date formats
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="language" className="text-foreground">Language</Label>
-                  <Select
-                    value={preferences.language}
-                    onValueChange={(value) => setPreferences({ ...preferences, language: value })}
-                  >
-                    <SelectTrigger className="bg-input border-border">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="en">English</SelectItem>
-                      <SelectItem value="tn">Setswana</SelectItem>
-                      <SelectItem value="fr">French</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                                  <Label className="text-foreground">Organization</Label>
+                <OrganizationSelect
+                  organizations={organizations}
+                  value={profile.organizationId}
+                  onChange={(value) => setProfile({ ...profile, organizationId: value })}
+                  includeAll
+                  allLabel="All organizations"
+                  placeholder="Select organization"
+                /></div>
                 <div className="space-y-2">
                   <Label htmlFor="timezone" className="text-foreground">Timezone</Label>
                   <Select
@@ -554,3 +373,6 @@ export default function SettingsPage() {
     </div>
   );
 }
+
+
+

@@ -1,14 +1,15 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, UserSquare2, User, MapPin, Loader2 } from "lucide-react";
+import { Plus, UserSquare2, User, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { PageHeader } from "@/components/shared/page-header";
+import { OrganizationSelect } from "@/components/shared/organization-select";
 import { DataTable } from "@/components/shared/data-table";
-import { useRespondents, useUsers } from "@/lib/hooks/use-api";
+import { useAllOrganizations, useRespondents } from "@/lib/hooks/use-api";
 import { respondentsService } from "@/lib/api";
 import type { Respondent } from "@/lib/types";
 import {
@@ -28,53 +29,44 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 
-const hivStatusColors: Record<string, string> = {
-  positive: "bg-chart-5/10 text-chart-5",
-  negative: "bg-chart-2/10 text-chart-2",
-  unknown: "bg-muted text-muted-foreground",
-};
 
 export default function RespondentsPage() {
   const router = useRouter();
   const { toast } = useToast();
   const { data: respondentsData, isLoading, error, mutate } = useRespondents();
-  const { data: usersData } = useUsers();
+  const { data: organizationsData } = useAllOrganizations();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isAnonymous, setIsAnonymous] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [sexFilter, setSexFilter] = useState("all");
+  const [genderFilter, setGenderFilter] = useState("all");
 
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    idNumber: "",
-    dateOfBirth: "",
-    sex: "",
-    ageRange: "",
-    district: "",
+    unique_id: "",
+    first_name: "",
+    last_name: "",
+    gender: "",
+    date_of_birth: "",
+    organization: "",
   });
 
   const respondents = respondentsData?.results || [];
-  const users = usersData?.results || [];
+  const organizations = organizationsData?.results || [];
 
   // Apply filters and search
   const filteredRespondents = respondents.filter((r) => {
     const matchesSearch =
-      r.firstName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      r.lastName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      r.idNumber?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesSex = sexFilter === "all" || r.sex === sexFilter;
-    return matchesSearch && matchesSex;
+      r.first_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      r.last_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      r.unique_id?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesGender = genderFilter === "all" || r.gender === genderFilter;
+    return matchesSearch && matchesGender;
   });
 
-  const identifiedCount = respondents.filter((r) => !r.isAnonymous).length;
-  const anonymousCount = respondents.filter((r) => r.isAnonymous).length;
-  const hivPositiveCount = respondents.filter((r) => r.hivStatus === "positive").length;
+  const activeCount = respondents.filter((r) => r.is_active).length;
+  const inactiveCount = respondents.filter((r) => !r.is_active).length;
 
   const columns = [
     {
@@ -85,101 +77,71 @@ export default function RespondentsPage() {
         <div className="flex items-center gap-3">
           <Avatar className="h-10 w-10">
             <AvatarFallback className="bg-secondary text-muted-foreground">
-              {respondent.isAnonymous ? (
-                <User className="h-4 w-4" />
-              ) : (
-                `${respondent.firstName?.[0] || ""}${respondent.lastName?.[0] || ""}`
-              )}
+              {respondent.first_name?.[0] || ""}{respondent.last_name?.[0] || ""}
             </AvatarFallback>
           </Avatar>
           <div>
-            {respondent.isAnonymous ? (
-              <>
-                <p className="font-medium text-foreground">Anonymous</p>
-                <p className="text-xs text-muted-foreground">ID: {respondent.id}</p>
-              </>
-            ) : (
-              <>
-                <p className="font-medium text-foreground">
-                  {respondent.firstName} {respondent.lastName}
-                </p>
-                <p className="text-xs text-muted-foreground">{respondent.idNumber}</p>
-              </>
-            )}
+            <p className="font-medium text-foreground">
+              {respondent.first_name} {respondent.last_name}
+            </p>
+            <p className="text-xs text-muted-foreground">ID: {respondent.unique_id}</p>
           </div>
         </div>
       ),
     },
     {
-      key: "demographics",
-      label: "Demographics",
+      key: "gender",
+      label: "Gender",
       render: (respondent: Respondent) => (
-        <div className="space-y-1">
-          <div className="flex items-center gap-2 text-sm">
-            <span className="capitalize">{respondent.sex}</span>
-            {respondent.ageRange && (
-              <>
-                <span className="text-muted-foreground">|</span>
-                <span>{respondent.ageRange}</span>
-              </>
-            )}
-          </div>
-          {respondent.district && (
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <MapPin className="h-3 w-3" />
-              {respondent.district}
-            </div>
-          )}
-        </div>
-      ),
-    },
-    {
-      key: "hivStatus",
-      label: "HIV Status",
-      render: (respondent: Respondent) => (
-        <Badge variant="secondary" className={hivStatusColors[respondent.hivStatus || "unknown"]}>
-          {respondent.hivStatus
-            ? respondent.hivStatus.charAt(0).toUpperCase() + respondent.hivStatus.slice(1)
-            : "Unknown"}
+        <Badge variant="secondary" className="capitalize">
+          {respondent.gender || "â€”"}
         </Badge>
       ),
     },
     {
-      key: "createdAt",
+      key: "organization",
+      label: "Organization",
+      render: (respondent: Respondent) => (
+        <span className="text-sm text-muted-foreground">
+          {respondent.organization_name || "â€”"}
+        </span>
+      ),
+    },
+    {
+      key: "created_at",
       label: "Created",
       sortable: true,
-      render: (respondent: Respondent) => {
-        const creator = users.find((u) => u.id === respondent.createdById);
-        return (
-          <div className="space-y-1">
-            <p className="text-sm text-muted-foreground">
-              {new Date(respondent.createdAt).toLocaleDateString()}
-            </p>
-            {creator && (
-              <p className="text-xs text-muted-foreground">
-                by {creator.firstName} {creator.lastName}
-              </p>
-            )}
-          </div>
-        );
-      },
+      render: (respondent: Respondent) => (
+        <p className="text-sm text-muted-foreground">
+          {new Date(respondent.created_at).toLocaleDateString()}
+        </p>
+      ),
     },
   ];
 
   const handleCreate = async () => {
-    if (!isAnonymous && (!formData.firstName || !formData.lastName)) {
+    if (!formData.unique_id || !formData.first_name || !formData.last_name) {
       toast({
         title: "Validation Error",
-        description: "Please fill in first and last name",
+        description: "Please fill in unique ID, first name, and last name",
         variant: "destructive",
       });
       return;
     }
 
-    if (!formData.sex) {
+    if (!formData.gender) {
       toast({
         title: "Validation Error",
-        description: "Please select sex",
+        description: "Please select gender",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!formData.organization) {
+      toast({
+        title: "Validation Error",
+        description: "Please select an organization",
         variant: "destructive",
       });
       return;
@@ -188,14 +150,12 @@ export default function RespondentsPage() {
     setIsSubmitting(true);
     try {
       await respondentsService.create({
-        isAnonymous,
-        firstName: isAnonymous ? undefined : formData.firstName,
-        lastName: isAnonymous ? undefined : formData.lastName,
-        idNumber: isAnonymous ? undefined : formData.idNumber || undefined,
-        dateOfBirth: isAnonymous ? undefined : formData.dateOfBirth || undefined,
-        sex: formData.sex as Respondent["sex"],
-        ageRange: formData.ageRange || undefined,
-        district: formData.district || undefined,
+        unique_id: formData.unique_id,
+        first_name: formData.first_name,
+        last_name: formData.last_name,
+        gender: formData.gender as Respondent["gender"],
+        date_of_birth: formData.date_of_birth || undefined,
+        organization: Number(formData.organization),
       });
       toast({
         title: "Success",
@@ -203,15 +163,13 @@ export default function RespondentsPage() {
       });
       setIsCreateOpen(false);
       setFormData({
-        firstName: "",
-        lastName: "",
-        idNumber: "",
-        dateOfBirth: "",
-        sex: "",
-        ageRange: "",
-        district: "",
+        unique_id: "",
+        first_name: "",
+        last_name: "",
+        gender: "",
+        date_of_birth: "",
+        organization: "",
       });
-      setIsAnonymous(false);
       mutate(); // refresh data
     } catch {
       toast({
@@ -262,7 +220,7 @@ export default function RespondentsPage() {
           { label: "Respondents" },
         ]}
         actions={
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button variant="outline" asChild>
               <a href="/respondents/interactions">View Interactions</a>
             </Button>
@@ -275,15 +233,16 @@ export default function RespondentsPage() {
       />
 
       {/* Filters */}
-      <div className="flex items-center gap-2">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
         <Input
           placeholder="Search by name or ID..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full"
         />
-        <Select value={sexFilter} onValueChange={setSexFilter}>
-          <SelectTrigger>
-            <SelectValue placeholder="Sex" />
+        <Select value={genderFilter} onValueChange={setGenderFilter}>
+          <SelectTrigger className="w-full sm:w-[180px]">
+            <SelectValue placeholder="Gender" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All</SelectItem>
@@ -295,7 +254,7 @@ export default function RespondentsPage() {
       </div>
 
       {/* Summary Stats */}
-      <div className="grid gap-4 sm:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-lg border border-border bg-card p-4">
           <div className="flex items-center gap-3">
             <div className="rounded-full bg-primary/10 p-2">
@@ -308,16 +267,16 @@ export default function RespondentsPage() {
           </div>
         </div>
         <div className="rounded-lg border border-border bg-card p-4">
-          <p className="text-sm text-muted-foreground">Identified</p>
-          <p className="text-2xl font-bold text-foreground">{identifiedCount}</p>
+          <p className="text-sm text-muted-foreground">Active</p>
+          <p className="text-2xl font-bold text-foreground">{activeCount}</p>
         </div>
         <div className="rounded-lg border border-border bg-card p-4">
-          <p className="text-sm text-muted-foreground">Anonymous</p>
-          <p className="text-2xl font-bold text-muted-foreground">{anonymousCount}</p>
+          <p className="text-sm text-muted-foreground">Inactive</p>
+          <p className="text-2xl font-bold text-muted-foreground">{inactiveCount}</p>
         </div>
         <div className="rounded-lg border border-border bg-card p-4">
-          <p className="text-sm text-muted-foreground">HIV Positive</p>
-          <p className="text-2xl font-bold text-chart-5">{hivPositiveCount}</p>
+          <p className="text-sm text-muted-foreground">Organizations</p>
+          <p className="text-2xl font-bold text-chart-5">{organizations.length}</p>
         </div>
       </div>
 
@@ -325,8 +284,8 @@ export default function RespondentsPage() {
       <Tabs defaultValue="all">
         <TabsList className="bg-secondary">
           <TabsTrigger value="all">All Respondents</TabsTrigger>
-          <TabsTrigger value="identified">Identified</TabsTrigger>
-          <TabsTrigger value="anonymous">Anonymous</TabsTrigger>
+          <TabsTrigger value="active">Active</TabsTrigger>
+          <TabsTrigger value="inactive">Inactive</TabsTrigger>
         </TabsList>
 
         <TabsContent value="all" className="mt-6">
@@ -339,18 +298,18 @@ export default function RespondentsPage() {
           />
         </TabsContent>
 
-        <TabsContent value="identified" className="mt-6">
+        <TabsContent value="active" className="mt-6">
           <DataTable
-            data={filteredRespondents.filter((r) => !r.isAnonymous)}
+            data={filteredRespondents.filter((r) => r.is_active)}
             columns={columns}
             onRowClick={(r) => router.push(`/respondents/${r.id}`)}
             actions={actions}
           />
         </TabsContent>
 
-        <TabsContent value="anonymous" className="mt-6">
+        <TabsContent value="inactive" className="mt-6">
           <DataTable
-            data={filteredRespondents.filter((r) => r.isAnonymous)}
+            data={filteredRespondents.filter((r) => !r.is_active)}
             columns={columns}
             onRowClick={(r) => router.push(`/respondents/${r.id}`)}
             actions={actions}
@@ -360,7 +319,7 @@ export default function RespondentsPage() {
 
       {/* Create Dialog */}
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="w-[95vw] sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Register Respondent</DialogTitle>
             <DialogDescription>Add a new respondent to the system</DialogDescription>
@@ -373,69 +332,84 @@ export default function RespondentsPage() {
               handleCreate();
             }}
           >
-            {/* Anonymous toggle */}
-            <div className="flex items-center justify-between rounded-lg border border-border p-4">
-              <div className="space-y-0.5">
-                <Label>Anonymous Registration</Label>
-                <p className="text-xs text-muted-foreground">
-                  Do not collect personal identifying information
-                </p>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="uniqueId">Unique ID *</Label>
+                <Input
+                  id="uniqueId"
+                  placeholder="e.g., RSP-0001"
+                  value={formData.unique_id}
+                  onChange={(e) =>
+                    setFormData({ ...formData, unique_id: e.target.value })
+                  }
+                />
               </div>
-              <Switch checked={isAnonymous} onCheckedChange={setIsAnonymous} />
+              <div className="space-y-2">
+                                <Label htmlFor="organization">Organization *</Label>
+                <OrganizationSelect
+                  organizations={organizations}
+                  value={form.organization}
+                  onChange={(value) => setForm({ ...form, organization: value })}
+                  includeAll
+                  allLabel="All organizations"
+                  placeholder="Select organization"
+                /></div>
             </div>
-
-            {!isAnonymous && (
-              <>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="firstName">First Name *</Label>
-                    <Input
-                      id="firstName"
-                      placeholder="Enter first name"
-                      value={formData.firstName}
-                      onChange={(e) =>
-                        setFormData({ ...formData, firstName: e.target.value })
-                      }
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="lastName">Last Name *</Label>
-                    <Input
-                      id="lastName"
-                      placeholder="Enter last name"
-                      value={formData.lastName}
-                      onChange={(e) =>
-                        setFormData({ ...formData, lastName: e.target.value })
-                      }
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="idNumber">ID Number</Label>
-                    <Input
-                      id="idNumber"
-                      placeholder="e.g., BW1234567"
-                      value={formData.idNumber}
-                      onChange={(e) =>
-                        setFormData({ ...formData, idNumber: e.target.value })
-                      }
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="dob">Date of Birth</Label>
-                    <Input
-                      id="dob"
-                      type="date"
-                      value={formData.dateOfBirth}
-                      onChange={(e) =>
-                        setFormData({ ...formData, dateOfBirth: e.target.value })
-                      }
-                    />
-                  </div>
-                </div>
-              </>
-            )}
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="firstName">First Name *</Label>
+                <Input
+                  id="firstName"
+                  placeholder="Enter first name"
+                  value={formData.first_name}
+                  onChange={(e) =>
+                    setFormData({ ...formData, first_name: e.target.value })
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="lastName">Last Name *</Label>
+                <Input
+                  id="lastName"
+                  placeholder="Enter last name"
+                  value={formData.last_name}
+                  onChange={(e) =>
+                    setFormData({ ...formData, last_name: e.target.value })
+                  }
+                />
+              </div>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="gender">Gender *</Label>
+                <Select
+                  value={formData.gender}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, gender: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select gender" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="male">Male</SelectItem>
+                    <SelectItem value="female">Female</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="dob">Date of Birth</Label>
+                <Input
+                  id="dob"
+                  type="date"
+                  value={formData.date_of_birth}
+                  onChange={(e) =>
+                    setFormData({ ...formData, date_of_birth: e.target.value })
+                  }
+                />
+              </div>
+            </div>
 
             <DialogFooter>
               <Button
@@ -455,3 +429,5 @@ export default function RespondentsPage() {
     </div>
   );
 }
+
+

@@ -2,12 +2,12 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Plus, Target, FileText, Hash, ToggleLeft, List, Type, Loader2 } from "lucide-react"
+import { Plus, Target, FileText, Hash, ToggleLeft, List, Type, Loader2, Calendar } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { PageHeader } from "@/components/shared/page-header"
 import { DataTable } from "@/components/shared/data-table"
-import { useIndicators, useAssessments } from "@/lib/hooks/use-api"
+import { useAllIndicators, useAssessments } from "@/lib/hooks/use-api"
 import { indicatorsService } from "@/lib/api"
 import type { Indicator } from "@/lib/types"
 import {
@@ -28,39 +28,36 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useToast } from "@/hooks/use-toast"
 
 const categoryColors: Record<string, string> = {
-  assessment: "bg-primary/10 text-primary",
-  social: "bg-chart-2/10 text-chart-2",
-  event_count: "bg-chart-3/10 text-chart-3",
-  orgs_capacitated: "bg-chart-4/10 text-chart-4",
-  misc: "bg-muted text-muted-foreground",
+  hiv_prevention: "bg-primary/10 text-primary",
+  ncd: "bg-chart-3/10 text-chart-3",
+  events: "bg-chart-4/10 text-chart-4",
 }
 
 const categoryLabels: Record<string, string> = {
-  assessment: "Assessment",
-  social: "Social",
-  event_count: "Event Count",
-  orgs_capacitated: "Orgs Capacitated",
-  misc: "Misc",
+  hiv_prevention: "HIV Prevention",
+  ncd: "Non-Communicable Diseases",
+  events: "Events",
 }
 
 const typeIcons: Record<string, typeof Target> = {
   yes_no: ToggleLeft,
   number: Hash,
-  open_text: Type,
+  percentage: Hash,
+  text: Type,
+  select: List,
   multiselect: List,
-  single_select: List,
-  numbers_by_category: FileText,
+  date: Calendar,
+  multi_int: FileText,
 }
 
 export default function IndicatorsPage() {
   const router = useRouter()
   const { toast } = useToast()
-  const { data: indicatorsData, isLoading, error, mutate } = useIndicators()
+  const { data: indicatorsData, isLoading, error, mutate } = useAllIndicators()
   const { data: assessmentsData } = useAssessments()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -71,11 +68,11 @@ export default function IndicatorsPage() {
     description: "",
     category: "",
     type: "",
-    isRequired: false,
-    allowAggregate: false,
+    unit: "",
+    options: "",
   })
 
-  const indicators = indicatorsData?.results || []
+  const indicators = indicatorsData || []
   const assessments = assessmentsData?.results || []
 
   const filteredIndicators = activeTab === "all"
@@ -122,29 +119,24 @@ export default function IndicatorsPage() {
       )
     },
     {
-      key: "assessmentId",
-      label: "Assessment",
-      render: (indicator: Indicator) => {
-        const assessment = assessments.find(a => a.id === indicator.assessmentId)
-        return (
-          <span className="text-sm text-muted-foreground">
-            {assessment?.name || "—"}
-          </span>
-        )
-      }
+      key: "unit",
+      label: "Unit",
+      render: (indicator: Indicator) => (
+        <span className="text-sm text-muted-foreground">
+          {indicator.unit || "—"}
+        </span>
+      )
     },
     {
-      key: "flags",
-      label: "Properties",
+      key: "is_active",
+      label: "Status",
       render: (indicator: Indicator) => (
-        <div className="flex gap-1">
-          {indicator.isRequired && (
-            <Badge variant="outline" className="text-xs">Required</Badge>
-          )}
-          {indicator.allowAggregate && (
-            <Badge variant="outline" className="text-xs">Aggregate</Badge>
-          )}
-        </div>
+        <Badge
+          variant="secondary"
+          className={indicator.is_active ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"}
+        >
+          {indicator.is_active ? "Active" : "Inactive"}
+        </Badge>
       )
     }
   ]
@@ -167,8 +159,10 @@ export default function IndicatorsPage() {
         description: formData.description || undefined,
         category: formData.category as Indicator["category"],
         type: formData.type as Indicator["type"],
-        isRequired: formData.isRequired,
-        allowAggregate: formData.allowAggregate,
+        unit: formData.unit || undefined,
+        options: formData.options
+          ? formData.options.split(",").map((opt) => opt.trim()).filter(Boolean)
+          : undefined,
       })
       toast({
         title: "Success",
@@ -181,8 +175,8 @@ export default function IndicatorsPage() {
         description: "",
         category: "",
         type: "",
-        isRequired: false,
-        allowAggregate: false,
+        unit: "",
+        options: "",
       })
       mutate()
     } catch {
@@ -256,32 +250,32 @@ export default function IndicatorsPage() {
       />
 
       {/* Summary stats */}
-      <div className="grid gap-4 sm:grid-cols-5">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <div className="rounded-lg border border-border bg-card p-4">
           <p className="text-sm text-muted-foreground">Total</p>
           <p className="text-2xl font-bold text-foreground">{indicators.length}</p>
         </div>
         <div className="rounded-lg border border-border bg-card p-4">
-          <p className="text-sm text-muted-foreground">Assessment</p>
+          <p className="text-sm text-muted-foreground">HIV Prevention</p>
           <p className="text-2xl font-bold text-primary">
-            {indicators.filter(i => i.category === 'assessment').length}
+            {indicators.filter(i => i.category === 'hiv_prevention').length}
           </p>
         </div>
         <div className="rounded-lg border border-border bg-card p-4">
-          <p className="text-sm text-muted-foreground">Social</p>
-          <p className="text-2xl font-bold text-chart-2">
-            {indicators.filter(i => i.category === 'social').length}
-          </p>
-        </div>
-        <div className="rounded-lg border border-border bg-card p-4">
-          <p className="text-sm text-muted-foreground">Event</p>
+          <p className="text-sm text-muted-foreground">Non-Communicable Diseases</p>
           <p className="text-2xl font-bold text-chart-3">
-            {indicators.filter(i => i.category === 'event_count').length}
+            {indicators.filter(i => i.category === 'ncd').length}
+          </p>
+        </div>
+        <div className="rounded-lg border border-border bg-card p-4">
+          <p className="text-sm text-muted-foreground">Events</p>
+          <p className="text-2xl font-bold text-chart-4">
+            {indicators.filter(i => i.category === 'events').length}
           </p>
         </div>
         <div className="rounded-lg border border-border bg-card p-4">
           <p className="text-sm text-muted-foreground">Assessments</p>
-          <p className="text-2xl font-bold text-chart-4">{assessments.length}</p>
+          <p className="text-2xl font-bold text-muted-foreground">{assessments.length}</p>
         </div>
       </div>
 
@@ -289,10 +283,9 @@ export default function IndicatorsPage() {
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="bg-secondary">
           <TabsTrigger value="all">All</TabsTrigger>
-          <TabsTrigger value="assessment">Assessment</TabsTrigger>
-          <TabsTrigger value="social">Social</TabsTrigger>
-          <TabsTrigger value="event_count">Event</TabsTrigger>
-          <TabsTrigger value="misc">Misc</TabsTrigger>
+          <TabsTrigger value="hiv_prevention">HIV Prevention</TabsTrigger>
+          <TabsTrigger value="ncd">Non-Communicable Diseases</TabsTrigger>
+          <TabsTrigger value="events">Events</TabsTrigger>
         </TabsList>
 
         <TabsContent value={activeTab} className="mt-6">
@@ -308,7 +301,7 @@ export default function IndicatorsPage() {
 
       {/* Create Dialog */}
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="w-[95vw] sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Create Indicator</DialogTitle>
             <DialogDescription>
@@ -322,7 +315,7 @@ export default function IndicatorsPage() {
               handleCreate()
             }}
           >
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="name">Indicator Name *</Label>
                 <Input
@@ -352,7 +345,7 @@ export default function IndicatorsPage() {
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="category">Category *</Label>
                 <Select
@@ -362,15 +355,13 @@ export default function IndicatorsPage() {
                   <SelectTrigger>
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="assessment">Assessment</SelectItem>
-                    <SelectItem value="social">Social</SelectItem>
-                    <SelectItem value="event_count">Event Count</SelectItem>
-                    <SelectItem value="orgs_capacitated">Orgs Capacitated</SelectItem>
-                    <SelectItem value="misc">Misc</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                <SelectContent>
+                    <SelectItem value="hiv_prevention">HIV Prevention</SelectItem>
+                    <SelectItem value="ncd">Non-Communicable Diseases</SelectItem>
+                    <SelectItem value="events">Events</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
               <div className="space-y-2">
                 <Label htmlFor="type">Response Type *</Label>
                 <Select
@@ -383,33 +374,35 @@ export default function IndicatorsPage() {
                   <SelectContent>
                     <SelectItem value="yes_no">Yes/No</SelectItem>
                     <SelectItem value="number">Number</SelectItem>
-                    <SelectItem value="open_text">Open Text</SelectItem>
-                    <SelectItem value="single_select">Single Select</SelectItem>
+                    <SelectItem value="percentage">Percentage</SelectItem>
+                    <SelectItem value="text">Text</SelectItem>
+                    <SelectItem value="select">Single Select</SelectItem>
                     <SelectItem value="multiselect">Multiselect</SelectItem>
-                    <SelectItem value="numbers_by_category">Numbers by Category</SelectItem>
+                    <SelectItem value="date">Date</SelectItem>
+                    <SelectItem value="multi_int">Multiple Integers</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
-            <div className="flex items-center justify-between rounded-lg border border-border p-4">
-              <div className="space-y-0.5">
-                <Label>Required</Label>
-                <p className="text-xs text-muted-foreground">This indicator must be answered</p>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="unit">Unit</Label>
+                <Input
+                  id="unit"
+                  placeholder="e.g., people, sessions"
+                  value={formData.unit}
+                  onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
+                />
               </div>
-              <Switch
-                checked={formData.isRequired}
-                onCheckedChange={(checked) => setFormData({ ...formData, isRequired: checked })}
-              />
-            </div>
-            <div className="flex items-center justify-between rounded-lg border border-border p-4">
-              <div className="space-y-0.5">
-                <Label>Allow Aggregate</Label>
-                <p className="text-xs text-muted-foreground">Enable aggregate data entry</p>
+              <div className="space-y-2">
+                <Label htmlFor="options">Options (comma-separated)</Label>
+                <Input
+                  id="options"
+                  placeholder="Option A, Option B"
+                  value={formData.options}
+                  onChange={(e) => setFormData({ ...formData, options: e.target.value })}
+                />
               </div>
-              <Switch
-                checked={formData.allowAggregate}
-                onCheckedChange={(checked) => setFormData({ ...formData, allowAggregate: checked })}
-              />
             </div>
             <DialogFooter>
               <Button

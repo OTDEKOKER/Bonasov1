@@ -131,19 +131,27 @@ export default function DashboardPage() {
                 <p className="text-sm text-muted-foreground">No upcoming deadlines</p>
               ) : (
                 upcomingDeadlines.map((deadline) => {
-                  const dueDate = new Date(deadline.dueDate)
-                  const daysUntil = Math.ceil((dueDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
+                  const dueDateValue = deadline.due_date ?? deadline.dueDate
+                  const dueDate = new Date(dueDateValue)
+                  const dueTime = dueDate.getTime()
+                  const daysUntil = Number.isFinite(dueTime)
+                    ? Math.ceil((dueTime - new Date().getTime()) / (1000 * 60 * 60 * 24))
+                    : null
                   
                   return (
                     <div key={deadline.id} className="flex items-start justify-between gap-2 rounded-lg bg-secondary/50 p-3">
                       <div className="space-y-1">
-                        <p className="text-sm font-medium text-card-foreground">{deadline.title}</p>
-                        <p className="text-xs text-muted-foreground">{deadline.projectName}</p>
+                        <p className="text-sm font-medium text-card-foreground">
+                          {deadline.name ?? deadline.title}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {deadline.project_name ?? deadline.projectName}
+                        </p>
                       </div>
                       <span className={`whitespace-nowrap rounded-full px-2 py-1 text-xs font-medium ${
-                        daysUntil <= 7 ? 'bg-destructive/10 text-destructive' : 'bg-primary/10 text-primary'
+                        daysUntil !== null && daysUntil <= 7 ? 'bg-destructive/10 text-destructive' : 'bg-primary/10 text-primary'
                       }`}>
-                        {daysUntil} days
+                        {daysUntil === null ? 'No date' : `${daysUntil} days`}
                       </span>
                     </div>
                   )

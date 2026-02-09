@@ -1,25 +1,7 @@
-# Node / frontend dependencies
-node_modules/
-dist/
-build/
-
-# Environment / config files
-.env
-.env.local
-.env.*.local
-*.secret
-
-# Logs
+﻿# Ignore backend and local env artifacts
+/django_backend/
+/venv/
+/.env
+/.env.*
+*.sqlite3
 *.log
-
-# OS generated files
-.DS_Store
-Thumbs.db
-
-# Python virtual environment
-venv/
-__pycache__/
-*.pyc
-venv/ 
-__pycache__/ 
-*.pyc 

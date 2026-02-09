@@ -1,28 +1,31 @@
 "use client"
 
 import { useState } from "react"
-import { Plus, CheckCircle2, Clock, AlertCircle } from "lucide-react"
+import { Plus, CheckCircle2, Clock, AlertCircle, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { PageHeader } from "@/components/shared/page-header"
-import { mockDeadlines, mockProjects } from "@/lib/mock-data"
+import { useDeadlines } from "@/lib/hooks/use-api"
+import { deadlinesService } from "@/lib/api"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
 
 export default function DeadlinesPage() {
   const [activeTab, setActiveTab] = useState("upcoming")
+  const { data, isLoading, error, mutate } = useDeadlines()
+  const deadlinesAll = data?.results || []
 
   const now = new Date()
   
-  const upcomingDeadlines = mockDeadlines
-    .filter(d => !d.isCompleted && new Date(d.dueDate) >= now)
-    .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
+  const upcomingDeadlines = deadlinesAll
+    .filter(d => d.status === "pending" && new Date(d.due_date) >= now)
+    .sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime())
   
-  const overdueDeadlines = mockDeadlines
-    .filter(d => !d.isCompleted && new Date(d.dueDate) < now)
+  const overdueDeadlines = deadlinesAll
+    .filter(d => d.status === "overdue" || (d.status === "pending" && new Date(d.due_date) < now))
   
-  const completedDeadlines = mockDeadlines
-    .filter(d => d.isCompleted)
+  const completedDeadlines = deadlinesAll
+    .filter(d => d.status === "submitted" || d.status === "approved")
 
   const getDeadlines = () => {
     switch (activeTab) {
@@ -33,11 +36,37 @@ export default function DeadlinesPage() {
       case "completed":
         return completedDeadlines
       default:
-        return mockDeadlines
+        return deadlinesAll
     }
   }
 
   const deadlines = getDeadlines()
+
+  const handleSubmit = async (id: string) => {
+    try {
+      await deadlinesService.submit(Number(id))
+      mutate()
+    } catch (err) {
+      console.error("Failed to submit deadline", err)
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex h-[60vh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-[60vh] flex-col items-center justify-center gap-4">
+        <p className="text-muted-foreground">Failed to load deadlines</p>
+        <Button onClick={() => mutate()}>Retry</Button>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -111,10 +140,14 @@ export default function DeadlinesPage() {
           ) : (
             <div className="space-y-3">
               {deadlines.map((deadline) => {
-                const project = mockProjects.find(p => p.id === deadline.projectId)
-                const dueDate = new Date(deadline.dueDate)
-                const isPast = dueDate < now && !deadline.isCompleted
-                const daysUntil = Math.ceil((dueDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+                const dueDate = new Date(deadline.due_date)
+                const dueTime = dueDate.getTime()
+                const hasDate = Number.isFinite(dueTime)
+                const isCompleted = deadline.status === "submitted" || deadline.status === "approved"
+                const isPast = hasDate && dueDate < now && !isCompleted
+                const daysUntil = hasDate
+                  ? Math.ceil((dueTime - now.getTime()) / (1000 * 60 * 60 * 24))
+                  : null
 
                 return (
                   <div
@@ -127,11 +160,11 @@ export default function DeadlinesPage() {
                     <div className="flex items-center gap-4">
                       <div className={cn(
                         "rounded-full p-2",
-                        deadline.isCompleted ? "bg-chart-2/10 text-chart-2" :
+                        isCompleted ? "bg-chart-2/10 text-chart-2" :
                         isPast ? "bg-destructive/10 text-destructive" :
                         "bg-primary/10 text-primary"
                       )}>
-                        {deadline.isCompleted ? (
+                        {isCompleted ? (
                           <CheckCircle2 className="h-5 w-5" />
                         ) : isPast ? (
                           <AlertCircle className="h-5 w-5" />
@@ -140,12 +173,12 @@ export default function DeadlinesPage() {
                         )}
                       </div>
                       <div>
-                        <p className="font-medium text-foreground">{deadline.title}</p>
+                        <p className="font-medium text-foreground">{deadline.name}</p>
                         {deadline.description && (
                           <p className="text-sm text-muted-foreground">{deadline.description}</p>
                         )}
                         <p className="mt-1 text-xs text-muted-foreground">
-                          {project?.name} ({project?.code})
+                          {deadline.project_name || "Project"} (ID: {deadline.project})
                         </p>
                       </div>
                     </div>
@@ -159,27 +192,28 @@ export default function DeadlinesPage() {
                             year: 'numeric'
                           })}
                         </p>
-                        {!deadline.isCompleted && (
+                        {!isCompleted && (
                           <Badge variant="secondary" className={cn(
                             "mt-1",
                             isPast ? "bg-destructive/10 text-destructive" :
-                            daysUntil <= 7 ? "bg-chart-3/10 text-chart-3" :
+                            (daysUntil !== null && daysUntil <= 7) ? "bg-chart-3/10 text-chart-3" :
                             "bg-muted text-muted-foreground"
                           )}>
                             {isPast ? 'Overdue' : 
+                             daysUntil === null ? 'No date' :
                              daysUntil === 0 ? 'Due today' :
                              daysUntil === 1 ? 'Due tomorrow' :
                              `${daysUntil} days left`}
                           </Badge>
                         )}
-                        {deadline.isCompleted && (
+                        {isCompleted && (
                           <Badge variant="secondary" className="mt-1 bg-chart-2/10 text-chart-2">
                             Completed
                           </Badge>
                         )}
                       </div>
-                      {!deadline.isCompleted && (
-                        <Button variant="outline" size="sm">
+                      {!isCompleted && (
+                        <Button variant="outline" size="sm" onClick={() => handleSubmit(deadline.id)}>
                           Mark Complete
                         </Button>
                       )}

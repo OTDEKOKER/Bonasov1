@@ -2,11 +2,12 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Plus, ClipboardList, ChevronRight, GripVertical } from "lucide-react"
+import { Plus, ClipboardList, ChevronRight, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { PageHeader } from "@/components/shared/page-header"
-import { mockAssessments, mockIndicators } from "@/lib/mock-data"
+import { useAssessments } from "@/lib/hooks/use-api"
+import { assessmentsService } from "@/lib/api"
 import {
   Dialog,
   DialogContent,
@@ -31,19 +32,75 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
+import { useToast } from "@/hooks/use-toast"
 
 const typeLabels: Record<string, string> = {
   yes_no: "Yes/No",
   number: "Number",
-  open_text: "Text",
-  single_select: "Single Select",
+  percentage: "Percentage",
+  text: "Text",
+  select: "Single Select",
   multiselect: "Multiselect",
-  numbers_by_category: "Numbers",
+  date: "Date",
+  multi_int: "Numbers",
 }
 
 export default function AssessmentsPage() {
   const router = useRouter()
+  const { toast } = useToast()
+  const { data, isLoading, error, mutate } = useAssessments()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [formData, setFormData] = useState({
+    name: "",
+    description: "",
+  })
+
+  const assessments = data?.results || []
+
+  const handleCreate = async () => {
+    if (!formData.name) {
+      toast({
+        title: "Validation Error",
+        description: "Assessment name is required",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setIsSubmitting(true)
+    try {
+      await assessmentsService.create({
+        name: formData.name,
+        description: formData.description || undefined,
+      })
+      toast({ title: "Success", description: "Assessment created successfully" })
+      setIsCreateOpen(false)
+      setFormData({ name: "", description: "" })
+      mutate()
+    } catch {
+      toast({ title: "Error", description: "Failed to create assessment", variant: "destructive" })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex h-[60vh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-[60vh] flex-col items-center justify-center gap-4">
+        <p className="text-muted-foreground">Failed to load assessments</p>
+        <Button onClick={() => mutate()}>Retry</Button>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -65,8 +122,8 @@ export default function AssessmentsPage() {
 
       {/* Assessment cards */}
       <div className="grid gap-6 lg:grid-cols-2">
-        {mockAssessments.map((assessment) => {
-          const indicators = mockIndicators.filter(i => i.assessmentId === assessment.id)
+        {assessments.map((assessment) => {
+          const indicators = assessment.indicators_detail || []
           
           return (
             <Card key={assessment.id} className="overflow-hidden">
@@ -82,7 +139,7 @@ export default function AssessmentsPage() {
                     </div>
                   </div>
                   <Badge variant="secondary">
-                    {indicators.length} questions
+                    {assessment.indicators_count ?? indicators.length} questions
                   </Badge>
                 </div>
               </CardHeader>
@@ -106,17 +163,17 @@ export default function AssessmentsPage() {
                             </div>
                             <div className="flex-1">
                               <p className="text-sm font-medium text-foreground">
-                                {indicator.name}
+                                {indicator.indicator_detail?.name || "Indicator"}
                               </p>
                               <p className="text-xs text-muted-foreground">
-                                {indicator.code}
+                                {indicator.indicator_detail?.code || "—"}
                               </p>
                             </div>
                             <div className="flex items-center gap-2">
                               <Badge variant="outline" className="text-xs">
-                                {typeLabels[indicator.type] || indicator.type}
+                                {typeLabels[indicator.indicator_detail?.type || ""] || indicator.indicator_detail?.type || "—"}
                               </Badge>
-                              {indicator.isRequired && (
+                              {indicator.is_required && (
                                 <Badge variant="secondary" className="bg-destructive/10 text-destructive text-xs">
                                   Required
                                 </Badge>
@@ -130,7 +187,7 @@ export default function AssessmentsPage() {
                 </Accordion>
                 <div className="flex items-center justify-between border-t border-border px-6 py-3">
                   <span className="text-xs text-muted-foreground">
-                    Created {new Date(assessment.createdAt).toLocaleDateString()}
+                    Created {new Date(assessment.created_at).toLocaleDateString()}
                   </span>
                   <Button
                     variant="ghost"
@@ -146,7 +203,7 @@ export default function AssessmentsPage() {
           )
         })}
 
-        {mockAssessments.length === 0 && (
+        {assessments.length === 0 && (
           <div className="col-span-2 flex h-40 items-center justify-center rounded-lg border border-dashed border-border">
             <div className="text-center">
               <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground" />
@@ -176,7 +233,12 @@ export default function AssessmentsPage() {
           <form className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">Assessment Name</Label>
-              <Input id="name" placeholder="e.g., HIV Testing Assessment" />
+              <Input
+                id="name"
+                placeholder="e.g., HIV Testing Assessment"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="description">Description</Label>
@@ -184,6 +246,8 @@ export default function AssessmentsPage() {
                 id="description"
                 placeholder="Brief description of the assessment"
                 rows={3}
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               />
             </div>
           </form>
@@ -191,7 +255,8 @@ export default function AssessmentsPage() {
             <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={() => setIsCreateOpen(false)}>
+            <Button onClick={handleCreate} disabled={isSubmitting}>
+              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Create Assessment
             </Button>
           </DialogFooter>

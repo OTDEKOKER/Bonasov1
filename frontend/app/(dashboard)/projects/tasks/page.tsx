@@ -1,35 +1,43 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { Plus } from "lucide-react"
+import { Plus, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
 import { PageHeader } from "@/components/shared/page-header"
 import { DataTable } from "@/components/shared/data-table"
-import { mockTasks, mockProjects, mockOrganizations, mockIndicators } from "@/lib/mock-data"
+import { useTasks } from "@/lib/hooks/use-api"
 import type { Task } from "@/lib/types"
 
 const statusColors: Record<string, string> = {
   pending: "bg-muted text-muted-foreground",
   in_progress: "bg-primary/10 text-primary",
   completed: "bg-chart-2/10 text-chart-2",
+  cancelled: "bg-destructive/10 text-destructive",
+}
+
+const priorityColors: Record<string, string> = {
+  low: "bg-muted text-muted-foreground",
+  medium: "bg-primary/10 text-primary",
+  high: "bg-chart-3/10 text-chart-3",
+  urgent: "bg-destructive/10 text-destructive",
 }
 
 export default function TasksPage() {
   const router = useRouter()
+  const { data, isLoading, error, mutate } = useTasks()
+  const tasks = data?.results || []
 
   const columns = [
     {
-      key: "indicator",
-      label: "Indicator",
+      key: "name",
+      label: "Task",
       sortable: true,
       render: (task: Task) => {
-        const indicator = mockIndicators.find(i => i.id === task.indicatorId)
         return (
           <div>
-            <p className="font-medium text-foreground">{indicator?.name}</p>
-            <p className="text-xs text-muted-foreground">{indicator?.code}</p>
+            <p className="font-medium text-foreground">{task.name}</p>
+            <p className="text-xs text-muted-foreground">{task.project_name || "—"}</p>
           </div>
         )
       }
@@ -38,35 +46,10 @@ export default function TasksPage() {
       key: "project",
       label: "Project",
       render: (task: Task) => {
-        const project = mockProjects.find(p => p.id === task.projectId)
         return (
           <div>
-            <p className="text-sm text-foreground">{project?.name}</p>
-            <p className="text-xs text-muted-foreground">{project?.code}</p>
-          </div>
-        )
-      }
-    },
-    {
-      key: "organization",
-      label: "Organization",
-      render: (task: Task) => {
-        const org = mockOrganizations.find(o => o.id === task.organizationId)
-        return <span className="text-sm">{org?.name}</span>
-      }
-    },
-    {
-      key: "progress",
-      label: "Progress",
-      render: (task: Task) => {
-        const pct = task.target ? Math.round(((task.achieved || 0) / task.target) * 100) : 0
-        return (
-          <div className="w-32 space-y-1">
-            <div className="flex items-center justify-between text-xs">
-              <span>{(task.achieved || 0).toLocaleString()}</span>
-              <span>{(task.target || 0).toLocaleString()}</span>
-            </div>
-            <Progress value={pct} className="h-1.5" />
+            <p className="text-sm text-foreground">{task.project_name || "—"}</p>
+            <p className="text-xs text-muted-foreground">ID: {task.project}</p>
           </div>
         )
       }
@@ -80,14 +63,47 @@ export default function TasksPage() {
           {task.status.replace('_', ' ')}
         </Badge>
       )
+    },
+    {
+      key: "priority",
+      label: "Priority",
+      render: (task: Task) => (
+        <Badge variant="secondary" className={priorityColors[task.priority]}>
+          {task.priority}
+        </Badge>
+      )
+    },
+    {
+      key: "due_date",
+      label: "Due Date",
+      render: (task: Task) => (
+        <span className="text-sm text-muted-foreground">
+          {task.due_date ? new Date(task.due_date).toLocaleDateString() : "—"}
+        </span>
+      )
     }
   ]
 
   const actions = (task: Task) => [
-    { label: "View Details", onClick: () => router.push(`/projects/${task.projectId}`) },
-    { label: "Edit Target", onClick: () => console.log("Edit", task.id) },
-    { label: "Record Progress", onClick: () => console.log("Record", task.id) },
+    { label: "View Details", onClick: () => router.push(`/projects/${task.project}`) },
   ]
+
+  if (isLoading) {
+    return (
+      <div className="flex h-[60vh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-[60vh] flex-col items-center justify-center gap-4">
+        <p className="text-muted-foreground">Failed to load tasks</p>
+        <Button onClick={() => mutate()}>Retry</Button>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -111,30 +127,30 @@ export default function TasksPage() {
       <div className="grid gap-4 sm:grid-cols-4">
         <div className="rounded-lg border border-border bg-card p-4">
           <p className="text-sm text-muted-foreground">Total Tasks</p>
-          <p className="text-2xl font-bold text-foreground">{mockTasks.length}</p>
+          <p className="text-2xl font-bold text-foreground">{tasks.length}</p>
         </div>
         <div className="rounded-lg border border-border bg-card p-4">
           <p className="text-sm text-muted-foreground">In Progress</p>
           <p className="text-2xl font-bold text-primary">
-            {mockTasks.filter(t => t.status === 'in_progress').length}
+            {tasks.filter(t => t.status === 'in_progress').length}
           </p>
         </div>
         <div className="rounded-lg border border-border bg-card p-4">
           <p className="text-sm text-muted-foreground">Completed</p>
           <p className="text-2xl font-bold text-chart-2">
-            {mockTasks.filter(t => t.status === 'completed').length}
+            {tasks.filter(t => t.status === 'completed').length}
           </p>
         </div>
         <div className="rounded-lg border border-border bg-card p-4">
           <p className="text-sm text-muted-foreground">Pending</p>
           <p className="text-2xl font-bold text-muted-foreground">
-            {mockTasks.filter(t => t.status === 'pending').length}
+            {tasks.filter(t => t.status === 'pending').length}
           </p>
         </div>
       </div>
 
       <DataTable
-        data={mockTasks}
+        data={tasks}
         columns={columns}
         searchPlaceholder="Search tasks..."
         actions={actions}
