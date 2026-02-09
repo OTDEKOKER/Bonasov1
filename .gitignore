@@ -5,3 +5,5 @@
 /.env.*
 *.sqlite3
 *.log
+
+/Bonasov1.git
