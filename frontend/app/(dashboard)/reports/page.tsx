@@ -105,6 +105,29 @@ const reportChartPalette = [
   "#14B8A6",
 ];
 
+const downloadChartSvg = (containerId: string, filename: string) => {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  const svg = container.querySelector("svg");
+  if (!svg) return;
+
+  const cloned = svg.cloneNode(true) as SVGSVGElement;
+  if (!cloned.getAttribute("xmlns")) {
+    cloned.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+  }
+  const serializer = new XMLSerializer();
+  const svgText = serializer.serializeToString(cloned);
+  const blob = new Blob([svgText], { type: "image/svg+xml;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename.endsWith(".svg") ? filename : `${filename}.svg`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+};
+
 const SOCIAL_CONTRACTING_INDICATORS = [
   "Total Number of people Reached with HIV TESTING Messages",
   "Total Number of People Reached with PEP Messages",
@@ -767,12 +790,22 @@ export default function ReportsPage() {
         <TabsContent value="performance" className="space-y-4">
           <div className="grid gap-4 lg:grid-cols-2">
             <Card>
-              <CardHeader>
-                <CardTitle>Report Status</CardTitle>
-                <CardDescription>Generated reports by status</CardDescription>
+              <CardHeader className="flex flex-row items-center justify-between gap-2">
+                <div>
+                  <CardTitle>Report Status</CardTitle>
+                  <CardDescription>Generated reports by status</CardDescription>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => downloadChartSvg("report-status-chart", "report-status")}
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  Download Chart
+                </Button>
               </CardHeader>
               <CardContent>
-                <div className="h-[300px]">
+                <div className="h-[300px]" id="report-status-chart">
                   {reportStatusCounts.length === 0 ? (
                     <div className="flex h-full items-center justify-center text-muted-foreground">
                       No reports generated yet.
@@ -921,12 +954,22 @@ export default function ReportsPage() {
 
           <div className="grid gap-4 lg:grid-cols-2">
             <Card>
-              <CardHeader>
-                <CardTitle>HIV Prevention Messaging</CardTitle>
-                <CardDescription>Totals by message type</CardDescription>
+              <CardHeader className="flex flex-row items-center justify-between gap-2">
+                <div>
+                  <CardTitle>HIV Prevention Messaging</CardTitle>
+                  <CardDescription>Totals by message type</CardDescription>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => downloadChartSvg("hiv-prevention-bar", "hiv-prevention-messaging")}
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  Download Chart
+                </Button>
               </CardHeader>
               <CardContent>
-                <div className="h-[320px]">
+                <div className="h-[320px]" id="hiv-prevention-bar">
                   {hivPreventionSeries.length === 0 ? (
                     <div className="flex h-full items-center justify-center text-muted-foreground">
                       No aggregate data available.
@@ -958,12 +1001,22 @@ export default function ReportsPage() {
             </Card>
 
             <Card>
-              <CardHeader>
-                <CardTitle>HIV Prevention Distribution</CardTitle>
-                <CardDescription>Share by indicator total</CardDescription>
+              <CardHeader className="flex flex-row items-center justify-between gap-2">
+                <div>
+                  <CardTitle>HIV Prevention Distribution</CardTitle>
+                  <CardDescription>Share by indicator total</CardDescription>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => downloadChartSvg("hiv-prevention-pie", "hiv-prevention-distribution")}
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  Download Chart
+                </Button>
               </CardHeader>
               <CardContent>
-                <div className="h-[320px]">
+                <div className="h-[320px]" id="hiv-prevention-pie">
                   {hivPieData.length === 0 ? (
                     <div className="flex h-full items-center justify-center text-muted-foreground">
                       No aggregate data available.
@@ -1061,12 +1114,22 @@ export default function ReportsPage() {
         <TabsContent value="indicators" className="space-y-4">
           <div className="grid gap-4 lg:grid-cols-2">
             <Card>
-              <CardHeader>
-                <CardTitle>Indicator Distribution</CardTitle>
-                <CardDescription>Breakdown by indicator category</CardDescription>
+              <CardHeader className="flex flex-row items-center justify-between gap-2">
+                <div>
+                  <CardTitle>Indicator Distribution</CardTitle>
+                  <CardDescription>Breakdown by indicator category</CardDescription>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => downloadChartSvg("indicator-breakdown-pie", "indicator-distribution")}
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  Download Chart
+                </Button>
               </CardHeader>
               <CardContent>
-                <div className="h-[300px]">
+                <div className="h-[300px]" id="indicator-breakdown-pie">
                   {indicatorBreakdown.length === 0 ? (
                     <div className="flex h-full items-center justify-center text-muted-foreground">
                       No indicators available.
@@ -1148,12 +1211,22 @@ export default function ReportsPage() {
 
         <TabsContent value="demographics" className="space-y-4">
           <Card>
-            <CardHeader>
-              <CardTitle>Gender Distribution</CardTitle>
-              <CardDescription>Respondents by gender</CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between gap-2">
+              <div>
+                <CardTitle>Gender Distribution</CardTitle>
+                <CardDescription>Respondents by gender</CardDescription>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => downloadChartSvg("gender-distribution-bar", "gender-distribution")}
+              >
+                <Download className="mr-2 h-4 w-4" />
+                Download Chart
+              </Button>
             </CardHeader>
             <CardContent>
-              <div className="h-[350px]">
+              <div className="h-[350px]" id="gender-distribution-bar">
                 {genderData.length === 0 ? (
                   <div className="flex h-full items-center justify-center text-muted-foreground">
                     No demographic data available.
