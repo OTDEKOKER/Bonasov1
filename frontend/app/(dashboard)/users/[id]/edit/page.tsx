@@ -133,8 +133,9 @@ export default function UserEditPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="admin">Admin</SelectItem>
-                <SelectItem value="me_manager">M&E Manager</SelectItem>
-                <SelectItem value="me_officer">M&E Officer</SelectItem>
+                <SelectItem value="manager">M&E Manager</SelectItem>
+                <SelectItem value="officer">M&E Officer</SelectItem>
+                <SelectItem value="collector">Data Collector</SelectItem>
                 <SelectItem value="client">Client</SelectItem>
               </SelectContent>
             </Select>
@@ -159,8 +160,6 @@ export default function UserEditPage() {
               organizations={organizations}
               value={form.organizationId}
               onChange={(value) => setForm({ ...form, organizationId: value })}
-              includeAll
-              allLabel="All organizations"
               placeholder="Select organization"
             /></div>
           <div className="space-y-2">

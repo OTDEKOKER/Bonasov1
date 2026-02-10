@@ -33,15 +33,17 @@ import { useToast } from "@/hooks/use-toast"
 
 const roleColors: Record<string, string> = {
   admin: "bg-chart-5/10 text-chart-5",
-  me_officer: "bg-chart-1/10 text-chart-1",
-  me_manager: "bg-chart-2/10 text-chart-2",
+  officer: "bg-chart-1/10 text-chart-1",
+  manager: "bg-chart-2/10 text-chart-2",
+  collector: "bg-chart-3/10 text-chart-3",
   client: "bg-chart-4/10 text-chart-4",
 }
 
 const roleLabels: Record<string, string> = {
   admin: "Admin",
-  me_officer: "M&E Officer",
-  me_manager: "M&E Manager",
+  officer: "M&E Officer",
+  manager: "M&E Manager",
+  collector: "Data Collector",
   client: "Client",
 }
 
@@ -310,7 +312,7 @@ export default function UsersPage() {
   }
 
   const adminCount = users.filter(u => u.role === 'admin').length
-  const meStaffCount = users.filter(u => u.role === 'me_officer' || u.role === 'me_manager').length
+  const meStaffCount = users.filter(u => u.role === 'officer' || u.role === 'manager' || u.role === 'collector').length
   const clientCount = users.filter(u => u.role === 'client').length
 
   return (
@@ -447,8 +449,9 @@ export default function UsersPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="admin">Admin</SelectItem>
-                  <SelectItem value="me_manager">M&E Manager</SelectItem>
-                  <SelectItem value="me_officer">M&E Officer</SelectItem>
+                  <SelectItem value="manager">M&E Manager</SelectItem>
+                  <SelectItem value="officer">M&E Officer</SelectItem>
+                  <SelectItem value="collector">Data Collector</SelectItem>
                   <SelectItem value="client">Client</SelectItem>
                 </SelectContent>
               </Select>
@@ -459,8 +462,6 @@ export default function UsersPage() {
                 organizations={organizations}
                 value={formData.organizationId}
                 onChange={(value) => setFormData({ ...formData, organizationId: value })}
-                includeAll
-                allLabel="All organizations"
                 placeholder="Select organization"
               /></div>
             <DialogFooter>

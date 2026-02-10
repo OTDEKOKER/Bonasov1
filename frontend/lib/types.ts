@@ -1,6 +1,6 @@
 ﻿import React from "react"
 // User & Auth Types
-export type UserRole = 'admin' | 'me_officer' | 'me_manager' | 'client'
+export type UserRole = 'admin' | 'manager' | 'officer' | 'collector' | 'client'
 
 export interface User {
   id: string
