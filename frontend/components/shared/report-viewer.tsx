@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Download, RefreshCcw } from "lucide-react";
 import {
   Bar,
@@ -104,6 +104,7 @@ export function ReportViewerDialog(props: {
   const [pivotRowKey, setPivotRowKey] = useState("indicator_name");
   const [pivotColKey, setPivotColKey] = useState("none");
   const [pivotValueKey, setPivotValueKey] = useState("value");
+  const chartRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -204,6 +205,32 @@ export function ReportViewerDialog(props: {
     if (!Number.isFinite(value)) return "0";
     if (Math.abs(value) >= 1000) return value.toLocaleString();
     return String(Math.round(value * 100) / 100);
+  };
+
+  const downloadChartSvg = () => {
+    const container = chartRef.current;
+    if (!container) return;
+    const svg = container.querySelector("svg");
+    if (!svg) return;
+
+    const cloned = svg.cloneNode(true) as SVGSVGElement;
+    const viewBox = svg.getAttribute("viewBox");
+    if (viewBox) cloned.setAttribute("viewBox", viewBox);
+    if (!cloned.getAttribute("xmlns")) {
+      cloned.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    }
+
+    const serializer = new XMLSerializer();
+    const svgText = serializer.serializeToString(cloned);
+    const blob = new Blob([svgText], { type: "image/svg+xml;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${report?.name || "report"}-chart.svg`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -355,10 +382,14 @@ export function ReportViewerDialog(props: {
 
             <TabsContent value="chart" className="space-y-4">
               <div className="rounded-lg border p-3">
-                <div className="text-sm font-medium">
+                <div className="flex flex-wrap items-center justify-between gap-2 text-sm font-medium">
                   {pivotValueKey} by {pivotRowKey} (top {Math.min(20, pivot.rowLabels.length)})
+                  <Button variant="outline" size="sm" onClick={downloadChartSvg}>
+                    <Download className="mr-2 h-4 w-4" />
+                    Download Chart
+                  </Button>
                 </div>
-                <div className="mt-3 h-[360px]">
+                <div className="mt-3 h-[360px]" ref={chartRef}>
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={chartData} margin={{ top: 10, right: 10, bottom: 60, left: 10 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />

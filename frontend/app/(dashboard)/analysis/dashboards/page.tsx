@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Area,
   AreaChart,
@@ -18,7 +18,7 @@ import {
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Save, Trash2 } from "lucide-react";
+import { Download, Loader2, Save, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -63,6 +63,7 @@ export default function DashboardsPage() {
   const [dateTo, setDateTo] = useState("");
   const [chartType, setChartType] = useState<"line" | "bar" | "area" | "pie">("line");
   const [activePieIndex, setActivePieIndex] = useState<number | null>(null);
+  const chartRef = useRef<HTMLDivElement | null>(null);
 
   const { data: savedChartsData, mutate: mutateSavedCharts } = useDashboardCharts();
   const savedCharts = savedChartsData?.results || [];
@@ -114,6 +115,53 @@ export default function DashboardsPage() {
       return row;
     });
   }, [chartSeries]);
+
+  const downloadChartSvg = () => {
+    const svg = chartRef.current?.querySelector("svg");
+    if (!svg) return;
+    const serializer = new XMLSerializer();
+    const svgString = serializer.serializeToString(svg);
+    const blob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const safeName =
+      selectedIndicatorsLabel.replace(/[^a-z0-9_-]+/gi, "_").slice(0, 60) || "chart";
+    link.href = url;
+    link.download = `${safeName}-${chartType}.svg`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  };
+
+  const downloadChartCsv = () => {
+    const rows = chartType === "pie" ? pieData : chartData;
+    if (!rows.length) return;
+    const headers = Object.keys(rows[0]);
+    const lines = [
+      headers.join(","),
+      ...rows.map((row) =>
+        headers
+          .map((key) => {
+            const value = (row as Record<string, unknown>)[key];
+            const text = value === null || value === undefined ? "" : String(value);
+            return `"${text.replace(/\"/g, '""')}"`;
+          })
+          .join(",")
+      ),
+    ];
+    const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const safeName =
+      selectedIndicatorsLabel.replace(/[^a-z0-9_-]+/gi, "_").slice(0, 60) || "chart";
+    link.href = url;
+    link.download = `${safeName}-${chartType}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  };
 
   const chartConfig = useMemo(() => {
     const palette = [
@@ -361,10 +409,27 @@ export default function DashboardsPage() {
             </>
           )}
         </div>
-        <Button onClick={() => setSaveDialogOpen(true)} disabled={selectedIndicatorIds.length === 0}>
-          <Save className="h-4 w-4" />
-          Save chart
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={downloadChartSvg}
+            disabled={!chartData.length && !pieData.length}
+          >
+            <Download className="h-4 w-4" />
+            Download SVG
+          </Button>
+          <Button
+            variant="outline"
+            onClick={downloadChartCsv}
+            disabled={!chartData.length && !pieData.length}
+          >
+            Download CSV
+          </Button>
+          <Button onClick={() => setSaveDialogOpen(true)} disabled={selectedIndicatorIds.length === 0}>
+            <Save className="h-4 w-4" />
+            Save chart
+          </Button>
+        </div>
       </div>
 
       <Card>
@@ -389,7 +454,8 @@ export default function DashboardsPage() {
             </div>
           )}
           {!isLoading && !error && chartData.length > 0 && chartType !== "pie" && (
-            <ChartContainer config={chartConfig} className="h-[360px]">
+            <div ref={chartRef}>
+              <ChartContainer config={chartConfig} className="h-[360px]">
               {chartType === "line" && (
                 <LineChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 10 }}>
                   <CartesianGrid vertical={false} strokeDasharray="3 3" />
@@ -462,10 +528,12 @@ export default function DashboardsPage() {
                   ))}
                 </BarChart>
               )}
-            </ChartContainer>
+              </ChartContainer>
+            </div>
           )}
           {!isLoading && !error && chartType === "pie" && pieData.length > 0 && (
-            <ChartContainer config={chartConfig} className="h-[360px]">
+            <div ref={chartRef}>
+              <ChartContainer config={chartConfig} className="h-[360px]">
               <PieChart>
                 <ChartTooltip
                   cursor={{ fill: "rgba(16, 24, 40, 0.06)" }}
@@ -488,7 +556,8 @@ export default function DashboardsPage() {
                   ))}
                 </Pie>
               </PieChart>
-            </ChartContainer>
+              </ChartContainer>
+            </div>
           )}
         </CardContent>
       </Card>
