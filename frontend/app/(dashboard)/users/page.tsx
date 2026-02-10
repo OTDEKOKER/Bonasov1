@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { PageHeader } from "@/components/shared/page-header"
+import { OrganizationSelect } from "@/components/shared/organization-select"
 import { DataTable } from "@/components/shared/data-table"
 import { useUsers, useAllOrganizations } from "@/lib/hooks/use-api"
 import { usersService } from "@/lib/api"
@@ -453,11 +454,11 @@ export default function UsersPage() {
               </Select>
             </div>
             <div className="space-y-2">
-                            <Label htmlFor="organization">Organization</Label>
+              <Label htmlFor="organization">Organization</Label>
               <OrganizationSelect
                 organizations={organizations}
-                value={form.organization}
-                onChange={(value) => setForm({ ...form, organization: value })}
+                value={formData.organizationId}
+                onChange={(value) => setFormData({ ...formData, organizationId: value })}
                 includeAll
                 allLabel="All organizations"
                 placeholder="Select organization"

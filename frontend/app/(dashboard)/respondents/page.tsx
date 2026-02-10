@@ -348,10 +348,8 @@ export default function RespondentsPage() {
                                 <Label htmlFor="organization">Organization *</Label>
                 <OrganizationSelect
                   organizations={organizations}
-                  value={form.organization}
-                  onChange={(value) => setForm({ ...form, organization: value })}
-                  includeAll
-                  allLabel="All organizations"
+                  value={formData.organization}
+                  onChange={(value) => setFormData({ ...formData, organization: value })}
                   placeholder="Select organization"
                 /></div>
             </div>

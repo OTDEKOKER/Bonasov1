@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { PageHeader } from "@/components/shared/page-header"
+import { OrganizationSelect } from "@/components/shared/organization-select"
 import { useAllOrganizations, useUser } from "@/lib/hooks/use-api"
 import { usersService } from "@/lib/api"
 import { useToast } from "@/hooks/use-toast"
@@ -156,8 +157,8 @@ export default function UserEditPage() {
                         <Label>Organization</Label>
             <OrganizationSelect
               organizations={organizations}
-              value={form.organization}
-              onChange={(value) => setForm({ ...form, organization: value })}
+              value={form.organizationId}
+              onChange={(value) => setForm({ ...form, organizationId: value })}
               includeAll
               allLabel="All organizations"
               placeholder="Select organization"

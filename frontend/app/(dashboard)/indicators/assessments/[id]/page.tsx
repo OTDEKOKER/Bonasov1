@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { ArrowLeft, Loader2, Plus, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -60,7 +60,7 @@ export default function AssessmentDetailPage() {
 
   const indicatorsDetail = assessment?.indicators_detail || []
 
-  useMemo(() => {
+  useEffect(() => {
     if (assessment) {
       setFormState({
         name: assessment.name || "",

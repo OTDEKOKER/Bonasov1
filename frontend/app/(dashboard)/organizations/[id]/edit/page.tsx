@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { PageHeader } from "@/components/shared/page-header"
+import { OrganizationSelect } from "@/components/shared/organization-select"
 import { organizationsService } from "@/lib/api"
 import { useOrganization, useAllOrganizations } from "@/lib/hooks/use-api"
 import type { Organization } from "@/lib/types"

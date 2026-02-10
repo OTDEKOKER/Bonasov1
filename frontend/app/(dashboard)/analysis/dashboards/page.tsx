@@ -53,7 +53,6 @@ export default function DashboardsPage() {
   const [indicatorSearch, setIndicatorSearch] = useState("");
   const [selectedIndicatorIds, setSelectedIndicatorIds] = useState<number[]>([]);
   const [organizationId, setOrganizationId] = useState<string>("all");
-  const [organizationSearch, setOrganizationSearch] = useState("");
   const [projectId, setProjectId] = useState<string>("all");
   const [dateMode, setDateMode] = useState<"quarter" | "dates">("quarter");
   const now = new Date();
@@ -149,10 +148,6 @@ export default function DashboardsPage() {
     if (!term) return indicators;
     return indicators.filter((indicator) => indicator.name.toLowerCase().includes(term));
   }, [indicators, indicatorSearch]);
-
-      if (!term) return organizations;
-    return organizations.filter((org) => org.name.toLowerCase().includes(term));
-  }, [organizations, organizationSearch]);
 
   const selectedIndicatorsLabel = useMemo(() => {
     if (selectedIndicatorIds.length === 0) return "Select indicators";

@@ -128,6 +128,7 @@ export default function ProjectsPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [activeTab, setActiveTab] = useState("all")
+  const [orgSearch, setOrgSearch] = useState("")
   const [selectedOrganizations, setSelectedOrganizations] = useState<string[]>([])
   const [formData, setFormData] = useState({
     name: "",
@@ -142,7 +143,9 @@ export default function ProjectsPage() {
   const organizations = orgsData?.results || []
   const funders = organizations.filter(o => o.type === 'funder')
   const partnerOrganizations = organizations.filter(o => o.type !== 'funder')
-  const filteredPartnerOrganizations = partnerOrganizations.filter((org) => org.name.toLowerCase().includes(orgSearch.toLowerCase()))
+  const filteredPartnerOrganizations = partnerOrganizations.filter((org) =>
+    org.name.toLowerCase().includes(orgSearch.toLowerCase())
+  )
 
   const filteredProjects = activeTab === "all"
     ? projects
@@ -369,13 +372,19 @@ export default function ProjectsPage() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Participating Organizations</Label>\n              <Input\n                value={orgSearch}\n                onChange={(e) => setOrgSearch(e.target.value)}\n                placeholder="Search organizations..."\n              />\n<div className="max-h-40 space-y-2 overflow-auto rounded-lg border border-border p-3">
-                {partnerOrganizations.length === 0 ? (
+              <Label>Participating Organizations</Label>
+              <Input
+                value={orgSearch}
+                onChange={(e) => setOrgSearch(e.target.value)}
+                placeholder="Search organizations..."
+              />
+              <div className="max-h-40 space-y-2 overflow-auto rounded-lg border border-border p-3">
+                {filteredPartnerOrganizations.length === 0 ? (
                   <p className="text-xs text-muted-foreground">
                     No organizations available.
                   </p>
                 ) : (
-                  partnerOrganizations.map((org) => {
+                  filteredPartnerOrganizations.map((org) => {
                     const id = String(org.id)
                     const checked = selectedOrganizations.includes(id)
                     return (
@@ -418,5 +427,6 @@ export default function ProjectsPage() {
     </div>
   )
 }
+
 
 
