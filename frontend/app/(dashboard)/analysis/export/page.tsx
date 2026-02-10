@@ -1,30 +1,14 @@
-"use client";
+﻿"use client"
 
-import { PageHeader } from "@/components/shared/page-header";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
 
-export default function ExportPage() {
-  return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Export"
-        description="Bulk exports will be available here."
-        breadcrumbs={[
-          { label: "Dashboard", href: "/dashboard" },
-          { label: "Analysis", href: "/analysis" },
-          { label: "Export" },
-        ]}
-      />
+export default function AnalysisExportRedirect() {
+  const router = useRouter()
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Not configured</CardTitle>
-        </CardHeader>
-        <CardContent>
-          This section will provide bulk export tools once reporting is finalized.
-        </CardContent>
-      </Card>
-    </div>
-  );
+  useEffect(() => {
+    router.replace("/analysis/reports")
+  }, [router])
+
+  return null
 }
-
