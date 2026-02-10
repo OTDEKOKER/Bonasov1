@@ -185,6 +185,7 @@ export default function AggregatesPage() {
   const [formMale, setFormMale] = useState("");
   const [formFemale, setFormFemale] = useState("");
   const [formNotes, setFormNotes] = useState("");
+  const [formDataSource, setFormDataSource] = useState("");
   const [matrixValues, setMatrixValues] = useState(buildEmptyMatrix);
 
   const { data: aggregatesData, isLoading, error, mutate } = useAggregates();
@@ -600,6 +601,7 @@ export default function AggregatesPage() {
     setFormMale("");
     setFormFemale("");
     setFormNotes("");
+    setFormDataSource("");
     setMatrixValues(buildEmptyMatrix());
   };
 
@@ -689,6 +691,12 @@ export default function AggregatesPage() {
 
     setIsSubmitting(true);
     try {
+      const combinedNotes = [
+        formNotes.trim(),
+        formDataSource.trim() ? `Data source: ${formDataSource.trim()}` : "",
+      ]
+        .filter(Boolean)
+        .join(" | ");
       await aggregatesService.create({
         indicator: Number(formIndicator),
         project: Number(formProject),
@@ -696,7 +704,7 @@ export default function AggregatesPage() {
         period_start: formPeriodStart,
         period_end: formPeriodEnd,
         value: valuePayload,
-        notes: formNotes || undefined,
+        notes: combinedNotes || undefined,
       });
       toast({
         title: "Aggregate saved",
@@ -980,6 +988,16 @@ export default function AggregatesPage() {
                         </div>
                       </div>
                     )}
+
+                    <div className="space-y-2">
+                      <Label htmlFor="agg-source">Data Source</Label>
+                      <Input
+                        id="agg-source"
+                        placeholder="e.g. DHIS2 report, Excel, routine register"
+                        value={formDataSource}
+                        onChange={(event) => setFormDataSource(event.target.value)}
+                      />
+                    </div>
 
                     <div className="space-y-2">
                       <Label htmlFor="agg-notes">Notes</Label>
