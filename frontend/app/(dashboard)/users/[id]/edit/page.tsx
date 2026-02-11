@@ -140,6 +140,7 @@ export default function UserEditPage() {
                 <SelectItem value="admin">Admin</SelectItem>
                 <SelectItem value="manager">M&E Manager</SelectItem>
                 <SelectItem value="officer">M&E Officer</SelectItem>
+                <SelectItem value="collector">Data Collector</SelectItem>
                 <SelectItem value="client">Client</SelectItem>
               </SelectContent>
             </Select>
