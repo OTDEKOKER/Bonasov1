@@ -14,6 +14,8 @@ interface UserPermissionsManagerProps {
   value: string[]
   onChange: (permissions: string[]) => void
   isLoading?: boolean
+  errorMessage?: string
+  onRetry?: () => void
   disabled?: boolean
   className?: string
 }
@@ -27,6 +29,8 @@ export function UserPermissionsManager({
   value,
   onChange,
   isLoading = false,
+  errorMessage,
+  onRetry,
   disabled = false,
   className,
 }: UserPermissionsManagerProps) {
@@ -88,7 +92,7 @@ export function UserPermissionsManager({
         value={query}
         onChange={(event) => setQuery(event.target.value)}
         placeholder="Search permissions..."
-        disabled={disabled || isLoading}
+        disabled={disabled || isLoading || !!errorMessage}
       />
 
       <div className="flex items-center gap-2">
@@ -97,7 +101,7 @@ export function UserPermissionsManager({
           variant="outline"
           size="sm"
           onClick={() => selectVisible(!allVisibleSelected)}
-          disabled={disabled || isLoading || visibleIds.length === 0}
+          disabled={disabled || isLoading || !!errorMessage || visibleIds.length === 0}
         >
           {allVisibleSelected ? "Clear Visible" : "Select Visible"}
         </Button>
@@ -106,7 +110,7 @@ export function UserPermissionsManager({
           variant="ghost"
           size="sm"
           onClick={() => onChange([])}
-          disabled={disabled || isLoading || value.length === 0}
+          disabled={disabled || isLoading || !!errorMessage || value.length === 0}
         >
           Clear All
         </Button>
@@ -116,6 +120,15 @@ export function UserPermissionsManager({
         <ScrollArea className="h-64 p-3">
           {isLoading ? (
             <p className="text-sm text-muted-foreground">Loading permissions...</p>
+          ) : errorMessage ? (
+            <div className="space-y-2">
+              <p className="text-sm text-destructive">{errorMessage}</p>
+              {onRetry ? (
+                <Button type="button" size="sm" variant="outline" onClick={onRetry}>
+                  Retry
+                </Button>
+              ) : null}
+            </div>
           ) : groupedPermissions.length === 0 ? (
             <p className="text-sm text-muted-foreground">No permissions found.</p>
           ) : (
@@ -162,4 +175,3 @@ export function UserPermissionsManager({
     </div>
   )
 }
-

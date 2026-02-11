@@ -1,4 +1,11 @@
 ﻿/** @type {import('next').NextConfig} */
+const backendApiBase =
+  process.env.BACKEND_API_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  'http://127.0.0.1:8000/api'
+
+const normalizedBackendApiBase = backendApiBase.replace(/\/+$/, '')
+
 const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
@@ -16,18 +23,15 @@ const nextConfig = {
   allowedDevOrigins: ['127.0.0.1', 'localhost', '192.168.0.112', '192.168.103.4', '192.168.117.4'],
 
   // Proxy frontend /api/* -> Django backend /api/*.
-  // This removes CORS issues and avoids hardcoding IPs in the browser.
+  // In production set BACKEND_API_URL (or NEXT_PUBLIC_API_URL) to your deployed backend URL.
   async rewrites() {
     return [
       {
         source: '/api/:path*',
-        destination: 'http://127.0.0.1:8000/api/:path*/',
+        destination: `${normalizedBackendApiBase}/:path*/`,
       },
     ]
   },
 }
 
 export default nextConfig
-
-
-

@@ -51,7 +51,12 @@ export default function UsersPage() {
   const { toast } = useToast()
   const { data: usersData, isLoading, error, mutate } = useUsers()
   const { data: orgsData } = useAllOrganizations()
-  const { data: availablePermissions = [], isLoading: isPermissionsLoading } = useUserPermissions()
+  const {
+    data: availablePermissions = [],
+    isLoading: isPermissionsLoading,
+    error: permissionsError,
+    mutate: mutatePermissions,
+  } = useUserPermissions()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isResetOpen, setIsResetOpen] = useState(false)
@@ -73,6 +78,9 @@ export default function UsersPage() {
 
   const users = usersData?.results || []
   const organizations = orgsData?.results || []
+  const permissionsErrorMessage = permissionsError
+    ? (permissionsError as { message?: string })?.message || "Failed to load permissions from server."
+    : undefined
 
   const columns = [
     {
@@ -463,6 +471,10 @@ export default function UsersPage() {
               value={formData.permissions}
               onChange={(permissions) => setFormData({ ...formData, permissions })}
               isLoading={isPermissionsLoading}
+              errorMessage={permissionsErrorMessage}
+              onRetry={() => {
+                void mutatePermissions()
+              }}
             />
             <div className="space-y-2">
               <Label htmlFor="organization">Organization</Label>
