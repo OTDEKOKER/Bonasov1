@@ -84,3 +84,32 @@ npm run start
 - **CORS issues**: add frontend origin to backend `CORS_ALLOWED_ORIGINS`.
 - **API not reachable**: confirm `NEXT_PUBLIC_API_URL` and backend running.
 
+## Offline Mode (PWA)
+The frontend now supports installable offline usage with a service worker.
+
+### What works offline
+- Cached pages and static assets.
+- Previously requested `GET /api/*` responses from cache.
+- Offline fallback screen at `/offline/` when navigation data is unavailable.
+- `POST/PUT/PATCH/DELETE` requests are queued locally and replayed when connectivity returns.
+- Sync audit log (queued/synced/dropped/failed) is stored locally and viewable from the sync widget.
+
+### What does not work offline
+- Login, token refresh, and password/auth mutations.
+- First-time API `GET` requests that were never loaded before.
+
+### How to validate
+1. Build and start production:
+```bash
+npm run build
+npm run start
+```
+2. Open the app in a browser and navigate through pages to warm caches.
+3. Disable network in browser devtools and create/edit/delete a record.
+4. Confirm the pending-sync badge increases.
+5. Re-enable network and confirm queued mutations are replayed automatically.
+
+### Development mode note
+Service worker registration is disabled by default in `npm run dev`.
+Set `NEXT_PUBLIC_ENABLE_SW=true` if you need to test service worker behavior in development.
+

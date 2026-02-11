@@ -1,9 +1,10 @@
-﻿/**
+/**
  * BONASO Data Portal - API Client
  * 
  * This is the base HTTP client for communicating with your Django backend.
  * Configure NEXT_PUBLIC_API_URL in your environment variables.
  */
+import { enqueueMutation, scheduleMutationSync } from '@/lib/offline/mutation-queue';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 
@@ -11,6 +12,8 @@ export interface ApiResponse<T> {
   data: T;
   message?: string;
   status: number;
+  offlineQueued?: boolean;
+  queuedId?: number;
 }
 
 export type ApiError = Error & {
@@ -31,6 +34,53 @@ export interface PaginatedResponse<T> {
   next: string | null;
   previous: string | null;
   results: T[];
+}
+
+const MUTATION_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
+const NON_QUEUEABLE_ENDPOINT_PREFIXES = [
+  '/users/request-token/',
+  '/users/token/refresh/',
+  '/users/logout/',
+  '/manage/users/set_password/',
+  '/manage/users/reset_password/',
+  '/manage/users/reset_password_confirm/',
+  '/users/admin-reset-password/',
+];
+
+function canQueueOfflineMutation(endpoint: string, method: string): boolean {
+  if (!MUTATION_METHODS.has(method.toUpperCase())) return false;
+  return !NON_QUEUEABLE_ENDPOINT_PREFIXES.some((prefix) => endpoint.startsWith(prefix));
+}
+
+function headersToRecord(headers: HeadersInit): Record<string, string> {
+  if (headers instanceof Headers) {
+    const out: Record<string, string> = {};
+    headers.forEach((value, key) => {
+      out[key] = value;
+    });
+    return out;
+  }
+
+  if (Array.isArray(headers)) {
+    const out: Record<string, string> = {};
+    for (const [key, value] of headers) {
+      out[String(key)] = String(value);
+    }
+    return out;
+  }
+
+  return Object.fromEntries(
+    Object.entries(headers as Record<string, string>).map(([key, value]) => [key, String(value)]),
+  );
+}
+
+function parseQueuedData<T>(body: BodyInit | null | undefined): T {
+  if (typeof body !== 'string') return {} as T;
+  try {
+    return JSON.parse(body) as T;
+  } catch {
+    return {} as T;
+  }
 }
 
 /**
@@ -116,6 +166,7 @@ async function apiRequest<T>(
   options: RequestInit = {},
   retry: boolean = true
 ): Promise<ApiResponse<T>> {
+  const method = (options.method || 'GET').toUpperCase();
   const token = getAuthToken();
 
   const headers: HeadersInit = {
@@ -139,6 +190,28 @@ async function apiRequest<T>(
   try {
     response = await doFetch();
   } catch (err) {
+    if (
+      typeof window !== 'undefined' &&
+      canQueueOfflineMutation(endpoint, method) &&
+      (err instanceof TypeError || (err instanceof Error && err.name === 'AbortError'))
+    ) {
+      const queuedId = await enqueueMutation({
+        url: requestUrl,
+        method: method as 'POST' | 'PUT' | 'PATCH' | 'DELETE',
+        headers: headersToRecord(headers),
+        body: typeof options.body === 'string' ? options.body : undefined,
+      });
+      await scheduleMutationSync();
+
+      return {
+        data: parseQueuedData<T>(options.body),
+        message: 'Request queued for sync when back online.',
+        status: 202,
+        offlineQueued: true,
+        queuedId,
+      };
+    }
+
     // Browser network errors (DNS, refused, offline) throw TypeError("Failed to fetch").
     const debugUrl =
       typeof window !== 'undefined' && requestUrl.startsWith('/')
@@ -240,4 +313,3 @@ export const api = {
 };
 
 export default api;
-

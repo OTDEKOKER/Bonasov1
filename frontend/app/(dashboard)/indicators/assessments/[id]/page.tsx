@@ -184,7 +184,7 @@ export default function AssessmentDetailPage() {
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>Indicators</CardTitle>
-            <CardDescription>Questions included in this assessment</CardDescription>
+            <CardDescription>Indicators included in this assessment</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {indicatorsDetail.length === 0 && (

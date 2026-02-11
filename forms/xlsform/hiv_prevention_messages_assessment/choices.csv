@@ -1,0 +1,17 @@
+list_name,name,label
+yes_no,yes,Yes
+yes_no,no,No
+hiv_test,yes,Yes
+hiv_test,no,No
+hiv_test,known_positive,Known Positive
+messages,hiv_testing,HIV testing messages
+messages,pep,PEP Messages
+messages,prep,PREP Messages
+messages,gbv,GBV Messages
+messages,condom_use,Condom Use Messages
+messages,hiv_treatment,HIV Treatment Messages
+messages,arv_based,ARV Based Messages
+messages,emtct,EMTCT Messages
+messages,stigma_reduction,Stigma Reduction Messages
+messages,none,None of the above
+

@@ -12,6 +12,7 @@ import {
   Table2,
   BarChart3,
   Calendar,
+  Calculator,
   Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -172,7 +173,9 @@ export default function AggregatesPage() {
   const [orgFilter, setOrgFilter] = useState("all");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isChartOpen, setIsChartOpen] = useState(false);
+  const [isAutoCalcOpen, setIsAutoCalcOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isAutoCalcSubmitting, setIsAutoCalcSubmitting] = useState(false);
   const importInputRef = useRef<HTMLInputElement | null>(null);
 
   const [formProject, setFormProject] = useState("");
@@ -189,6 +192,19 @@ export default function AggregatesPage() {
   const [matrixValues, setMatrixValues] = useState(buildEmptyMatrix);
   const chartRef = useRef<HTMLDivElement | null>(null);
 
+  const [autoOutputIndicator, setAutoOutputIndicator] = useState("");
+  const [autoSourceIndicator, setAutoSourceIndicator] = useState("");
+  const [autoOperator, setAutoOperator] = useState<"equals" | "not_equals" | "contains">("equals");
+  const [autoMatchValue, setAutoMatchValue] = useState("yes");
+  const [autoCountDistinct, setAutoCountDistinct] = useState<"respondent" | "interaction">("respondent");
+  const [autoProject, setAutoProject] = useState("");
+  const [autoOrganization, setAutoOrganization] = useState("");
+  const [autoPeriodStart, setAutoPeriodStart] = useState("");
+  const [autoPeriodEnd, setAutoPeriodEnd] = useState("");
+  const [autoSaveRule, setAutoSaveRule] = useState(true);
+  const [autoSaveAggregate, setAutoSaveAggregate] = useState(true);
+  const [autoComputed, setAutoComputed] = useState<number | null>(null);
+
   const { data: aggregatesData, isLoading, error, mutate } = useAggregates();
   const { data: projectsData } = useProjects();
   const { data: indicatorsData } = useIndicators();
@@ -203,6 +219,21 @@ export default function AggregatesPage() {
   const indicators = indicatorsData?.results || [];
   const organizations = organizationsData?.results || [];
   const templates = templatesData || [];
+
+  const resetAutoCalcForm = () => {
+    setAutoOutputIndicator("");
+    setAutoSourceIndicator("");
+    setAutoOperator("equals");
+    setAutoMatchValue("yes");
+    setAutoCountDistinct("respondent");
+    setAutoProject("");
+    setAutoOrganization("");
+    setAutoPeriodStart("");
+    setAutoPeriodEnd("");
+    setAutoSaveRule(true);
+    setAutoSaveAggregate(true);
+    setAutoComputed(null);
+  };
 
   const indicatorNameById = useMemo(
     () =>
@@ -749,6 +780,59 @@ export default function AggregatesPage() {
     }
   };
 
+  const handleAutoCalculate = async () => {
+    if (
+      !autoOutputIndicator ||
+      !autoSourceIndicator ||
+      !autoProject ||
+      !autoOrganization ||
+      !autoPeriodStart ||
+      !autoPeriodEnd
+    ) {
+      toast({
+        title: "Missing required fields",
+        description: "Output, source, project, organization, and period dates are required.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsAutoCalcSubmitting(true);
+    try {
+      const result = await aggregatesService.generateFromInteractions({
+        output_indicator: Number(autoOutputIndicator),
+        source_indicator: Number(autoSourceIndicator),
+        operator: autoOperator,
+        match_value: autoMatchValue,
+        count_distinct: autoCountDistinct,
+        project: Number(autoProject),
+        organization: Number(autoOrganization),
+        period_start: autoPeriodStart,
+        period_end: autoPeriodEnd,
+        save_rule: autoSaveRule,
+        save_aggregate: autoSaveAggregate,
+      });
+
+      setAutoComputed(result.computed);
+      if (autoSaveAggregate) {
+        await mutate();
+      }
+      toast({
+        title: "Auto-calculation complete",
+        description: `Computed value: ${result.computed}`,
+      });
+    } catch (err) {
+      console.error("Failed to auto-calculate aggregate", err);
+      toast({
+        title: "Error",
+        description: "Failed to auto-calculate from interactions.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAutoCalcSubmitting(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex h-[60vh] items-center justify-center">
@@ -802,6 +886,213 @@ export default function AggregatesPage() {
                   }
                 }}
               />
+
+              <Dialog
+                open={isAutoCalcOpen}
+                onOpenChange={(open) => {
+                  setIsAutoCalcOpen(open);
+                  if (!open) resetAutoCalcForm();
+                }}
+              >
+                <DialogTrigger asChild>
+                  <Button variant="outline">
+                    <Calculator className="mr-2 h-4 w-4" />
+                    Auto-calculate
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>Auto-calculate Aggregate</DialogTitle>
+                    <DialogDescription>
+                      Create/update a derivation rule and compute an aggregate from interaction responses.
+                    </DialogDescription>
+                  </DialogHeader>
+
+                  <div className="grid gap-4 py-2">
+                    <div className="space-y-2">
+                      <Label>Project</Label>
+                      <Select value={autoProject} onValueChange={setAutoProject}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select project" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {projects.map((project) => (
+                            <SelectItem key={project.id} value={String(project.id)}>
+                              {project.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Organization</Label>
+                      <Select value={autoOrganization} onValueChange={setAutoOrganization}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select organization" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {organizations.map((org: any) => (
+                            <SelectItem key={org.id} value={String(org.id)}>
+                              {org.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Output Indicator (the number you report)</Label>
+                      <Select value={autoOutputIndicator} onValueChange={setAutoOutputIndicator}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select output indicator" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {indicators
+                            .filter((i) => i.type === "number" || i.type === "percentage")
+                            .map((indicator) => (
+                              <SelectItem key={indicator.id} value={String(indicator.id)}>
+                                {indicator.name} ({indicator.code})
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Source Indicator (screening indicator)</Label>
+                      <Select value={autoSourceIndicator} onValueChange={setAutoSourceIndicator}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select source indicator" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {indicators.map((indicator) => (
+                            <SelectItem key={indicator.id} value={String(indicator.id)}>
+                              {indicator.name} ({indicator.code})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="grid gap-4 md:grid-cols-3">
+                      <div className="space-y-2">
+                        <Label>Operator</Label>
+                        <Select
+                          value={autoOperator}
+                          onValueChange={(v) =>
+                            setAutoOperator(v as "equals" | "not_equals" | "contains")
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="equals">Equals</SelectItem>
+                            <SelectItem value="not_equals">Not equals</SelectItem>
+                            <SelectItem value="contains">Contains</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2 md:col-span-2">
+                        <Label>Match value</Label>
+                        {(() => {
+                          const source = indicators.find((i) => String(i.id) === autoSourceIndicator);
+                          if (source?.type === "yes_no") {
+                            return (
+                              <Select value={autoMatchValue} onValueChange={setAutoMatchValue}>
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="yes">Yes</SelectItem>
+                                  <SelectItem value="no">No</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            );
+                          }
+                          return (
+                            <Input
+                              value={autoMatchValue}
+                              onChange={(e) => setAutoMatchValue(e.target.value)}
+                              placeholder="e.g., yes"
+                            />
+                          );
+                        })()}
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Count distinct</Label>
+                      <Select
+                        value={autoCountDistinct}
+                        onValueChange={(v) =>
+                          setAutoCountDistinct(v as "respondent" | "interaction")
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="respondent">Respondent (people)</SelectItem>
+                          <SelectItem value="interaction">Interaction (services)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label>Period start</Label>
+                        <Input
+                          type="date"
+                          value={autoPeriodStart}
+                          onChange={(e) => setAutoPeriodStart(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Period end</Label>
+                        <Input
+                          type="date"
+                          value={autoPeriodEnd}
+                          onChange={(e) => setAutoPeriodEnd(e.target.value)}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-6">
+                      <div className="flex items-center gap-2">
+                        <Checkbox checked={autoSaveRule} onCheckedChange={(v) => setAutoSaveRule(v === true)} />
+                        <span className="text-sm">Save mapping rule</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Checkbox checked={autoSaveAggregate} onCheckedChange={(v) => setAutoSaveAggregate(v === true)} />
+                        <span className="text-sm">Save aggregate record</span>
+                      </div>
+                    </div>
+
+                    {autoComputed !== null ? (
+                      <div className="rounded-lg border border-border bg-secondary/30 p-3 text-sm">
+                        Computed value: <span className="font-medium">{autoComputed}</span>
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <DialogFooter>
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsAutoCalcOpen(false)}
+                      disabled={isAutoCalcSubmitting}
+                    >
+                      Close
+                    </Button>
+                    <Button onClick={handleAutoCalculate} disabled={isAutoCalcSubmitting}>
+                      {isAutoCalcSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Calculate
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
 
               <Dialog
                 open={isDialogOpen}

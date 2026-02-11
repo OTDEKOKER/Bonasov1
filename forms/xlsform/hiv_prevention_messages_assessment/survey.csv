@@ -1,0 +1,12 @@
+type,name,label,required,relevant,constraint,constraint_message
+text,client_id,Client ID (avoid names),yes,,,
+date,interaction_date,Date of interaction,yes,,,
+text,interaction_location,Location of interaction (facility/site),yes,,,
+select_multiple messages,messages_reached,Reached with HIV prevention and control messages (Select all that apply.),yes,,not(selected(.,'none') and count-selected(.)>1),If 'None of the above' is selected, don't select other options.
+select_one yes_no,hiv_screened,Screened for HIV,yes,,,
+select_one hiv_test,hiv_tested,Tested for HIV,,${hiv_screened}='yes',,
+select_one yes_no,tb_screened,Screened for TB,yes,,,
+select_one yes_no,linked_to_care,Linked to care,,${hiv_tested}='yes' or ${hiv_tested}='known_positive',,
+select_one yes_no,prep_eligible,Eligible for PrEP,,${hiv_screened}='yes' and ${hiv_tested}!='known_positive',,
+select_one yes_no,pep_eligible,Eligible for PEP,,${hiv_screened}='yes' and ${hiv_tested}!='known_positive',,
+

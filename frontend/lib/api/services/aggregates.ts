@@ -59,6 +59,42 @@ export interface AggregateTemplate {
   }>;
 }
 
+export interface GenerateFromInteractionsRequest {
+  output_indicator: number;
+  source_indicator: number;
+  operator?: 'equals' | 'not_equals' | 'contains';
+  match_value?: unknown;
+  count_distinct?: 'respondent' | 'interaction';
+  project: number;
+  organization: number;
+  period_start: string;
+  period_end: string;
+  save_rule?: boolean;
+  save_aggregate?: boolean;
+}
+
+export interface GenerateFromInteractionsResponse {
+  computed: number;
+  rule: unknown;
+  aggregate?: Aggregate | null;
+}
+
+export interface DerivationRule {
+  id: number;
+  output_indicator: number;
+  output_indicator_code?: string;
+  output_indicator_name?: string;
+  source_indicator: number;
+  source_indicator_code?: string;
+  source_indicator_name?: string;
+  operator: 'equals' | 'not_equals' | 'contains';
+  match_value?: unknown;
+  count_distinct: 'respondent' | 'interaction';
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 // Drop undefined/empty filters so we do not send project=undefined.
 const cleanParams = (filters?: Record<string, string | undefined | null>) => {
   if (!filters) return undefined;
@@ -205,7 +241,40 @@ export const aggregatesService = {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
     return response.blob();
-  }
+  },
+
+  /**
+   * Generate an aggregate value from interaction responses (and optionally save rule + aggregate)
+   * Django endpoint: POST /api/aggregates/generate_from_interactions/
+   */
+  async generateFromInteractions(
+    request: GenerateFromInteractionsRequest,
+  ): Promise<GenerateFromInteractionsResponse> {
+    const { data } = await api.post<GenerateFromInteractionsResponse>(
+      '/aggregates/generate_from_interactions/',
+      request,
+    );
+    return data;
+  },
+
+  /**
+   * List derivation rules
+   * Django endpoint: GET /api/aggregates/derivation-rules/
+   */
+  async listDerivationRules(filters?: {
+    output_indicator?: string;
+    source_indicator?: string;
+    is_active?: string;
+    page?: string;
+    page_size?: string;
+  }): Promise<PaginatedResponse<DerivationRule>> {
+    const params = cleanParams(filters as Record<string, string | undefined>);
+    const { data } = await api.get<PaginatedResponse<DerivationRule>>(
+      '/aggregates/derivation-rules/',
+      params,
+    );
+    return data;
+  },
 };
 
 export default aggregatesService;
