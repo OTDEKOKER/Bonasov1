@@ -9,9 +9,10 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { PageHeader } from "@/components/shared/page-header"
 import { OrganizationSelect } from "@/components/shared/organization-select"
 import { DataTable } from "@/components/shared/data-table"
-import { useUsers, useAllOrganizations } from "@/lib/hooks/use-api"
+import { useUsers, useAllOrganizations, useUserPermissions } from "@/lib/hooks/use-api"
 import { usersService } from "@/lib/api"
 import type { User } from "@/lib/types"
+import { UserPermissionsManager } from "@/components/users/user-permissions-manager"
 import {
   Dialog,
   DialogContent,
@@ -35,7 +36,6 @@ const roleColors: Record<string, string> = {
   admin: "bg-chart-5/10 text-chart-5",
   officer: "bg-chart-1/10 text-chart-1",
   manager: "bg-chart-2/10 text-chart-2",
-  collector: "bg-chart-3/10 text-chart-3",
   client: "bg-chart-4/10 text-chart-4",
 }
 
@@ -43,7 +43,6 @@ const roleLabels: Record<string, string> = {
   admin: "Admin",
   officer: "M&E Officer",
   manager: "M&E Manager",
-  collector: "Data Collector",
   client: "Client",
 }
 
@@ -52,6 +51,7 @@ export default function UsersPage() {
   const { toast } = useToast()
   const { data: usersData, isLoading, error, mutate } = useUsers()
   const { data: orgsData } = useAllOrganizations()
+  const { data: availablePermissions = [], isLoading: isPermissionsLoading } = useUserPermissions()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isResetOpen, setIsResetOpen] = useState(false)
@@ -68,6 +68,7 @@ export default function UsersPage() {
     organizationId: "",
     password: "",
     passwordConfirm: "",
+    permissions: [] as string[],
   })
 
   const users = usersData?.results || []
@@ -172,6 +173,7 @@ export default function UsersPage() {
           : undefined,
         password: formData.password,
         password_confirm: formData.passwordConfirm,
+        permissions: formData.permissions,
       })
       toast({
         title: "Success",
@@ -187,6 +189,7 @@ export default function UsersPage() {
         organizationId: "",
         password: "",
         passwordConfirm: "",
+        permissions: [],
       })
       mutate()
     } catch (err: any) {
@@ -312,7 +315,7 @@ export default function UsersPage() {
   }
 
   const adminCount = users.filter(u => u.role === 'admin').length
-  const meStaffCount = users.filter(u => u.role === 'officer' || u.role === 'manager' || u.role === 'collector').length
+  const meStaffCount = users.filter(u => u.role === 'officer' || u.role === 'manager').length
   const clientCount = users.filter(u => u.role === 'client').length
 
   return (
@@ -363,7 +366,7 @@ export default function UsersPage() {
 
       {/* Create Dialog */}
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent className="w-[95vw] sm:max-w-lg">
+        <DialogContent className="w-[95vw] sm:max-w-lg max-h-[90vh] overflow-hidden">
           <DialogHeader>
             <DialogTitle>Add User</DialogTitle>
             <DialogDescription>
@@ -371,7 +374,7 @@ export default function UsersPage() {
             </DialogDescription>
           </DialogHeader>
           <form
-            className="space-y-4"
+            className="space-y-4 max-h-[calc(90vh-8rem)] overflow-y-auto pr-1"
             onSubmit={(e) => {
               e.preventDefault()
               handleCreate()
@@ -451,11 +454,16 @@ export default function UsersPage() {
                   <SelectItem value="admin">Admin</SelectItem>
                   <SelectItem value="manager">M&E Manager</SelectItem>
                   <SelectItem value="officer">M&E Officer</SelectItem>
-                  <SelectItem value="collector">Data Collector</SelectItem>
                   <SelectItem value="client">Client</SelectItem>
                 </SelectContent>
               </Select>
             </div>
+            <UserPermissionsManager
+              availablePermissions={availablePermissions}
+              value={formData.permissions}
+              onChange={(permissions) => setFormData({ ...formData, permissions })}
+              isLoading={isPermissionsLoading}
+            />
             <div className="space-y-2">
               <Label htmlFor="organization">Organization</Label>
               <OrganizationSelect

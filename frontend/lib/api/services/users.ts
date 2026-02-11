@@ -31,6 +31,7 @@ export interface CreateUserRequest {
   role: UserRole;
   organization?: number;
   phone?: string;
+  permissions?: string[];
 }
 
 export interface UpdateUserRequest {
@@ -40,6 +41,14 @@ export interface UpdateUserRequest {
   role?: UserRole;
   organization?: number;
   is_active?: boolean;
+  permissions?: string[];
+}
+
+export interface UserPermissionOption {
+  id: string;
+  app_label: string;
+  codename: string;
+  name: string;
 }
 
 export interface UserActivity {
@@ -136,6 +145,15 @@ export const usersService = {
    */
   async getActivity(id: number): Promise<UserActivity[]> {
     const { data } = await api.get<UserActivity[]>(`/users/${id}/activity/`);
+    return data;
+  },
+
+  /**
+   * List assignable user permissions
+   * Django endpoint: GET /api/users/permissions/
+   */
+  async listPermissions(): Promise<UserPermissionOption[]> {
+    const { data } = await api.get<UserPermissionOption[]>('/users/permissions/');
     return data;
   },
 

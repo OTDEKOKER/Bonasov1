@@ -46,6 +46,7 @@ export type {
   CreateUserRequest,
   UpdateUserRequest,
   UserActivity,
+  UserPermissionOption,
 } from './services/users';
 
 // Projects, Tasks & Deadlines

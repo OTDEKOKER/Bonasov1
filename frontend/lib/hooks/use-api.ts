@@ -110,6 +110,14 @@ export function useUser(id: number | null, config?: SWRConfiguration) {
   );
 }
 
+export function useUserPermissions(config?: SWRConfiguration) {
+  return useSWR(
+    'user-permissions',
+    () => usersService.listPermissions(),
+    { ...defaultConfig, ...config }
+  );
+}
+
 // ============================================================================
 // Projects Hooks
 // ============================================================================

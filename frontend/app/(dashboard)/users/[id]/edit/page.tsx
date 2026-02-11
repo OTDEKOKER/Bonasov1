@@ -15,9 +15,10 @@ import {
 } from "@/components/ui/select"
 import { PageHeader } from "@/components/shared/page-header"
 import { OrganizationSelect } from "@/components/shared/organization-select"
-import { useAllOrganizations, useUser } from "@/lib/hooks/use-api"
+import { useAllOrganizations, useUser, useUserPermissions } from "@/lib/hooks/use-api"
 import { usersService } from "@/lib/api"
 import { useToast } from "@/hooks/use-toast"
+import { UserPermissionsManager } from "@/components/users/user-permissions-manager"
 
 export default function UserEditPage() {
   const router = useRouter()
@@ -26,6 +27,7 @@ export default function UserEditPage() {
   const userId = Number(params?.id)
   const { data: user, isLoading, error, mutate } = useUser(Number.isNaN(userId) ? null : userId)
   const { data: orgsData } = useAllOrganizations()
+  const { data: availablePermissions = [], isLoading: isPermissionsLoading } = useUserPermissions()
   const organizations = orgsData?.results || []
 
   const [isSaving, setIsSaving] = useState(false)
@@ -36,6 +38,7 @@ export default function UserEditPage() {
     role: "client",
     organizationId: "none",
     isActive: true,
+    permissions: [] as string[],
   })
 
   useEffect(() => {
@@ -47,6 +50,7 @@ export default function UserEditPage() {
       role: (user as any)?.role || "client",
       organizationId: String((user as any)?.organizationId ?? (user as any)?.organization ?? "all"),
       isActive: (user as any)?.is_active ?? (user as any)?.isActive ?? true,
+      permissions: (user as any)?.permissions || [],
     })
   }, [user])
 
@@ -63,6 +67,7 @@ export default function UserEditPage() {
             ? Number(form.organizationId)
             : undefined,
         is_active: form.isActive,
+        permissions: form.permissions,
       })
       toast({ title: "User updated", description: "Changes saved successfully." })
       mutate()
@@ -135,12 +140,18 @@ export default function UserEditPage() {
                 <SelectItem value="admin">Admin</SelectItem>
                 <SelectItem value="manager">M&E Manager</SelectItem>
                 <SelectItem value="officer">M&E Officer</SelectItem>
-                <SelectItem value="collector">Data Collector</SelectItem>
                 <SelectItem value="client">Client</SelectItem>
               </SelectContent>
             </Select>
           </div>
         </div>
+
+        <UserPermissionsManager
+          availablePermissions={availablePermissions}
+          value={form.permissions}
+          onChange={(permissions) => setForm({ ...form, permissions })}
+          isLoading={isPermissionsLoading}
+        />
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
