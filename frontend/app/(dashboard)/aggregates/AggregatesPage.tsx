@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import React, { useMemo, useRef, useState, Suspense } from "react";
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip as RechartsTooltip, XAxis, YAxis } from "recharts";
 import * as XLSX from "xlsx";
 import {
   Plus,
@@ -101,6 +101,8 @@ const keyPopulations = [
 ];
 const matrixAgeBands = [...ageRanges, "AYP (10-24)"];
 const matrixAgeBandCore = ageRanges;
+
+const pieColors = ["#2563eb", "#16a34a", "#f59e0b", "#ef4444"];
 
 const formatDate = (value?: string) => {
   if (!value) return "â€”";
@@ -1547,6 +1549,15 @@ export default function AggregatesPage() {
                 const combinedTotal = combinedSubTotal;
                 const rowSpan = keyPops.length * 2 + 3;
 
+                const sexChartData = (["Male", "Female"] as const).map((sex) => ({
+                  name: sex,
+                  value: sumBands(sexTotals[sex]),
+                }));
+                const ageDistributionData = matrixAgeBandCore.map((band) => ({
+                  name: band,
+                  total: combinedTotals[band] || 0,
+                }));
+
                 return (
                   <div key={group.key} className="rounded-lg border border-border p-4">
                     <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
@@ -1654,6 +1665,47 @@ export default function AggregatesPage() {
                           })}
                         </tbody>
                       </table>
+                    </div>
+
+                    <div className="mt-4 grid gap-4 lg:grid-cols-2">
+                      <div className="rounded-lg border border-border p-3">
+                        <p className="mb-2 text-sm font-medium">Age-band distribution</p>
+                        <div className="h-64">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={ageDistributionData} margin={{ top: 8, right: 8, left: 0, bottom: 40 }}>
+                              <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                              <XAxis dataKey="name" interval={0} angle={-25} textAnchor="end" height={70} />
+                              <YAxis />
+                              <RechartsTooltip formatter={(value: number) => value.toLocaleString()} />
+                              <Bar dataKey="total" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </div>
+
+                      <div className="rounded-lg border border-border p-3">
+                        <p className="mb-2 text-sm font-medium">Sex split (pie chart)</p>
+                        <div className="h-64">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                              <Pie
+                                data={sexChartData}
+                                dataKey="value"
+                                nameKey="name"
+                                cx="50%"
+                                cy="50%"
+                                outerRadius={90}
+                                label={({ name, percent }) => `${name}: ${((percent || 0) * 100).toFixed(0)}%`}
+                              >
+                                {sexChartData.map((entry, index) => (
+                                  <Cell key={`${entry.name}-${index}`} fill={pieColors[index % pieColors.length]} />
+                                ))}
+                              </Pie>
+                              <RechartsTooltip formatter={(value: number) => value.toLocaleString()} />
+                            </PieChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 );
