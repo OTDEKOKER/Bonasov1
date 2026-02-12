@@ -2,14 +2,14 @@
 
 BONASO Data Portal is a web system for managing organizations, projects, indicators, aggregate reporting, and analytics dashboards. It includes:
 - **Frontend**: Next.js app in `frontend/`
-- **Backend**: Django REST API in `c:\Projects\django_backend`
+- **Backend**: Django REST API (kept in a separate backend repository; path depends on your local checkout)
 
 This document provides **high‑level module documentation** for the main components and how they work together.
 
 ## Quickstart
 
 ### Backend (Django)
-1. Open a terminal and go to `c:\Projects\django_backend`.
+1. Open a terminal and go to your Django backend project directory (separate backend repo).
 2. Create and activate a virtual environment.
 3. Install dependencies and run migrations.
 4. Start the server:
@@ -273,7 +273,7 @@ npm run start
 
 ## Environment
 Key variables:
-- Backend: `.env` in `c:\Projects\django_backend`
+- Backend: `.env` in your Django backend project directory
 - Frontend: `frontend/.env`
 
 Frontend requires:

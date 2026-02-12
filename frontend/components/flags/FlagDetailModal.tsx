@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dialog"
 import { FlagCard, type FlagData } from "./FlagCard"
 import { Flag } from "lucide-react"
-import { ComponentLoading } from "@/components/reuseables/loading/ComponentLoading"
+import { ComponentLoading } from "@/components/reusables/loading/ComponentLoading"
 
 export interface FlagDetailModalProps {
   isOpen: boolean

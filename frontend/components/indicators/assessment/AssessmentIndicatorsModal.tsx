@@ -10,7 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { ComponentLoading } from "@/components/reuseables/loading/ComponentLoading"
+import { ComponentLoading } from "@/components/reusables/loading/ComponentLoading"
 import {
   FileText,
   CheckSquare,

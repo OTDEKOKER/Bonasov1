@@ -4,9 +4,9 @@ import React, { useState } from "react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Select } from "@/components/reuseables/inputs/Select"
-import { Input } from "@/components/reuseables/inputs/Input"
-import { Checkbox } from "@/components/reuseables/inputs/Checkbox"
+import { Select } from "@/components/reusables/inputs/Select"
+import { Input } from "@/components/reusables/inputs/Input"
+import { Checkbox } from "@/components/reusables/inputs/Checkbox"
 import {
   Popover,
   PopoverContent,

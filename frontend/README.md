@@ -3,7 +3,7 @@
 ## Quickstart
 ### 1. Install dependencies
 ```bash
-cd C:\Users\dekok\OneDrive\Desktop\Bonasov1\frontend
+cd frontend
 npm install
 ```
 

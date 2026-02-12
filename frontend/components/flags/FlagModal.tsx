@@ -5,9 +5,9 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { RadioButtons } from "@/components/reuseables/inputs/RadioButtons"
-import { Select } from "@/components/reuseables/inputs/Select"
-import { ButtonLoading } from "@/components/reuseables/loading/ButtonLoading"
+import { RadioButtons } from "@/components/reusables/inputs/RadioButtons"
+import { Select } from "@/components/reusables/inputs/Select"
+import { ButtonLoading } from "@/components/reusables/loading/ButtonLoading"
 import {
   Dialog,
   DialogContent,
