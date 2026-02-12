@@ -22,6 +22,8 @@ export const metadata: Metadata = {
   },
 }
 
+const isVercelDeployment = process.env.VERCEL === '1'
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -35,7 +37,7 @@ export default function RootLayout({
         <SyncStatus />
         {children}
         <Toaster />
-        <Analytics debug={false} />
+        {isVercelDeployment ? <Analytics debug={false} /> : null}
       </body>
     </html>
   )

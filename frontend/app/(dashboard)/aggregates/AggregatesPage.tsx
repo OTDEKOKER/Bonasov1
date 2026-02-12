@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import React, { useMemo, useRef, useState, Suspense } from "react";
-import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip as RechartsTooltip, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip as RechartsTooltip, XAxis, YAxis } from "recharts";
 import * as XLSX from "xlsx";
 import {
   Plus,
@@ -98,11 +98,36 @@ const keyPopulations = [
   "PWID",
   "LGBTQI+",
   "GENERAL POP.",
+  "IUD",
+  "Emergency contraceptive",
+  "Implant 3 years",
+  "Implant 5 years",
+  "Contraceptive pill",
+  "Injectables",
+  "Non traditional site",
+  "Traditional leaders (chiefs, headmen/women)",
+  "Political leaders (councillors, MPs, local authorities)",
+  "Youth leaders (student representatives, youth movement leaders)",
+  "Women leaders (from women's groups, associations)",
+  "Community-based organization (CBO/CSO) leaders",
 ];
 const matrixAgeBands = [...ageRanges, "AYP (10-24)"];
 const matrixAgeBandCore = ageRanges;
 
-const pieColors = ["#2563eb", "#16a34a", "#f59e0b", "#ef4444"];
+const chartColors = [
+  "#2563eb",
+  "#16a34a",
+  "#f59e0b",
+  "#ef4444",
+  "#9333ea",
+  "#0891b2",
+  "#f97316",
+  "#14b8a6",
+  "#e11d48",
+  "#84cc16",
+  "#6366f1",
+  "#d946ef",
+];
 
 const formatDate = (value?: string) => {
   if (!value) return "â€”";
@@ -166,6 +191,9 @@ const buildEmptyMatrix = () => {
   return matrix;
 };
 
+const sanitizeSheetName = (value: string) =>
+  value.replace(/[\\/?*\[\]:]/g, " ").slice(0, 31) || "Sheet";
+
 export default function AggregatesPage() {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
@@ -173,6 +201,9 @@ export default function AggregatesPage() {
   const [periodFilter, setPeriodFilter] = useState("all");
   const [parentOrgFilter, setParentOrgFilter] = useState("all");
   const [orgFilter, setOrgFilter] = useState("all");
+  const [keyPopulationFilter, setKeyPopulationFilter] = useState("all");
+  const [ageFilter, setAgeFilter] = useState<"all" | "ayp" | "older">("all");
+  const [ageRangeFilter, setAgeRangeFilter] = useState("all");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isChartOpen, setIsChartOpen] = useState(false);
   const [isAutoCalcOpen, setIsAutoCalcOpen] = useState(false);
@@ -192,6 +223,7 @@ export default function AggregatesPage() {
   const [formNotes, setFormNotes] = useState("");
   const [formDataSource, setFormDataSource] = useState("");
   const [matrixValues, setMatrixValues] = useState(buildEmptyMatrix);
+  const [selectedDisaggregates, setSelectedDisaggregates] = useState<string[]>(() => [...keyPopulations]);
   const chartRef = useRef<HTMLDivElement | null>(null);
 
   const [autoOutputIndicator, setAutoOutputIndicator] = useState("");
@@ -206,6 +238,7 @@ export default function AggregatesPage() {
   const [autoSaveRule, setAutoSaveRule] = useState(true);
   const [autoSaveAggregate, setAutoSaveAggregate] = useState(true);
   const [autoComputed, setAutoComputed] = useState<number | null>(null);
+  const [groupChartsOpen, setGroupChartsOpen] = useState<Record<string, boolean>>({});
 
   const { data: aggregatesData, isLoading, error, mutate } = useAggregates();
   const { data: projectsData } = useProjects();
@@ -273,6 +306,22 @@ export default function AggregatesPage() {
     [aggregates],
   );
 
+  const availableKeyPopulations = useMemo(() => {
+    const set = new Set<string>(keyPopulations);
+    aggregates.forEach((agg) => {
+      const disaggregates = getDisaggregates(agg.value);
+      if (!disaggregates) return;
+      Object.keys(disaggregates).forEach((kp) => set.add(kp));
+    });
+    return Array.from(set);
+  }, [aggregates]);
+
+  const ageBandsForFilter = useMemo(() => {
+    if (ageFilter === "all") return [...matrixAgeBands];
+    if (ageFilter === "ayp") return ["10-14", "15-19", "20-24", "AYP (10-24)"];
+    return ["25-29", "30-34", "35-39", "40-44", "45-49", "50-54", "55-59", "60-64", "65+"];
+  }, [ageFilter]);
+
   const filteredAggregates = useMemo(() => {
     const query = searchQuery.toLowerCase();
     return aggregates.filter((agg) => {
@@ -292,9 +341,45 @@ export default function AggregatesPage() {
         parentOrgFilter === "all" ||
         String(orgParentById.get(String(agg.organization)) ?? "") === parentOrgFilter ||
         String(agg.organization) === parentOrgFilter;
-      return matchesSearch && matchesProject && matchesPeriod && matchesParent && matchesOrg;
+
+      const hasDisaggregateFilter =
+        keyPopulationFilter !== "all" || ageFilter !== "all" || ageRangeFilter !== "all";
+      let matchesDisaggregate = true;
+      if (hasDisaggregateFilter) {
+        const disaggregates = getDisaggregates(agg.value);
+        matchesDisaggregate = false;
+        if (disaggregates) {
+          const kpKeys = keyPopulationFilter === "all" ? Object.keys(disaggregates) : [keyPopulationFilter];
+          for (const kp of kpKeys) {
+            const kpData = disaggregates[kp];
+            if (!kpData) continue;
+            for (const sex of ["Male", "Female"] as const) {
+              const values = kpData[sex] || {};
+              if (ageRangeFilter !== "all") {
+                const value = Number(values[ageRangeFilter] || 0);
+                if (value > 0 && ageBandsForFilter.includes(ageRangeFilter)) {
+                  matchesDisaggregate = true;
+                  break;
+                }
+                continue;
+              }
+              const totalForAgeBands = ageBandsForFilter.reduce(
+                (sum, band) => sum + (Number(values[band]) || 0),
+                0,
+              );
+              if (totalForAgeBands > 0) {
+                matchesDisaggregate = true;
+                break;
+              }
+            }
+            if (matchesDisaggregate) break;
+          }
+        }
+      }
+
+      return matchesSearch && matchesProject && matchesPeriod && matchesParent && matchesOrg && matchesDisaggregate;
     });
-  }, [aggregates, indicatorNameById, orgFilter, orgParentById, parentOrgFilter, periodFilter, projectFilter, searchQuery]);
+  }, [ageBandsForFilter, ageFilter, ageRangeFilter, aggregates, indicatorNameById, keyPopulationFilter, orgFilter, orgParentById, parentOrgFilter, periodFilter, projectFilter, searchQuery]);
 
   const aggregateGroups = useMemo(() => {
     const groups = new Map<string, Aggregate[]>();
@@ -599,6 +684,86 @@ export default function AggregatesPage() {
     });
   };
 
+  const buildDisaggregateSeed = () => {
+    const disaggregates: Record<string, Record<string, Record<string, number>>> = {};
+    for (const kp of keyPopulations) {
+      disaggregates[kp] = { Male: {}, Female: {} };
+      for (const ageBand of matrixAgeBands) {
+        disaggregates[kp].Male[ageBand] = 0;
+        disaggregates[kp].Female[ageBand] = 0;
+      }
+    }
+    return disaggregates;
+  };
+
+  const handleDownloadMakgabanengTemplate = () => {
+    const normalize = (value: string) => value.trim().toLowerCase();
+    const makgabaneng = organizations.find((org: any) =>
+      normalize(org.name).includes("makgabaneng"),
+    );
+
+    if (!makgabaneng) {
+      toast({
+        title: "Makgabaneng not found",
+        description: "No organization named Makgabaneng is available in this environment.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const subGrantees = organizations.filter(
+      (org: any) => Number(org.parent) === Number(makgabaneng.id),
+    );
+    const targetOrgs = [makgabaneng, ...subGrantees];
+    const workbook = XLSX.utils.book_new();
+
+    const project = projects[0];
+    const periodStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+      .toISOString()
+      .slice(0, 10);
+    const periodEnd = new Date().toISOString().slice(0, 10);
+    const disaggregateTemplate = buildDisaggregateSeed();
+    const selectedTemplate = templates.find(
+      (template) => Number(template.organization) === Number(makgabaneng.id),
+    );
+    const indicatorRows =
+      selectedTemplate?.indicators?.length
+        ? selectedTemplate.indicators
+        : indicators.map((indicator) => ({
+            id: indicator.id,
+            name: indicator.name,
+            code: indicator.code,
+          }));
+
+    for (const org of targetOrgs) {
+      const rows = indicatorRows.map((indicator) => ({
+        project_id: project?.id || "",
+        project_name: project?.name || "",
+        indicator_id: indicator.id,
+        indicator_code: indicator.code || "",
+        indicator_name: indicator.name,
+        organization_id: org.id,
+        organization_name: org.name,
+        period_start: periodStart,
+        period_end: periodEnd,
+        key_populations: keyPopulations.join(" | "),
+        age_ranges: matrixAgeBands.join(" | "),
+        value_json: JSON.stringify({ disaggregates: disaggregateTemplate }),
+        notes: "",
+      }));
+
+      const sheet = XLSX.utils.json_to_sheet(rows);
+      XLSX.utils.book_append_sheet(workbook, sheet, sanitizeSheetName(org.name));
+    }
+
+    const fileName = `makgabaneng_aggregate_template_${new Date().toISOString().slice(0, 10)}.xlsx`;
+    XLSX.writeFile(workbook, fileName);
+    toast({
+      title: "Template ready",
+      description: `Created workbook with ${targetOrgs.length} sheet(s) for Makgabaneng and sub-grantees.`,
+    });
+  };
+
   const chartData = useMemo(() => {
     const totalsByIndicator = new Map<string, number>();
     for (const agg of filteredAggregates) {
@@ -685,7 +850,7 @@ export default function AggregatesPage() {
   const matrixTotal = useMemo(() => {
     if (!useMatrixEntry) return 0;
     let total = 0;
-    for (const kp of keyPopulations) {
+    for (const kp of selectedDisaggregates) {
       for (const sex of ["Male", "Female"]) {
         for (const band of matrixAgeBands) {
           const value = parseNumber(matrixValues[kp]?.[sex]?.[band] ?? "");
@@ -694,7 +859,7 @@ export default function AggregatesPage() {
       }
     }
     return total;
-  }, [matrixValues, useMatrixEntry]);
+  }, [matrixValues, selectedDisaggregates, useMatrixEntry]);
 
   const handleSave = async () => {
     if (!formProject || !formIndicator || !formOrganization || !formPeriodStart || !formPeriodEnd) {
@@ -708,6 +873,15 @@ export default function AggregatesPage() {
 
     const male = !useMatrixEntry ? parseNumber(formMale) : undefined;
     const female = !useMatrixEntry ? parseNumber(formFemale) : undefined;
+
+    if (useMatrixEntry && selectedDisaggregates.length === 0) {
+      toast({
+        title: "Missing disaggregate selection",
+        description: "Select at least one disaggregate category.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     if (useMatrixEntry && matrixTotal === 0) {
       toast({
@@ -736,7 +910,7 @@ export default function AggregatesPage() {
     if (!useMatrixEntry && female !== undefined) valuePayload.female = female;
     if (useMatrixEntry) {
       const matrixPayload: Record<string, Record<string, Record<string, number | undefined>>> = {};
-      for (const kp of keyPopulations) {
+      for (const kp of selectedDisaggregates) {
         matrixPayload[kp] = { Male: {}, Female: {} };
         for (const band of matrixAgeBands) {
           matrixPayload[kp].Male[band] = parseNumber(matrixValues[kp]?.Male?.[band] ?? "");
@@ -872,6 +1046,9 @@ export default function AggregatesPage() {
               </Button>
               <Button variant="outline" onClick={handleExport}>
                 <Download className="mr-2 h-4 w-4" /> Export
+              </Button>
+              <Button variant="outline" onClick={handleDownloadMakgabanengTemplate}>
+                <Table2 className="mr-2 h-4 w-4" /> Makgabaneng Template
               </Button>
               <input
                 ref={importInputRef}
@@ -1216,8 +1393,42 @@ export default function AggregatesPage() {
 
                     {useMatrixEntry ? (
                       <div className="space-y-3">
+                        <div className="rounded-lg border border-border p-3">
+                          <div className="mb-2 flex items-center justify-between gap-2">
+                            <p className="text-sm font-medium">Select disaggregate categories</p>
+                            <div className="flex gap-2">
+                              <Button type="button" variant="outline" size="sm" onClick={() => setSelectedDisaggregates([...keyPopulations])}>
+                                Select all
+                              </Button>
+                              <Button type="button" variant="outline" size="sm" onClick={() => setSelectedDisaggregates([])}>
+                                Clear
+                              </Button>
+                            </div>
+                          </div>
+                          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                            {keyPopulations.map((kp) => {
+                              const checked = selectedDisaggregates.includes(kp);
+                              return (
+                                <label key={`disagg-option-${kp}`} className="flex items-center gap-2 text-xs">
+                                  <Checkbox
+                                    checked={checked}
+                                    onCheckedChange={(value) => {
+                                      const nextChecked = Boolean(value);
+                                      setSelectedDisaggregates((prev) =>
+                                        nextChecked
+                                          ? (prev.includes(kp) ? prev : [...prev, kp])
+                                          : prev.filter((item) => item !== kp),
+                                      );
+                                    }}
+                                  />
+                                  <span>{kp}</span>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        </div>
                         <div className="text-sm text-muted-foreground">
-                          Enter values by Key Population, Sex, and Age band.
+                          Enter values by selected disaggregate, sex, and age band.
                         </div>
                         <div className="overflow-auto rounded-lg border border-border max-h-[55vh]">
                           <table className="min-w-[960px] w-full border-collapse text-xs [&_td]:border [&_td]:border-border [&_th]:border [&_th]:border-border">
@@ -1233,7 +1444,7 @@ export default function AggregatesPage() {
                               </tr>
                             </thead>
                             <tbody>
-                              {keyPopulations.map((kp) => (
+                              {selectedDisaggregates.map((kp) => (
                                 <React.Fragment key={kp}>
                                   {["Male", "Female"].map((sex) => (
                                     <tr key={`${kp}-${sex}`} className="border-t border-border">
@@ -1417,6 +1628,45 @@ export default function AggregatesPage() {
                 ))}
               </SelectContent>
             </Select>
+
+            <Select value={keyPopulationFilter} onValueChange={setKeyPopulationFilter}>
+              <SelectTrigger className="w-full sm:w-[220px]">
+                <SelectValue placeholder="Key Population" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Key Populations</SelectItem>
+                {availableKeyPopulations.map((kp) => (
+                  <SelectItem key={kp} value={kp}>
+                    {kp}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={ageFilter} onValueChange={(value) => setAgeFilter(value as "all" | "ayp" | "older")}>
+              <SelectTrigger className="w-full sm:w-[170px]">
+                <SelectValue placeholder="Age" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Ages</SelectItem>
+                <SelectItem value="ayp">AYP (10-24)</SelectItem>
+                <SelectItem value="older">25+ Years</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={ageRangeFilter} onValueChange={setAgeRangeFilter}>
+              <SelectTrigger className="w-full sm:w-[170px]">
+                <SelectValue placeholder="Age Range" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Age Ranges</SelectItem>
+                {matrixAgeBands.map((band) => (
+                  <SelectItem key={band} value={band}>
+                    {band}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
@@ -1549,14 +1799,24 @@ export default function AggregatesPage() {
                 const combinedTotal = combinedSubTotal;
                 const rowSpan = keyPops.length * 2 + 3;
 
-                const sexChartData = (["Male", "Female"] as const).map((sex) => ({
-                  name: sex,
-                  value: sumBands(sexTotals[sex]),
-                }));
-                const ageDistributionData = matrixAgeBandCore.map((band) => ({
-                  name: band,
-                  total: combinedTotals[band] || 0,
-                }));
+                const chartSeries = keyPops.flatMap((kp) =>
+                  (["Male", "Female"] as const).map((sex) => ({
+                    key: `${kp}__${sex}`,
+                    label: `${kp} ${sex}`,
+                  })),
+                );
+
+                const ageDistributionData = matrixAgeBandCore.map((band) => {
+                  const row: Record<string, string | number> = { name: band };
+                  keyPops.forEach((kp) => {
+                    const kpData = disaggregates[kp] || { Male: {}, Female: {} };
+                    row[`${kp}__Male`] = kpData.Male?.[band] || 0;
+                    row[`${kp}__Female`] = kpData.Female?.[band] || 0;
+                  });
+                  return row;
+                });
+
+                const isGroupChartOpen = groupChartsOpen[group.key] || false;
 
                 return (
                   <div key={group.key} className="rounded-lg border border-border p-4">
@@ -1571,6 +1831,22 @@ export default function AggregatesPage() {
                         </p>
                       </div>
                       <Badge variant="outline">Total {Number(totalValue).toLocaleString()}</Badge>
+                    </div>
+
+                    <div className="mb-3 flex justify-end">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          setGroupChartsOpen((prev) => ({
+                            ...prev,
+                            [group.key]: !prev[group.key],
+                          }))
+                        }
+                      >
+                        <BarChart3 className="mr-2 h-4 w-4" />
+                        {isGroupChartOpen ? "Hide graph" : "Create KP/Sex/Age graph"}
+                      </Button>
                     </div>
 
                     <div className="overflow-auto rounded-lg border border-border">
@@ -1667,9 +1943,25 @@ export default function AggregatesPage() {
                       </table>
                     </div>
 
-                    <div className="mt-4 grid gap-4 lg:grid-cols-2">
-                      <div className="rounded-lg border border-border p-3">
-                        <p className="mb-2 text-sm font-medium">Age-band distribution</p>
+                    {isGroupChartOpen ? (
+                      <div className="mt-4 rounded-lg border border-border p-3">
+                        <p className="mb-1 text-sm font-medium">KP/Sex distribution across age ranges</p>
+                        <p className="mb-3 text-xs text-muted-foreground">Each color represents a key population + sex combination.</p>
+                        <div className="mb-3 flex flex-wrap gap-2">
+                          {chartSeries.map((series, index) => (
+                            <span
+                              key={`legend-${series.key}`}
+                              className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-2 py-1 text-[11px]"
+                            >
+                              <span
+                                className="inline-block h-2.5 w-2.5 rounded-full"
+                                style={{ backgroundColor: chartColors[index % chartColors.length] }}
+                                aria-hidden="true"
+                              />
+                              {series.label}
+                            </span>
+                          ))}
+                        </div>
                         <div className="h-64">
                           <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={ageDistributionData} margin={{ top: 8, right: 8, left: 0, bottom: 40 }}>
@@ -1677,36 +1969,20 @@ export default function AggregatesPage() {
                               <XAxis dataKey="name" interval={0} angle={-25} textAnchor="end" height={70} />
                               <YAxis />
                               <RechartsTooltip formatter={(value: number) => value.toLocaleString()} />
-                              <Bar dataKey="total" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                              {chartSeries.map((series, index) => (
+                                <Bar
+                                  key={series.key}
+                                  dataKey={series.key}
+                                  name={series.label}
+                                  fill={chartColors[index % chartColors.length]}
+                                  radius={[3, 3, 0, 0]}
+                                />
+                              ))}
                             </BarChart>
                           </ResponsiveContainer>
                         </div>
                       </div>
-
-                      <div className="rounded-lg border border-border p-3">
-                        <p className="mb-2 text-sm font-medium">Sex split (pie chart)</p>
-                        <div className="h-64">
-                          <ResponsiveContainer width="100%" height="100%">
-                            <PieChart>
-                              <Pie
-                                data={sexChartData}
-                                dataKey="value"
-                                nameKey="name"
-                                cx="50%"
-                                cy="50%"
-                                outerRadius={90}
-                                label={({ name, percent }) => `${name}: ${((percent || 0) * 100).toFixed(0)}%`}
-                              >
-                                {sexChartData.map((entry, index) => (
-                                  <Cell key={`${entry.name}-${index}`} fill={pieColors[index % pieColors.length]} />
-                                ))}
-                              </Pie>
-                              <RechartsTooltip formatter={(value: number) => value.toLocaleString()} />
-                            </PieChart>
-                          </ResponsiveContainer>
-                        </div>
-                      </div>
-                    </div>
+                    ) : null}
                   </div>
                 );
               })}
@@ -1776,5 +2052,3 @@ export default function AggregatesPage() {
     </Suspense>
   );
 }
-
-

@@ -10,6 +10,20 @@ import type { User } from '@/lib/types';
 
 const USERS_BASE_PATH = '/users';
 
+
+function parseJwtPayload(token: string): { exp?: number } | null {
+  try {
+    const [, payload] = token.split('.');
+    if (!payload) return null;
+    const normalized = payload.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '=');
+    const decoded = atob(padded);
+    return JSON.parse(decoded) as { exp?: number };
+  } catch {
+    return null;
+  }
+}
+
 // ============================================================================
 // Types
 // ============================================================================
@@ -185,7 +199,20 @@ export const authService = {
    */
   isAuthenticated(): boolean {
     if (typeof window === 'undefined') return false;
-    return !!localStorage.getItem('access_token');
+
+    const token = localStorage.getItem('access_token');
+    if (!token) return false;
+
+    const payload = parseJwtPayload(token);
+    if (!payload?.exp) return true;
+
+    const isExpired = payload.exp * 1000 <= Date.now();
+    if (isExpired) {
+      clearAuthTokens();
+      return false;
+    }
+
+    return true;
   },
 };
 
