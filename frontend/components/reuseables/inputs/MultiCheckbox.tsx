@@ -56,7 +56,7 @@ export function MultiCheckbox({
   }
 
   return (
-    <div className={cn("space-y-3", className)}>
+    <div className={cn("space-y-3", className)} data-name={name}>
       {label && (
         <Label className={cn(error && "text-destructive")}>{label}</Label>
       )}

@@ -74,7 +74,7 @@ export function MultiInt({
   const total = value.reduce((sum, v) => sum + (v.value || 0), 0)
 
   return (
-    <div className={cn("space-y-3", className)}>
+    <div className={cn("space-y-3", className)} data-name={name}>
       {label && (
         <div className="flex items-center justify-between">
           <Label className={cn(error && "text-destructive")}>{label}</Label>
