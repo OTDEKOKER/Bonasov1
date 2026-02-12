@@ -1609,7 +1609,7 @@ export default function AggregatesPage() {
                         }
                       >
                         <BarChart3 className="mr-2 h-4 w-4" />
-                        {isGroupChartOpen ? "Hide graph" : "Create graph"}
+                        {isGroupChartOpen ? "Hide graph" : "Create KP/Sex/Age graph"}
                       </Button>
                     </div>
 
@@ -1709,7 +1709,23 @@ export default function AggregatesPage() {
 
                     {isGroupChartOpen ? (
                       <div className="mt-4 rounded-lg border border-border p-3">
-                        <p className="mb-2 text-sm font-medium">Age range by key population and sex</p>
+                        <p className="mb-1 text-sm font-medium">KP/Sex distribution across age ranges</p>
+                        <p className="mb-3 text-xs text-muted-foreground">Each color represents a key population + sex combination.</p>
+                        <div className="mb-3 flex flex-wrap gap-2">
+                          {chartSeries.map((series, index) => (
+                            <span
+                              key={`legend-${series.key}`}
+                              className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-2 py-1 text-[11px]"
+                            >
+                              <span
+                                className="inline-block h-2.5 w-2.5 rounded-full"
+                                style={{ backgroundColor: chartColors[index % chartColors.length] }}
+                                aria-hidden="true"
+                              />
+                              {series.label}
+                            </span>
+                          ))}
+                        </div>
                         <div className="h-64">
                           <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={ageDistributionData} margin={{ top: 8, right: 8, left: 0, bottom: 40 }}>
