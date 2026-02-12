@@ -1218,7 +1218,7 @@ export default function AggregatesPage() {
                           Enter values by Key Population, Sex, and Age band.
                         </div>
                         <div className="overflow-auto rounded-lg border border-border max-h-[55vh]">
-                          <table className="min-w-[960px] w-full text-xs">
+                          <table className="min-w-[960px] w-full border-collapse text-xs [&_td]:border [&_td]:border-border [&_th]:border [&_th]:border-border">
                             <thead className="bg-muted/50 sticky top-0 z-10">
                               <tr>
                                 <th className="p-1.5 text-left">Key Population</th>
@@ -1563,7 +1563,7 @@ export default function AggregatesPage() {
                     </div>
 
                     <div className="overflow-auto rounded-lg border border-border">
-                      <table className="min-w-[960px] w-full text-xs">
+                      <table className="min-w-[960px] w-full border-collapse text-xs [&_td]:border [&_td]:border-border [&_th]:border [&_th]:border-border">
                         <thead className="bg-muted/50">
                           <tr>
                             <th className="p-1.5 text-left">Indicator</th>
