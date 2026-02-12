@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import React, { useMemo, useRef, useState, Suspense } from "react";
-import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip as RechartsTooltip, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip as RechartsTooltip, XAxis, YAxis } from "recharts";
 import * as XLSX from "xlsx";
 import {
   Plus,
@@ -102,7 +102,20 @@ const keyPopulations = [
 const matrixAgeBands = [...ageRanges, "AYP (10-24)"];
 const matrixAgeBandCore = ageRanges;
 
-const pieColors = ["#2563eb", "#16a34a", "#f59e0b", "#ef4444"];
+const chartColors = [
+  "#2563eb",
+  "#16a34a",
+  "#f59e0b",
+  "#ef4444",
+  "#9333ea",
+  "#0891b2",
+  "#f97316",
+  "#14b8a6",
+  "#e11d48",
+  "#84cc16",
+  "#6366f1",
+  "#d946ef",
+];
 
 const formatDate = (value?: string) => {
   if (!value) return "â€”";
@@ -206,6 +219,7 @@ export default function AggregatesPage() {
   const [autoSaveRule, setAutoSaveRule] = useState(true);
   const [autoSaveAggregate, setAutoSaveAggregate] = useState(true);
   const [autoComputed, setAutoComputed] = useState<number | null>(null);
+  const [groupChartsOpen, setGroupChartsOpen] = useState<Record<string, boolean>>({});
 
   const { data: aggregatesData, isLoading, error, mutate } = useAggregates();
   const { data: projectsData } = useProjects();
@@ -1549,14 +1563,24 @@ export default function AggregatesPage() {
                 const combinedTotal = combinedSubTotal;
                 const rowSpan = keyPops.length * 2 + 3;
 
-                const sexChartData = (["Male", "Female"] as const).map((sex) => ({
-                  name: sex,
-                  value: sumBands(sexTotals[sex]),
-                }));
-                const ageDistributionData = matrixAgeBandCore.map((band) => ({
-                  name: band,
-                  total: combinedTotals[band] || 0,
-                }));
+                const chartSeries = keyPops.flatMap((kp) =>
+                  (["Male", "Female"] as const).map((sex) => ({
+                    key: `${kp}__${sex}`,
+                    label: `${kp} ${sex}`,
+                  })),
+                );
+
+                const ageDistributionData = matrixAgeBandCore.map((band) => {
+                  const row: Record<string, string | number> = { name: band };
+                  keyPops.forEach((kp) => {
+                    const kpData = disaggregates[kp] || { Male: {}, Female: {} };
+                    row[`${kp}__Male`] = kpData.Male?.[band] || 0;
+                    row[`${kp}__Female`] = kpData.Female?.[band] || 0;
+                  });
+                  return row;
+                });
+
+                const isGroupChartOpen = groupChartsOpen[group.key] || false;
 
                 return (
                   <div key={group.key} className="rounded-lg border border-border p-4">
@@ -1571,6 +1595,22 @@ export default function AggregatesPage() {
                         </p>
                       </div>
                       <Badge variant="outline">Total {Number(totalValue).toLocaleString()}</Badge>
+                    </div>
+
+                    <div className="mb-3 flex justify-end">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          setGroupChartsOpen((prev) => ({
+                            ...prev,
+                            [group.key]: !prev[group.key],
+                          }))
+                        }
+                      >
+                        <BarChart3 className="mr-2 h-4 w-4" />
+                        {isGroupChartOpen ? "Hide graph" : "Create graph"}
+                      </Button>
                     </div>
 
                     <div className="overflow-auto rounded-lg border border-border">
@@ -1667,9 +1707,9 @@ export default function AggregatesPage() {
                       </table>
                     </div>
 
-                    <div className="mt-4 grid gap-4 lg:grid-cols-2">
-                      <div className="rounded-lg border border-border p-3">
-                        <p className="mb-2 text-sm font-medium">Age-band distribution</p>
+                    {isGroupChartOpen ? (
+                      <div className="mt-4 rounded-lg border border-border p-3">
+                        <p className="mb-2 text-sm font-medium">Age range by key population and sex</p>
                         <div className="h-64">
                           <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={ageDistributionData} margin={{ top: 8, right: 8, left: 0, bottom: 40 }}>
@@ -1677,36 +1717,20 @@ export default function AggregatesPage() {
                               <XAxis dataKey="name" interval={0} angle={-25} textAnchor="end" height={70} />
                               <YAxis />
                               <RechartsTooltip formatter={(value: number) => value.toLocaleString()} />
-                              <Bar dataKey="total" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                              {chartSeries.map((series, index) => (
+                                <Bar
+                                  key={series.key}
+                                  dataKey={series.key}
+                                  name={series.label}
+                                  fill={chartColors[index % chartColors.length]}
+                                  radius={[3, 3, 0, 0]}
+                                />
+                              ))}
                             </BarChart>
                           </ResponsiveContainer>
                         </div>
                       </div>
-
-                      <div className="rounded-lg border border-border p-3">
-                        <p className="mb-2 text-sm font-medium">Sex split (pie chart)</p>
-                        <div className="h-64">
-                          <ResponsiveContainer width="100%" height="100%">
-                            <PieChart>
-                              <Pie
-                                data={sexChartData}
-                                dataKey="value"
-                                nameKey="name"
-                                cx="50%"
-                                cy="50%"
-                                outerRadius={90}
-                                label={({ name, percent }) => `${name}: ${((percent || 0) * 100).toFixed(0)}%`}
-                              >
-                                {sexChartData.map((entry, index) => (
-                                  <Cell key={`${entry.name}-${index}`} fill={pieColors[index % pieColors.length]} />
-                                ))}
-                              </Pie>
-                              <RechartsTooltip formatter={(value: number) => value.toLocaleString()} />
-                            </PieChart>
-                          </ResponsiveContainer>
-                        </div>
-                      </div>
-                    </div>
+                    ) : null}
                   </div>
                 );
               })}
@@ -1776,5 +1800,4 @@ export default function AggregatesPage() {
     </Suspense>
   );
 }
-
 
