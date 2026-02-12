@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useRef, useEffect } from "react"
+import React, { useEffect, useMemo, useRef, useState } from "react"
 import { cn } from "@/lib/utils"
 import { ChevronDown, Search, X } from "lucide-react"
 import { Label } from "@/components/ui/label"
@@ -46,14 +46,12 @@ export function Select({
 }: SelectProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
-  const [filteredOptions, setFilteredOptions] = useState(options)
+  const [remoteOptions, setRemoteOptions] = useState<SelectOption[]>([])
   const [isSearching, setIsSearching] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const searchInputRef = useRef<HTMLInputElement>(null)
 
-  const selectedOption = options.find(
-    (opt) => opt[valueField] === value
-  )
+  const selectedOption = options.find((opt) => opt[valueField] === value)
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -73,29 +71,19 @@ export function Select({
     }
   }, [isOpen, search])
 
-  useEffect(() => {
+  const filteredOptions = useMemo(() => {
     if (!search) {
-      setFilteredOptions(options)
-      return
+      return options
     }
 
-    if (searchCallback && searchQuery) {
-      setIsSearching(true)
-      searchCallback(searchQuery)
-        .then((results) => {
-          setFilteredOptions(results)
-          setIsSearching(false)
-        })
-        .catch(() => {
-          setIsSearching(false)
-        })
-    } else {
-      const filtered = options.filter((opt) =>
-        String(opt[labelField]).toLowerCase().includes(searchQuery.toLowerCase())
-      )
-      setFilteredOptions(filtered)
+    if (searchCallback) {
+      return searchQuery ? remoteOptions : options
     }
-  }, [searchQuery, options, search, searchCallback, labelField])
+
+    return options.filter((opt) =>
+      String(opt[labelField]).toLowerCase().includes(searchQuery.toLowerCase())
+    )
+  }, [labelField, options, remoteOptions, search, searchCallback, searchQuery])
 
   const handleSelect = (optionValue: string | number) => {
     if (onChange) {
@@ -162,7 +150,24 @@ export function Select({
                     ref={searchInputRef}
                     type="text"
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={async (e) => {
+                      const nextQuery = e.target.value
+                      setSearchQuery(nextQuery)
+
+                      if (!(search && searchCallback && nextQuery)) {
+                        setRemoteOptions([])
+                        setIsSearching(false)
+                        return
+                      }
+
+                      setIsSearching(true)
+                      try {
+                        const results = await searchCallback(nextQuery)
+                        setRemoteOptions(results)
+                      } finally {
+                        setIsSearching(false)
+                      }
+                    }}
                     placeholder="Search..."
                     className="w-full rounded-md border border-border bg-input py-1.5 pl-8 pr-3 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                   />
