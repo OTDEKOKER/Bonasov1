@@ -98,6 +98,13 @@ const keyPopulations = [
   "PWID",
   "LGBTQI+",
   "GENERAL POP.",
+  "IUD",
+  "Emergency contraceptive",
+  "Implant 3 years",
+  "Implant 5 years",
+  "Contraceptive pill",
+  "Injectables",
+  "Non traditional site",
 ];
 const matrixAgeBands = [...ageRanges, "AYP (10-24)"];
 const matrixAgeBandCore = ageRanges;
@@ -205,6 +212,7 @@ export default function AggregatesPage() {
   const [formNotes, setFormNotes] = useState("");
   const [formDataSource, setFormDataSource] = useState("");
   const [matrixValues, setMatrixValues] = useState(buildEmptyMatrix);
+  const [selectedDisaggregates, setSelectedDisaggregates] = useState<string[]>(() => [...keyPopulations]);
   const chartRef = useRef<HTMLDivElement | null>(null);
 
   const [autoOutputIndicator, setAutoOutputIndicator] = useState("");
@@ -699,7 +707,7 @@ export default function AggregatesPage() {
   const matrixTotal = useMemo(() => {
     if (!useMatrixEntry) return 0;
     let total = 0;
-    for (const kp of keyPopulations) {
+    for (const kp of selectedDisaggregates) {
       for (const sex of ["Male", "Female"]) {
         for (const band of matrixAgeBands) {
           const value = parseNumber(matrixValues[kp]?.[sex]?.[band] ?? "");
@@ -708,7 +716,7 @@ export default function AggregatesPage() {
       }
     }
     return total;
-  }, [matrixValues, useMatrixEntry]);
+  }, [matrixValues, selectedDisaggregates, useMatrixEntry]);
 
   const handleSave = async () => {
     if (!formProject || !formIndicator || !formOrganization || !formPeriodStart || !formPeriodEnd) {
@@ -722,6 +730,15 @@ export default function AggregatesPage() {
 
     const male = !useMatrixEntry ? parseNumber(formMale) : undefined;
     const female = !useMatrixEntry ? parseNumber(formFemale) : undefined;
+
+    if (useMatrixEntry && selectedDisaggregates.length === 0) {
+      toast({
+        title: "Missing disaggregate selection",
+        description: "Select at least one disaggregate category.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     if (useMatrixEntry && matrixTotal === 0) {
       toast({
@@ -750,7 +767,7 @@ export default function AggregatesPage() {
     if (!useMatrixEntry && female !== undefined) valuePayload.female = female;
     if (useMatrixEntry) {
       const matrixPayload: Record<string, Record<string, Record<string, number | undefined>>> = {};
-      for (const kp of keyPopulations) {
+      for (const kp of selectedDisaggregates) {
         matrixPayload[kp] = { Male: {}, Female: {} };
         for (const band of matrixAgeBands) {
           matrixPayload[kp].Male[band] = parseNumber(matrixValues[kp]?.Male?.[band] ?? "");
@@ -1230,8 +1247,42 @@ export default function AggregatesPage() {
 
                     {useMatrixEntry ? (
                       <div className="space-y-3">
+                        <div className="rounded-lg border border-border p-3">
+                          <div className="mb-2 flex items-center justify-between gap-2">
+                            <p className="text-sm font-medium">Select disaggregate categories</p>
+                            <div className="flex gap-2">
+                              <Button type="button" variant="outline" size="sm" onClick={() => setSelectedDisaggregates([...keyPopulations])}>
+                                Select all
+                              </Button>
+                              <Button type="button" variant="outline" size="sm" onClick={() => setSelectedDisaggregates([])}>
+                                Clear
+                              </Button>
+                            </div>
+                          </div>
+                          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                            {keyPopulations.map((kp) => {
+                              const checked = selectedDisaggregates.includes(kp);
+                              return (
+                                <label key={`disagg-option-${kp}`} className="flex items-center gap-2 text-xs">
+                                  <Checkbox
+                                    checked={checked}
+                                    onCheckedChange={(value) => {
+                                      const nextChecked = Boolean(value);
+                                      setSelectedDisaggregates((prev) =>
+                                        nextChecked
+                                          ? (prev.includes(kp) ? prev : [...prev, kp])
+                                          : prev.filter((item) => item !== kp),
+                                      );
+                                    }}
+                                  />
+                                  <span>{kp}</span>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        </div>
                         <div className="text-sm text-muted-foreground">
-                          Enter values by Key Population, Sex, and Age band.
+                          Enter values by selected disaggregate, sex, and age band.
                         </div>
                         <div className="overflow-auto rounded-lg border border-border max-h-[55vh]">
                           <table className="min-w-[960px] w-full border-collapse text-xs [&_td]:border [&_td]:border-border [&_th]:border [&_th]:border-border">
@@ -1247,7 +1298,7 @@ export default function AggregatesPage() {
                               </tr>
                             </thead>
                             <tbody>
-                              {keyPopulations.map((kp) => (
+                              {selectedDisaggregates.map((kp) => (
                                 <React.Fragment key={kp}>
                                   {["Male", "Female"].map((sex) => (
                                     <tr key={`${kp}-${sex}`} className="border-t border-border">
