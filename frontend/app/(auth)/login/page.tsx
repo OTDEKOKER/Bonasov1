@@ -1,27 +1,22 @@
 "use client"
 
-import React from "react"
-import { useState, useEffect } from "react"
-import Link from "next/link"
+import React, { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Activity, Eye, EyeOff, Loader2 } from "lucide-react"
+import { Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { authService } from "@/lib/api"
 import { useToast } from "@/hooks/use-toast"
 
 export default function LoginPage() {
   const router = useRouter()
   const { toast } = useToast()
-  const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
 
-  // Check if already authenticated
   useEffect(() => {
     if (authService.isAuthenticated()) {
       router.push("/dashboard")
@@ -32,7 +27,7 @@ export default function LoginPage() {
     e.preventDefault()
     setIsLoading(true)
     setError("")
-    
+
     try {
       await authService.login({ username, password })
       toast({
@@ -41,9 +36,10 @@ export default function LoginPage() {
       })
       router.push("/dashboard")
     } catch (err: unknown) {
-      const errorMessage = err && typeof err === 'object' && 'message' in err 
-        ? (err as { message: string }).message 
+      const errorMessage = err && typeof err === "object" && "message" in err
+        ? (err as { message: string }).message
         : "Invalid username or password. Please try again."
+
       setError(errorMessage)
       toast({
         title: "Login Failed",
@@ -56,102 +52,65 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
-      {/* Background pattern */}
-      <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-background to-background" />
-      
-      <div className="w-full max-w-md">
-        {/* Logo */}
-        <div className="mb-8 flex flex-col items-center text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary">
-            <Activity className="h-7 w-7 text-primary-foreground" />
-          </div>
-          <h1 className="mt-4 text-2xl font-bold text-foreground">BONASO Data Portal</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Health data management system
-          </p>
+    <main className="flex min-h-screen items-center justify-center bg-[#005a2f] p-6">
+      <section className="w-full max-w-[620px] border-4 border-[#4bb978] bg-[#004a27] px-10 py-12 text-white shadow-2xl">
+        <div className="mx-auto mb-8 flex w-full max-w-[320px] flex-col items-center">
+          <p className="text-4xl font-bold tracking-wide">BONASO</p>
+          <div
+            className="mt-3 h-0 w-0 border-l-[68px] border-r-[68px] border-t-[120px] border-l-transparent border-r-transparent border-t-white/95"
+            aria-hidden="true"
+          />
+
+          <h1 className="mt-8 text-5xl font-bold">Welcome!</h1>
         </div>
 
-        {/* Login card */}
-        <Card className="border-border bg-card">
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-xl">Sign in</CardTitle>
-            <CardDescription>
-              Enter your credentials to access the portal
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {error && (
-                <div className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
-                  {error}
-                </div>
-              )}
-              <div className="space-y-2">
-                <Label htmlFor="username">Username</Label>
-                <Input
-                  id="username"
-                  type="text"
-                  autoComplete="username"
-                  placeholder="Enter your username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  required
-                  className="bg-input"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Password</Label>
-                  <Link
-                    href="/forgot-password"
-                    className="text-sm text-primary hover:underline"
-                  >
-                    Forgot password?
-                  </Link>
-                </div>
-                <div className="relative">
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    autoComplete="current-password"
-                    placeholder="Enter your password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    className="bg-input pr-10"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
-                  </button>
-                </div>
-              </div>
+        <form onSubmit={handleSubmit} className="mx-auto w-full max-w-[320px] space-y-5">
+          {error ? (
+            <div className="rounded bg-red-100/95 px-3 py-2 text-sm font-medium text-red-900">
+              {error}
+            </div>
+          ) : null}
 
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Sign In
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
+          <div className="space-y-2">
+            <Label htmlFor="username" className="block text-center text-3xl font-semibold text-white">
+              Username
+            </Label>
+            <Input
+              id="username"
+              type="text"
+              autoComplete="username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+              className="h-12 rounded-none border-0 bg-[#d7dde7] text-lg text-black placeholder:text-slate-600"
+            />
+          </div>
 
-        {/* Footer */}
-        <p className="mt-6 text-center text-sm text-muted-foreground">
-          Need access?{" "}
-          <Link href="/request-access" className="text-primary hover:underline">
-            Request an account
-          </Link>
-        </p>
-      </div>
-    </div>
+          <div className="space-y-2">
+            <Label htmlFor="password" className="block text-center text-3xl font-semibold text-white">
+              Password
+            </Label>
+            <Input
+              id="password"
+              type="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="h-12 rounded-none border-0 bg-[#d7dde7] text-lg text-black placeholder:text-slate-600"
+            />
+          </div>
+
+          <Button
+            type="submit"
+            disabled={isLoading}
+            className="mt-2 h-12 w-full rounded-none bg-white text-2xl font-semibold text-[#024025] hover:bg-white/90"
+          >
+            {isLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : null}
+            Login
+          </Button>
+        </form>
+      </section>
+    </main>
   )
 }
