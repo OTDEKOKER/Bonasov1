@@ -91,13 +91,7 @@ const ageRanges = [
   "65+",
 ];
 
-const keyPopulations = [
-  "MSM",
-  "FSW",
-  "PWD",
-  "PWID",
-  "LGBTQI+",
-  "GENERAL POP.",
+const familyPlanningKeyPopulations = [
   "IUD",
   "Emergency contraceptive",
   "Implant 3 years",
@@ -105,11 +99,25 @@ const keyPopulations = [
   "Contraceptive pill",
   "Injectables",
   "Non traditional site",
+];
+
+const communityLeadersKeyPopulations = [
   "Traditional leaders (chiefs, headmen/women)",
   "Political leaders (councillors, MPs, local authorities)",
   "Youth leaders (student representatives, youth movement leaders)",
   "Women leaders (from women's groups, associations)",
   "Community-based organization (CBO/CSO) leaders",
+];
+
+const keyPopulations = [
+  "MSM",
+  "FSW",
+  "PWD",
+  "PWID",
+  "LGBTQI+",
+  "GENERAL POP.",
+  ...familyPlanningKeyPopulations,
+  ...communityLeadersKeyPopulations,
 ];
 const matrixAgeBands = [...ageRanges, "AYP (10-24)"];
 const matrixAgeBandCore = ageRanges;
