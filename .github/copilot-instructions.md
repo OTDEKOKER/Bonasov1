@@ -1,8 +1,5 @@
-<!-- Copilot / AI agent instructions for the BONASO Data Portal repo -->
-# BONASO — Copilot Instructions
+# BONASO — Instructions
 
-Purpose: give an AI coding agent the immediately useful, repo-specific knowledge
-so it can make safe, accurate edits without broad guessing.
 
 1) Big picture
 - Backend: Django REST API in the `django_backend` folder. Main entrypoint: `django_backend/manage.py`.
@@ -60,7 +57,7 @@ so it can make safe, accurate edits without broad guessing.
 - API prefixes: `/api/users/`, `/api/organizations/`, `/api/manage/`, `/api/record/`, `/api/activities/`.
 - Token example: `POST /api/users/request-token/` returns JSON `{ "access": "...", "refresh": "..." }`.
 
-9) Edit rules for the AI agent
+9) Edit rules
 - Prefer minimal, focused changes. Run migrations locally for model changes and update tests if present.
 - Preserve environment-driven behavior: when adding infra changes, update `.env.example` accordingly.
 - Don't change production-sensitive defaults (e.g., `DEBUG=False`) without explicit instruction.
@@ -69,12 +66,7 @@ so it can make safe, accurate edits without broad guessing.
 - Inspect `django_backend/core/settings.py`, `django_backend/manage.py`, and the app folder for the area you're editing (for example, `users/`, `projects/`).
 - Ask the maintainer for deploy credentials or secrets; do not guess production values.
 
-If anything above is unclear or you'd like more detailed examples (routes, serializer shapes, or a small change implemented), tell me which area to expand.
-<!-- Copilot / AI agent instructions for the BONASO Data Portal repo -->
-# BONASO — Copilot Instructions
-
-Purpose: give an AI coding agent the immediately useful, repo-specific knowledge
-so it can make safe, accurate edits without broad guessing.
+# BONASO — Instructions
 
 1) Big picture
  - Backend: Django REST API in the `django_backend` folder. Main entrypoint: [manage.py](../django_backend/manage.py#L1).
@@ -132,7 +124,7 @@ so it can make safe, accurate edits without broad guessing.
  - API root prefix: see `django_backend/README.md` — common app prefixes: `/api/users/`, `/api/organizations/`, `/api/manage/`, `/api/record/`, `/api/activities/`.
 - Token example: `POST /api/users/request-token/` returns JSON `{ "access": "...", "refresh": "..." }`.
 
-9) Edit rules for the AI agent
+9) Edit rules
 - Prefer minimal, focused changes. Run migrations locally for model changes and update tests if present.
 - Preserve environment-driven behavior: when adding infra changes, ensure `.env.example` is updated.
 - Don't change production-sensitive defaults (e.g., set `DEBUG=False`) without explicit task instruction.
