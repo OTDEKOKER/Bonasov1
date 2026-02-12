@@ -308,43 +308,62 @@ export default function AggregatesPage() {
   }, [aggregates, indicatorNameById, orgFilter, orgParentById, parentOrgFilter, periodFilter, projectFilter, searchQuery]);
 
   const aggregateGroups = useMemo(() => {
-    const groups = new Map<string, Aggregate[]>();
-    for (const agg of filteredAggregates) {
+    const parseCode = (code?: string | null) => {
+      if (!code) return { num: Number.POSITIVE_INFINITY, suffix: "" };
+      const match = code.match(/(\d+)([a-zA-Z])?/);
+      if (!match) return { num: Number.POSITIVE_INFINITY, suffix: code };
+      return { num: Number(match[1]), suffix: (match[2] || "").toLowerCase() };
+    };
+
+    const entries = filteredAggregates.map((agg) => {
       const indicatorName =
         agg.indicator_name ||
         indicatorNameById.get(String(agg.indicator)) ||
         "Indicator";
-      const orgName = agg.organization_name || "";
-      const key = `${indicatorName}||${orgName}`;
-      if (!groups.has(key)) {
-        groups.set(key, []);
-      }
-      groups.get(key)!.push(agg);
-    }
-    const parseCode = (code?: string | null) => {
-      if (!code) return { num: Number.POSITIVE_INFINITY, suffix: "" };
-      const match = code.match(/(\\d+)([a-zA-Z])?/);
-      if (!match) return { num: Number.POSITIVE_INFINITY, suffix: code };
-      return { num: Number(match[1]), suffix: (match[2] || "").toLowerCase() };
-    };
-    const entries = Array.from(groups.entries()).map(([key, items]) => {
-      const indicatorName = key.split("||")[0];
-      const organizationName = key.split("||")[1];
-      const first = items[0];
+      const organizationName = agg.organization_name || "";
+      const projectName =
+        agg.project_name ||
+        projectNameById.get(String(agg.project)) ||
+        "Project";
+      const periodLabel = getPeriodLabel(agg);
+      const key = [
+        String(agg.id ?? ""),
+        String(agg.indicator ?? ""),
+        String(agg.organization ?? ""),
+        String(agg.project ?? ""),
+        agg.period_start || "",
+        agg.period_end || "",
+      ].join("||");
       const code =
-        first?.indicator_code ||
-        indicatorCodeById.get(String(first?.indicator)) ||
+        agg.indicator_code ||
+        indicatorCodeById.get(String(agg.indicator)) ||
         "";
-      return { key, indicatorName, organizationName, items, code };
+
+      return {
+        key,
+        indicatorName,
+        organizationName,
+        projectName,
+        periodLabel,
+        items: [agg],
+        code,
+      };
     });
+
     return entries.sort((a, b) => {
       const ac = parseCode(a.code);
       const bc = parseCode(b.code);
       if (ac.num !== bc.num) return ac.num - bc.num;
       if (ac.suffix !== bc.suffix) return ac.suffix.localeCompare(bc.suffix);
-      return a.organizationName.localeCompare(b.organizationName);
+      if (a.organizationName !== b.organizationName) {
+        return a.organizationName.localeCompare(b.organizationName);
+      }
+      if (a.projectName !== b.projectName) {
+        return a.projectName.localeCompare(b.projectName);
+      }
+      return a.periodLabel.localeCompare(b.periodLabel);
     });
-  }, [filteredAggregates, indicatorCodeById, indicatorNameById]);
+  }, [filteredAggregates, indicatorCodeById, indicatorNameById, projectNameById]);
 
   const totals = useMemo(() => {
     return filteredAggregates.reduce(
@@ -1514,11 +1533,8 @@ export default function AggregatesPage() {
                 const agg = group.items[0];
                 const disaggregates = agg ? getDisaggregates(agg.value) : null;
                 const keyPops = getAllKeyPopulations(disaggregates);
-                const projectName =
-                  agg?.project_name ||
-                  projectNameById.get(String(agg?.project)) ||
-                  "Project";
-                const periodLabel = agg ? getPeriodLabel(agg) : "";
+                const projectName = group.projectName;
+                const periodLabel = group.periodLabel;
                 const totalValue = agg ? parseAggregateValue(agg.value).total ?? 0 : 0;
                 const indicatorCode =
                   agg?.indicator_code ||
