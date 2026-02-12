@@ -112,4 +112,5 @@ npm run start
 ### Development mode note
 Service worker registration is disabled by default in `npm run dev`.
 Set `NEXT_PUBLIC_ENABLE_SW=true` if you need to test service worker behavior in development.
+Set `NEXT_PUBLIC_ENABLE_VERCEL_ANALYTICS=true` only when deploying behind Vercel Insights endpoints (for non-Vercel hosts leave it unset to avoid loading `/_vercel/insights/script.js`).
 

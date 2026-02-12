@@ -11,6 +11,10 @@ import './globals.css'
 const _inter = Inter({ subsets: ["latin"], variable: '--font-inter' });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
+const shouldEnableVercelAnalytics =
+  process.env.NEXT_PUBLIC_ENABLE_VERCEL_ANALYTICS === "true" ||
+  process.env.VERCEL === "1"
+
 export const metadata: Metadata = {
   title: 'BONASO Data Portal',
   description: 'Enterprise data management system for health indicators, projects, and analytics',
@@ -35,7 +39,7 @@ export default function RootLayout({
         <SyncStatus />
         {children}
         <Toaster />
-        <Analytics debug={false} />
+        {shouldEnableVercelAnalytics ? <Analytics debug={false} /> : null}
       </body>
     </html>
   )
