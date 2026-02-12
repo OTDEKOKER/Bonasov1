@@ -76,6 +76,14 @@ type AggregateValue = {
   >;
 };
 
+type ChartSexFilter = "all" | "Male" | "Female";
+type AggregateChartRow = {
+  ageRange: string;
+  male: number;
+  female: number;
+  total: number;
+};
+
 const ageRanges = [
   "10-14",
   "15-19",
@@ -173,6 +181,11 @@ export default function AggregatesPage() {
   const [orgFilter, setOrgFilter] = useState("all");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isChartOpen, setIsChartOpen] = useState(false);
+  const [chartIndicatorFilter, setChartIndicatorFilter] = useState("all");
+  const [chartKeyPopulation, setChartKeyPopulation] = useState("all");
+  const [chartSexFilter, setChartSexFilter] = useState<ChartSexFilter>("all");
+  const [chartData, setChartData] = useState<AggregateChartRow[]>([]);
+  const [isChartGenerated, setIsChartGenerated] = useState(false);
   const [isAutoCalcOpen, setIsAutoCalcOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAutoCalcSubmitting, setIsAutoCalcSubmitting] = useState(false);
@@ -597,30 +610,49 @@ export default function AggregatesPage() {
     });
   };
 
-  const chartData = useMemo(() => {
-    const totalsByIndicator = new Map<string, number>();
+  const chartKeyPopulationOptions = useMemo(() => {
+    const all = new Set<string>();
     for (const agg of filteredAggregates) {
-      const value = parseAggregateValue(agg.value);
-      const male = Number(value.male) || 0;
-      const female = Number(value.female) || 0;
-      const total =
-        value.total !== undefined
-          ? Number(value.total) || 0
-          : male + female;
-      const indicatorName =
-        agg.indicator_name ||
-        indicatorNameById.get(String(agg.indicator)) ||
-        "Indicator";
-      totalsByIndicator.set(
-        indicatorName,
-        (totalsByIndicator.get(indicatorName) || 0) + total,
-      );
+      const disaggregates = getDisaggregates(agg.value);
+      if (!disaggregates) continue;
+      for (const kp of Object.keys(disaggregates)) {
+        all.add(kp);
+      }
     }
-    return Array.from(totalsByIndicator.entries()).map(([name, total]) => ({
-      name,
-      total,
+    return [...keyPopulations.filter((kp) => all.has(kp)), ...[...all].filter((kp) => !keyPopulations.includes(kp))];
+  }, [filteredAggregates]);
+
+  const generateBarGraph = () => {
+    const rows: AggregateChartRow[] = matrixAgeBandCore.map((band) => ({
+      ageRange: band,
+      male: 0,
+      female: 0,
+      total: 0,
     }));
-  }, [filteredAggregates, indicatorNameById]);
+
+    for (const agg of filteredAggregates) {
+      if (chartIndicatorFilter !== "all" && String(agg.indicator) !== chartIndicatorFilter) continue;
+      const disaggregates = getDisaggregates(agg.value);
+      if (!disaggregates) continue;
+
+      const populations = chartKeyPopulation === "all" ? Object.keys(disaggregates) : [chartKeyPopulation];
+      for (const kp of populations) {
+        const kpData = disaggregates[kp];
+        if (!kpData) continue;
+
+        for (const [index, band] of matrixAgeBandCore.entries()) {
+          const male = Number(kpData.Male?.[band] || 0);
+          const female = Number(kpData.Female?.[band] || 0);
+          rows[index].male += male;
+          rows[index].female += female;
+          rows[index].total += male + female;
+        }
+      }
+    }
+
+    setChartData(rows);
+    setIsChartGenerated(true);
+  };
 
   const resetForm = () => {
     setFormProject("");
@@ -1461,7 +1493,7 @@ export default function AggregatesPage() {
                 <CardDescription>Tabular view of all aggregate entries</CardDescription>
               </div>
               <Button variant="outline" size="sm" onClick={() => setIsChartOpen(true)}>
-                <BarChart3 className="mr-2 h-4 w-4" /> View Chart
+                <BarChart3 className="mr-2 h-4 w-4" /> Create Bar Graph
               </Button>
             </div>
           </CardHeader>
@@ -1662,36 +1694,110 @@ export default function AggregatesPage() {
           </CardContent>
         </Card>
 
-        <Dialog open={isChartOpen} onOpenChange={setIsChartOpen}>
+        <Dialog
+          open={isChartOpen}
+          onOpenChange={(open) => {
+            setIsChartOpen(open);
+            if (!open) {
+              setIsChartGenerated(false);
+              setChartData([]);
+            }
+          }}
+        >
           <DialogContent className="w-[95vw] sm:max-w-5xl">
             <DialogHeader>
-              <DialogTitle>Aggregate Totals</DialogTitle>
+              <DialogTitle>Aggregates Bar Graph Builder</DialogTitle>
               <DialogDescription>
-                Totals by indicator for the selected filters.
+                Build a colorful bar graph by key population (KP), sex, and age range when you need it.
               </DialogDescription>
             </DialogHeader>
+            <div className="grid gap-3 md:grid-cols-4">
+              <div className="space-y-1.5">
+                <Label>Indicator</Label>
+                <Select value={chartIndicatorFilter} onValueChange={setChartIndicatorFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All indicators" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All indicators</SelectItem>
+                    {indicators.map((indicator) => (
+                      <SelectItem key={indicator.id} value={String(indicator.id)}>
+                        {indicator.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label>Key Population (KP)</Label>
+                <Select value={chartKeyPopulation} onValueChange={setChartKeyPopulation}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All KPs" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All KPs</SelectItem>
+                    {chartKeyPopulationOptions.map((kp) => (
+                      <SelectItem key={kp} value={kp}>
+                        {kp}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label>Sex</Label>
+                <Select
+                  value={chartSexFilter}
+                  onValueChange={(value) => setChartSexFilter(value as ChartSexFilter)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="All" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Male + Female</SelectItem>
+                    <SelectItem value="Male">Male</SelectItem>
+                    <SelectItem value="Female">Female</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex items-end">
+                <Button onClick={generateBarGraph} className="w-full">
+                  <BarChart3 className="mr-2 h-4 w-4" /> Create Graph
+                </Button>
+              </div>
+            </div>
+
             <div className="flex justify-end">
               <Button variant="outline" size="sm" onClick={downloadChartSvg}>
                 <Download className="mr-2 h-4 w-4" />
                 Download Chart
               </Button>
             </div>
-            {chartData.length === 0 ? (
+            {!isChartGenerated ? (
               <div className="rounded-lg border border-dashed border-border p-8 text-center text-muted-foreground">
-                No data available for the selected filters.
+                Select indicator, KP, and sex, then click <span className="font-medium">Create Graph</span>.
+              </div>
+            ) : chartData.length === 0 || chartData.every((row) => row.total === 0) ? (
+              <div className="rounded-lg border border-dashed border-border p-8 text-center text-muted-foreground">
+                No disaggregated aggregate data available for the selected chart settings.
               </div>
             ) : (
               <div ref={chartRef}>
                 <ChartContainer
                   config={{
-                    total: { label: "Total", color: "hsl(var(--primary))" },
+                    male: { label: "Male", color: "#3b82f6" },
+                    female: { label: "Female", color: "#ec4899" },
+                    total: { label: "Total", color: "#22c55e" },
                   }}
                   className="h-[420px]"
                 >
                   <BarChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 20 }}>
                     <CartesianGrid vertical={false} strokeDasharray="3 3" />
                     <XAxis
-                      dataKey="name"
+                      dataKey="ageRange"
                       tickLine={false}
                       axisLine={false}
                       interval={0}
@@ -1705,15 +1811,18 @@ export default function AggregatesPage() {
                       content={<ChartTooltipContent indicator="dot" />}
                     />
                     <ChartLegend content={<ChartLegendContent />} />
-                    <Bar
-                      dataKey="total"
-                      fill="var(--color-total)"
-                      fillOpacity={0.85}
-                      stroke="rgba(16, 24, 40, 0.2)"
-                      strokeWidth={1}
-                      barSize={32}
-                      radius={[4, 4, 0, 0]}
-                    />
+                    {chartSexFilter === "all" ? (
+                      <>
+                        <Bar dataKey="male" fill="var(--color-male)" radius={[4, 4, 0, 0]} />
+                        <Bar dataKey="female" fill="var(--color-female)" radius={[4, 4, 0, 0]} />
+                      </>
+                    ) : (
+                      <Bar
+                        dataKey={chartSexFilter === "Male" ? "male" : "female"}
+                        fill={chartSexFilter === "Male" ? "var(--color-male)" : "var(--color-female)"}
+                        radius={[4, 4, 0, 0]}
+                      />
+                    )}
                   </BarChart>
                 </ChartContainer>
               </div>
@@ -1724,5 +1833,4 @@ export default function AggregatesPage() {
     </Suspense>
   );
 }
-
 
