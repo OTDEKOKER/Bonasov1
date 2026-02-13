@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "prebuild": "node scripts/validate-no-diff-markers.mjs",
-    "build": "next build",
+    "build": "node scripts/validate-no-diff-markers.mjs && next build",
     "dev": "next dev",
     "lint": "eslint .",
     "start": "next start"
