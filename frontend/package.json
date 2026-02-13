@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "prebuild": "node scripts/validate-no-diff-markers.mjs",
     "build": "next build",
     "dev": "next dev",
     "lint": "eslint .",
