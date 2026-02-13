@@ -1,6 +1,5 @@
 ﻿import React from "react"
 import type { Metadata } from 'next'
-import { Inter, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { Toaster } from "@/components/ui/toaster"
 import { ServiceWorkerRegister } from "@/components/pwa/register-sw"
@@ -8,8 +7,6 @@ import { NetworkStatus } from "@/components/pwa/network-status"
 import { SyncStatus } from "@/components/pwa/sync-status"
 import './globals.css'
 
-const _inter = Inter({ subsets: ["latin"], variable: '--font-inter' });
-const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: 'BONASO Data Portal',
@@ -21,6 +18,8 @@ export const metadata: Metadata = {
     apple: '/apple-icon.png',
   },
 }
+
+const isVercelDeployment = process.env.VERCEL === '1'
 
 export default function RootLayout({
   children,
@@ -35,7 +34,7 @@ export default function RootLayout({
         <SyncStatus />
         {children}
         <Toaster />
-        <Analytics debug={false} />
+        {isVercelDeployment ? <Analytics debug={false} /> : null}
       </body>
     </html>
   )
