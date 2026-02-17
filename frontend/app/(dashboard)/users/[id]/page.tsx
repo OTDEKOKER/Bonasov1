@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { PageHeader } from "@/components/shared/page-header"
 import { useUser, useAllOrganizations } from "@/lib/hooks/use-api"
+import { getUserRoleLabel } from "@/lib/roles"
 
 export default function UserDetailPage() {
   const router = useRouter()
@@ -66,18 +67,18 @@ export default function UserDetailPage() {
             </p>
           </div>
           <Badge variant="secondary" className="capitalize">
-            {(user as any)?.role?.replace("_", " ") || "user"}
+            {getUserRoleLabel((user as any)?.role)}
           </Badge>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <p className="text-sm text-muted-foreground">Email</p>
-            <p className="text-sm">{(user as any)?.email || "â€”"}</p>
+            <p className="text-sm">{(user as any)?.email || "-"}</p>
           </div>
           <div>
             <p className="text-sm text-muted-foreground">Organization</p>
-            <p className="text-sm">{orgName || "â€”"}</p>
+            <p className="text-sm">{orgName || "-"}</p>
           </div>
           <div>
             <p className="text-sm text-muted-foreground">Created</p>

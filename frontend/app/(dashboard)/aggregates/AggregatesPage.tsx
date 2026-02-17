@@ -55,7 +55,6 @@ import {
 } from "@/lib/hooks/use-api";
 import type { Aggregate } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
-import Loading from "./loading";
 import {
   ChartContainer,
   ChartLegend,
@@ -851,7 +850,13 @@ export default function AggregatesPage() {
   }
 
   return (
-    <Suspense fallback={<Loading />}>
+    <Suspense
+      fallback={
+        <div className="flex h-[60vh] items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      }
+    >
       <div className="flex flex-col gap-6">
         <PageHeader
           title="Aggregates"

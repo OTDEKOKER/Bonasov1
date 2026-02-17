@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { PageHeader } from "@/components/shared/page-header"
 import { useAllOrganizations, useIndicators, useOrganization, useUsers } from "@/lib/hooks/use-api"
+import { getUserRoleLabel } from "@/lib/roles"
 
 const orgTypeColors: Record<string, string> = {
   headquarters: "bg-chart-1/10 text-chart-1",
@@ -183,7 +184,7 @@ export default function OrganizationDetailPage() {
                 <span className="text-foreground">
                   {user.first_name} {user.last_name}
                 </span>
-                <span className="text-muted-foreground">{user.role}</span>
+                <span className="text-muted-foreground">{getUserRoleLabel(user.role)}</span>
               </div>
             ))}
             {!activeUsers.length && (

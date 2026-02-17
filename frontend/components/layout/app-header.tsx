@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { useAuth } from "@/lib/contexts/auth-context"
+import { getUserRoleLabel } from "@/lib/roles"
 import { useRouter } from "next/navigation"
 
 interface AppHeaderProps {
@@ -111,7 +112,7 @@ export function AppHeader({ onMenuClick }: AppHeaderProps) {
                   {currentUser ? `${currentUser.firstName} ${currentUser.lastName}` : "My Account"}
                 </span>
                 <span className="text-xs text-muted-foreground capitalize">
-                  {currentUser?.role ? currentUser.role.replace('_', ' ') : "user"}
+                  {currentUser ? getUserRoleLabel(currentUser.role) : "user"}
                 </span>
               </div>
             </Button>
