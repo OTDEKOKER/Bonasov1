@@ -21,14 +21,6 @@ export const metadata: Metadata = {
     apple: '/apple-icon.png',
   },
 }
-<<<<<<< HEAD
-
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode
-}>) {
-=======
 
 const isVercelDeployment = process.env.VERCEL === '1'
 
@@ -37,7 +29,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
->>>>>>> 451c1fb9bc9f31afc239b246328e477163f1bad8
   return (
     <html lang="en">
       <body className={`font-sans antialiased`}>
