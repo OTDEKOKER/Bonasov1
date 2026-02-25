@@ -705,6 +705,14 @@ export default function AggregatesPage() {
     }));
   }, [filteredAggregates, indicatorNameById]);
 
+  const resetFilters = () => {
+    setSearchQuery("");
+    setProjectFilter("all");
+    setParentOrgFilter("all");
+    setOrgFilter("all");
+    setPeriodFilter("all");
+  };
+
   const resetForm = () => {
     setFormProject("");
     setFormIndicator("");
@@ -1504,6 +1512,10 @@ export default function AggregatesPage() {
                 ))}
               </SelectContent>
             </Select>
+
+            <Button variant="outline" onClick={resetFilters}>
+              Reset Filters
+            </Button>
           </div>
         </div>
 
