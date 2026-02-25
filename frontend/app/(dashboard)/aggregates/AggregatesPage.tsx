@@ -1,6 +1,13 @@
 ﻿"use client";
 
 import React, { useMemo, useRef, useState, Suspense } from "react";
+
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip as RechartsTooltip, XAxis, YAxis } from "recharts";
+import * as XLSX from "xlsx";
+﻿"use client";
+
+import React, { useMemo, useRef, useState, Suspense } from "react";
+in
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import * as XLSX from "xlsx";
 import {
@@ -15,6 +22,173 @@ import {
   Calculator,
   Loader2,
 } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { PageHeader } from "@/components/shared/page-header";
+import { OrganizationSelect } from "@/components/shared/organization-select";
+import { aggregatesService } from "@/lib/api";
+import {
+  useAggregates,
+  useAggregateTemplates,
+  useIndicators,
+  useAllOrganizations,
+  useProjects,
+} from "@/lib/hooks/use-api";
+import type { Aggregate } from "@/lib/types";
+import { useToast } from "@/hooks/use-toast";
+import Loading from "./loading";
+import {
+  ChartContainer,
+  ChartLegend,
+  ChartLegendContent,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
+
+type AggregateValue = {
+  male?: number;
+  female?: number;
+  total?: number;
+  age_range?: string;
+  key_population?: string;
+  disaggregates?: Record<
+    string,
+    Record<string, Record<string, number | undefined>>
+  >;
+};
+
+const ageRanges = [
+  "10-14",
+  "15-19",
+  "20-24",
+  "25-29",
+  "30-34",
+  "35-39",
+  "40-44",
+  "45-49",
+  "50-54",
+  "55-59",
+  "60-64",
+  "65+",
+];
+
+const familyPlanningKeyPopulations = [
+  "IUD",
+  "Emergency contraceptive",
+  "Implant 3 years",
+  "Implant 5 years",
+  "Contraceptive pill",
+  "Injectables",
+  "Non traditional site",
+];
+
+const communityLeadersKeyPopulations = [
+  "Traditional leaders (chiefs, headmen/women)",
+  "Political leaders (councillors, MPs, local authorities)",
+  "Youth leaders (student representatives, youth movement leaders)",
+  "Women leaders (from women's groups, associations)",
+  "Community-based organization (CBO/CSO) leaders",
+];
+
+const keyPopulations = [
+  "MSM",
+  "FSW",
+  "PWD",
+  "PWID",
+  "LGBTQI+",
+  "GENERAL POP.",
+  ...familyPlanningKeyPopulations,
+  ...communityLeadersKeyPopulations,
+];
+const matrixAgeBands = [...ageRanges, "AYP (10-24)"];
+const matrixAgeBandCore = ageRanges;
+
+const chartColors = [
+  "#2563eb",
+  "#16a34a",
+  "#f59e0b",
+  "#ef4444",
+  "#9333ea",
+  "#0891b2",
+  "#f97316",
+  "#14b8a6",
+  "#e11d48",
+  "#84cc16",
+  "#6366f1",
+  "#d946ef",
+];
+
+const formatDate = (value?: string) => {
+  if (!value) return "â€”";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "â€”";
+  return date.toLocaleDateString();
+};
+
+const getPeriodLabel = (aggregate: Aggregate) =>
+  `${formatDate(aggregate.period_start)} - ${formatDate(aggregate.period_end)}`;
+
+const parseAggregateValue = (value: unknown): AggregateValue => {
+  if (typeof value === "number") {
+    return { total: value };
+  }
+  if (value && typeof value === "object") {
+    return value as AggregateValue;
+  }
+  return {};
+};
+
+const getDisaggregates = (value: unknown) => {
+  const parsed = parseAggregateValue(value);
+  return parsed.disaggregates || null;
+};
+
+const getAllKeyPopulations = (
+  disaggregates: Record<string, Record<string, Record<string, number | undefined>>> | null,
+) => {
+  const extras: string[] = [];
+  if (disaggregates) {
+    Object.keys(disaggregates).forEach((kp) => {
+      if (!keyPopulations.includes(kp)) extras.push(kp);
+    });
+  }
+  return [...keyPopulations, ...extras];
+};
+
+const sumBands = (values: Record<string, number | undefined>) =>
+  matrixAgeBandCore.reduce((acc, band) => acc + (values[band] || 0), 0);
+
+const computeAYP = (values: Record<string, number | undefined>) =>
+  (values["AYP (10-24)"] || 0) ||
+  (values["10-14"] || 0) + (values["15-19"] || 0) + (values["20-24"] || 0);
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -215,6 +389,31 @@ const parseImportDate = (value: string) => {
   const parsedDate = new Date(trimmed);
   if (Number.isNaN(parsedDate.getTime())) return "";
   return formatImportDate(parsedDate.getUTCFullYear(), parsedDate.getUTCMonth() + 1, parsedDate.getUTCDate());
+
+      const month = String(parsed.m).padStart(2, "0");
+      const day = String(parsed.d).padStart(2, "0");
+      return `${parsed.y}-${month}-${day}`;
+    }
+  }
+
+const sanitizeSheetName = (value: string) =>
+  value.replace(/[\\/?*\[\]:]/g, " ").slice(0, 31) || "Sheet";
+
+export default function AggregatesPage() {
+  const { toast } = useToast();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [projectFilter, setProjectFilter] = useState("all");
+  const [periodFilter, setPeriodFilter] = useState("all");
+  const [parentOrgFilter, setParentOrgFilter] = useState("all");
+  const [orgFilter, setOrgFilter] = useState("all");
+  const [keyPopulationFilter, setKeyPopulationFilter] = useState("all");
+  const [ageFilter, setAgeFilter] = useState<"all" | "ayp" | "older">("all");
+  const [ageRangeFilter, setAgeRangeFilter] = useState("all");
+
+  const parsedDate = new Date(trimmed);
+  if (Number.isNaN(parsedDate.getTime())) return "";
+  return parsedDate.toISOString().slice(0, 10);
+ 
 };
 
 const buildEmptyMatrix = () => {
@@ -236,6 +435,7 @@ export default function AggregatesPage() {
   const [periodFilter, setPeriodFilter] = useState("all");
   const [parentOrgFilter, setParentOrgFilter] = useState("all");
   const [orgFilter, setOrgFilter] = useState("all");
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isChartOpen, setIsChartOpen] = useState(false);
   const [isAutoCalcOpen, setIsAutoCalcOpen] = useState(false);
@@ -255,6 +455,7 @@ export default function AggregatesPage() {
   const [formNotes, setFormNotes] = useState("");
   const [formDataSource, setFormDataSource] = useState("");
   const [matrixValues, setMatrixValues] = useState(buildEmptyMatrix);
+  const [selectedDisaggregates, setSelectedDisaggregates] = useState<string[]>(() => [...keyPopulations]);
   const chartRef = useRef<HTMLDivElement | null>(null);
 
   const [autoOutputIndicator, setAutoOutputIndicator] = useState("");
@@ -269,6 +470,7 @@ export default function AggregatesPage() {
   const [autoSaveRule, setAutoSaveRule] = useState(true);
   const [autoSaveAggregate, setAutoSaveAggregate] = useState(true);
   const [autoComputed, setAutoComputed] = useState<number | null>(null);
+  const [groupChartsOpen, setGroupChartsOpen] = useState<Record<string, boolean>>({});
 
   const { data: aggregatesData, isLoading, error, mutate } = useAggregates();
   const { data: projectsData } = useProjects();
@@ -338,6 +540,25 @@ export default function AggregatesPage() {
 
   const filteredAggregates = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
+
+  const availableKeyPopulations = useMemo(() => {
+    const set = new Set<string>(keyPopulations);
+    aggregates.forEach((agg) => {
+      const disaggregates = getDisaggregates(agg.value);
+      if (!disaggregates) return;
+      Object.keys(disaggregates).forEach((kp) => set.add(kp));
+    });
+    return Array.from(set);
+  }, [aggregates]);
+
+  const ageBandsForFilter = useMemo(() => {
+    if (ageFilter === "all") return [...matrixAgeBands];
+    if (ageFilter === "ayp") return ["10-14", "15-19", "20-24", "AYP (10-24)"];
+    return ["25-29", "30-34", "35-39", "40-44", "45-49", "50-54", "55-59", "60-64", "65+"];
+  }, [ageFilter]);
+
+  const filteredAggregates = useMemo(() => {
+    const query = searchQuery.toLowerCase();
     return aggregates.filter((agg) => {
       const indicatorName =
         agg.indicator_name ||
@@ -348,6 +569,9 @@ export default function AggregatesPage() {
       const searchableText = `${indicatorName} ${projectName} ${organizationName}`.toLowerCase();
       const matchesSearch =
         query.length === 0 || searchableText.includes(query);
+
+      const matchesSearch =
+        query.length === 0 || indicatorName.toLowerCase().includes(query);
       const matchesProject =
         projectFilter === "all" || String(agg.project) === projectFilter;
       const matchesPeriod =
@@ -358,9 +582,45 @@ export default function AggregatesPage() {
         parentOrgFilter === "all" ||
         String(orgParentById.get(String(agg.organization)) ?? "") === parentOrgFilter ||
         String(agg.organization) === parentOrgFilter;
-      return matchesSearch && matchesProject && matchesPeriod && matchesParent && matchesOrg;
+
+      const hasDisaggregateFilter =
+        keyPopulationFilter !== "all" || ageFilter !== "all" || ageRangeFilter !== "all";
+      let matchesDisaggregate = true;
+      if (hasDisaggregateFilter) {
+        const disaggregates = getDisaggregates(agg.value);
+        matchesDisaggregate = false;
+        if (disaggregates) {
+          const kpKeys = keyPopulationFilter === "all" ? Object.keys(disaggregates) : [keyPopulationFilter];
+          for (const kp of kpKeys) {
+            const kpData = disaggregates[kp];
+            if (!kpData) continue;
+            for (const sex of ["Male", "Female"] as const) {
+              const values = kpData[sex] || {};
+              if (ageRangeFilter !== "all") {
+                const value = Number(values[ageRangeFilter] || 0);
+                if (value > 0 && ageBandsForFilter.includes(ageRangeFilter)) {
+                  matchesDisaggregate = true;
+                  break;
+                }
+                continue;
+              }
+              const totalForAgeBands = ageBandsForFilter.reduce(
+                (sum, band) => sum + (Number(values[band]) || 0),
+                0,
+              );
+              if (totalForAgeBands > 0) {
+                matchesDisaggregate = true;
+                break;
+              }
+            }
+            if (matchesDisaggregate) break;
+          }
+        }
+      }
+
+      return matchesSearch && matchesProject && matchesPeriod && matchesParent && matchesOrg && matchesDisaggregate;
     });
-  }, [aggregates, indicatorNameById, orgFilter, orgParentById, parentOrgFilter, periodFilter, projectFilter, projectNameById, searchQuery]);
+  }, [ageBandsForFilter, ageFilter, ageRangeFilter, aggregates, indicatorNameById, keyPopulationFilter, orgFilter, orgParentById, parentOrgFilter, periodFilter, projectFilter, searchQuery]);
 
   const aggregateGroups = useMemo(() => {
     const groups = new Map<string, Aggregate[]>();
@@ -466,6 +726,171 @@ export default function AggregatesPage() {
     return { from: match.period_start, to: match.period_end };
   };
 
+  const indicatorNameById = useMemo(
+    () =>
+      new Map(indicators.map((indicator) => [String(indicator.id), indicator.name])),
+    [indicators],
+  );
+  const indicatorCodeById = useMemo(
+    () =>
+      new Map(indicators.map((indicator) => [String(indicator.id), indicator.code])),
+    [indicators],
+  );
+  const projectNameById = useMemo(
+    () =>
+      new Map(projects.map((project) => [String(project.id), project.name])),
+    [projects],
+  );
+  const orgParentById = useMemo(
+    () =>
+      new Map(organizations.map((org: { id: number; parent?: number | null }) => [String(org.id), org.parent ?? null])),
+    [organizations],
+  );
+  const parentOrganizations = useMemo(
+    () => organizations.filter((org: { parent?: number | null }) => !org.parent),
+    [organizations],
+  );
+  const childOrganizations = useMemo(() => {
+    if (parentOrgFilter === "all") return organizations;
+    return organizations.filter((org: { parent?: number | null }) =>
+      String(org.parent ?? "") === parentOrgFilter || String(org.id) === parentOrgFilter
+    );
+  }, [organizations, parentOrgFilter]);
+
+  const periods = useMemo(
+    () => Array.from(new Set(aggregates.map(getPeriodLabel))),
+    [aggregates],
+  );
+
+  const filteredAggregates = useMemo(() => {
+    const query = searchQuery.toLowerCase();
+    return aggregates.filter((agg) => {
+      const indicatorName =
+        agg.indicator_name ||
+        indicatorNameById.get(String(agg.indicator)) ||
+        "";
+      const matchesSearch =
+        query.length === 0 || indicatorName.toLowerCase().includes(query);
+      const matchesProject =
+        projectFilter === "all" || String(agg.project) === projectFilter;
+      const matchesPeriod =
+        periodFilter === "all" || getPeriodLabel(agg) === periodFilter;
+      const matchesOrg =
+        orgFilter === "all" || String(agg.organization) === orgFilter;
+      const matchesParent =
+        parentOrgFilter === "all" ||
+        String(orgParentById.get(String(agg.organization)) ?? "") === parentOrgFilter ||
+        String(agg.organization) === parentOrgFilter;
+      return matchesSearch && matchesProject && matchesPeriod && matchesParent && matchesOrg;
+    });
+  }, [aggregates, indicatorNameById, orgFilter, orgParentById, parentOrgFilter, periodFilter, projectFilter, projectNameById, searchQuery]);
+  }, [aggregates, indicatorNameById, orgFilter, orgParentById, parentOrgFilter, periodFilter, projectFilter, searchQuery]);
+
+  const aggregateGroups = useMemo(() => {
+    const groups = new Map<string, Aggregate[]>();
+    for (const agg of filteredAggregates) {
+      const indicatorName =
+        agg.indicator_name ||
+        indicatorNameById.get(String(agg.indicator)) ||
+        "Indicator";
+      const orgName = agg.organization_name || "";
+      const key = `${indicatorName}||${orgName}`;
+      if (!groups.has(key)) {
+        groups.set(key, []);
+      }
+      groups.get(key)!.push(agg);
+    }
+    const parseCode = (code?: string | null) => {
+      if (!code) return { num: Number.POSITIVE_INFINITY, suffix: "" };
+      const match = code.match(/(\\d+)([a-zA-Z])?/);
+      if (!match) return { num: Number.POSITIVE_INFINITY, suffix: code };
+      return { num: Number(match[1]), suffix: (match[2] || "").toLowerCase() };
+    };
+    const entries = Array.from(groups.entries()).map(([key, items]) => {
+      const indicatorName = key.split("||")[0];
+      const organizationName = key.split("||")[1];
+      const first = items[0];
+      const code =
+        first?.indicator_code ||
+        indicatorCodeById.get(String(first?.indicator)) ||
+        "";
+      return { key, indicatorName, organizationName, items, code };
+    });
+    return entries.sort((a, b) => {
+      const ac = parseCode(a.code);
+      const bc = parseCode(b.code);
+      if (ac.num !== bc.num) return ac.num - bc.num;
+      if (ac.suffix !== bc.suffix) return ac.suffix.localeCompare(bc.suffix);
+      return a.organizationName.localeCompare(b.organizationName);
+    });
+  }, [filteredAggregates, indicatorCodeById, indicatorNameById]);
+
+  const totals = useMemo(() => {
+    return filteredAggregates.reduce(
+      (acc, agg) => {
+        const value = parseAggregateValue(agg.value);
+        const male = Number(value.male) || 0;
+        const female = Number(value.female) || 0;
+        const total =
+          value.total !== undefined
+            ? Number(value.total) || 0
+            : male + female;
+        acc.male += male;
+        acc.female += female;
+        acc.total += total;
+        return acc;
+      },
+      { male: 0, female: 0, total: 0 },
+    );
+  }, [filteredAggregates]);
+
+  const parseCSV = (text: string) => {
+    const rows: string[][] = [];
+    let current = "";
+    let inQuotes = false;
+    const row: string[] = [];
+    for (let i = 0; i < text.length; i += 1) {
+      const char = text[i];
+      const next = text[i + 1];
+      if (char === "\"") {
+        if (inQuotes && next === "\"") {
+          current += "\"";
+          i += 1;
+        } else {
+          inQuotes = !inQuotes;
+        }
+        continue;
+      }
+      if (char === "," && !inQuotes) {
+        row.push(current);
+        current = "";
+        continue;
+      }
+      if ((char === "\n" || char === "\r") && !inQuotes) {
+        if (current !== "" || row.length > 0) {
+          row.push(current);
+          rows.push([...row]);
+          row.length = 0;
+          current = "";
+        }
+        continue;
+      }
+      current += char;
+    }
+    if (current !== "" || row.length > 0) {
+      row.push(current);
+      rows.push(row);
+    }
+    return rows;
+  };
+
+  const getPeriodBounds = (label: string) => {
+    const match = aggregates.find((agg) => getPeriodLabel(agg) === label);
+    if (!match) return null;
+    return { from: match.period_start, to: match.period_end };
+  };
+
+
   const handleExport = async () => {
     try {
       const periodBounds =
@@ -533,6 +958,25 @@ export default function AggregatesPage() {
         const normalized = row.map((cell) => normalizeImportHeader(cell));
         const hits = (Object.keys(importColumnAliases) as ImportAliasKey[]).reduce(
           (count, key) => count + (importColumnAliases[key].some((alias) => normalized.includes(alias)) ? 1 : 0),
+
+      const aliases: Record<string, string[]> = {
+        indicator: ["indicator_id", "indicator_name", "indicator", "output_indicator"],
+        project: ["project_id", "project_name", "project", "grant", "subgrant"],
+        organization: ["organization_id", "organization_name", "organisation_name", "organization", "organisation", "implementing_partner", "subgrantee"],
+        period_start: ["period_start", "start_date", "reporting_period_start", "period_from", "from"],
+        period_end: ["period_end", "end_date", "reporting_period_end", "period_to", "to"],
+        male: ["male"],
+        female: ["female"],
+        total: ["total", "grand_total"],
+        value_json: ["value_json", "value"],
+        notes: ["notes", "comment", "comments", "remark", "remarks"],
+      };
+
+      const minRecognizedHeaders = 3;
+      const headerRowIndex = rows.findIndex((row) => {
+        const normalized = row.map((cell) => normalizeImportHeader(cell));
+        const hits = Object.values(aliases).reduce(
+          (count, aliasList) => count + (aliasList.some((alias) => normalized.includes(alias)) ? 1 : 0),
           0,
         );
         return hits >= minRecognizedHeaders;
@@ -543,6 +987,8 @@ export default function AggregatesPage() {
       const header = rows[headerRowIndex].map((h) => normalizeImportHeader(h));
       const get = (row: string[], key: ImportAliasKey) => {
         const idx = header.findIndex((column) => importColumnAliases[key].includes(column));
+      const get = (row: string[], key: keyof typeof aliases) => {
+        const idx = header.findIndex((column) => aliases[key].includes(column));
         return idx >= 0 ? row[idx]?.trim() : "";
       };
       for (const row of rows.slice(headerRowIndex + 1)) {
@@ -680,6 +1126,87 @@ export default function AggregatesPage() {
     });
   };
 
+
+  const buildDisaggregateSeed = () => {
+    const disaggregates: Record<string, Record<string, Record<string, number>>> = {};
+    for (const kp of keyPopulations) {
+      disaggregates[kp] = { Male: {}, Female: {} };
+      for (const ageBand of matrixAgeBands) {
+        disaggregates[kp].Male[ageBand] = 0;
+        disaggregates[kp].Female[ageBand] = 0;
+      }
+    }
+    return disaggregates;
+  };
+
+  const handleDownloadMakgabanengTemplate = () => {
+    const normalize = (value: string) => value.trim().toLowerCase();
+    const makgabaneng = organizations.find((org: any) =>
+      normalize(org.name).includes("makgabaneng"),
+    );
+
+    if (!makgabaneng) {
+      toast({
+        title: "Makgabaneng not found",
+        description: "No organization named Makgabaneng is available in this environment.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const subGrantees = organizations.filter(
+      (org: any) => Number(org.parent) === Number(makgabaneng.id),
+    );
+    const targetOrgs = [makgabaneng, ...subGrantees];
+    const workbook = XLSX.utils.book_new();
+
+    const project = projects[0];
+    const periodStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+      .toISOString()
+      .slice(0, 10);
+    const periodEnd = new Date().toISOString().slice(0, 10);
+    const disaggregateTemplate = buildDisaggregateSeed();
+    const selectedTemplate = templates.find(
+      (template) => Number(template.organization) === Number(makgabaneng.id),
+    );
+    const indicatorRows =
+      selectedTemplate?.indicators?.length
+        ? selectedTemplate.indicators
+        : indicators.map((indicator) => ({
+            id: indicator.id,
+            name: indicator.name,
+            code: indicator.code,
+          }));
+
+    for (const org of targetOrgs) {
+      const rows = indicatorRows.map((indicator) => ({
+        project_id: project?.id || "",
+        project_name: project?.name || "",
+        indicator_id: indicator.id,
+        indicator_code: indicator.code || "",
+        indicator_name: indicator.name,
+        organization_id: org.id,
+        organization_name: org.name,
+        period_start: periodStart,
+        period_end: periodEnd,
+        key_populations: keyPopulations.join(" | "),
+        age_ranges: matrixAgeBands.join(" | "),
+        value_json: JSON.stringify({ disaggregates: disaggregateTemplate }),
+        notes: "",
+      }));
+
+      const sheet = XLSX.utils.json_to_sheet(rows);
+      XLSX.utils.book_append_sheet(workbook, sheet, sanitizeSheetName(org.name));
+    }
+
+    const fileName = `makgabaneng_aggregate_template_${new Date().toISOString().slice(0, 10)}.xlsx`;
+    XLSX.writeFile(workbook, fileName);
+    toast({
+      title: "Template ready",
+      description: `Created workbook with ${targetOrgs.length} sheet(s) for Makgabaneng and sub-grantees.`,
+    });
+  };
+
   const chartData = useMemo(() => {
     const totalsByIndicator = new Map<string, number>();
     for (const agg of filteredAggregates) {
@@ -712,6 +1239,121 @@ export default function AggregatesPage() {
     setOrgFilter("all");
     setPeriodFilter("all");
   };
+
+
+  const resetForm = () => {
+    setFormProject("");
+    setFormIndicator("");
+    setFormOrganization("");
+    setFormTemplate("all");
+    setFormPeriodStart("");
+    setFormPeriodEnd("");
+    setUseMatrixEntry(true);
+    setFormMale("");
+
+    };
+
+    if (extension === "xlsx" || extension === "xls") {
+      const data = await file.arrayBuffer();
+      const workbook = XLSX.read(data, { type: "array" });
+      const sheetNames = workbook.SheetNames.length ? workbook.SheetNames : [];
+      for (const sheetName of sheetNames) {
+        const sheet = workbook.Sheets[sheetName];
+        const rows = (XLSX.utils.sheet_to_json(sheet, { header: 1 }) as Array<Array<unknown>>).map(
+          (row) => row.map((cell) => (cell === undefined || cell === null ? "" : String(cell))),
+        );
+        const sheetOrgId = findOrgBySheet(sheetName);
+        const template = findTemplateBySheet(sheetName);
+        const templateIndicators = template?.indicators || [];
+        processRows(rows, sheetOrgId, templateIndicators);
+      }
+    } else {
+      const text = await file.text();
+      const rows = parseCSV(text);
+      processRows(rows, null, []);
+    }
+
+    if (payloads.length === 0) {
+      toast({ title: "Invalid file", description: "No rows found.", variant: "destructive" });
+      return;
+    }
+
+    const grouped = new Map<
+      string,
+      {
+        project: number;
+        organization: number;
+        period_start: string;
+        period_end: string;
+        data: Array<{ indicator: number; value: AggregateValue | unknown; notes?: string }>;
+      }
+    >();
+
+    for (const item of payloads) {
+      const key = `${item.project}::${item.organization}::${item.period_start}::${item.period_end}`;
+      if (!grouped.has(key)) {
+        grouped.set(key, {
+          project: item.project,
+          organization: item.organization,
+          period_start: item.period_start,
+          period_end: item.period_end,
+          data: [],
+        });
+      }
+      grouped.get(key)!.data.push({
+        indicator: item.indicator,
+        value: item.value,
+        notes: item.notes,
+      });
+    }
+
+    for (const group of grouped.values()) {
+      try {
+        const result = await aggregatesService.bulkCreate({
+          project: group.project,
+          organization: group.organization,
+          period_start: group.period_start,
+          period_end: group.period_end,
+          data: group.data,
+        });
+        success += result.length;
+      } catch {
+        failed += group.data.length;
+      }
+    }
+
+    await mutate();
+    toast({
+      title: "Import complete",
+      description: `Imported ${success} rows. ${failed} failed.`,
+      variant: failed ? "destructive" : "default",
+    });
+  };
+
+  const chartData = useMemo(() => {
+    const totalsByIndicator = new Map<string, number>();
+    for (const agg of filteredAggregates) {
+      const value = parseAggregateValue(agg.value);
+      const male = Number(value.male) || 0;
+      const female = Number(value.female) || 0;
+      const total =
+        value.total !== undefined
+          ? Number(value.total) || 0
+          : male + female;
+      const indicatorName =
+        agg.indicator_name ||
+        indicatorNameById.get(String(agg.indicator)) ||
+        "Indicator";
+      totalsByIndicator.set(
+        indicatorName,
+        (totalsByIndicator.get(indicatorName) || 0) + total,
+      );
+    }
+    return Array.from(totalsByIndicator.entries()).map(([name, total]) => ({
+      name,
+      total,
+    }));
+  }, [filteredAggregates, indicatorNameById]);
 
   const resetForm = () => {
     setFormProject("");
@@ -750,6 +1392,99 @@ export default function AggregatesPage() {
     link.remove();
     URL.revokeObjectURL(url);
   };
+
+  const templateIndicatorOptions = useMemo(() => {
+    if (formTemplate === "all") return indicators;
+    const selected = templates.find((template) => String(template.id) === formTemplate);
+    if (!selected) return indicators;
+    return selected.indicators.map((indicator) => ({
+      id: indicator.id,
+      name: indicator.name,
+      code: indicator.code,
+    }));
+  }, [formTemplate, indicators, templates]);
+
+  const computedTotal = useMemo(() => {
+    if (useMatrixEntry) {
+      return 0;
+    }
+    const male = parseNumber(formMale) ?? 0;
+    const female = parseNumber(formFemale) ?? 0;
+    return male + female;
+  }, [formFemale, formMale, useMatrixEntry]);
+
+  const matrixTotal = useMemo(() => {
+    if (!useMatrixEntry) return 0;
+    let total = 0;
+    for (const kp of selectedDisaggregates) {
+      for (const sex of ["Male", "Female"]) {
+        for (const band of matrixAgeBands) {
+          const value = parseNumber(matrixValues[kp]?.[sex]?.[band] ?? "");
+          if (value !== undefined) total += value;
+        }
+      }
+    }
+    return total;
+  }, [matrixValues, selectedDisaggregates, useMatrixEntry]);
+
+  const handleSave = async () => {
+    if (!formProject || !formIndicator || !formOrganization || !formPeriodStart || !formPeriodEnd) {
+      toast({
+        title: "Missing required fields",
+        description: "Project, indicator, organization, and period dates are required.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const male = !useMatrixEntry ? parseNumber(formMale) : undefined;
+    const female = !useMatrixEntry ? parseNumber(formFemale) : undefined;
+
+    if (useMatrixEntry && selectedDisaggregates.length === 0) {
+      toast({
+        title: "Missing disaggregate selection",
+        description: "Select at least one disaggregate category.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (useMatrixEntry && matrixTotal === 0) {
+      toast({
+        title: "Missing value",
+        description: "Enter at least one value in the disaggregate matrix.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!useMatrixEntry && male === undefined && female === undefined) {
+      toast({
+        title: "Missing value",
+        description: "Provide at least one of male or female values.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const valuePayload: AggregateValue = {
+      total: useMatrixEntry
+        ? matrixTotal
+        : (male ?? 0) + (female ?? 0),
+    };
+    if (!useMatrixEntry && male !== undefined) valuePayload.male = male;
+    if (!useMatrixEntry && female !== undefined) valuePayload.female = female;
+    if (useMatrixEntry) {
+      const matrixPayload: Record<string, Record<string, Record<string, number | undefined>>> = {};
+      for (const kp of selectedDisaggregates) {
+        matrixPayload[kp] = { Male: {}, Female: {} };
+        for (const band of matrixAgeBands) {
+          matrixPayload[kp].Male[band] = parseNumber(matrixValues[kp]?.Male?.[band] ?? "");
+          matrixPayload[kp].Female[band] = parseNumber(matrixValues[kp]?.Female?.[band] ?? "");
+        }
+      }
+      valuePayload.disaggregates = matrixPayload;
+    }
 
   const templateIndicatorOptions = useMemo(() => {
     if (formTemplate === "all") return indicators;
@@ -968,6 +1703,22 @@ export default function AggregatesPage() {
               <Button variant="outline" onClick={handleExport}>
                 <Download className="mr-2 h-4 w-4" /> Export
               </Button>
+              <Button variant="outline" onClick={handleDownloadMakgabanengTemplate}>
+                <Table2 className="mr-2 h-4 w-4" /> Makgabaneng Template
+              </Button>
+              <input
+                ref={importInputRef}
+                type="file"
+                accept=".csv,.xlsx,.xls"
+                className="hidden"
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (file) {
+                    void handleImport(file);
+                  }
+                  if (importInputRef.current) {
+                    importInputRef.current.value = "";
+                  }
               <input
                 ref={importInputRef}
                 type="file"
@@ -1311,6 +2062,246 @@ export default function AggregatesPage() {
 
                     {useMatrixEntry ? (
                       <div className="space-y-3">
+                        <div className="rounded-lg border border-border p-3">
+                          <div className="mb-2 flex items-center justify-between gap-2">
+                            <p className="text-sm font-medium">Select disaggregate categories</p>
+                            <div className="flex gap-2">
+                              <Button type="button" variant="outline" size="sm" onClick={() => setSelectedDisaggregates([...keyPopulations])}>
+                                Select all
+                              </Button>
+                              <Button type="button" variant="outline" size="sm" onClick={() => setSelectedDisaggregates([])}>
+                                Clear
+                              </Button>
+                            </div>
+                          </div>
+                          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                            {keyPopulations.map((kp) => {
+                              const checked = selectedDisaggregates.includes(kp);
+                              return (
+                                <label key={`disagg-option-${kp}`} className="flex items-center gap-2 text-xs">
+                                  <Checkbox
+                                    checked={checked}
+                                    onCheckedChange={(value) => {
+                                      const nextChecked = Boolean(value);
+                                      setSelectedDisaggregates((prev) =>
+                                        nextChecked
+                                          ? (prev.includes(kp) ? prev : [...prev, kp])
+                                          : prev.filter((item) => item !== kp),
+                                      );
+                                    }}
+                                  />
+                                  <span>{kp}</span>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          Enter values by selected disaggregate, sex, and age band.
+                        </div>
+                        <div className="overflow-auto rounded-lg border border-border max-h-[55vh]">
+                          <table className="min-w-[960px] w-full border-collapse text-xs [&_td]:border [&_td]:border-border [&_th]:border [&_th]:border-border">
+                            <thead className="bg-muted/50 sticky top-0 z-10">
+                              <tr>
+                                <th className="p-1.5 text-left">Key Population</th>
+                                <th className="p-1.5 text-left">Sex</th>
+                                {matrixAgeBands.map((band) => (
+                                  <th key={band} className="p-1.5 text-center whitespace-nowrap">
+                                    {band}
+                                  </th>
+                                ))}
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {selectedDisaggregates.map((kp) => (
+                                <React.Fragment key={kp}>
+                                  {["Male", "Female"].map((sex) => (
+                                    <tr key={`${kp}-${sex}`} className="border-t border-border">
+                                      <td className="p-1.5 font-medium whitespace-nowrap">{kp}</td>
+                                      <td className="p-1.5 whitespace-nowrap">{sex}</td>
+                                      {matrixAgeBands.map((band) => (
+                                        <td key={`${kp}-${sex}-${band}`} className="p-2">
+                                          <Input
+                                            type="number"
+                                            className="h-8 text-center min-w-[72px]"
+                                            value={matrixValues[kp]?.[sex]?.[band] ?? ""}
+                                            onChange={(event) => {
+                                              const value = event.target.value;
+                                              setMatrixValues((prev) => ({
+                                                ...prev,
+                                                [kp]: {
+                                                  ...prev[kp],
+                                                  [sex]: {
+                                                    ...prev[kp]?.[sex],
+                                                    [band]: value,
+                                                  },
+                                                },
+                                              }));
+                                            }}
+                                          />
+                                        </td>
+                                      ))}
+                                    </tr>
+                                  ))}
+                                </React.Fragment>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          Matrix total: <span className="font-semibold text-foreground">{matrixTotal.toLocaleString()}</span>
+                        </div>
+                      </div>
+                    ) : (
+                    <div className="grid gap-4 sm:grid-cols-3">
+                        <div className="space-y-2">
+                          <Label htmlFor="agg-male">Male</Label>
+                          <Input
+                            id="agg-male"
+                            type="number"
+                            placeholder="0"
+                            value={formMale}
+                            onChange={(event) => setFormMale(event.target.value)}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="agg-female">Female</Label>
+                          <Input
+                            id="agg-female"
+                            type="number"
+                            placeholder="0"
+                            value={formFemale}
+                            onChange={(event) => setFormFemale(event.target.value)}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="agg-total">Total</Label>
+                          <Input
+                            id="agg-total"
+                            type="number"
+                            value={computedTotal}
+                            disabled
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                  if (!open) resetForm();
+                }}
+              >
+                <DialogTrigger asChild>
+                  <Button>
+                    <Plus className="mr-2 h-4 w-4" /> Add Entry
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="fixed inset-0 !top-0 !left-0 !translate-x-0 !translate-y-0 !max-w-none !w-screen !h-screen overflow-hidden rounded-none p-0">
+                  <DialogHeader>
+                    <DialogTitle>Add Aggregate Entry</DialogTitle>
+                    <DialogDescription>
+                      Enter aggregate data for an indicator without individual
+                      respondent tracking
+                    </DialogDescription>
+                  </DialogHeader>
+
+                  <div className="grid gap-4 py-4 px-6 h-[calc(100vh-140px)] overflow-y-auto">
+                    <div className="space-y-2">
+                      <Label htmlFor="agg-project">Project</Label>
+                      <Select value={formProject} onValueChange={setFormProject}>
+                        <SelectTrigger id="agg-project">
+                          <SelectValue placeholder="Select project" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {projects.map((project) => (
+                            <SelectItem key={project.id} value={String(project.id)}>
+                              {project.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="agg-template">Indicator Template</Label>
+                      <Select
+                        value={formTemplate}
+                        onValueChange={(value) => {
+                          setFormTemplate(value);
+                          setFormIndicator("");
+                        }}
+                      >
+                        <SelectTrigger id="agg-template">
+                          <SelectValue placeholder="All indicators" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All indicators</SelectItem>
+                          {templates.map((template) => (
+                            <SelectItem key={template.id} value={String(template.id)}>
+                              {template.name} ({template.indicators?.length ?? 0})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="agg-indicator">Indicator</Label>
+                      <Select value={formIndicator} onValueChange={setFormIndicator}>
+                        <SelectTrigger id="agg-indicator">
+                          <SelectValue placeholder="Select indicator" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {templateIndicatorOptions.map((indicator) => (
+                            <SelectItem key={indicator.id} value={String(indicator.id)}>
+                              {indicator.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                                        <Label htmlFor="agg-org">Organization</Label>
+                  <OrganizationSelect
+                    organizations={parentOrganizations}
+                    value={formOrganization}
+                    onChange={setFormOrganization}
+                    placeholder="Select organization"
+                  /></div>
+
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="agg-period-start">Period Start</Label>
+                        <Input
+                          id="agg-period-start"
+                          type="date"
+                          value={formPeriodStart}
+                          onChange={(event) => setFormPeriodStart(event.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="agg-period-end">Period End</Label>
+                        <Input
+                          id="agg-period-end"
+                          type="date"
+                          value={formPeriodEnd}
+                          onChange={(event) => setFormPeriodEnd(event.target.value)}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Disaggregates</Label>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Checkbox
+                          checked={useMatrixEntry}
+                          onCheckedChange={(checked) => setUseMatrixEntry(Boolean(checked))}
+                        />
+                        Use KP x Sex x Age matrix
+                      </div>
+                    </div>
+
+                    {useMatrixEntry ? (
+                      <div className="space-y-3">
                         <div className="text-sm text-muted-foreground">
                           Enter values by Key Population, Sex, and Age band.
                         </div>
@@ -1443,6 +2434,9 @@ export default function AggregatesPage() {
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Search indicators, project, or organization..."
+
+                placeholder="Search indicators..."
+ 
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
                 className="pl-9"
@@ -1516,6 +2510,463 @@ export default function AggregatesPage() {
             <Button variant="outline" onClick={resetFilters}>
               Reset Filters
             </Button>
+            <Select value={keyPopulationFilter} onValueChange={setKeyPopulationFilter}>
+              <SelectTrigger className="w-full sm:w-[220px]">
+                <SelectValue placeholder="Key Population" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Key Populations</SelectItem>
+                {availableKeyPopulations.map((kp) => (
+                  <SelectItem key={kp} value={kp}>
+                    {kp}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={ageFilter} onValueChange={(value) => setAgeFilter(value as "all" | "ayp" | "older")}>
+              <SelectTrigger className="w-full sm:w-[170px]">
+                <SelectValue placeholder="Age" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Ages</SelectItem>
+                <SelectItem value="ayp">AYP (10-24)</SelectItem>
+                <SelectItem value="older">25+ Years</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={ageRangeFilter} onValueChange={setAgeRangeFilter}>
+              <SelectTrigger className="w-full sm:w-[170px]">
+                <SelectValue placeholder="Age Range" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Age Ranges</SelectItem>
+                {matrixAgeBands.map((band) => (
+                  <SelectItem key={band} value={band}>
+                    {band}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardDescription>Total Entries</CardDescription>
+              <CardTitle className="text-2xl">{filteredAggregates.length}</CardTitle>
+            </CardHeader>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardDescription>Male Total</CardDescription>
+              <CardTitle className="text-2xl text-chart-2">
+                {totals.male.toLocaleString()}
+              </CardTitle>
+            </CardHeader>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardDescription>Female Total</CardDescription>
+              <CardTitle className="text-2xl text-chart-5">
+                {totals.female.toLocaleString()}
+              </CardTitle>
+            </CardHeader>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardDescription>Grand Total</CardDescription>
+              <CardTitle className="text-2xl text-primary">
+                {totals.total.toLocaleString()}
+              </CardTitle>
+            </CardHeader>
+          </Card>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <Table2 className="h-5 w-5" /> Aggregate Data
+                </CardTitle>
+                <CardDescription>Tabular view of all aggregate entries</CardDescription>
+              </div>
+              <Button variant="outline" size="sm" onClick={() => setIsChartOpen(true)}>
+                <BarChart3 className="mr-2 h-4 w-4" /> View Chart
+              </Button>
+            </div>
+          </CardHeader>
+
+          <CardContent>
+            {aggregateGroups.length === 0 && (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <Table2 className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                <h3 className="text-lg font-semibold">No data found</h3>
+                <p className="text-muted-foreground mt-1">
+                  Try adjusting your filters or add new entries
+                </p>
+              </div>
+            )}
+
+            <div className="space-y-6">
+              {aggregateGroups.map((group) => {
+                const agg = group.items[0];
+                const disaggregates = agg ? getDisaggregates(agg.value) : null;
+                const keyPops = getAllKeyPopulations(disaggregates);
+                const projectName =
+                  agg?.project_name ||
+                  projectNameById.get(String(agg?.project)) ||
+                  "Project";
+                const periodLabel = agg ? getPeriodLabel(agg) : "";
+                const totalValue = agg ? parseAggregateValue(agg.value).total ?? 0 : 0;
+                const indicatorCode =
+                  agg?.indicator_code ||
+                  indicatorCodeById.get(String(agg?.indicator)) ||
+                  "";
+
+                if (!disaggregates) {
+                  return (
+                    <div key={group.key} className="rounded-lg border border-border p-4">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                          <p className="text-sm text-muted-foreground">Indicator</p>
+                          <p className="text-base font-semibold">{group.indicatorName}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {group.organizationName} ? {projectName} ? {periodLabel}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm text-muted-foreground">Total</p>
+                          <p className="text-xl font-semibold text-primary">
+                            {Number(totalValue).toLocaleString()}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
+
+                const sexTotals: Record<"Male" | "Female", Record<string, number>> = {
+                  Male: {},
+                  Female: {},
+                };
+                for (const band of matrixAgeBandCore) {
+                  sexTotals.Male[band] = 0;
+                  sexTotals.Female[band] = 0;
+                }
+                sexTotals.Male["AYP (10-24)"] = 0;
+                sexTotals.Female["AYP (10-24)"] = 0;
+
+                keyPops.forEach((kp) => {
+                  const kpData = disaggregates[kp] || { Male: {}, Female: {} };
+                  (["Male", "Female"] as const).forEach((sex) => {
+                    const values = kpData[sex] || {};
+                    matrixAgeBandCore.forEach((band) => {
+                      sexTotals[sex][band] += values[band] || 0;
+                    });
+                    sexTotals[sex]["AYP (10-24)"] += computeAYP(values);
+                  });
+                });
+
+                const combinedTotals: Record<string, number> = {};
+                matrixAgeBandCore.forEach((band) => {
+                  combinedTotals[band] = (sexTotals.Male[band] || 0) + (sexTotals.Female[band] || 0);
+                });
+                combinedTotals["AYP (10-24)"] =
+                  (sexTotals.Male["AYP (10-24)"] || 0) + (sexTotals.Female["AYP (10-24)"] || 0);
+                const combinedSubTotal = sumBands(combinedTotals);
+                const combinedTotal = combinedSubTotal;
+                const rowSpan = keyPops.length * 2 + 3;
+
+                const chartSeries = keyPops.flatMap((kp) =>
+                  (["Male", "Female"] as const).map((sex) => ({
+                    key: `${kp}__${sex}`,
+                    label: `${kp} ${sex}`,
+                  })),
+                );
+
+                const ageDistributionData = matrixAgeBandCore.map((band) => {
+                  const row: Record<string, string | number> = { name: band };
+                  keyPops.forEach((kp) => {
+                    const kpData = disaggregates[kp] || { Male: {}, Female: {} };
+                    row[`${kp}__Male`] = kpData.Male?.[band] || 0;
+                    row[`${kp}__Female`] = kpData.Female?.[band] || 0;
+                  });
+                  return row;
+                });
+
+                const isGroupChartOpen = groupChartsOpen[group.key] || false;
+
+                return (
+                  <div key={group.key} className="rounded-lg border border-border p-4">
+                    <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Indicator</p>
+                        <p className="text-base font-semibold">
+                          {indicatorCode ? `${indicatorCode} â€” ` : ""}{group.indicatorName}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {group.organizationName} ? {projectName} ? {periodLabel}
+                        </p>
+                      </div>
+                      <Badge variant="outline">Total {Number(totalValue).toLocaleString()}</Badge>
+                    </div>
+
+                    <div className="mb-3 flex justify-end">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          setGroupChartsOpen((prev) => ({
+                            ...prev,
+                            [group.key]: !prev[group.key],
+                          }))
+                        }
+                      >
+                        <BarChart3 className="mr-2 h-4 w-4" />
+                        {isGroupChartOpen ? "Hide graph" : "Create KP/Sex/Age graph"}
+                      </Button>
+                    </div>
+
+                    <div className="overflow-auto rounded-lg border border-border">
+                      <table className="min-w-[960px] w-full border-collapse text-xs [&_td]:border [&_td]:border-border [&_th]:border [&_th]:border-border">
+                        <thead className="bg-muted/50">
+                          <tr>
+                            <th className="p-1.5 text-left">Indicator</th>
+                            <th className="p-1.5 text-left">Key Population</th>
+                            <th className="p-1.5 text-left">Age/Sex</th>
+                            {matrixAgeBandCore.map((band) => (
+                              <th key={band} className="p-1.5 text-center whitespace-nowrap">
+                                {band}
+                              </th>
+                            ))}
+                            <th className="p-1.5 text-center whitespace-nowrap">Sub-total</th>
+                            <th className="p-1.5 text-center whitespace-nowrap">TOTAL</th>
+                            <th className="p-1.5 text-center whitespace-nowrap">AYP (10-24)</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {keyPops.map((kp, kpIndex) => {
+                            const kpData = disaggregates[kp] || { Male: {}, Female: {} };
+                            return (
+                              <React.Fragment key={kp}>
+                                {(["Male", "Female"] as const).map((sex) => {
+                                  const values = kpData[sex] || {};
+                                  const subTotal = sumBands(values);
+                                  const ayp = computeAYP(values);
+                                  const total = subTotal;
+                                  return (
+                                    <tr key={`${kp}-${sex}`} className="border-t border-border">
+                                      {kpIndex === 0 && sex === "Male" && (
+                                        <td className="p-1.5 font-medium min-w-[240px]" rowSpan={rowSpan}>
+                                          {group.indicatorName}
+                                        </td>
+                                      )}
+                                      {sex === "Male" ? (
+                                        <td className="p-1.5 font-medium whitespace-nowrap" rowSpan={2}>
+                                          {kp}
+                                        </td>
+                                      ) : null}
+                                      <td className="p-1.5 whitespace-nowrap">{sex}</td>
+                                      {matrixAgeBandCore.map((band) => (
+                                        <td key={`${kp}-${sex}-${band}`} className="p-1.5 text-center">
+                                          {(values[band] || 0).toLocaleString()}
+                                        </td>
+                                      ))}
+                                      <td className="p-1.5 text-center">{subTotal.toLocaleString()}</td>
+                                      <td className="p-1.5 text-center font-semibold">
+                                        {total.toLocaleString()}
+                                      </td>
+                                      <td className="p-1.5 text-center">{ayp.toLocaleString()}</td>
+                                    </tr>
+                                  );
+                                })}
+                              </React.Fragment>
+                            );
+                          })}
+                          <tr className="bg-muted/20 font-semibold">
+                            <td className="p-1.5" colSpan={1}>
+                              Sub - total
+                            </td>
+                            {matrixAgeBandCore.map((band) => (
+                              <td key={`sub-${band}`} className="p-1.5 text-center">
+                                {combinedTotals[band].toLocaleString()}
+                              </td>
+                            ))}
+                            <td className="p-1.5 text-center">{combinedSubTotal.toLocaleString()}</td>
+                            <td className="p-1.5 text-center">{combinedTotal.toLocaleString()}</td>
+                            <td className="p-1.5 text-center">{combinedTotals["AYP (10-24)"].toLocaleString()}</td>
+                          </tr>
+                          {(["Male", "Female"] as const).map((sex) => {
+                            const values = sexTotals[sex];
+                            const subTotal = sumBands(values);
+                            const ayp = values["AYP (10-24)"] || 0;
+                            const total = subTotal;
+                            return (
+                              <tr key={`total-${sex}`} className="bg-muted/30 font-semibold">
+                                <td className="p-1.5" colSpan={1}>
+                                  TOTAL {sex.toUpperCase()}
+                                </td>
+                                {matrixAgeBandCore.map((band) => (
+                                  <td key={`total-${sex}-${band}`} className="p-1.5 text-center">
+                                    {values[band].toLocaleString()}
+                                  </td>
+                                ))}
+                                <td className="p-1.5 text-center">{subTotal.toLocaleString()}</td>
+                                <td className="p-1.5 text-center">{total.toLocaleString()}</td>
+                                <td className="p-1.5 text-center">{ayp.toLocaleString()}</td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {isGroupChartOpen ? (
+                      <div className="mt-4 rounded-lg border border-border p-3">
+                        <p className="mb-1 text-sm font-medium">KP/Sex distribution across age ranges</p>
+                        <p className="mb-3 text-xs text-muted-foreground">Each color represents a key population + sex combination.</p>
+                        <div className="mb-3 flex flex-wrap gap-2">
+                          {chartSeries.map((series, index) => (
+                            <span
+                              key={`legend-${series.key}`}
+                              className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-2 py-1 text-[11px]"
+                            >
+                              <span
+                                className="inline-block h-2.5 w-2.5 rounded-full"
+                                style={{ backgroundColor: chartColors[index % chartColors.length] }}
+                                aria-hidden="true"
+                              />
+                              {series.label}
+                            </span>
+                          ))}
+                        </div>
+                        <div className="h-64">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={ageDistributionData} margin={{ top: 8, right: 8, left: 0, bottom: 40 }}>
+                              <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                              <XAxis dataKey="name" interval={0} angle={-25} textAnchor="end" height={70} />
+                              <YAxis />
+                              <RechartsTooltip formatter={(value: number) => value.toLocaleString()} />
+                              {chartSeries.map((series, index) => (
+                                <Bar
+                                  key={series.key}
+                                  dataKey={series.key}
+                                  name={series.label}
+                                  fill={chartColors[index % chartColors.length]}
+                                  radius={[3, 3, 0, 0]}
+                                />
+                              ))}
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+
+                        value={formNotes}
+                        onChange={(event) => setFormNotes(event.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button onClick={handleSave} disabled={isSubmitting}>
+                      {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Save Entry
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
+          }
+        />
+
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-1 flex-wrap items-center gap-2">
+            <div className="relative flex-1 max-w-sm">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Search indicators..."
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                className="pl-9"
+              />
+            </div>
+
+            <Select value={projectFilter} onValueChange={setProjectFilter}>
+              <SelectTrigger className="w-full sm:w-[180px]">
+                <Filter className="mr-2 h-4 w-4" />{" "}
+                <SelectValue placeholder="Project" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Projects</SelectItem>
+                {projects.map((project) => (
+                  <SelectItem key={project.id} value={String(project.id)}>
+                    {project.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select
+              value={parentOrgFilter}
+              onValueChange={(value) => {
+                setParentOrgFilter(value);
+                setOrgFilter("all");
+              }}
+            >
+              <SelectTrigger className="w-full sm:w-[200px]">
+                <SelectValue placeholder="Parent Org" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Parents</SelectItem>
+                {parentOrganizations.map((org) => (
+                  <SelectItem key={org.id} value={String(org.id)}>
+                    {org.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={orgFilter} onValueChange={setOrgFilter}>
+              <SelectTrigger className="w-full sm:w-[200px]">
+                <SelectValue placeholder="Organization" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Organizations</SelectItem>
+                {childOrganizations.map((org) => (
+                  <SelectItem key={org.id} value={String(org.id)}>
+                    {org.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={periodFilter} onValueChange={setPeriodFilter}>
+              <SelectTrigger className="w-full sm:w-[200px]">
+                <Calendar className="mr-2 h-4 w-4" />{" "}
+                <SelectValue placeholder="Period" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Periods</SelectItem>
+                {periods.map((period) => (
+                  <SelectItem key={period} value={period}>
+                    {period}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
@@ -1825,5 +3276,6 @@ export default function AggregatesPage() {
     </Suspense>
   );
 }
+          
 
 
