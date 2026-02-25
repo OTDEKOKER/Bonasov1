@@ -414,6 +414,7 @@ export default function AggregatesPage() {
   if (Number.isNaN(parsedDate.getTime())) return "";
   return parsedDate.toISOString().slice(0, 10);
  
+
 };
 
 const buildEmptyMatrix = () => {
@@ -559,6 +560,7 @@ export default function AggregatesPage() {
 
   const filteredAggregates = useMemo(() => {
     const query = searchQuery.toLowerCase();
+
     return aggregates.filter((agg) => {
       const indicatorName =
         agg.indicator_name ||
@@ -569,6 +571,7 @@ export default function AggregatesPage() {
       const searchableText = `${indicatorName} ${projectName} ${organizationName}`.toLowerCase();
       const matchesSearch =
         query.length === 0 || searchableText.includes(query);
+
 
       const matchesSearch =
         query.length === 0 || indicatorName.toLowerCase().includes(query);
@@ -771,6 +774,7 @@ export default function AggregatesPage() {
         "";
       const matchesSearch =
         query.length === 0 || indicatorName.toLowerCase().includes(query);
+
       const matchesProject =
         projectFilter === "all" || String(agg.project) === projectFilter;
       const matchesPeriod =
@@ -784,6 +788,7 @@ export default function AggregatesPage() {
       return matchesSearch && matchesProject && matchesPeriod && matchesParent && matchesOrg;
     });
   }, [aggregates, indicatorNameById, orgFilter, orgParentById, parentOrgFilter, periodFilter, projectFilter, projectNameById, searchQuery]);
+
   }, [aggregates, indicatorNameById, orgFilter, orgParentById, parentOrgFilter, periodFilter, projectFilter, searchQuery]);
 
   const aggregateGroups = useMemo(() => {
@@ -987,6 +992,7 @@ export default function AggregatesPage() {
       const header = rows[headerRowIndex].map((h) => normalizeImportHeader(h));
       const get = (row: string[], key: ImportAliasKey) => {
         const idx = header.findIndex((column) => importColumnAliases[key].includes(column));
+
       const get = (row: string[], key: keyof typeof aliases) => {
         const idx = header.findIndex((column) => aliases[key].includes(column));
         return idx >= 0 ? row[idx]?.trim() : "";
@@ -1125,7 +1131,6 @@ export default function AggregatesPage() {
       variant: failed ? "destructive" : "default",
     });
   };
-
 
   const buildDisaggregateSeed = () => {
     const disaggregates: Record<string, Record<string, Record<string, number>>> = {};
@@ -1416,6 +1421,8 @@ export default function AggregatesPage() {
   const matrixTotal = useMemo(() => {
     if (!useMatrixEntry) return 0;
     let total = 0;
+    for (const kp of keyPopulations) {
+
     for (const kp of selectedDisaggregates) {
       for (const sex of ["Male", "Female"]) {
         for (const band of matrixAgeBands) {
@@ -1425,6 +1432,7 @@ export default function AggregatesPage() {
       }
     }
     return total;
+  }, [matrixValues, useMatrixEntry]);
   }, [matrixValues, selectedDisaggregates, useMatrixEntry]);
 
   const handleSave = async () => {
@@ -1439,6 +1447,7 @@ export default function AggregatesPage() {
 
     const male = !useMatrixEntry ? parseNumber(formMale) : undefined;
     const female = !useMatrixEntry ? parseNumber(formFemale) : undefined;
+
 
     if (useMatrixEntry && selectedDisaggregates.length === 0) {
       toast({
@@ -1703,6 +1712,7 @@ export default function AggregatesPage() {
               <Button variant="outline" onClick={handleExport}>
                 <Download className="mr-2 h-4 w-4" /> Export
               </Button>
+
               <Button variant="outline" onClick={handleDownloadMakgabanengTemplate}>
                 <Table2 className="mr-2 h-4 w-4" /> Makgabaneng Template
               </Button>
@@ -2437,6 +2447,7 @@ export default function AggregatesPage() {
 
                 placeholder="Search indicators..."
  
+
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
                 className="pl-9"
@@ -2510,6 +2521,7 @@ export default function AggregatesPage() {
             <Button variant="outline" onClick={resetFilters}>
               Reset Filters
             </Button>
+
             <Select value={keyPopulationFilter} onValueChange={setKeyPopulationFilter}>
               <SelectTrigger className="w-full sm:w-[220px]">
                 <SelectValue placeholder="Key Population" />
@@ -3276,6 +3288,3 @@ export default function AggregatesPage() {
     </Suspense>
   );
 }
-          
-
-
