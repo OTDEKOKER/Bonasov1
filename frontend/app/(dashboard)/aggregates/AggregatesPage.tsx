@@ -337,14 +337,17 @@ export default function AggregatesPage() {
   );
 
   const filteredAggregates = useMemo(() => {
-    const query = searchQuery.toLowerCase();
+    const query = searchQuery.trim().toLowerCase();
     return aggregates.filter((agg) => {
       const indicatorName =
         agg.indicator_name ||
         indicatorNameById.get(String(agg.indicator)) ||
         "";
+      const projectName = agg.project_name || projectNameById.get(String(agg.project)) || "";
+      const organizationName = agg.organization_name || "";
+      const searchableText = `${indicatorName} ${projectName} ${organizationName}`.toLowerCase();
       const matchesSearch =
-        query.length === 0 || indicatorName.toLowerCase().includes(query);
+        query.length === 0 || searchableText.includes(query);
       const matchesProject =
         projectFilter === "all" || String(agg.project) === projectFilter;
       const matchesPeriod =
@@ -357,7 +360,7 @@ export default function AggregatesPage() {
         String(agg.organization) === parentOrgFilter;
       return matchesSearch && matchesProject && matchesPeriod && matchesParent && matchesOrg;
     });
-  }, [aggregates, indicatorNameById, orgFilter, orgParentById, parentOrgFilter, periodFilter, projectFilter, searchQuery]);
+  }, [aggregates, indicatorNameById, orgFilter, orgParentById, parentOrgFilter, periodFilter, projectFilter, projectNameById, searchQuery]);
 
   const aggregateGroups = useMemo(() => {
     const groups = new Map<string, Aggregate[]>();
@@ -1431,7 +1434,7 @@ export default function AggregatesPage() {
             <div className="relative flex-1 max-w-sm">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="Search indicators..."
+                placeholder="Search indicators, project, or organization..."
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
                 className="pl-9"
