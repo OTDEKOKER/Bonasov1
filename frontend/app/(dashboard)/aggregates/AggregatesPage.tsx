@@ -151,6 +151,72 @@ const parseNumber = (value: string) => {
   return Number.isNaN(parsed) ? undefined : parsed;
 };
 
+const normalizeImportHeader = (value: string) =>
+  value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+
+const importColumnAliases = {
+  indicator: ["indicator_id", "indicator_name", "indicator", "output_indicator"],
+  project: ["project_id", "project_name", "project", "grant", "subgrant"],
+  organization: [
+    "organization_id",
+    "organization_name",
+    "organisation_name",
+    "organization",
+    "organisation",
+    "implementing_partner",
+    "subgrantee",
+  ],
+  period_start: ["period_start", "start_date", "reporting_period_start", "period_from", "from"],
+  period_end: ["period_end", "end_date", "reporting_period_end", "period_to", "to"],
+  male: ["male"],
+  female: ["female"],
+  total: ["total", "grand_total"],
+  value_json: ["value_json", "value"],
+  notes: ["notes", "comment", "comments", "remark", "remarks"],
+} as const;
+
+type ImportAliasKey = keyof typeof importColumnAliases;
+
+const formatImportDate = (year: number, month: number, day: number) => {
+  const normalized = new Date(Date.UTC(year, month - 1, day));
+  if (Number.isNaN(normalized.getTime())) return "";
+  const mm = String(normalized.getUTCMonth() + 1).padStart(2, "0");
+  const dd = String(normalized.getUTCDate()).padStart(2, "0");
+  return `${normalized.getUTCFullYear()}-${mm}-${dd}`;
+};
+
+const parseImportDate = (value: string) => {
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed;
+
+  const dmyMatch = trimmed.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})$/);
+  if (dmyMatch) {
+    const [, first, second, year] = dmyMatch;
+    const day = Number(first);
+    const month = Number(second);
+    if (day > 12) return formatImportDate(Number(year), month, day);
+    return formatImportDate(Number(year), day, month);
+  }
+
+  const maybeSerial = Number(trimmed);
+  if (!Number.isNaN(maybeSerial) && maybeSerial > 20000 && maybeSerial < 60000) {
+    const parsed = XLSX.SSF.parse_date_code(maybeSerial);
+    if (parsed) {
+      return formatImportDate(parsed.y, parsed.m, parsed.d);
+    }
+  }
+
+  const parsedDate = new Date(trimmed);
+  if (Number.isNaN(parsedDate.getTime())) return "";
+  return formatImportDate(parsedDate.getUTCFullYear(), parsedDate.getUTCMonth() + 1, parsedDate.getUTCDate());
+};
+
 const buildEmptyMatrix = () => {
   const matrix: Record<string, Record<string, Record<string, string>>> = {};
   for (const kp of keyPopulations) {
@@ -458,23 +524,38 @@ export default function AggregatesPage() {
       templateIndicators: Array<{ id: number; name?: string }>,
     ) => {
       if (rows.length < 2) return;
-      const header = rows[0].map((h) => h.trim().toLowerCase());
-      const get = (row: string[], key: string) => {
-        const idx = header.indexOf(key);
+
+      const minRecognizedHeaders = 3;
+      const headerRowIndex = rows.findIndex((row) => {
+        const normalized = row.map((cell) => normalizeImportHeader(cell));
+        const hits = (Object.keys(importColumnAliases) as ImportAliasKey[]).reduce(
+          (count, key) => count + (importColumnAliases[key].some((alias) => normalized.includes(alias)) ? 1 : 0),
+          0,
+        );
+        return hits >= minRecognizedHeaders;
+      });
+
+      if (headerRowIndex === -1) return;
+
+      const header = rows[headerRowIndex].map((h) => normalizeImportHeader(h));
+      const get = (row: string[], key: ImportAliasKey) => {
+        const idx = header.findIndex((column) => importColumnAliases[key].includes(column));
         return idx >= 0 ? row[idx]?.trim() : "";
       };
-      for (const row of rows.slice(1)) {
+      for (const row of rows.slice(headerRowIndex + 1)) {
         try {
-          const indicatorValue = get(row, "indicator_id") || get(row, "indicator_name");
+          if (!row.some((cell) => cell.trim())) continue;
+
+          const indicatorValue = get(row, "indicator");
           let indicatorId = resolveId(indicatorValue, indicators);
           if (!indicatorId && templateIndicators.length) {
             indicatorId = resolveId(indicatorValue, templateIndicators);
           }
-          const projectId = resolveId(get(row, "project_id") || get(row, "project_name"), projects);
-          let orgId = resolveId(get(row, "organization_id") || get(row, "organization_name"), organizations);
+          const projectId = resolveId(get(row, "project"), projects);
+          let orgId = resolveId(get(row, "organization"), organizations);
           if (!orgId && sheetOrgId) orgId = sheetOrgId;
-          const periodStart = get(row, "period_start");
-          const periodEnd = get(row, "period_end");
+          const periodStart = parseImportDate(get(row, "period_start"));
+          const periodEnd = parseImportDate(get(row, "period_end"));
           if (!indicatorId || !projectId || !orgId || !periodStart || !periodEnd) {
             failed += 1;
             continue;
