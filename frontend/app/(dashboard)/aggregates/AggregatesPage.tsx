@@ -151,6 +151,34 @@ const parseNumber = (value: string) => {
   return Number.isNaN(parsed) ? undefined : parsed;
 };
 
+const normalizeImportHeader = (value: string) =>
+  value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+
+const parseImportDate = (value: string) => {
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed;
+
+  const maybeSerial = Number(trimmed);
+  if (!Number.isNaN(maybeSerial) && maybeSerial > 20000 && maybeSerial < 60000) {
+    const parsed = XLSX.SSF.parse_date_code(maybeSerial);
+    if (parsed) {
+      const month = String(parsed.m).padStart(2, "0");
+      const day = String(parsed.d).padStart(2, "0");
+      return `${parsed.y}-${month}-${day}`;
+    }
+  }
+
+  const parsedDate = new Date(trimmed);
+  if (Number.isNaN(parsedDate.getTime())) return "";
+  return parsedDate.toISOString().slice(0, 10);
+};
+
 const buildEmptyMatrix = () => {
   const matrix: Record<string, Record<string, Record<string, string>>> = {};
   for (const kp of keyPopulations) {
@@ -458,23 +486,51 @@ export default function AggregatesPage() {
       templateIndicators: Array<{ id: number; name?: string }>,
     ) => {
       if (rows.length < 2) return;
-      const header = rows[0].map((h) => h.trim().toLowerCase());
-      const get = (row: string[], key: string) => {
-        const idx = header.indexOf(key);
+
+      const aliases: Record<string, string[]> = {
+        indicator: ["indicator_id", "indicator_name", "indicator", "output_indicator"],
+        project: ["project_id", "project_name", "project", "grant", "subgrant"],
+        organization: ["organization_id", "organization_name", "organisation_name", "organization", "organisation", "implementing_partner", "subgrantee"],
+        period_start: ["period_start", "start_date", "reporting_period_start", "period_from", "from"],
+        period_end: ["period_end", "end_date", "reporting_period_end", "period_to", "to"],
+        male: ["male"],
+        female: ["female"],
+        total: ["total", "grand_total"],
+        value_json: ["value_json", "value"],
+        notes: ["notes", "comment", "comments", "remark", "remarks"],
+      };
+
+      const minRecognizedHeaders = 3;
+      const headerRowIndex = rows.findIndex((row) => {
+        const normalized = row.map((cell) => normalizeImportHeader(cell));
+        const hits = Object.values(aliases).reduce(
+          (count, aliasList) => count + (aliasList.some((alias) => normalized.includes(alias)) ? 1 : 0),
+          0,
+        );
+        return hits >= minRecognizedHeaders;
+      });
+
+      if (headerRowIndex === -1) return;
+
+      const header = rows[headerRowIndex].map((h) => normalizeImportHeader(h));
+      const get = (row: string[], key: keyof typeof aliases) => {
+        const idx = header.findIndex((column) => aliases[key].includes(column));
         return idx >= 0 ? row[idx]?.trim() : "";
       };
-      for (const row of rows.slice(1)) {
+      for (const row of rows.slice(headerRowIndex + 1)) {
         try {
-          const indicatorValue = get(row, "indicator_id") || get(row, "indicator_name");
+          if (!row.some((cell) => cell.trim())) continue;
+
+          const indicatorValue = get(row, "indicator");
           let indicatorId = resolveId(indicatorValue, indicators);
           if (!indicatorId && templateIndicators.length) {
             indicatorId = resolveId(indicatorValue, templateIndicators);
           }
-          const projectId = resolveId(get(row, "project_id") || get(row, "project_name"), projects);
-          let orgId = resolveId(get(row, "organization_id") || get(row, "organization_name"), organizations);
+          const projectId = resolveId(get(row, "project"), projects);
+          let orgId = resolveId(get(row, "organization"), organizations);
           if (!orgId && sheetOrgId) orgId = sheetOrgId;
-          const periodStart = get(row, "period_start");
-          const periodEnd = get(row, "period_end");
+          const periodStart = parseImportDate(get(row, "period_start"));
+          const periodEnd = parseImportDate(get(row, "period_end"));
           if (!indicatorId || !projectId || !orgId || !periodStart || !periodEnd) {
             failed += 1;
             continue;
