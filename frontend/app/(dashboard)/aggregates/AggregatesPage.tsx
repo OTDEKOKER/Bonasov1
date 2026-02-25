@@ -2,12 +2,13 @@
 
 import React, { useMemo, useRef, useState, Suspense } from "react";
 
+
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip as RechartsTooltip, XAxis, YAxis } from "recharts";
 import * as XLSX from "xlsx";
 ﻿"use client";
 
 import React, { useMemo, useRef, useState, Suspense } from "react";
-in
+
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import * as XLSX from "xlsx";
 import {
@@ -214,6 +215,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -784,7 +786,9 @@ export default function AggregatesPage() {
       return matchesSearch && matchesProject && matchesPeriod && matchesParent && matchesOrg;
     });
   }, [aggregates, indicatorNameById, orgFilter, orgParentById, parentOrgFilter, periodFilter, projectFilter, projectNameById, searchQuery]);
+
   }, [aggregates, indicatorNameById, orgFilter, orgParentById, parentOrgFilter, periodFilter, projectFilter, searchQuery]);
+
 
   const aggregateGroups = useMemo(() => {
     const groups = new Map<string, Aggregate[]>();
@@ -890,7 +894,6 @@ export default function AggregatesPage() {
     return { from: match.period_start, to: match.period_end };
   };
 
-
   const handleExport = async () => {
     try {
       const periodBounds =
@@ -987,8 +990,10 @@ export default function AggregatesPage() {
       const header = rows[headerRowIndex].map((h) => normalizeImportHeader(h));
       const get = (row: string[], key: ImportAliasKey) => {
         const idx = header.findIndex((column) => importColumnAliases[key].includes(column));
+
       const get = (row: string[], key: keyof typeof aliases) => {
         const idx = header.findIndex((column) => aliases[key].includes(column));
+
         return idx >= 0 ? row[idx]?.trim() : "";
       };
       for (const row of rows.slice(headerRowIndex + 1)) {
@@ -1240,7 +1245,6 @@ export default function AggregatesPage() {
     setPeriodFilter("all");
   };
 
-
   const resetForm = () => {
     setFormProject("");
     setFormIndicator("");
@@ -1416,6 +1420,7 @@ export default function AggregatesPage() {
   const matrixTotal = useMemo(() => {
     if (!useMatrixEntry) return 0;
     let total = 0;
+
     for (const kp of selectedDisaggregates) {
       for (const sex of ["Male", "Female"]) {
         for (const band of matrixAgeBands) {
@@ -1425,6 +1430,7 @@ export default function AggregatesPage() {
       }
     }
     return total;
+  }, [matrixValues, useMatrixEntry]);
   }, [matrixValues, selectedDisaggregates, useMatrixEntry]);
 
   const handleSave = async () => {
@@ -1703,6 +1709,7 @@ export default function AggregatesPage() {
               <Button variant="outline" onClick={handleExport}>
                 <Download className="mr-2 h-4 w-4" /> Export
               </Button>
+
               <Button variant="outline" onClick={handleDownloadMakgabanengTemplate}>
                 <Table2 className="mr-2 h-4 w-4" /> Makgabaneng Template
               </Button>
@@ -2062,6 +2069,7 @@ export default function AggregatesPage() {
 
                     {useMatrixEntry ? (
                       <div className="space-y-3">
+
                         <div className="rounded-lg border border-border p-3">
                           <div className="mb-2 flex items-center justify-between gap-2">
                             <p className="text-sm font-medium">Select disaggregate categories</p>
@@ -2434,9 +2442,8 @@ export default function AggregatesPage() {
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Search indicators, project, or organization..."
-
                 placeholder="Search indicators..."
- 
+
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
                 className="pl-9"
@@ -2510,6 +2517,7 @@ export default function AggregatesPage() {
             <Button variant="outline" onClick={resetFilters}>
               Reset Filters
             </Button>
+
             <Select value={keyPopulationFilter} onValueChange={setKeyPopulationFilter}>
               <SelectTrigger className="w-full sm:w-[220px]">
                 <SelectValue placeholder="Key Population" />
@@ -3276,6 +3284,3 @@ export default function AggregatesPage() {
     </Suspense>
   );
 }
-          
-
-
