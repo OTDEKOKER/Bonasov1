@@ -33,7 +33,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PageHeader } from "@/components/shared/page-header";
 import { useFlags, useFlagStats } from "@/lib/hooks/use-api";
 import type { Flag as FlagType } from "@/lib/types";
-import Loading from "./loading";
 
 const typeLabels: Record<string, string> = {
   data_quality: "Data Quality",
@@ -144,7 +143,13 @@ export default function AnalysisPage() {
   }
 
   return (
-    <Suspense fallback={<Loading />}>
+    <Suspense
+      fallback={
+        <div className="flex h-[60vh] items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      }
+    >
       <div className="flex flex-col gap-6">
         <PageHeader
           title="Data Analysis & Flags"

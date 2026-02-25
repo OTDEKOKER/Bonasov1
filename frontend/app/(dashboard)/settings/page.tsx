@@ -35,6 +35,7 @@ import { useAuth } from "@/lib/contexts/auth-context";
 import { useAllOrganizations } from "@/lib/hooks/use-api";
 import { usersService } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
+import { getUserRoleLabel } from "@/lib/roles";
 
 export default function SettingsPage() {
   const { user, refreshUser } = useAuth();
@@ -107,7 +108,7 @@ export default function SettingsPage() {
   };
 
   const currentOrgName =
-    organizations.find((org) => String(org.id) === profile.organizationId)?.name || "â€”";
+    organizations.find((org) => String(org.id) === profile.organizationId)?.name || "-";
 
   return (
     <div className="space-y-6">
@@ -215,7 +216,7 @@ export default function SettingsPage() {
                   <Label className="text-foreground">Role</Label>
                   <div className="flex items-center gap-2">
                     <Badge className="bg-primary/20 text-primary border-primary/30">
-                      {profile.role ? profile.role.replace("_", " ") : "â€”"}
+                      {getUserRoleLabel(profile.role)}
                     </Badge>
                     <span className="text-xs text-muted-foreground">
                       Contact admin to change

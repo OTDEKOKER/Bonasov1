@@ -19,6 +19,7 @@ import { useAllOrganizations, useUser, useUserPermissions } from "@/lib/hooks/us
 import { usersService } from "@/lib/api"
 import { useToast } from "@/hooks/use-toast"
 import { UserPermissionsManager } from "@/components/users/user-permissions-manager"
+import { USER_ROLE_OPTIONS } from "@/lib/roles"
 
 export default function UserEditPage() {
   const router = useRouter()
@@ -137,11 +138,11 @@ export default function UserEditPage() {
                 <SelectValue placeholder="Select role" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="admin">Admin</SelectItem>
-                <SelectItem value="manager">M&E Manager</SelectItem>
-                <SelectItem value="officer">M&E Officer</SelectItem>
-                <SelectItem value="collector">Data Collector</SelectItem>
-                <SelectItem value="client">Client</SelectItem>
+                {USER_ROLE_OPTIONS.map((role) => (
+                  <SelectItem key={role.value} value={role.value}>
+                    {role.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

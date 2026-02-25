@@ -31,22 +31,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
-
-const roleColors: Record<string, string> = {
-  admin: "bg-chart-5/10 text-chart-5",
-  officer: "bg-chart-1/10 text-chart-1",
-  manager: "bg-chart-2/10 text-chart-2",
-  collector: "bg-chart-3/10 text-chart-3",
-  client: "bg-chart-4/10 text-chart-4",
-}
-
-const roleLabels: Record<string, string> = {
-  admin: "Admin",
-  officer: "M&E Officer",
-  manager: "M&E Manager",
-  collector: "Data Collector",
-  client: "Client",
-}
+import { USER_ROLE_COLORS, USER_ROLE_LABELS, USER_ROLE_OPTIONS } from "@/lib/roles"
 
 export default function UsersPage() {
   const router = useRouter()
@@ -111,9 +96,9 @@ export default function UsersPage() {
       label: "Role",
       sortable: true,
       render: (user: User) => (
-        <Badge variant="secondary" className={roleColors[user.role] || ""}>
+        <Badge variant="secondary" className={USER_ROLE_COLORS[user.role] || ""}>
           <Shield className="mr-1 h-3 w-3" />
-          {roleLabels[user.role] || user.role}
+          {USER_ROLE_LABELS[user.role] || user.role}
         </Badge>
       ),
     },
@@ -124,7 +109,7 @@ export default function UsersPage() {
         const org = organizations.find(o => o.id === user.organizationId)
         return (
           <span className="text-sm text-muted-foreground">
-            {org?.name || "â€”"}
+            {org?.name || "-"}
           </span>
         )
       },
@@ -326,7 +311,7 @@ export default function UsersPage() {
 
   const adminCount = users.filter(u => u.role === 'admin').length
   const meStaffCount = users.filter(
-    u => u.role === 'officer' || u.role === 'manager' || u.role === 'collector'
+    (u) => u.role === "officer" || u.role === "manager" || u.role === "collector",
   ).length
   const clientCount = users.filter(u => u.role === 'client').length
 
@@ -463,11 +448,11 @@ export default function UsersPage() {
                   <SelectValue placeholder="Select role" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="admin">Admin</SelectItem>
-                  <SelectItem value="manager">M&E Manager</SelectItem>
-                  <SelectItem value="officer">M&E Officer</SelectItem>
-                  <SelectItem value="collector">Data Collector</SelectItem>
-                  <SelectItem value="client">Client</SelectItem>
+                  {USER_ROLE_OPTIONS.map((role) => (
+                    <SelectItem key={role.value} value={role.value}>
+                      {role.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
