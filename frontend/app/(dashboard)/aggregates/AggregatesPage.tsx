@@ -1,11 +1,13 @@
 ﻿"use client";
 
 import React, { useMemo, useRef, useState, Suspense } from "react";
+
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip as RechartsTooltip, XAxis, YAxis } from "recharts";
 import * as XLSX from "xlsx";
 ﻿"use client";
 
 import React, { useMemo, useRef, useState, Suspense } from "react";
+in
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import * as XLSX from "xlsx";
 import {
@@ -187,7 +189,6 @@ const computeAYP = (values: Record<string, number | undefined>) =>
   (values["AYP (10-24)"] || 0) ||
   (values["10-14"] || 0) + (values["15-19"] || 0) + (values["20-24"] || 0);
 
-=======
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -331,16 +332,64 @@ const normalizeImportHeader = (value: string) =>
     .replace(/[^a-z0-9]+/g, "_")
     .replace(/^_+|_+$/g, "");
 
+const importColumnAliases = {
+  indicator: ["indicator_id", "indicator_name", "indicator", "output_indicator"],
+  project: ["project_id", "project_name", "project", "grant", "subgrant"],
+  organization: [
+    "organization_id",
+    "organization_name",
+    "organisation_name",
+    "organization",
+    "organisation",
+    "implementing_partner",
+    "subgrantee",
+  ],
+  period_start: ["period_start", "start_date", "reporting_period_start", "period_from", "from"],
+  period_end: ["period_end", "end_date", "reporting_period_end", "period_to", "to"],
+  male: ["male"],
+  female: ["female"],
+  total: ["total", "grand_total"],
+  value_json: ["value_json", "value"],
+  notes: ["notes", "comment", "comments", "remark", "remarks"],
+} as const;
+
+type ImportAliasKey = keyof typeof importColumnAliases;
+
+const formatImportDate = (year: number, month: number, day: number) => {
+  const normalized = new Date(Date.UTC(year, month - 1, day));
+  if (Number.isNaN(normalized.getTime())) return "";
+  const mm = String(normalized.getUTCMonth() + 1).padStart(2, "0");
+  const dd = String(normalized.getUTCDate()).padStart(2, "0");
+  return `${normalized.getUTCFullYear()}-${mm}-${dd}`;
+};
+
 const parseImportDate = (value: string) => {
   const trimmed = value.trim();
   if (!trimmed) return "";
 
   if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed;
 
+  const dmyMatch = trimmed.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})$/);
+  if (dmyMatch) {
+    const [, first, second, year] = dmyMatch;
+    const day = Number(first);
+    const month = Number(second);
+    if (day > 12) return formatImportDate(Number(year), month, day);
+    return formatImportDate(Number(year), day, month);
+  }
+
   const maybeSerial = Number(trimmed);
   if (!Number.isNaN(maybeSerial) && maybeSerial > 20000 && maybeSerial < 60000) {
     const parsed = XLSX.SSF.parse_date_code(maybeSerial);
     if (parsed) {
+      return formatImportDate(parsed.y, parsed.m, parsed.d);
+    }
+  }
+
+  const parsedDate = new Date(trimmed);
+  if (Number.isNaN(parsedDate.getTime())) return "";
+  return formatImportDate(parsedDate.getUTCFullYear(), parsedDate.getUTCMonth() + 1, parsedDate.getUTCDate());
+
       const month = String(parsed.m).padStart(2, "0");
       const day = String(parsed.d).padStart(2, "0");
       return `${parsed.y}-${month}-${day}`;
@@ -364,6 +413,7 @@ export default function AggregatesPage() {
   const parsedDate = new Date(trimmed);
   if (Number.isNaN(parsedDate.getTime())) return "";
   return parsedDate.toISOString().slice(0, 10);
+ 
 };
 
 const buildEmptyMatrix = () => {
@@ -488,6 +538,9 @@ export default function AggregatesPage() {
     [aggregates],
   );
 
+  const filteredAggregates = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+
   const availableKeyPopulations = useMemo(() => {
     const set = new Set<string>(keyPopulations);
     aggregates.forEach((agg) => {
@@ -511,6 +564,12 @@ export default function AggregatesPage() {
         agg.indicator_name ||
         indicatorNameById.get(String(agg.indicator)) ||
         "";
+      const projectName = agg.project_name || projectNameById.get(String(agg.project)) || "";
+      const organizationName = agg.organization_name || "";
+      const searchableText = `${indicatorName} ${projectName} ${organizationName}`.toLowerCase();
+      const matchesSearch =
+        query.length === 0 || searchableText.includes(query);
+
       const matchesSearch =
         query.length === 0 || indicatorName.toLowerCase().includes(query);
       const matchesProject =
@@ -724,6 +783,7 @@ export default function AggregatesPage() {
         String(agg.organization) === parentOrgFilter;
       return matchesSearch && matchesProject && matchesPeriod && matchesParent && matchesOrg;
     });
+  }, [aggregates, indicatorNameById, orgFilter, orgParentById, parentOrgFilter, periodFilter, projectFilter, projectNameById, searchQuery]);
   }, [aggregates, indicatorNameById, orgFilter, orgParentById, parentOrgFilter, periodFilter, projectFilter, searchQuery]);
 
   const aggregateGroups = useMemo(() => {
@@ -893,6 +953,12 @@ export default function AggregatesPage() {
     ) => {
       if (rows.length < 2) return;
 
+      const minRecognizedHeaders = 3;
+      const headerRowIndex = rows.findIndex((row) => {
+        const normalized = row.map((cell) => normalizeImportHeader(cell));
+        const hits = (Object.keys(importColumnAliases) as ImportAliasKey[]).reduce(
+          (count, key) => count + (importColumnAliases[key].some((alias) => normalized.includes(alias)) ? 1 : 0),
+
       const aliases: Record<string, string[]> = {
         indicator: ["indicator_id", "indicator_name", "indicator", "output_indicator"],
         project: ["project_id", "project_name", "project", "grant", "subgrant"],
@@ -919,6 +985,8 @@ export default function AggregatesPage() {
       if (headerRowIndex === -1) return;
 
       const header = rows[headerRowIndex].map((h) => normalizeImportHeader(h));
+      const get = (row: string[], key: ImportAliasKey) => {
+        const idx = header.findIndex((column) => importColumnAliases[key].includes(column));
       const get = (row: string[], key: keyof typeof aliases) => {
         const idx = header.findIndex((column) => aliases[key].includes(column));
         return idx >= 0 ? row[idx]?.trim() : "";
@@ -1058,6 +1126,7 @@ export default function AggregatesPage() {
     });
   };
 
+
   const buildDisaggregateSeed = () => {
     const disaggregates: Record<string, Record<string, Record<string, number>>> = {};
     for (const kp of keyPopulations) {
@@ -1162,6 +1231,15 @@ export default function AggregatesPage() {
       total,
     }));
   }, [filteredAggregates, indicatorNameById]);
+
+  const resetFilters = () => {
+    setSearchQuery("");
+    setProjectFilter("all");
+    setParentOrgFilter("all");
+    setOrgFilter("all");
+    setPeriodFilter("all");
+  };
+
 
   const resetForm = () => {
     setFormProject("");
@@ -2355,7 +2433,10 @@ export default function AggregatesPage() {
             <div className="relative flex-1 max-w-sm">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
+                placeholder="Search indicators, project, or organization..."
+
                 placeholder="Search indicators..."
+ 
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
                 className="pl-9"
@@ -2426,6 +2507,9 @@ export default function AggregatesPage() {
               </SelectContent>
             </Select>
 
+            <Button variant="outline" onClick={resetFilters}>
+              Reset Filters
+            </Button>
             <Select value={keyPopulationFilter} onValueChange={setKeyPopulationFilter}>
               <SelectTrigger className="w-full sm:w-[220px]">
                 <SelectValue placeholder="Key Population" />
@@ -3192,11 +3276,6 @@ export default function AggregatesPage() {
     </Suspense>
   );
 }
-          </DialogContent>
-        </Dialog>
-      </div>
-    </Suspense>
-  );
-}
+          
 
 
