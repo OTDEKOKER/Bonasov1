@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react"
 import { Plus, Upload, Download, Calendar, User, FileSpreadsheet, Loader2 } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -16,6 +16,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
 import { aggregatesService, indicatorsService, interactionsService, type DerivationRule } from "@/lib/api"
 import { useAllIndicators, useAssessment, useAssessments, useInteractions, useProjects, useRespondents } from "@/lib/hooks/use-api"
+import { formatDate, toIsoDate } from "@/lib/date-utils"
 import type { Indicator, IndicatorType } from "@/lib/types"
 
 type IndicatorOption = { label: string; value: string }
@@ -54,6 +55,7 @@ export default function InteractionsPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { toast } = useToast()
+  const uploadInputRef = useRef<HTMLInputElement | null>(null)
 
   const { data: interactionsData, isLoading, error, mutate } = useInteractions()
   const { data: respondentsData } = useRespondents()
@@ -114,6 +116,41 @@ export default function InteractionsPage() {
   const [indicatorDetailsById, setIndicatorDetailsById] = useState<Record<string, Indicator>>({})
   const didPrefill = useRef(false)
 
+  const handleDownloadTemplate = () => {
+    const headers = [
+      "respondent_id",
+      "assessment_id",
+      "project_id",
+      "date",
+      "notes",
+      "indicator_code",
+      "response_value",
+    ]
+    const csv = `${headers.join(",")}\n`
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement("a")
+    link.href = url
+    link.download = `interactions_template_${toIsoDate()}.csv`
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    URL.revokeObjectURL(url)
+  }
+
+  const handleUploadFileSelect = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+    toast({
+      title: "File selected",
+      description: `Selected ${file.name}. Continue import from Uploads.`,
+    })
+    router.push("/uploads")
+    if (uploadInputRef.current) {
+      uploadInputRef.current.value = ""
+    }
+  }
+
   useEffect(() => {
     if (didPrefill.current) return
     const respondentId = searchParams.get("respondentId")
@@ -165,8 +202,8 @@ export default function InteractionsPage() {
       if (entryMode === "derived" && derivedRule?.source_indicator) {
         indicatorIds.push(String(derivedRule.source_indicator))
       }
-      const uniqueIds = Array.from(new Set(indicatorIds))
-      const missingIds = uniqueIds.filter((id) => !indicatorDetailsById[id])
+      const uniqueIds = Array.from(new Set(indicatorIds)).map((id) => String(id))
+      const missingIds = uniqueIds.filter((id) => !indicatorDetailsById[String(id)])
       if (missingIds.length === 0) return
 
       try {
@@ -185,7 +222,7 @@ export default function InteractionsPage() {
         const next: Record<string, Indicator> = {}
         for (const r of results) {
           if (!r) continue
-          next[r[0]] = r[1]
+          next[String(r[0])] = r[1]
         }
         if (Object.keys(next).length > 0) {
           setIndicatorDetailsById((prev) => ({ ...prev, ...next }))
@@ -240,14 +277,23 @@ export default function InteractionsPage() {
         ]}
         actions={
           <div className="flex gap-2">
-            <Button variant="outline" disabled>
+            <Button variant="outline" onClick={handleDownloadTemplate}>
               <Download className="mr-2 h-4 w-4" />
               Download Template
             </Button>
-            <Button variant="outline" disabled>
+            <Button variant="outline" onClick={() => uploadInputRef.current?.click()}>
               <Upload className="mr-2 h-4 w-4" />
               Upload Data
             </Button>
+            <input
+              ref={uploadInputRef}
+              type="file"
+              accept=".csv,.xlsx,.xls"
+              aria-label="Select interaction upload file"
+              title="Select interaction upload file"
+              className="hidden"
+              onChange={handleUploadFileSelect}
+            />
             <Button onClick={() => setIsCreateOpen(true)}>
               <Plus className="mr-2 h-4 w-4" />
               New Interaction
@@ -295,7 +341,7 @@ export default function InteractionsPage() {
                     </Badge>
                     <div className="flex items-center gap-1 text-sm text-muted-foreground">
                       <Calendar className="h-3 w-3" />
-                      {interaction.date ? new Date(interaction.date).toLocaleDateString() : "—"}
+                      {formatDate(interaction.date)}
                     </div>
                     <Button variant="ghost" size="sm" onClick={() => router.push(`/respondents/${interaction.respondent}`)}>
                       View
@@ -320,7 +366,7 @@ export default function InteractionsPage() {
           else setIsCreateOpen(true)
         }}
       >
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>New Interaction</DialogTitle>
             <DialogDescription>
@@ -731,7 +777,7 @@ export default function InteractionsPage() {
                   })
                   mutate()
                   resetDialog()
-                } catch (err) {
+                } catch {
                   toast({
                     title: "Error",
                     description: "Failed to save interaction",

@@ -40,14 +40,21 @@ import {
   ChartLegendContent,
   ChartTooltip,
   ChartTooltipContent,
+  type ChartConfig,
 } from "@/components/ui/chart";
 import { dashboardChartsService } from "@/lib/api";
+
+type TrendSeries = {
+  indicator_id: number;
+  indicator_name: string;
+  data: Array<{ month: string; value: number; target: number }>;
+};
 
 export default function DashboardsPage() {
   const { data: indicatorsData } = useAllIndicators();
   const { data: organizationsData } = useAllOrganizations();
   const { data: projectsData } = useAllProjects();
-  const indicators = indicatorsData || [];
+  const indicators = useMemo(() => indicatorsData ?? [], [indicatorsData]);
   const organizations = organizationsData?.results || [];
   const projects = projectsData?.results || [];
   const [indicatorSearch, setIndicatorSearch] = useState("");
@@ -101,7 +108,7 @@ export default function DashboardsPage() {
     setDateTo(range.end);
   }, [dateMode, quarter, year]);
 
-  const chartSeries = trendsBulk?.series || [];
+  const chartSeries = useMemo<TrendSeries[]>(() => (trendsBulk?.series ?? []) as TrendSeries[], [trendsBulk?.series]);
 
   const chartData = useMemo(() => {
     if (chartSeries.length === 0) return [];
@@ -163,7 +170,7 @@ export default function DashboardsPage() {
     URL.revokeObjectURL(url);
   };
 
-  const chartConfig = useMemo(() => {
+  const chartConfig = useMemo<ChartConfig>(() => {
     const palette = [
       "#1CE783",
       "#0EA5E9",
@@ -255,17 +262,21 @@ export default function DashboardsPage() {
   };
 
   const loadChart = (chart: typeof savedCharts[number]) => {
-    const params = (chart.parameters || {}) as Record<string, any>;
-    const indicatorIds = Array.isArray(params.indicator_ids) ? params.indicator_ids : [];
+    const params = (chart.parameters || {}) as Record<string, unknown>;
+    const indicatorIds = Array.isArray(params.indicator_ids)
+      ? params.indicator_ids.filter((value): value is number => typeof value === "number")
+      : [];
     setSelectedIndicatorIds(indicatorIds.length ? indicatorIds : selectedIndicatorIds);
     setOrganizationId(params.organization_id ? String(params.organization_id) : "all");
     setProjectId(params.project_id ? String(params.project_id) : "all");
     setDateMode(params.date_mode === "dates" ? "dates" : "quarter");
-    if (params.quarter) setQuarter(params.quarter);
+    if (typeof params.quarter === "string") setQuarter(params.quarter);
     if (params.year) setYear(String(params.year));
-    if (params.date_from) setDateFrom(params.date_from);
-    if (params.date_to) setDateTo(params.date_to);
-    if (params.chart_type) setChartType(params.chart_type);
+    if (typeof params.date_from === "string") setDateFrom(params.date_from);
+    if (typeof params.date_to === "string") setDateTo(params.date_to);
+    if (params.chart_type === "line" || params.chart_type === "bar" || params.chart_type === "area" || params.chart_type === "pie") {
+      setChartType(params.chart_type);
+    }
   };
 
   return (
@@ -654,7 +665,7 @@ export default function DashboardsPage() {
       </Card>
 
       <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
-        <DialogContent className="w-[95vw] sm:max-w-[480px]">
+        <DialogContent className="w-[95vw] sm:max-w-[480px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Save Chart</DialogTitle>
             <DialogDescription>Save this chart configuration for reuse.</DialogDescription>

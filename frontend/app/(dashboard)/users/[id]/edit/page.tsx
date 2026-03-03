@@ -17,8 +17,24 @@ import { PageHeader } from "@/components/shared/page-header"
 import { OrganizationSelect } from "@/components/shared/organization-select"
 import { useAllOrganizations, useUser, useUserPermissions } from "@/lib/hooks/use-api"
 import { usersService } from "@/lib/api"
+import type { UserRole } from "@/lib/types"
 import { useToast } from "@/hooks/use-toast"
 import { UserPermissionsManager } from "@/components/users/user-permissions-manager"
+import { getGroupCatalog, getUserGroupsForUser, setUserGroupsForUser } from "@/lib/user-groups"
+
+type EditableUser = {
+  email?: string
+  firstName?: string
+  first_name?: string
+  lastName?: string
+  last_name?: string
+  role?: UserRole
+  organizationId?: string | number
+  organization?: string | number
+  is_active?: boolean
+  isActive?: boolean
+  permissions?: string[]
+}
 
 export default function UserEditPage() {
   const router = useRouter()
@@ -31,7 +47,17 @@ export default function UserEditPage() {
   const organizations = orgsData?.results || []
 
   const [isSaving, setIsSaving] = useState(false)
-  const [form, setForm] = useState({
+  const [groupCatalog, setGroupCatalog] = useState<string[]>([])
+  const [form, setForm] = useState<{
+    email: string;
+    firstName: string;
+    lastName: string;
+    role: UserRole;
+    organizationId: string;
+    isActive: boolean;
+    permissions: string[];
+    groups: string[];
+  }>({
     email: "",
     firstName: "",
     lastName: "",
@@ -39,20 +65,27 @@ export default function UserEditPage() {
     organizationId: "none",
     isActive: true,
     permissions: [] as string[],
+    groups: [] as string[],
   })
 
   useEffect(() => {
+    setGroupCatalog(getGroupCatalog())
+  }, [])
+
+  useEffect(() => {
     if (!user) return
+    const source = user as EditableUser
     setForm({
-      email: (user as any)?.email || "",
-      firstName: (user as any)?.firstName || (user as any)?.first_name || "",
-      lastName: (user as any)?.lastName || (user as any)?.last_name || "",
-      role: (user as any)?.role || "client",
-      organizationId: String((user as any)?.organizationId ?? (user as any)?.organization ?? "all"),
-      isActive: (user as any)?.is_active ?? (user as any)?.isActive ?? true,
-      permissions: (user as any)?.permissions || [],
+      email: source.email || "",
+      firstName: source.firstName || source.first_name || "",
+      lastName: source.lastName || source.last_name || "",
+      role: source.role || "client",
+      organizationId: String(source.organizationId ?? source.organization ?? "all"),
+      isActive: source.is_active ?? source.isActive ?? true,
+      permissions: source.permissions || [],
+      groups: getUserGroupsForUser(userId),
     })
-  }, [user])
+  }, [user, userId])
 
   const handleSave = async () => {
     setIsSaving(true)
@@ -61,7 +94,7 @@ export default function UserEditPage() {
         email: form.email || undefined,
         first_name: form.firstName || undefined,
         last_name: form.lastName || undefined,
-        role: form.role as any,
+        role: form.role,
         organization:
           form.organizationId !== "none" && form.organizationId !== "all"
             ? Number(form.organizationId)
@@ -69,13 +102,14 @@ export default function UserEditPage() {
         is_active: form.isActive,
         permissions: form.permissions,
       })
+      setUserGroupsForUser(userId, form.groups)
       toast({ title: "User updated", description: "Changes saved successfully." })
       mutate()
       router.push(`/users/${userId}`)
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast({
         title: "Error",
-        description: err?.message || "Failed to update user.",
+        description: err instanceof Error ? err.message : "Failed to update user.",
         variant: "destructive",
       })
     } finally {
@@ -132,7 +166,7 @@ export default function UserEditPage() {
           </div>
           <div className="space-y-2">
             <Label>Role</Label>
-            <Select value={form.role} onValueChange={(value) => setForm({ ...form, role: value })}>
+            <Select value={form.role} onValueChange={(value) => setForm({ ...form, role: value as UserRole })}>
               <SelectTrigger>
                 <SelectValue placeholder="Select role" />
               </SelectTrigger>
@@ -153,6 +187,29 @@ export default function UserEditPage() {
           onChange={(permissions) => setForm({ ...form, permissions })}
           isLoading={isPermissionsLoading}
         />
+
+        <div className="space-y-2">
+          <Label>User Groups</Label>
+          <div className="grid gap-2 sm:grid-cols-2 rounded-md border border-border p-3">
+            {groupCatalog.map((group) => (
+              <label key={group} className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={form.groups.includes(group)}
+                  onChange={(event) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      groups: event.target.checked
+                        ? [...prev.groups, group]
+                        : prev.groups.filter((entry) => entry !== group),
+                    }))
+                  }
+                />
+                <span>{group}</span>
+              </label>
+            ))}
+          </div>
+        </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">

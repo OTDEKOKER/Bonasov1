@@ -5,7 +5,7 @@
  * Django endpoint base: /api/aggregates/
  */
 
-import { api, type PaginatedResponse } from '../client';
+import { api, fetchWithAuth, normalizeApiError, type PaginatedResponse } from '../client';
 import type { Aggregate } from '@/lib/types';
 
 // ============================================================================
@@ -34,7 +34,7 @@ export interface CreateAggregateRequest {
   notes?: string;
 }
 
-export interface UpdateAggregateRequest extends Partial<CreateAggregateRequest> {}
+export type UpdateAggregateRequest = Partial<CreateAggregateRequest>
 
 export interface BulkAggregateRequest {
   project: number;
@@ -125,26 +125,44 @@ export const aggregatesService = {
    */
   async listAll(filters?: AggregateFilters): Promise<Aggregate[]> {
     const results: Aggregate[] = [];
-    let page = filters?.page ? String(filters.page) : "1";
-    const baseFilters = cleanParams({ ...(filters || {}) } as Record<string, string | undefined>) || {}
-    delete (baseFilters as any).page;
+    const startPage = Math.max(1, Number(filters?.page || 1));
+    const baseFilters = cleanParams({ ...(filters || {}) } as Record<string, string | undefined>) || {};
+    delete baseFilters.page;
 
-    while (true) {
-      const { data } = await api.get<PaginatedResponse<Aggregate>>('/aggregates/', {
-        ...baseFilters,
-        page,
-      });
-      results.push(...(data.results || []));
-      if (!data.next) break;
-      try {
-        const nextUrl = new URL(data.next);
-        const nextPage = nextUrl.searchParams.get("page");
-        if (!nextPage) break;
-        page = nextPage;
-      } catch {
-        break;
-      }
+    const { data: firstPage } = await api.get<PaginatedResponse<Aggregate>>('/aggregates/', {
+      ...baseFilters,
+      page: String(startPage),
+    });
+
+    const firstPageResults = firstPage.results || [];
+    results.push(...firstPageResults);
+
+    const pageSize = firstPageResults.length;
+    const totalCount = Number(firstPage.count || firstPageResults.length);
+    if (!firstPage.next || pageSize === 0) {
+      return results;
     }
+
+    const totalPages = Math.ceil(totalCount / pageSize);
+    if (!Number.isFinite(totalPages) || totalPages <= startPage) {
+      return results;
+    }
+
+    const pageRequests: Promise<{ data: PaginatedResponse<Aggregate> }>[] = [];
+    for (let page = startPage + 1; page <= totalPages; page += 1) {
+      pageRequests.push(
+        api.get<PaginatedResponse<Aggregate>>('/aggregates/', {
+          ...baseFilters,
+          page: String(page),
+        })
+      );
+    }
+
+    const remainingPages = await Promise.all(pageRequests);
+    remainingPages.forEach(({ data }) => {
+      results.push(...(data.results || []));
+    });
+
     return results;
   },
 
@@ -236,10 +254,18 @@ export const aggregatesService = {
   async export(filters?: AggregateFilters & { format?: 'csv' | 'excel' }): Promise<Blob> {
     const params = cleanParams(filters as Record<string, string | undefined>);
     const qs = params ? `?${new URLSearchParams(params).toString()}` : '';
-    const token = localStorage.getItem('access_token');
-    const response = await fetch(`/api/aggregates/export/${qs}`, {
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-    });
+    const response = await fetchWithAuth(`/aggregates/export/${qs}`);
+    if (!response.ok) {
+      const contentType = response.headers.get('content-type');
+      const payload = contentType?.includes('application/json')
+        ? await response.json()
+        : await response.text();
+      throw normalizeApiError({
+        status: response.status,
+        payload,
+        fallbackMessage: 'Failed to export aggregates',
+      });
+    }
     return response.blob();
   },
 

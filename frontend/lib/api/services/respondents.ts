@@ -5,7 +5,7 @@
  * Django endpoint base: /api/record/
  */
 
-import { api, type PaginatedResponse } from '../client';
+import { api, fetchWithAuth, normalizeApiError, type PaginatedResponse } from '../client';
 import type { Respondent, Interaction } from '@/lib/types';
 
 // ============================================================================
@@ -63,7 +63,7 @@ export interface CreateInteractionRequest {
   }>;
 }
 
-export interface UpdateInteractionRequest extends Partial<CreateInteractionRequest> {}
+export type UpdateInteractionRequest = Partial<CreateInteractionRequest>
 
 export interface RespondentImportRequest {
   file: File;
@@ -161,18 +161,27 @@ export const respondentsService = {
     if (request.project_id) {
       formData.append('project_id', request.project_id.toString());
     }
-    
-    const token = localStorage.getItem('access_token');
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/record/respondents/import/`,
-      {
-        method: 'POST',
-        body: formData,
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      }
-    );
-    
-    return response.json();
+
+    const response = await fetchWithAuth('/record/respondents/import/', {
+      method: 'POST',
+      body: formData,
+    });
+
+    const contentType = response.headers.get('content-type');
+    if (!response.ok) {
+      const payload = contentType?.includes('application/json')
+        ? await response.json()
+        : await response.text();
+      throw normalizeApiError({
+        status: response.status,
+        payload,
+        fallbackMessage: 'Failed to import respondents',
+      });
+    }
+
+    return contentType?.includes('application/json')
+      ? response.json()
+      : { imported: 0, skipped: 0, errors: [] };
   },
 
   /**
@@ -184,15 +193,22 @@ export const respondentsService = {
       format: request.format,
       ...(request.filters as Record<string, string>),
     };
-    
-    const token = localStorage.getItem('access_token');
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/record/respondents/export/?${new URLSearchParams(params)}`,
-      {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      }
+
+    const response = await fetchWithAuth(
+      `/record/respondents/export/?${new URLSearchParams(params)}`,
     );
-    
+    if (!response.ok) {
+      const contentType = response.headers.get('content-type');
+      const payload = contentType?.includes('application/json')
+        ? await response.json()
+        : await response.text();
+      throw normalizeApiError({
+        status: response.status,
+        payload,
+        fallbackMessage: 'Failed to export respondents',
+      });
+    }
+
     return response.blob();
   },
 
@@ -207,7 +223,13 @@ export const respondentsService = {
     by_location: Record<string, number>;
     new_this_month: number;
   }> {
-    const { data } = await api.get('/record/respondents/stats/');
+    const { data } = await api.get<{
+      total: number;
+      active: number;
+      by_gender: Record<string, number>;
+      by_location: Record<string, number>;
+      new_this_month: number;
+    }>('/record/respondents/stats/');
     return data;
   },
 };

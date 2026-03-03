@@ -95,7 +95,7 @@ export default function AnalysisPage() {
   const { data: flagsData, isLoading, error, mutate } = useFlags();
   const { data: statsData } = useFlagStats();
 
-  const flags = flagsData?.results || [];
+  const flags = useMemo(() => flagsData?.results ?? [], [flagsData?.results]);
 
   const filteredFlags = useMemo(() => {
     const query = searchQuery.toLowerCase();

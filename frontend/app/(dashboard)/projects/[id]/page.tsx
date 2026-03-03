@@ -2,7 +2,7 @@
 
 import { use, useState } from "react"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, Calendar, Users, Target, CheckCircle2, Clock, Edit, Trash2, Plus, Loader2 } from "lucide-react"
+import { Calendar, Users, Target, CheckCircle2, Clock, Edit, Trash2, Plus, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
@@ -12,7 +12,7 @@ import { PageHeader } from "@/components/shared/page-header"
 import { DataTable } from "@/components/shared/data-table"
 import { useAllIndicators, useAllOrganizations, useDeadlines, useProject, useTasks } from "@/lib/hooks/use-api"
 import { deadlinesService, projectsService, tasksService } from "@/lib/api"
-import type { Task, ProjectDeadline, Organization } from "@/lib/types"
+import type { Task, ProjectDeadline } from "@/lib/types"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -77,11 +77,22 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
     )
   }
 
-  const orgs = organizationsData || []
-  const projectOrgIds = new Set((project.organizations || []).map(String))
+  const orgs = Array.isArray(organizationsData)
+    ? organizationsData
+    : organizationsData?.results || []
+  const projectOrgIds = new Set(
+    Array.isArray(project.organizations)
+      ? project.organizations.map((org) =>
+          typeof org === "object" && org !== null ? String(org.id ?? "") : String(org)
+        )
+      : []
+  )
   const projectOrgs = orgs.filter((org) => projectOrgIds.has(String(org.id)))
   const rawTasks = tasksData?.results || []
-  const orgIndicators = (indicatorsData || []).filter((indicator) => {
+  const allIndicators = Array.isArray(indicatorsData)
+    ? indicatorsData
+    : indicatorsData?.results || []
+  const orgIndicators = allIndicators.filter((indicator) => {
     const orgs = (indicator.organizations || []) as Array<string | number | { id?: string | number }>
     if (!orgs.length) return true
     return orgs.some((orgId) => {
@@ -481,7 +492,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
       </Tabs>
 
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className="sm:max-w-xl">
+        <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Project</DialogTitle>
             <DialogDescription>Update project details.</DialogDescription>
@@ -544,7 +555,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
       </Dialog>
 
       <Dialog open={isTaskOpen} onOpenChange={setIsTaskOpen}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Add Task</DialogTitle>
             <DialogDescription>Create a task for this project.</DialogDescription>
@@ -600,7 +611,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
       </Dialog>
 
       <Dialog open={isDeadlineOpen} onOpenChange={setIsDeadlineOpen}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Add Deadline</DialogTitle>
             <DialogDescription>Create a deadline for this project.</DialogDescription>

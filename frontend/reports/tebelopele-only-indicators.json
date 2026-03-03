@@ -1,0 +1,5685 @@
+{
+  "generated_at": "2026-03-03T06:51:06.547Z",
+  "scope": "TEBELOPELE family only",
+  "tebelopele_family_org_ids": [
+    1,
+    151,
+    153,
+    156,
+    162,
+    160,
+    164,
+    161,
+    154,
+    158,
+    159,
+    14,
+    155,
+    157,
+    163,
+    150,
+    25,
+    152,
+    165
+  ],
+  "tebelopele_family_org_count": 19,
+  "total_indicators_in_scope": 226,
+  "indicators": [
+    {
+      "id": 1,
+      "name": "Condoms distibution",
+      "type": "number",
+      "category": "hiv_prevention",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 76,
+      "name": "HIV PREVENTION MESSAGES",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [
+        "FSW",
+        "PWD",
+        "PWID",
+        "LGBTQI+",
+        "GENERAL POP.",
+        "SUB - Total",
+        "TOTAL MALE",
+        "TOTAL FEMALE",
+        "FSM"
+      ],
+      "organizations": [
+        151,
+        153,
+        156,
+        162,
+        160,
+        164,
+        161,
+        154,
+        158,
+        159,
+        14,
+        155,
+        157,
+        163,
+        150,
+        25,
+        152,
+        1,
+        165
+      ],
+      "organization_names": [
+        "BOFWA",
+        "Bobonong Home Based Care",
+        "Gumare Advisory",
+        "Hope Worldwide",
+        "House of Angels",
+        "INERELA",
+        "Inspired Horizons",
+        "Mabogo aa Thebana Association South",
+        "Mind Power",
+        "Mopipi International Trust",
+        "Ovajhu",
+        "Ovajhuha",
+        "Positive Moments",
+        "Rena le Seabe",
+        "Sentebale",
+        "Social Dialogue",
+        "Stepping Stone International",
+        "TEBELOPELE",
+        "Tebelopele testing centres"
+      ]
+    },
+    {
+      "id": 156,
+      "name": "Number  of people referred for HIV testing. [DUPLICATE->6]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [
+        "True"
+      ],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 159,
+      "name": "Number  of people referred for HIV testing. [DUPLICATE->6]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 221,
+      "name": "Number  of people referred for HIV testing. [DUPLICATE->6]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 160,
+      "name": "Number  of people who tested positive for HIV.",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [
+        "True"
+      ],
+      "organizations": [
+        151,
+        1
+      ],
+      "organization_names": [
+        "BOFWA",
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 163,
+      "name": "Number  of people who tested positive for HIV. [DUPLICATE->160]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 223,
+      "name": "Number  of people who tested positive for HIV. [DUPLICATE->160]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 101,
+      "name": "Number  of people who tested positive for HIV. [DUPLICATE->160]",
+      "type": "number",
+      "category": "other",
+      "is_active": true,
+      "disaggregations": [
+        "True"
+      ],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 174,
+      "name": "Number eligible for GBV services.",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [
+        "True"
+      ],
+      "organizations": [
+        151,
+        1
+      ],
+      "organization_names": [
+        "BOFWA",
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 177,
+      "name": "Number eligible for GBV services. [DUPLICATE->174]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 230,
+      "name": "Number eligible for GBV services. [DUPLICATE->174]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 188,
+      "name": "Number of  people referred for STI services",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [
+        "True"
+      ],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 191,
+      "name": "Number of  people referred for STI services [DUPLICATE->188]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 237,
+      "name": "Number of  people referred for STI services [DUPLICATE->188]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [
+        "True"
+      ],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 122,
+      "name": "Number of  people screened positive for STIs referred for services",
+      "type": "number",
+      "category": "other",
+      "is_active": true,
+      "disaggregations": [
+        "True",
+        "AGE",
+        "Gender",
+        "Referral Type",
+        "Number OF People Screened Positive FOR STIs Referred FOR Services"
+      ],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 124,
+      "name": "Number of  STI cases referrals completed",
+      "type": "number",
+      "category": "other",
+      "is_active": true,
+      "disaggregations": [
+        "True"
+      ],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 59,
+      "name": "Number of activities conducted",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 16,
+      "name": "Number of advocacy activities conducted per quarter",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [
+        "False",
+        "0",
+        "1",
+        "2",
+        "10",
+        "23"
+      ],
+      "organizations": [
+        151,
+        153,
+        156,
+        162,
+        160,
+        164,
+        161,
+        154,
+        158,
+        159,
+        14,
+        155,
+        157,
+        163,
+        150,
+        25,
+        152,
+        1,
+        165
+      ],
+      "organization_names": [
+        "BOFWA",
+        "Bobonong Home Based Care",
+        "Gumare Advisory",
+        "Hope Worldwide",
+        "House of Angels",
+        "INERELA",
+        "Inspired Horizons",
+        "Mabogo aa Thebana Association South",
+        "Mind Power",
+        "Mopipi International Trust",
+        "Ovajhu",
+        "Ovajhuha",
+        "Positive Moments",
+        "Rena le Seabe",
+        "Sentebale",
+        "Social Dialogue",
+        "Stepping Stone International",
+        "TEBELOPELE",
+        "Tebelopele testing centres"
+      ]
+    },
+    {
+      "id": 84,
+      "name": "Number of advocacy activities conducted per quarter. [DUPLICATE->16]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151,
+        153,
+        156,
+        162,
+        160,
+        164,
+        154,
+        158,
+        159,
+        157,
+        163,
+        150,
+        25,
+        152,
+        1
+      ],
+      "organization_names": [
+        "BOFWA",
+        "Bobonong Home Based Care",
+        "Gumare Advisory",
+        "Hope Worldwide",
+        "House of Angels",
+        "INERELA",
+        "Mabogo aa Thebana Association South",
+        "Mind Power",
+        "Mopipi International Trust",
+        "Positive Moments",
+        "Rena le Seabe",
+        "Sentebale",
+        "Social Dialogue",
+        "Stepping Stone International",
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 134,
+      "name": "Number of advocacy activities conducted per quarter. [DUPLICATE->16]",
+      "type": "number",
+      "category": "other",
+      "is_active": true,
+      "disaggregations": [
+        "False"
+      ],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 56,
+      "name": "Number of AYP provided with family planning services",
+      "type": "number",
+      "category": "hiv_prevention",
+      "is_active": true,
+      "disaggregations": [
+        "True",
+        "IUD",
+        "Emergency Contraceptive",
+        "IMPLANT 3 YEARS",
+        "IMPLANT 5 YEARS",
+        "Contraceptive Pills",
+        "Injectables",
+        "SUB - Total",
+        "TOTAL FEMALE",
+        "MSM",
+        "FSW",
+        "PWD",
+        "PWID",
+        "LGBTQI+",
+        "GENERAL POP.",
+        "TOTAL MALE"
+      ],
+      "organizations": [
+        151,
+        153,
+        156,
+        162,
+        160,
+        164,
+        161,
+        154,
+        158,
+        159,
+        14,
+        155,
+        157,
+        163,
+        150,
+        25,
+        152,
+        1,
+        165
+      ],
+      "organization_names": [
+        "BOFWA",
+        "Bobonong Home Based Care",
+        "Gumare Advisory",
+        "Hope Worldwide",
+        "House of Angels",
+        "INERELA",
+        "Inspired Horizons",
+        "Mabogo aa Thebana Association South",
+        "Mind Power",
+        "Mopipi International Trust",
+        "Ovajhu",
+        "Ovajhuha",
+        "Positive Moments",
+        "Rena le Seabe",
+        "Sentebale",
+        "Social Dialogue",
+        "Stepping Stone International",
+        "TEBELOPELE",
+        "Tebelopele testing centres"
+      ]
+    },
+    {
+      "id": 311,
+      "name": "Number OF AYPs Linked TO Care.",
+      "type": "multi_int",
+      "category": "hiv_prevention",
+      "is_active": true,
+      "disaggregations": [
+        "True"
+      ],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 11,
+      "name": "Number of braided condoms distributed to PWDs",
+      "type": "number",
+      "category": "hiv_prevention",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 192,
+      "name": "Number of brailed condoms distributed to PWDs",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [
+        "True"
+      ],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 195,
+      "name": "Number of brailed condoms distributed to PWDs [DUPLICATE->192]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 239,
+      "name": "Number of brailed condoms distributed to PWDs [DUPLICATE->192]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [
+        "True"
+      ],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 58,
+      "name": "Number of commemorations conducted",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 208,
+      "name": "Number of community leaders sensitised on human rights, stigma and descrimination.",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [
+        "True",
+        "False",
+        "Traditional Leaders (chiefs, Headmen/women)",
+        "Political Leaders (councillors, MPs, Local Authorities)",
+        "Youth Leaders (student Representatives, Youth Movement Leaders)",
+        "Women Leaders (from Women’s Groups, Associations)",
+        "Community-based Organization (CBO/CSO) Leaders",
+        "SUB - Total",
+        "TOTAL MALE",
+        "TOTAL FEMALE"
+      ],
+      "organizations": [
+        151,
+        153,
+        156,
+        162,
+        160,
+        164,
+        161,
+        154,
+        158,
+        159,
+        14,
+        155,
+        157,
+        163,
+        150,
+        25,
+        152,
+        1,
+        165
+      ],
+      "organization_names": [
+        "BOFWA",
+        "Bobonong Home Based Care",
+        "Gumare Advisory",
+        "Hope Worldwide",
+        "House of Angels",
+        "INERELA",
+        "Inspired Horizons",
+        "Mabogo aa Thebana Association South",
+        "Mind Power",
+        "Mopipi International Trust",
+        "Ovajhu",
+        "Ovajhuha",
+        "Positive Moments",
+        "Rena le Seabe",
+        "Sentebale",
+        "Social Dialogue",
+        "Stepping Stone International",
+        "TEBELOPELE",
+        "Tebelopele testing centres"
+      ]
+    },
+    {
+      "id": 211,
+      "name": "Number of community leaders sensitised on human rights, stigma and descrimination. [DUPLICATE->208]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 247,
+      "name": "Number of community leaders sensitised on human rights, stigma and descrimination. [DUPLICATE->208]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 82,
+      "name": "Number of community leaders sensitised on human rights, stigma and descrimination. [DUPLICATE->208]",
+      "type": "number",
+      "category": "hiv_prevention",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151,
+        153,
+        156,
+        162,
+        160,
+        164,
+        154,
+        158,
+        159,
+        157,
+        163,
+        150,
+        25,
+        152,
+        1
+      ],
+      "organization_names": [
+        "BOFWA",
+        "Bobonong Home Based Care",
+        "Gumare Advisory",
+        "Hope Worldwide",
+        "House of Angels",
+        "INERELA",
+        "Mabogo aa Thebana Association South",
+        "Mind Power",
+        "Mopipi International Trust",
+        "Positive Moments",
+        "Rena le Seabe",
+        "Sentebale",
+        "Social Dialogue",
+        "Stepping Stone International",
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 132,
+      "name": "Number of community leaders sensitised on human rights, stigma and descrimination. [DUPLICATE->208]",
+      "type": "number",
+      "category": "other",
+      "is_active": true,
+      "disaggregations": [
+        "False",
+        "True"
+      ],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 15,
+      "name": "Number of community led monitoring conducted for quality of service and human rights [DUPLICATE->210]",
+      "type": "number",
+      "category": "hiv_prevention",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 27,
+      "name": "Number of Community led monitoring conducted for quality of service and human rights [DUPLICATE->210]",
+      "type": "number",
+      "category": "hiv_prevention",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 210,
+      "name": "Number of community led monitoring conducted for quality of service and human rights.",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [
+        "True",
+        "District",
+        "Focus Issue",
+        "Gender",
+        "Number OF Community-led Monitoring Conducted FOR Quality OF Service AND Human Rights",
+        "0",
+        "1",
+        "7"
+      ],
+      "organizations": [
+        151,
+        153,
+        156,
+        162,
+        160,
+        164,
+        161,
+        154,
+        158,
+        159,
+        14,
+        155,
+        157,
+        163,
+        150,
+        25,
+        152,
+        1,
+        165
+      ],
+      "organization_names": [
+        "BOFWA",
+        "Bobonong Home Based Care",
+        "Gumare Advisory",
+        "Hope Worldwide",
+        "House of Angels",
+        "INERELA",
+        "Inspired Horizons",
+        "Mabogo aa Thebana Association South",
+        "Mind Power",
+        "Mopipi International Trust",
+        "Ovajhu",
+        "Ovajhuha",
+        "Positive Moments",
+        "Rena le Seabe",
+        "Sentebale",
+        "Social Dialogue",
+        "Stepping Stone International",
+        "TEBELOPELE",
+        "Tebelopele testing centres"
+      ]
+    },
+    {
+      "id": 212,
+      "name": "Number of community led monitoring conducted for quality of service and human rights. [DUPLICATE->210]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 248,
+      "name": "Number of community led monitoring conducted for quality of service and human rights. [DUPLICATE->210]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 83,
+      "name": "Number of community led monitoring conducted for quality of service and human rights. [DUPLICATE->210]",
+      "type": "number",
+      "category": "hiv_prevention",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151,
+        153,
+        156,
+        162,
+        160,
+        164,
+        154,
+        158,
+        159,
+        157,
+        163,
+        150,
+        25,
+        152,
+        1
+      ],
+      "organization_names": [
+        "BOFWA",
+        "Bobonong Home Based Care",
+        "Gumare Advisory",
+        "Hope Worldwide",
+        "House of Angels",
+        "INERELA",
+        "Mabogo aa Thebana Association South",
+        "Mind Power",
+        "Mopipi International Trust",
+        "Positive Moments",
+        "Rena le Seabe",
+        "Sentebale",
+        "Social Dialogue",
+        "Stepping Stone International",
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 138,
+      "name": "Number of community led monitoring conducted for quality of service and human rights. [DUPLICATE->210]",
+      "type": "number",
+      "category": "other",
+      "is_active": true,
+      "disaggregations": [
+        "True",
+        "District",
+        "Focus Issue",
+        "Gender",
+        "Number OF Community-led Monitoring Conducted FOR Quality OF Service AND Human Rights"
+      ],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 52,
+      "name": "Number of condoms distributed",
+      "type": "number",
+      "category": "hiv_prevention",
+      "is_active": true,
+      "disaggregations": [
+        "True"
+      ],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 200,
+      "name": "Number of condoms distributed through the non-traditional sites",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [
+        "True"
+      ],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 203,
+      "name": "Number of condoms distributed through the non-traditional sites [DUPLICATE->200]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 243,
+      "name": "Number of condoms distributed through the non-traditional sites [DUPLICATE->200]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [
+        "True"
+      ],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 313,
+      "name": "Number OF Condoms Distributed TO AYP.",
+      "type": "multi_int",
+      "category": "hiv_prevention",
+      "is_active": true,
+      "disaggregations": [
+        "True"
+      ],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 57,
+      "name": "Number of condoms distributed to AYPS",
+      "type": "number",
+      "category": "hiv_prevention",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 10,
+      "name": "Number of condoms distributed to KVPs",
+      "type": "number",
+      "category": "hiv_prevention",
+      "is_active": true,
+      "disaggregations": [
+        "True"
+      ],
+      "organizations": [
+        151,
+        1
+      ],
+      "organization_names": [
+        "BOFWA",
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 190,
+      "name": "Number of condoms distributed to KVPs. [DUPLICATE->10]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [
+        "True"
+      ],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 193,
+      "name": "Number of condoms distributed to KVPs. [DUPLICATE->10]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 238,
+      "name": "Number of condoms distributed to KVPs. [DUPLICATE->10]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 40,
+      "name": "Number of counselling sessions conducted",
+      "type": "number",
+      "category": "hiv_prevention",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 54,
+      "name": "Number of CSOs trained and equipped to provide comprehensive psychosocial and practical support",
+      "type": "number",
+      "category": "hiv_prevention",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 145,
+      "name": "Number of CSOs trained and equipped to provide comprehensive psychosocial and practical support, including HIV-related support.",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [
+        "False",
+        "District",
+        "Focus Area (e.g.",
+        "Psychosocial",
+        "HIV)",
+        "Number OF CSOs Trained AND Equipped TO Provide Comprehensive Psychosocial AND HIV-related Support"
+      ],
+      "organizations": [
+        151,
+        153,
+        156,
+        162,
+        160,
+        164,
+        161,
+        154,
+        158,
+        159,
+        14,
+        155,
+        157,
+        163,
+        150,
+        25,
+        152,
+        1,
+        165
+      ],
+      "organization_names": [
+        "BOFWA",
+        "Bobonong Home Based Care",
+        "Gumare Advisory",
+        "Hope Worldwide",
+        "House of Angels",
+        "INERELA",
+        "Inspired Horizons",
+        "Mabogo aa Thebana Association South",
+        "Mind Power",
+        "Mopipi International Trust",
+        "Ovajhu",
+        "Ovajhuha",
+        "Positive Moments",
+        "Rena le Seabe",
+        "Sentebale",
+        "Social Dialogue",
+        "Stepping Stone International",
+        "TEBELOPELE",
+        "Tebelopele testing centres"
+      ]
+    },
+    {
+      "id": 146,
+      "name": "Number of CSOs trained and equipped to provide comprehensive psychosocial and practical support, including HIV-related support. [DUPLICATE->145]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 215,
+      "name": "Number of CSOs trained and equipped to provide comprehensive psychosocial and practical support, including HIV-related support. [DUPLICATE->145]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 74,
+      "name": "Number of CSOs trained and equipped to provide comprehensive psychosocial and practical support, including HIV-related support. [DUPLICATE->145]",
+      "type": "number",
+      "category": "hiv_prevention",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151,
+        153,
+        156,
+        162,
+        160,
+        164,
+        154,
+        158,
+        159,
+        157,
+        163,
+        150,
+        25,
+        152,
+        1
+      ],
+      "organization_names": [
+        "BOFWA",
+        "Bobonong Home Based Care",
+        "Gumare Advisory",
+        "Hope Worldwide",
+        "House of Angels",
+        "INERELA",
+        "Mabogo aa Thebana Association South",
+        "Mind Power",
+        "Mopipi International Trust",
+        "Positive Moments",
+        "Rena le Seabe",
+        "Sentebale",
+        "Social Dialogue",
+        "Stepping Stone International",
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 87,
+      "name": "Number of CSOs trained and equipped to provide comprehensive psychosocial and practical support, including HIV-related support. [DUPLICATE->145]",
+      "type": "number",
+      "category": "other",
+      "is_active": true,
+      "disaggregations": [
+        "False",
+        "District",
+        "Focus Area (e.g.",
+        "Psychosocial",
+        "HIV)",
+        "Number OF CSOs Trained AND Equipped TO Provide Comprehensive Psychosocial AND HIV-related Support"
+      ],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 42,
+      "name": "Number of functional cancer support groups",
+      "type": "number",
+      "category": "ncd",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 43,
+      "name": "Number of functional tobacco cessation and alcohol abuse support group",
+      "type": "number",
+      "category": "ncd",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 204,
+      "name": "Number of healthcare workers trained on medical ethics and human rights.",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [
+        "True",
+        "MSM",
+        "FSW",
+        "PWD",
+        "PWID",
+        "LGBTQI+",
+        "GENERAL POP.",
+        "SUB - Total",
+        "TOTAL MALE",
+        "TOTAL FEMALE"
+      ],
+      "organizations": [
+        151,
+        153,
+        156,
+        162,
+        160,
+        164,
+        161,
+        154,
+        158,
+        159,
+        14,
+        155,
+        157,
+        163,
+        150,
+        25,
+        152,
+        1,
+        165
+      ],
+      "organization_names": [
+        "BOFWA",
+        "Bobonong Home Based Care",
+        "Gumare Advisory",
+        "Hope Worldwide",
+        "House of Angels",
+        "INERELA",
+        "Inspired Horizons",
+        "Mabogo aa Thebana Association South",
+        "Mind Power",
+        "Mopipi International Trust",
+        "Ovajhu",
+        "Ovajhuha",
+        "Positive Moments",
+        "Rena le Seabe",
+        "Sentebale",
+        "Social Dialogue",
+        "Stepping Stone International",
+        "TEBELOPELE",
+        "Tebelopele testing centres"
+      ]
+    },
+    {
+      "id": 207,
+      "name": "Number of healthcare workers trained on medical ethics and human rights. [DUPLICATE->204]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 245,
+      "name": "Number of healthcare workers trained on medical ethics and human rights. [DUPLICATE->204]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 81,
+      "name": "Number of healthcare workers trained on medical ethics and human rights. [DUPLICATE->204]",
+      "type": "number",
+      "category": "hiv_prevention",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151,
+        153,
+        156,
+        162,
+        160,
+        164,
+        154,
+        158,
+        159,
+        157,
+        163,
+        150,
+        25,
+        152,
+        1
+      ],
+      "organization_names": [
+        "BOFWA",
+        "Bobonong Home Based Care",
+        "Gumare Advisory",
+        "Hope Worldwide",
+        "House of Angels",
+        "INERELA",
+        "Mabogo aa Thebana Association South",
+        "Mind Power",
+        "Mopipi International Trust",
+        "Positive Moments",
+        "Rena le Seabe",
+        "Sentebale",
+        "Social Dialogue",
+        "Stepping Stone International",
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 8,
+      "name": "Number of individuals screened for GBV [DUPLICATE->172]",
+      "type": "number",
+      "category": "hiv_prevention",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 172,
+      "name": "Number of individuals screened for GBV.",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [
+        "True"
+      ],
+      "organizations": [
+        151,
+        1
+      ],
+      "organization_names": [
+        "BOFWA",
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 175,
+      "name": "Number of individuals screened for GBV. [DUPLICATE->172]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 229,
+      "name": "Number of individuals screened for GBV. [DUPLICATE->172]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 113,
+      "name": "Number of individuals screened for GBV. [DUPLICATE->172]",
+      "type": "number",
+      "category": "other",
+      "is_active": true,
+      "disaggregations": [
+        "True"
+      ],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 184,
+      "name": "Number of KPs taking up services.",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [
+        "True"
+      ],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 187,
+      "name": "Number of KPs taking up services. [DUPLICATE->184]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 235,
+      "name": "Number of KPs taking up services. [DUPLICATE->184]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [
+        "True"
+      ],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 158,
+      "name": "Number of KVPs tested for HIV.",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [
+        "True"
+      ],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 161,
+      "name": "Number of KVPs tested for HIV. [DUPLICATE->158]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 222,
+      "name": "Number of KVPs tested for HIV. [DUPLICATE->158]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [
+        "True"
+      ],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 196,
+      "name": "Number of lubricants distributed",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [
+        "True",
+        "Type (water",
+        "Silicone-based)",
+        "District",
+        "Bulk Distribution",
+        "Number OF Lubricants Distributed",
+        "MSM",
+        "FSW",
+        "PWD",
+        "PWID",
+        "LGBTQI+",
+        "GENERAL POP.",
+        "SUB - Total",
+        "TOTAL MALE",
+        "TOTAL FEMALE"
+      ],
+      "organizations": [
+        151,
+        153,
+        156,
+        162,
+        160,
+        164,
+        161,
+        154,
+        158,
+        159,
+        14,
+        155,
+        157,
+        163,
+        150,
+        25,
+        152,
+        1,
+        165
+      ],
+      "organization_names": [
+        "BOFWA",
+        "Bobonong Home Based Care",
+        "Gumare Advisory",
+        "Hope Worldwide",
+        "House of Angels",
+        "INERELA",
+        "Inspired Horizons",
+        "Mabogo aa Thebana Association South",
+        "Mind Power",
+        "Mopipi International Trust",
+        "Ovajhu",
+        "Ovajhuha",
+        "Positive Moments",
+        "Rena le Seabe",
+        "Sentebale",
+        "Social Dialogue",
+        "Stepping Stone International",
+        "TEBELOPELE",
+        "Tebelopele testing centres"
+      ]
+    },
+    {
+      "id": 199,
+      "name": "Number of lubricants distributed [DUPLICATE->196]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 241,
+      "name": "Number of lubricants distributed [DUPLICATE->196]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 13,
+      "name": "Number of lubricants distributed [DUPLICATE->196]",
+      "type": "number",
+      "category": "hiv_prevention",
+      "is_active": true,
+      "disaggregations": [
+        "True",
+        "Type (water",
+        "Silicone-based)",
+        "District",
+        "Bulk Distribution",
+        "Number OF Lubricants Distributed"
+      ],
+      "organizations": [
+        151,
+        153,
+        156,
+        162,
+        160,
+        164,
+        154,
+        158,
+        159,
+        157,
+        163,
+        150,
+        25,
+        152,
+        1
+      ],
+      "organization_names": [
+        "BOFWA",
+        "Bobonong Home Based Care",
+        "Gumare Advisory",
+        "Hope Worldwide",
+        "House of Angels",
+        "INERELA",
+        "Mabogo aa Thebana Association South",
+        "Mind Power",
+        "Mopipi International Trust",
+        "Positive Moments",
+        "Rena le Seabe",
+        "Sentebale",
+        "Social Dialogue",
+        "Stepping Stone International",
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 26,
+      "name": "Number of Lubricants distributed to PLHIV",
+      "type": "number",
+      "category": "hiv_prevention",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 25,
+      "name": "Number of Male Condoms distributed",
+      "type": "number",
+      "category": "hiv_prevention",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 19,
+      "name": "Number of media engagements conducted",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [
+        "False",
+        "Platform",
+        "Language",
+        "Location",
+        "Number OF Media Engagements Conducted",
+        "0",
+        "5",
+        "3",
+        "18",
+        "20",
+        "8",
+        "9"
+      ],
+      "organizations": [
+        151,
+        153,
+        156,
+        162,
+        160,
+        164,
+        161,
+        154,
+        158,
+        159,
+        14,
+        155,
+        157,
+        163,
+        150,
+        25,
+        152,
+        1,
+        165
+      ],
+      "organization_names": [
+        "BOFWA",
+        "Bobonong Home Based Care",
+        "Gumare Advisory",
+        "Hope Worldwide",
+        "House of Angels",
+        "INERELA",
+        "Inspired Horizons",
+        "Mabogo aa Thebana Association South",
+        "Mind Power",
+        "Mopipi International Trust",
+        "Ovajhu",
+        "Ovajhuha",
+        "Positive Moments",
+        "Rena le Seabe",
+        "Sentebale",
+        "Social Dialogue",
+        "Stepping Stone International",
+        "TEBELOPELE",
+        "Tebelopele testing centres"
+      ]
+    },
+    {
+      "id": 136,
+      "name": "Number of media engagements conducted [DUPLICATE->19]",
+      "type": "number",
+      "category": "other",
+      "is_active": true,
+      "disaggregations": [
+        "False",
+        "Platform",
+        "Language",
+        "Location",
+        "Number OF Media Engagements Conducted"
+      ],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 285,
+      "name": "Number of media platforms used  per quarter.",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [
+        "False",
+        "Media Type",
+        "Reach",
+        "Number OF Media Platforms Used PER Quarter",
+        "MEDIA PLATFORM",
+        "Facebook",
+        "X",
+        "Instagram",
+        "Tiktok",
+        "Physical",
+        "Printed Media"
+      ],
+      "organizations": [
+        151,
+        153,
+        156,
+        162,
+        160,
+        164,
+        161,
+        154,
+        158,
+        159,
+        14,
+        155,
+        157,
+        163,
+        150,
+        25,
+        152,
+        1,
+        165
+      ],
+      "organization_names": [
+        "BOFWA",
+        "Bobonong Home Based Care",
+        "Gumare Advisory",
+        "Hope Worldwide",
+        "House of Angels",
+        "INERELA",
+        "Inspired Horizons",
+        "Mabogo aa Thebana Association South",
+        "Mind Power",
+        "Mopipi International Trust",
+        "Ovajhu",
+        "Ovajhuha",
+        "Positive Moments",
+        "Rena le Seabe",
+        "Sentebale",
+        "Social Dialogue",
+        "Stepping Stone International",
+        "TEBELOPELE",
+        "Tebelopele testing centres"
+      ]
+    },
+    {
+      "id": 154,
+      "name": "Number of media platforms used per quarter [DUPLICATE->285]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 157,
+      "name": "Number of media platforms used per quarter [DUPLICATE->285]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 220,
+      "name": "Number of media platforms used per quarter [DUPLICATE->285]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 17,
+      "name": "Number of media platforms used per quarter [DUPLICATE->285]",
+      "type": "number",
+      "category": "hiv_prevention",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151,
+        153,
+        156,
+        162,
+        160,
+        164,
+        154,
+        158,
+        159,
+        14,
+        157,
+        163,
+        150,
+        25,
+        152,
+        1
+      ],
+      "organization_names": [
+        "BOFWA",
+        "Bobonong Home Based Care",
+        "Gumare Advisory",
+        "Hope Worldwide",
+        "House of Angels",
+        "INERELA",
+        "Mabogo aa Thebana Association South",
+        "Mind Power",
+        "Mopipi International Trust",
+        "Ovajhu",
+        "Positive Moments",
+        "Rena le Seabe",
+        "Sentebale",
+        "Social Dialogue",
+        "Stepping Stone International",
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 133,
+      "name": "Number of media platforms used per quarter [DUPLICATE->285]",
+      "type": "number",
+      "category": "other",
+      "is_active": true,
+      "disaggregations": [
+        "False",
+        "Media Type",
+        "Reach",
+        "Number OF Media Platforms Used PER Quarter"
+      ],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 61,
+      "name": "Number of meetings conducted",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 62,
+      "name": "Number of outreach activities conducted",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 30,
+      "name": "Number of people engaged with NCD prevention and control messages through social media",
+      "type": "number",
+      "category": "ncd",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 162,
+      "name": "Number of people linked to care.",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [
+        "True"
+      ],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 165,
+      "name": "Number of people linked to care. [DUPLICATE->162]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 224,
+      "name": "Number of people linked to care. [DUPLICATE->162]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 79,
+      "name": "Number of people linked to justice services [DUPLICATE->170]",
+      "type": "number",
+      "category": "hiv_prevention",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151,
+        153,
+        156,
+        162,
+        160,
+        164,
+        154,
+        158,
+        159,
+        157,
+        163,
+        150,
+        25,
+        152,
+        1
+      ],
+      "organization_names": [
+        "BOFWA",
+        "Bobonong Home Based Care",
+        "Gumare Advisory",
+        "Hope Worldwide",
+        "House of Angels",
+        "INERELA",
+        "Mabogo aa Thebana Association South",
+        "Mind Power",
+        "Mopipi International Trust",
+        "Positive Moments",
+        "Rena le Seabe",
+        "Sentebale",
+        "Social Dialogue",
+        "Stepping Stone International",
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 170,
+      "name": "Number of people linked to justice services.",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [
+        "True",
+        "MSM",
+        "FSW",
+        "PWD",
+        "PWID",
+        "LGBTQI+",
+        "GENERAL POP.",
+        "SUB - Total",
+        "TOTAL MALE",
+        "TOTAL FEMALE"
+      ],
+      "organizations": [
+        151,
+        153,
+        156,
+        162,
+        160,
+        164,
+        161,
+        154,
+        158,
+        159,
+        14,
+        155,
+        157,
+        163,
+        150,
+        25,
+        152,
+        1,
+        165
+      ],
+      "organization_names": [
+        "BOFWA",
+        "Bobonong Home Based Care",
+        "Gumare Advisory",
+        "Hope Worldwide",
+        "House of Angels",
+        "INERELA",
+        "Inspired Horizons",
+        "Mabogo aa Thebana Association South",
+        "Mind Power",
+        "Mopipi International Trust",
+        "Ovajhu",
+        "Ovajhuha",
+        "Positive Moments",
+        "Rena le Seabe",
+        "Sentebale",
+        "Social Dialogue",
+        "Stepping Stone International",
+        "TEBELOPELE",
+        "Tebelopele testing centres"
+      ]
+    },
+    {
+      "id": 173,
+      "name": "Number of people linked to justice services. [DUPLICATE->170]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 228,
+      "name": "Number of people linked to justice services. [DUPLICATE->170]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 111,
+      "name": "Number of people linked to justice services. [DUPLICATE->170]",
+      "type": "number",
+      "category": "other",
+      "is_active": true,
+      "disaggregations": [
+        "True"
+      ],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 78,
+      "name": "Number of people provided with legal aid services [DUPLICATE->168]",
+      "type": "number",
+      "category": "hiv_prevention",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151,
+        153,
+        156,
+        162,
+        160,
+        164,
+        154,
+        158,
+        159,
+        157,
+        163,
+        150,
+        25,
+        152,
+        1
+      ],
+      "organization_names": [
+        "BOFWA",
+        "Bobonong Home Based Care",
+        "Gumare Advisory",
+        "Hope Worldwide",
+        "House of Angels",
+        "INERELA",
+        "Mabogo aa Thebana Association South",
+        "Mind Power",
+        "Mopipi International Trust",
+        "Positive Moments",
+        "Rena le Seabe",
+        "Sentebale",
+        "Social Dialogue",
+        "Stepping Stone International",
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 168,
+      "name": "Number of people provided with legal aid services.",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [
+        "True",
+        "MSM",
+        "FSW",
+        "PWD",
+        "PWID",
+        "LGBTQI+",
+        "GENERAL POP.",
+        "SUB - Total",
+        "TOTAL MALE",
+        "TOTAL FEMALE"
+      ],
+      "organizations": [
+        151,
+        153,
+        156,
+        162,
+        160,
+        164,
+        161,
+        154,
+        158,
+        159,
+        14,
+        155,
+        157,
+        163,
+        150,
+        25,
+        152,
+        1,
+        165
+      ],
+      "organization_names": [
+        "BOFWA",
+        "Bobonong Home Based Care",
+        "Gumare Advisory",
+        "Hope Worldwide",
+        "House of Angels",
+        "INERELA",
+        "Inspired Horizons",
+        "Mabogo aa Thebana Association South",
+        "Mind Power",
+        "Mopipi International Trust",
+        "Ovajhu",
+        "Ovajhuha",
+        "Positive Moments",
+        "Rena le Seabe",
+        "Sentebale",
+        "Social Dialogue",
+        "Stepping Stone International",
+        "TEBELOPELE",
+        "Tebelopele testing centres"
+      ]
+    },
+    {
+      "id": 171,
+      "name": "Number of people provided with legal aid services. [DUPLICATE->168]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 227,
+      "name": "Number of people provided with legal aid services. [DUPLICATE->168]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 109,
+      "name": "Number of people provided with legal aid services. [DUPLICATE->168]",
+      "type": "number",
+      "category": "other",
+      "is_active": true,
+      "disaggregations": [
+        "True"
+      ],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 33,
+      "name": "Number of people reached with cervical cancer education",
+      "type": "number",
+      "category": "ncd",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 150,
+      "name": "Number of people reached with HIV prevention messages.",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [
+        "True",
+        "AGE",
+        "Gender",
+        "KEY Population",
+        "Number OF People Reached With HIV Prevention Messages"
+      ],
+      "organizations": [
+        151,
+        1
+      ],
+      "organization_names": [
+        "BOFWA",
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 153,
+      "name": "Number of people reached with HIV prevention messages. [DUPLICATE->150]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 218,
+      "name": "Number of people reached with HIV prevention messages. [DUPLICATE->150]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [
+        "True",
+        "AGE",
+        "Gender",
+        "KEY Population",
+        "Number OF People Reached With HIV Prevention Messages"
+      ],
+      "organizations": [
+        151,
+        1
+      ],
+      "organization_names": [
+        "BOFWA",
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 32,
+      "name": "Number of people reached with prostate cancer education",
+      "type": "number",
+      "category": "ncd",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 31,
+      "name": "Number of people reached with self-breast cancer examination education",
+      "type": "number",
+      "category": "ncd",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Number of people reached with stigma reduction messages [DUPLICATE->152]",
+      "type": "number",
+      "category": "hiv_prevention",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 152,
+      "name": "Number of people reached with stigma reduction messages.",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [
+        "True",
+        "MSM",
+        "FSW",
+        "PWD",
+        "PWID",
+        "LGBTQI+",
+        "GENERAL POP.",
+        "SUB - Total",
+        "TOTAL MALE",
+        "TOTAL FEMALE"
+      ],
+      "organizations": [
+        151,
+        153,
+        156,
+        162,
+        160,
+        164,
+        161,
+        154,
+        158,
+        159,
+        14,
+        155,
+        157,
+        163,
+        150,
+        25,
+        152,
+        1,
+        165
+      ],
+      "organization_names": [
+        "BOFWA",
+        "Bobonong Home Based Care",
+        "Gumare Advisory",
+        "Hope Worldwide",
+        "House of Angels",
+        "INERELA",
+        "Inspired Horizons",
+        "Mabogo aa Thebana Association South",
+        "Mind Power",
+        "Mopipi International Trust",
+        "Ovajhu",
+        "Ovajhuha",
+        "Positive Moments",
+        "Rena le Seabe",
+        "Sentebale",
+        "Social Dialogue",
+        "Stepping Stone International",
+        "TEBELOPELE",
+        "Tebelopele testing centres"
+      ]
+    },
+    {
+      "id": 155,
+      "name": "Number of people reached with stigma reduction messages. [DUPLICATE->152]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 219,
+      "name": "Number of people reached with stigma reduction messages. [DUPLICATE->152]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 77,
+      "name": "Number of people reached with stigma reduction messages. [DUPLICATE->152]",
+      "type": "number",
+      "category": "hiv_prevention",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151,
+        153,
+        156,
+        162,
+        160,
+        164,
+        154,
+        158,
+        159,
+        157,
+        163,
+        150,
+        25,
+        152,
+        1
+      ],
+      "organization_names": [
+        "BOFWA",
+        "Bobonong Home Based Care",
+        "Gumare Advisory",
+        "Hope Worldwide",
+        "House of Angels",
+        "INERELA",
+        "Mabogo aa Thebana Association South",
+        "Mind Power",
+        "Mopipi International Trust",
+        "Positive Moments",
+        "Rena le Seabe",
+        "Sentebale",
+        "Social Dialogue",
+        "Stepping Stone International",
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 98,
+      "name": "Number of people reached with stigma reduction messages. [DUPLICATE->152]",
+      "type": "number",
+      "category": "other",
+      "is_active": true,
+      "disaggregations": [
+        "True"
+      ],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 39,
+      "name": "Number of people receiving counselling",
+      "type": "number",
+      "category": "hiv_prevention",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "Number of people referred for Hiv testing",
+      "type": "number",
+      "category": "hiv_prevention",
+      "is_active": true,
+      "disaggregations": [
+        "True"
+      ],
+      "organizations": [
+        151,
+        1
+      ],
+      "organization_names": [
+        "BOFWA",
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 166,
+      "name": "Number of people referred for PEP.",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [
+        "True"
+      ],
+      "organizations": [
+        151,
+        1
+      ],
+      "organization_names": [
+        "BOFWA",
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 169,
+      "name": "Number of people referred for PEP. [DUPLICATE->166]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 226,
+      "name": "Number of people referred for PEP. [DUPLICATE->166]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 107,
+      "name": "Number of people referred for PEP. [DUPLICATE->166]",
+      "type": "number",
+      "category": "other",
+      "is_active": true,
+      "disaggregations": [
+        "True"
+      ],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 7,
+      "name": "Number of people referred for PrEP [DUPLICATE->164]",
+      "type": "number",
+      "category": "hiv_prevention",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 164,
+      "name": "Number of people referred for PrEP.",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [
+        "True"
+      ],
+      "organizations": [
+        151,
+        1
+      ],
+      "organization_names": [
+        "BOFWA",
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 167,
+      "name": "Number of people referred for PrEP. [DUPLICATE->164]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 225,
+      "name": "Number of people referred for PrEP. [DUPLICATE->164]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 105,
+      "name": "Number of people referred for PrEP. [DUPLICATE->164]",
+      "type": "number",
+      "category": "other",
+      "is_active": true,
+      "disaggregations": [
+        "True"
+      ],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 312,
+      "name": "Number OF People Referred FOR Psychosocial Support ON GBV",
+      "type": "multi_int",
+      "category": "hiv_prevention",
+      "is_active": true,
+      "disaggregations": [
+        "True"
+      ],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 176,
+      "name": "Number of people reffered for clinical services for GBV.",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [
+        "True"
+      ],
+      "organizations": [
+        151,
+        1
+      ],
+      "organization_names": [
+        "BOFWA",
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 179,
+      "name": "Number of people reffered for clinical services for GBV. [DUPLICATE->176]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 231,
+      "name": "Number of people reffered for clinical services for GBV. [DUPLICATE->176]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 116,
+      "name": "Number of people reffered for clinical services for GBV. [DUPLICATE->176]",
+      "type": "number",
+      "category": "other",
+      "is_active": true,
+      "disaggregations": [
+        "True"
+      ],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 178,
+      "name": "Number of people reffered for justice services for GBV.",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [
+        "True"
+      ],
+      "organizations": [
+        151,
+        1
+      ],
+      "organization_names": [
+        "BOFWA",
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 181,
+      "name": "Number of people reffered for justice services for GBV. [DUPLICATE->178]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 232,
+      "name": "Number of people reffered for justice services for GBV. [DUPLICATE->178]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 118,
+      "name": "Number of people reffered for justice services for GBV. [DUPLICATE->178]",
+      "type": "number",
+      "category": "other",
+      "is_active": true,
+      "disaggregations": [
+        "True"
+      ],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 37,
+      "name": "Number of people screened for breast cancer",
+      "type": "number",
+      "category": "ncd",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 38,
+      "name": "Number of people screened for mental health",
+      "type": "number",
+      "category": "ncd",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 35,
+      "name": "Number of people screened for NCDs behavioural risk factors (Alcohol use)",
+      "type": "number",
+      "category": "ncd",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 34,
+      "name": "Number of people screened for NCDs behavioural risk factors (Tobacco use)",
+      "type": "number",
+      "category": "ncd",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 36,
+      "name": "Number of people screened for NCDs risk factors",
+      "type": "number",
+      "category": "ncd",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 186,
+      "name": "Number of people screened for STIs",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [
+        "True",
+        "AGE",
+        "Gender",
+        "Location",
+        "Number OF People Screened FOR STIs"
+      ],
+      "organizations": [
+        151,
+        1
+      ],
+      "organization_names": [
+        "BOFWA",
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 189,
+      "name": "Number of people screened for STIs [DUPLICATE->186]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 236,
+      "name": "Number of people screened for STIs [DUPLICATE->186]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 9,
+      "name": "Number of people screened for STIs [DUPLICATE->186]",
+      "type": "number",
+      "category": "hiv_prevention",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 121,
+      "name": "Number of people screened for STIs [DUPLICATE->186]",
+      "type": "number",
+      "category": "other",
+      "is_active": true,
+      "disaggregations": [
+        "True",
+        "AGE",
+        "Gender",
+        "Location",
+        "Number OF People Screened FOR STIs"
+      ],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 14,
+      "name": "Number of people sensitised on basic human rights and HIV [DUPLICATE->202]",
+      "type": "number",
+      "category": "hiv_prevention",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 202,
+      "name": "Number of people sensitised on basic human rights and HIV.",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [
+        "True",
+        "AGE",
+        "Gender",
+        "District",
+        "Number OF People Sensitised ON Basic Human Rights AND HIV",
+        "MSM",
+        "FSW",
+        "PWD",
+        "PWID",
+        "LGBTQI+",
+        "GENERAL POP.",
+        "SUB - Total",
+        "TOTAL MALE",
+        "TOTAL FEMALE"
+      ],
+      "organizations": [
+        151,
+        153,
+        156,
+        162,
+        160,
+        164,
+        161,
+        154,
+        158,
+        159,
+        14,
+        155,
+        157,
+        163,
+        150,
+        25,
+        152,
+        1,
+        165
+      ],
+      "organization_names": [
+        "BOFWA",
+        "Bobonong Home Based Care",
+        "Gumare Advisory",
+        "Hope Worldwide",
+        "House of Angels",
+        "INERELA",
+        "Inspired Horizons",
+        "Mabogo aa Thebana Association South",
+        "Mind Power",
+        "Mopipi International Trust",
+        "Ovajhu",
+        "Ovajhuha",
+        "Positive Moments",
+        "Rena le Seabe",
+        "Sentebale",
+        "Social Dialogue",
+        "Stepping Stone International",
+        "TEBELOPELE",
+        "Tebelopele testing centres"
+      ]
+    },
+    {
+      "id": 205,
+      "name": "Number of people sensitised on basic human rights and HIV. [DUPLICATE->202]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 244,
+      "name": "Number of people sensitised on basic human rights and HIV. [DUPLICATE->202]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 80,
+      "name": "Number of people sensitised on basic human rights and HIV. [DUPLICATE->202]",
+      "type": "number",
+      "category": "hiv_prevention",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151,
+        153,
+        156,
+        162,
+        160,
+        164,
+        154,
+        158,
+        159,
+        157,
+        163,
+        150,
+        25,
+        152,
+        1
+      ],
+      "organization_names": [
+        "BOFWA",
+        "Bobonong Home Based Care",
+        "Gumare Advisory",
+        "Hope Worldwide",
+        "House of Angels",
+        "INERELA",
+        "Mabogo aa Thebana Association South",
+        "Mind Power",
+        "Mopipi International Trust",
+        "Positive Moments",
+        "Rena le Seabe",
+        "Sentebale",
+        "Social Dialogue",
+        "Stepping Stone International",
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 128,
+      "name": "Number of people sensitised on basic human rights and HIV. [DUPLICATE->202]",
+      "type": "number",
+      "category": "other",
+      "is_active": true,
+      "disaggregations": [
+        "True",
+        "AGE",
+        "Gender",
+        "District",
+        "Number OF People Sensitised ON Basic Human Rights AND HIV"
+      ],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 50,
+      "name": "Number of people tested for HIV",
+      "type": "number",
+      "category": "hiv_prevention",
+      "is_active": true,
+      "disaggregations": [
+        "True"
+      ],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 100,
+      "name": "Number of people tested for HIV. [DUPLICATE->50]",
+      "type": "number",
+      "category": "other",
+      "is_active": true,
+      "disaggregations": [
+        "True"
+      ],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 41,
+      "name": "Number of people utilizing community based physical activity clubs",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 46,
+      "name": "Number of people who attended cervical cancer awareness activities",
+      "type": "number",
+      "category": "ncd",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 47,
+      "name": "Number of people who attended Mental health Day activities",
+      "type": "number",
+      "category": "ncd",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 48,
+      "name": "Number of people who attended Mo-Vember Day activities",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 45,
+      "name": "Number of people who attended the Breast Cancer Month activities",
+      "type": "number",
+      "category": "ncd",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 44,
+      "name": "Number of people who attended World Diabetes Day activities",
+      "type": "number",
+      "category": "ncd",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 180,
+      "name": "Number of People who received psychosocial support on GBV",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [
+        "True",
+        "AGE",
+        "Gender",
+        "Number OF People WHO Received Psychosocial Support ON GBV"
+      ],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 183,
+      "name": "Number of People who received psychosocial support on GBV [DUPLICATE->180]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 233,
+      "name": "Number of People who received psychosocial support on GBV [DUPLICATE->180]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 206,
+      "name": "Number of people who report that their rights were violated and who sought redress.",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [
+        "True"
+      ],
+      "organizations": [
+        151,
+        1
+      ],
+      "organization_names": [
+        "BOFWA",
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 209,
+      "name": "Number of people who report that their rights were violated and who sought redress. [DUPLICATE->206]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 246,
+      "name": "Number of people who report that their rights were violated and who sought redress. [DUPLICATE->206]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 131,
+      "name": "Number of people who report that their rights were violated and who sought redress. [DUPLICATE->206]",
+      "type": "number",
+      "category": "other",
+      "is_active": true,
+      "disaggregations": [
+        "True"
+      ],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 198,
+      "name": "Number of people who reported collecting condoms for a repeated time.",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [
+        "True"
+      ],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 201,
+      "name": "Number of people who reported collecting condoms for a repeated time. [DUPLICATE->198]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 242,
+      "name": "Number of people who reported collecting condoms for a repeated time. [DUPLICATE->198]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 291,
+      "name": "Number OF People WHO Reported Collecting Condoms FOR THE Repeated Time BY AGE AND Sex.",
+      "type": "multi_int",
+      "category": "hiv_prevention",
+      "is_active": true,
+      "disaggregations": [
+        "True"
+      ],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 51,
+      "name": "Number of people who tested positive for HIV [DUPLICATE->160]",
+      "type": "number",
+      "category": "hiv_prevention",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 22,
+      "name": "Number of PLWH reached with HIV TESTING Messages",
+      "type": "number",
+      "category": "hiv_prevention",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 24,
+      "name": "Number of PLWH who tested positive for TB and are on treatment",
+      "type": "number",
+      "category": "hiv_prevention",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 23,
+      "name": "Number of PLWHs provided with treatment literacy",
+      "type": "number",
+      "category": "hiv_prevention",
+      "is_active": true,
+      "disaggregations": [
+        "True"
+      ],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 12,
+      "name": "Number of promotions on braille labelled condoms held",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [
+        "True"
+      ],
+      "organizations": [
+        151,
+        1
+      ],
+      "organization_names": [
+        "BOFWA",
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 194,
+      "name": "Number of promotions on braille labelled condoms held. [DUPLICATE->12]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 197,
+      "name": "Number of promotions on braille labelled condoms held. [DUPLICATE->12]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 240,
+      "name": "Number of promotions on braille labelled condoms held. [DUPLICATE->12]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [
+        "True"
+      ],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 182,
+      "name": "Number of PWDs taking up services.",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [
+        "True"
+      ],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 185,
+      "name": "Number of PWDs taking up services. [DUPLICATE->182]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 234,
+      "name": "Number of PWDs taking up services. [DUPLICATE->182]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [
+        "True"
+      ],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 72,
+      "name": "Number of service providers receiving training",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [
+        "Community Mobilizers",
+        "M&E Officers",
+        "Program Officers",
+        "Stakeholders"
+      ],
+      "organizations": [
+        151,
+        153,
+        156,
+        162,
+        160,
+        164,
+        161,
+        154,
+        158,
+        159,
+        14,
+        155,
+        157,
+        163,
+        150,
+        25,
+        152,
+        1,
+        165
+      ],
+      "organization_names": [
+        "BOFWA",
+        "Bobonong Home Based Care",
+        "Gumare Advisory",
+        "Hope Worldwide",
+        "House of Angels",
+        "INERELA",
+        "Inspired Horizons",
+        "Mabogo aa Thebana Association South",
+        "Mind Power",
+        "Mopipi International Trust",
+        "Ovajhu",
+        "Ovajhuha",
+        "Positive Moments",
+        "Rena le Seabe",
+        "Sentebale",
+        "Social Dialogue",
+        "Stepping Stone International",
+        "TEBELOPELE",
+        "Tebelopele testing centres"
+      ]
+    },
+    {
+      "id": 141,
+      "name": "Number of service providers receiving training (community mobilisers,M&E Officers, program officers,stakeholders)",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [
+        "False"
+      ],
+      "organizations": [
+        151,
+        1
+      ],
+      "organization_names": [
+        "BOFWA",
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 142,
+      "name": "Number of service providers receiving training (community mobilisers,M&E Officers, program officers,stakeholders) [DUPLICATE->141]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 213,
+      "name": "Number of service providers receiving training (community mobilisers,M&E Officers, program officers,stakeholders) [DUPLICATE->141]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [
+        "False"
+      ],
+      "organizations": [
+        151,
+        1
+      ],
+      "organization_names": [
+        "BOFWA",
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 149,
+      "name": "Number of service providers’ trained on sign language.",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [
+        "False"
+      ],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 151,
+      "name": "Number of service providers’ trained on sign language. [DUPLICATE->149]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 217,
+      "name": "Number of service providers’ trained on sign language. [DUPLICATE->149]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [
+        "False"
+      ],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 20,
+      "name": "Number of stigma reduction campaigns conducted during the project",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [
+        "True",
+        "False",
+        "0",
+        "6",
+        "2",
+        "1",
+        "62",
+        "7"
+      ],
+      "organizations": [
+        151,
+        153,
+        156,
+        162,
+        160,
+        164,
+        161,
+        154,
+        158,
+        159,
+        14,
+        155,
+        157,
+        163,
+        150,
+        25,
+        152,
+        1,
+        165
+      ],
+      "organization_names": [
+        "BOFWA",
+        "Bobonong Home Based Care",
+        "Gumare Advisory",
+        "Hope Worldwide",
+        "House of Angels",
+        "INERELA",
+        "Inspired Horizons",
+        "Mabogo aa Thebana Association South",
+        "Mind Power",
+        "Mopipi International Trust",
+        "Ovajhu",
+        "Ovajhuha",
+        "Positive Moments",
+        "Rena le Seabe",
+        "Sentebale",
+        "Social Dialogue",
+        "Stepping Stone International",
+        "TEBELOPELE",
+        "Tebelopele testing centres"
+      ]
+    },
+    {
+      "id": 85,
+      "name": "Number of stigma reduction campaigns conducted during the project. [DUPLICATE->20]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151,
+        153,
+        156,
+        162,
+        160,
+        164,
+        154,
+        158,
+        159,
+        157,
+        163,
+        150,
+        25,
+        152,
+        1
+      ],
+      "organization_names": [
+        "BOFWA",
+        "Bobonong Home Based Care",
+        "Gumare Advisory",
+        "Hope Worldwide",
+        "House of Angels",
+        "INERELA",
+        "Mabogo aa Thebana Association South",
+        "Mind Power",
+        "Mopipi International Trust",
+        "Positive Moments",
+        "Rena le Seabe",
+        "Sentebale",
+        "Social Dialogue",
+        "Stepping Stone International",
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 137,
+      "name": "Number of stigma reduction campaigns conducted during the project. [DUPLICATE->20]",
+      "type": "number",
+      "category": "other",
+      "is_active": true,
+      "disaggregations": [
+        "False",
+        "True"
+      ],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 251,
+      "name": "Number of sub recipients mentored per month",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [
+        "False"
+      ],
+      "organizations": [
+        151,
+        153,
+        156,
+        162,
+        160,
+        164,
+        161,
+        154,
+        158,
+        159,
+        14,
+        155,
+        157,
+        163,
+        150,
+        25,
+        152,
+        1,
+        165
+      ],
+      "organization_names": [
+        "BOFWA",
+        "Bobonong Home Based Care",
+        "Gumare Advisory",
+        "Hope Worldwide",
+        "House of Angels",
+        "INERELA",
+        "Inspired Horizons",
+        "Mabogo aa Thebana Association South",
+        "Mind Power",
+        "Mopipi International Trust",
+        "Ovajhu",
+        "Ovajhuha",
+        "Positive Moments",
+        "Rena le Seabe",
+        "Sentebale",
+        "Social Dialogue",
+        "Stepping Stone International",
+        "TEBELOPELE",
+        "Tebelopele testing centres"
+      ]
+    },
+    {
+      "id": 21,
+      "name": "Number of sub recipients mentored per month (Number of sub-recipients visited)",
+      "type": "number",
+      "category": "hiv_prevention",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Number of sub recipients mentored per month [DUPLICATE->251]",
+      "type": "number",
+      "category": "hiv_prevention",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 143,
+      "name": "Number of sub recipients mentored per month. [DUPLICATE->251]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 144,
+      "name": "Number of sub recipients mentored per month. [DUPLICATE->251]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 214,
+      "name": "Number of sub recipients mentored per month. [DUPLICATE->251]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 73,
+      "name": "Number of sub recipients mentored per month. [DUPLICATE->251]",
+      "type": "number",
+      "category": "hiv_prevention",
+      "is_active": true,
+      "disaggregations": [
+        "False"
+      ],
+      "organizations": [
+        151,
+        153,
+        156,
+        162,
+        160,
+        164,
+        154,
+        158,
+        159,
+        157,
+        163,
+        150,
+        25,
+        152,
+        1
+      ],
+      "organization_names": [
+        "BOFWA",
+        "Bobonong Home Based Care",
+        "Gumare Advisory",
+        "Hope Worldwide",
+        "House of Angels",
+        "INERELA",
+        "Mabogo aa Thebana Association South",
+        "Mind Power",
+        "Mopipi International Trust",
+        "Positive Moments",
+        "Rena le Seabe",
+        "Sentebale",
+        "Social Dialogue",
+        "Stepping Stone International",
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 28,
+      "name": "Number of sub-recipients submitting quality reports per month",
+      "type": "number",
+      "category": "hiv_prevention",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Number of sub-recipients submitting quality reports per months [DUPLICATE->147]",
+      "type": "number",
+      "category": "hiv_prevention",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 147,
+      "name": "Number of sub-recipients submitting quality reports per months.",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [
+        "False"
+      ],
+      "organizations": [
+        151,
+        153,
+        156,
+        162,
+        160,
+        164,
+        161,
+        154,
+        158,
+        159,
+        14,
+        155,
+        157,
+        163,
+        150,
+        25,
+        152,
+        1,
+        165
+      ],
+      "organization_names": [
+        "BOFWA",
+        "Bobonong Home Based Care",
+        "Gumare Advisory",
+        "Hope Worldwide",
+        "House of Angels",
+        "INERELA",
+        "Inspired Horizons",
+        "Mabogo aa Thebana Association South",
+        "Mind Power",
+        "Mopipi International Trust",
+        "Ovajhu",
+        "Ovajhuha",
+        "Positive Moments",
+        "Rena le Seabe",
+        "Sentebale",
+        "Social Dialogue",
+        "Stepping Stone International",
+        "TEBELOPELE",
+        "Tebelopele testing centres"
+      ]
+    },
+    {
+      "id": 148,
+      "name": "Number of sub-recipients submitting quality reports per months. [DUPLICATE->147]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 216,
+      "name": "Number of sub-recipients submitting quality reports per months. [DUPLICATE->147]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 75,
+      "name": "Number of sub-recipients submitting quality reports per months. [DUPLICATE->147]",
+      "type": "number",
+      "category": "hiv_prevention",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151,
+        153,
+        156,
+        162,
+        160,
+        164,
+        154,
+        158,
+        159,
+        157,
+        163,
+        150,
+        25,
+        152,
+        1
+      ],
+      "organization_names": [
+        "BOFWA",
+        "Bobonong Home Based Care",
+        "Gumare Advisory",
+        "Hope Worldwide",
+        "House of Angels",
+        "INERELA",
+        "Mabogo aa Thebana Association South",
+        "Mind Power",
+        "Mopipi International Trust",
+        "Positive Moments",
+        "Rena le Seabe",
+        "Sentebale",
+        "Social Dialogue",
+        "Stepping Stone International",
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 88,
+      "name": "Number of sub-recipients submitting quality reports per months. [DUPLICATE->147]",
+      "type": "number",
+      "category": "other",
+      "is_active": true,
+      "disaggregations": [
+        "False"
+      ],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 18,
+      "name": "Number of target specific demand creation activities conducted",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [
+        "False",
+        "Target Group",
+        "Activity Type",
+        "Number OF Target-specific Demand Creation Activities Conducted",
+        "12",
+        "1",
+        "30",
+        "0",
+        "5",
+        "3",
+        "6",
+        "62",
+        "13",
+        "16"
+      ],
+      "organizations": [
+        151,
+        153,
+        156,
+        162,
+        160,
+        164,
+        161,
+        154,
+        158,
+        159,
+        14,
+        155,
+        157,
+        163,
+        150,
+        25,
+        152,
+        1,
+        165
+      ],
+      "organization_names": [
+        "BOFWA",
+        "Bobonong Home Based Care",
+        "Gumare Advisory",
+        "Hope Worldwide",
+        "House of Angels",
+        "INERELA",
+        "Inspired Horizons",
+        "Mabogo aa Thebana Association South",
+        "Mind Power",
+        "Mopipi International Trust",
+        "Ovajhu",
+        "Ovajhuha",
+        "Positive Moments",
+        "Rena le Seabe",
+        "Sentebale",
+        "Social Dialogue",
+        "Stepping Stone International",
+        "TEBELOPELE",
+        "Tebelopele testing centres"
+      ]
+    },
+    {
+      "id": 135,
+      "name": "Number of target specific demand creation activities conducted [DUPLICATE->18]",
+      "type": "number",
+      "category": "other",
+      "is_active": true,
+      "disaggregations": [
+        "False",
+        "Target Group",
+        "Activity Type",
+        "Number OF Target-specific Demand Creation Activities Conducted"
+      ],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 60,
+      "name": "Number of trainings conducted",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 63,
+      "name": "Number of workshops conducted",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 315,
+      "name": "Numberof Lubricants Distributed",
+      "type": "multi_int",
+      "category": "hiv_prevention",
+      "is_active": true,
+      "disaggregations": [
+        "True"
+      ],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 139,
+      "name": "Numerator",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [
+        "FSW",
+        "GEN POP"
+      ],
+      "organizations": [
+        151,
+        1
+      ],
+      "organization_names": [
+        "BOFWA",
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 140,
+      "name": "Numerator [DUPLICATE->139]",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        151
+      ],
+      "organization_names": [
+        "BOFWA"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Total Number of Key and Vulnerable Populations Reached with HIV TESTING Messages",
+      "type": "number",
+      "category": "hiv_prevention",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 49,
+      "name": "Total Number of Key and Vulnerable Populations Reached with PREP Messages",
+      "type": "number",
+      "category": "hiv_prevention",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 53,
+      "name": "Total number of lubricants distributed",
+      "type": "number",
+      "category": "hiv_prevention",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 64,
+      "name": "Total Number of People Reached with  PEP Messages",
+      "type": "number",
+      "category": "hiv_prevention",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        14,
+        25,
+        1
+      ],
+      "organization_names": [
+        "Ovajhu",
+        "Social Dialogue",
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 69,
+      "name": "Total Number of People Reached with ARV Based Prevention Messages",
+      "type": "number",
+      "category": "events",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        14,
+        25,
+        1
+      ],
+      "organization_names": [
+        "Ovajhu",
+        "Social Dialogue",
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 67,
+      "name": "Total Number of People Reached with Condom Use Messages",
+      "type": "number",
+      "category": "hiv_prevention",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        14,
+        25,
+        1
+      ],
+      "organization_names": [
+        "Ovajhu",
+        "Social Dialogue",
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 70,
+      "name": "Total Number of People Reached with EMTCT Messages",
+      "type": "number",
+      "category": "hiv_prevention",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        14,
+        25,
+        1
+      ],
+      "organization_names": [
+        "Ovajhu",
+        "Social Dialogue",
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 66,
+      "name": "Total Number of People Reached with GBV Messages",
+      "type": "number",
+      "category": "hiv_prevention",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        14,
+        25,
+        1
+      ],
+      "organization_names": [
+        "Ovajhu",
+        "Social Dialogue",
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 71,
+      "name": "Total Number of People Reached with HIV Messages",
+      "type": "number",
+      "category": "hiv_prevention",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        14,
+        25,
+        1
+      ],
+      "organization_names": [
+        "Ovajhu",
+        "Social Dialogue",
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 55,
+      "name": "Total Number of people Reached with HIV TESTING Messages",
+      "type": "number",
+      "category": "hiv_prevention",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        14,
+        25,
+        1
+      ],
+      "organization_names": [
+        "Ovajhu",
+        "Social Dialogue",
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 68,
+      "name": "Total Number of People Reached with HIV Treatment Messages",
+      "type": "number",
+      "category": "hiv_prevention",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        14,
+        25,
+        1
+      ],
+      "organization_names": [
+        "Ovajhu",
+        "Social Dialogue",
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 29,
+      "name": "Total number of people reached with NCD prevention and Control messages",
+      "type": "number",
+      "category": "ncd",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        1
+      ],
+      "organization_names": [
+        "TEBELOPELE"
+      ]
+    },
+    {
+      "id": 65,
+      "name": "Total Number of people Reached with PREP Messages",
+      "type": "number",
+      "category": "hiv_prevention",
+      "is_active": true,
+      "disaggregations": [],
+      "organizations": [
+        14,
+        25,
+        1
+      ],
+      "organization_names": [
+        "Ovajhu",
+        "Social Dialogue",
+        "TEBELOPELE"
+      ]
+    }
+  ],
+  "by_organization": [
+    {
+      "org_id": 1,
+      "org_name": "TEBELOPELE",
+      "parent": null,
+      "indicator_count": 140,
+      "indicators": [
+        "Condoms distibution",
+        "HIV PREVENTION MESSAGES",
+        "Number  of people who tested positive for HIV.",
+        "Number  of people who tested positive for HIV. [DUPLICATE->160]",
+        "Number eligible for GBV services.",
+        "Number of  people screened positive for STIs referred for services",
+        "Number of  STI cases referrals completed",
+        "Number of activities conducted",
+        "Number of advocacy activities conducted per quarter",
+        "Number of advocacy activities conducted per quarter. [DUPLICATE->16]",
+        "Number of advocacy activities conducted per quarter. [DUPLICATE->16]",
+        "Number of AYP provided with family planning services",
+        "Number OF AYPs Linked TO Care.",
+        "Number of braided condoms distributed to PWDs",
+        "Number of commemorations conducted",
+        "Number of community leaders sensitised on human rights, stigma and descrimination.",
+        "Number of community leaders sensitised on human rights, stigma and descrimination. [DUPLICATE->208]",
+        "Number of community leaders sensitised on human rights, stigma and descrimination. [DUPLICATE->208]",
+        "Number of community led monitoring conducted for quality of service and human rights [DUPLICATE->210]",
+        "Number of Community led monitoring conducted for quality of service and human rights [DUPLICATE->210]",
+        "Number of community led monitoring conducted for quality of service and human rights.",
+        "Number of community led monitoring conducted for quality of service and human rights. [DUPLICATE->210]",
+        "Number of community led monitoring conducted for quality of service and human rights. [DUPLICATE->210]",
+        "Number of condoms distributed",
+        "Number OF Condoms Distributed TO AYP.",
+        "Number of condoms distributed to AYPS",
+        "Number of condoms distributed to KVPs",
+        "Number of counselling sessions conducted",
+        "Number of CSOs trained and equipped to provide comprehensive psychosocial and practical support",
+        "Number of CSOs trained and equipped to provide comprehensive psychosocial and practical support, including HIV-related support.",
+        "Number of CSOs trained and equipped to provide comprehensive psychosocial and practical support, including HIV-related support. [DUPLICATE->145]",
+        "Number of CSOs trained and equipped to provide comprehensive psychosocial and practical support, including HIV-related support. [DUPLICATE->145]",
+        "Number of functional cancer support groups",
+        "Number of functional tobacco cessation and alcohol abuse support group",
+        "Number of healthcare workers trained on medical ethics and human rights.",
+        "Number of healthcare workers trained on medical ethics and human rights. [DUPLICATE->204]",
+        "Number of individuals screened for GBV [DUPLICATE->172]",
+        "Number of individuals screened for GBV.",
+        "Number of individuals screened for GBV. [DUPLICATE->172]",
+        "Number of lubricants distributed",
+        "Number of lubricants distributed [DUPLICATE->196]",
+        "Number of Lubricants distributed to PLHIV",
+        "Number of Male Condoms distributed",
+        "Number of media engagements conducted",
+        "Number of media engagements conducted [DUPLICATE->19]",
+        "Number of media platforms used  per quarter.",
+        "Number of media platforms used per quarter [DUPLICATE->285]",
+        "Number of media platforms used per quarter [DUPLICATE->285]",
+        "Number of meetings conducted",
+        "Number of outreach activities conducted",
+        "Number of people engaged with NCD prevention and control messages through social media",
+        "Number of people linked to justice services [DUPLICATE->170]",
+        "Number of people linked to justice services.",
+        "Number of people linked to justice services. [DUPLICATE->170]",
+        "Number of people provided with legal aid services [DUPLICATE->168]",
+        "Number of people provided with legal aid services.",
+        "Number of people provided with legal aid services. [DUPLICATE->168]",
+        "Number of people reached with cervical cancer education",
+        "Number of people reached with HIV prevention messages.",
+        "Number of people reached with HIV prevention messages. [DUPLICATE->150]",
+        "Number of people reached with prostate cancer education",
+        "Number of people reached with self-breast cancer examination education",
+        "Number of people reached with stigma reduction messages [DUPLICATE->152]",
+        "Number of people reached with stigma reduction messages.",
+        "Number of people reached with stigma reduction messages. [DUPLICATE->152]",
+        "Number of people reached with stigma reduction messages. [DUPLICATE->152]",
+        "Number of people receiving counselling",
+        "Number of people referred for Hiv testing",
+        "Number of people referred for PEP.",
+        "Number of people referred for PEP. [DUPLICATE->166]",
+        "Number of people referred for PrEP [DUPLICATE->164]",
+        "Number of people referred for PrEP.",
+        "Number of people referred for PrEP. [DUPLICATE->164]",
+        "Number OF People Referred FOR Psychosocial Support ON GBV",
+        "Number of people reffered for clinical services for GBV.",
+        "Number of people reffered for clinical services for GBV. [DUPLICATE->176]",
+        "Number of people reffered for justice services for GBV.",
+        "Number of people reffered for justice services for GBV. [DUPLICATE->178]",
+        "Number of people screened for breast cancer",
+        "Number of people screened for mental health",
+        "Number of people screened for NCDs behavioural risk factors (Alcohol use)",
+        "Number of people screened for NCDs behavioural risk factors (Tobacco use)",
+        "Number of people screened for NCDs risk factors",
+        "Number of people screened for STIs",
+        "Number of people screened for STIs [DUPLICATE->186]",
+        "Number of people screened for STIs [DUPLICATE->186]",
+        "Number of people sensitised on basic human rights and HIV [DUPLICATE->202]",
+        "Number of people sensitised on basic human rights and HIV.",
+        "Number of people sensitised on basic human rights and HIV. [DUPLICATE->202]",
+        "Number of people sensitised on basic human rights and HIV. [DUPLICATE->202]",
+        "Number of people tested for HIV",
+        "Number of people tested for HIV. [DUPLICATE->50]",
+        "Number of people utilizing community based physical activity clubs",
+        "Number of people who attended cervical cancer awareness activities",
+        "Number of people who attended Mental health Day activities",
+        "Number of people who attended Mo-Vember Day activities",
+        "Number of people who attended the Breast Cancer Month activities",
+        "Number of people who attended World Diabetes Day activities",
+        "Number of people who report that their rights were violated and who sought redress.",
+        "Number of people who report that their rights were violated and who sought redress. [DUPLICATE->206]",
+        "Number OF People WHO Reported Collecting Condoms FOR THE Repeated Time BY AGE AND Sex.",
+        "Number of people who tested positive for HIV [DUPLICATE->160]",
+        "Number of PLWH reached with HIV TESTING Messages",
+        "Number of PLWH who tested positive for TB and are on treatment",
+        "Number of PLWHs provided with treatment literacy",
+        "Number of promotions on braille labelled condoms held",
+        "Number of service providers receiving training",
+        "Number of service providers receiving training (community mobilisers,M&E Officers, program officers,stakeholders)",
+        "Number of service providers receiving training (community mobilisers,M&E Officers, program officers,stakeholders) [DUPLICATE->141]",
+        "Number of stigma reduction campaigns conducted during the project",
+        "Number of stigma reduction campaigns conducted during the project. [DUPLICATE->20]",
+        "Number of stigma reduction campaigns conducted during the project. [DUPLICATE->20]",
+        "Number of sub recipients mentored per month",
+        "Number of sub recipients mentored per month (Number of sub-recipients visited)",
+        "Number of sub recipients mentored per month [DUPLICATE->251]",
+        "Number of sub recipients mentored per month. [DUPLICATE->251]",
+        "Number of sub-recipients submitting quality reports per month",
+        "Number of sub-recipients submitting quality reports per months [DUPLICATE->147]",
+        "Number of sub-recipients submitting quality reports per months.",
+        "Number of sub-recipients submitting quality reports per months. [DUPLICATE->147]",
+        "Number of sub-recipients submitting quality reports per months. [DUPLICATE->147]",
+        "Number of target specific demand creation activities conducted",
+        "Number of target specific demand creation activities conducted [DUPLICATE->18]",
+        "Number of trainings conducted",
+        "Number of workshops conducted",
+        "Numberof Lubricants Distributed",
+        "Numerator",
+        "Total Number of Key and Vulnerable Populations Reached with HIV TESTING Messages",
+        "Total Number of Key and Vulnerable Populations Reached with PREP Messages",
+        "Total number of lubricants distributed",
+        "Total Number of People Reached with  PEP Messages",
+        "Total Number of People Reached with ARV Based Prevention Messages",
+        "Total Number of People Reached with Condom Use Messages",
+        "Total Number of People Reached with EMTCT Messages",
+        "Total Number of People Reached with GBV Messages",
+        "Total Number of People Reached with HIV Messages",
+        "Total Number of people Reached with HIV TESTING Messages",
+        "Total Number of People Reached with HIV Treatment Messages",
+        "Total number of people reached with NCD prevention and Control messages",
+        "Total Number of people Reached with PREP Messages"
+      ]
+    },
+    {
+      "org_id": 151,
+      "org_name": "BOFWA",
+      "parent": 1,
+      "indicator_count": 136,
+      "indicators": [
+        "HIV PREVENTION MESSAGES",
+        "Number  of people referred for HIV testing. [DUPLICATE->6]",
+        "Number  of people referred for HIV testing. [DUPLICATE->6]",
+        "Number  of people referred for HIV testing. [DUPLICATE->6]",
+        "Number  of people who tested positive for HIV.",
+        "Number  of people who tested positive for HIV. [DUPLICATE->160]",
+        "Number  of people who tested positive for HIV. [DUPLICATE->160]",
+        "Number eligible for GBV services.",
+        "Number eligible for GBV services. [DUPLICATE->174]",
+        "Number eligible for GBV services. [DUPLICATE->174]",
+        "Number of  people referred for STI services",
+        "Number of  people referred for STI services [DUPLICATE->188]",
+        "Number of  people referred for STI services [DUPLICATE->188]",
+        "Number of advocacy activities conducted per quarter",
+        "Number of advocacy activities conducted per quarter. [DUPLICATE->16]",
+        "Number of AYP provided with family planning services",
+        "Number of brailed condoms distributed to PWDs",
+        "Number of brailed condoms distributed to PWDs [DUPLICATE->192]",
+        "Number of brailed condoms distributed to PWDs [DUPLICATE->192]",
+        "Number of community leaders sensitised on human rights, stigma and descrimination.",
+        "Number of community leaders sensitised on human rights, stigma and descrimination. [DUPLICATE->208]",
+        "Number of community leaders sensitised on human rights, stigma and descrimination. [DUPLICATE->208]",
+        "Number of community leaders sensitised on human rights, stigma and descrimination. [DUPLICATE->208]",
+        "Number of community led monitoring conducted for quality of service and human rights.",
+        "Number of community led monitoring conducted for quality of service and human rights. [DUPLICATE->210]",
+        "Number of community led monitoring conducted for quality of service and human rights. [DUPLICATE->210]",
+        "Number of community led monitoring conducted for quality of service and human rights. [DUPLICATE->210]",
+        "Number of condoms distributed through the non-traditional sites",
+        "Number of condoms distributed through the non-traditional sites [DUPLICATE->200]",
+        "Number of condoms distributed through the non-traditional sites [DUPLICATE->200]",
+        "Number of condoms distributed to KVPs",
+        "Number of condoms distributed to KVPs. [DUPLICATE->10]",
+        "Number of condoms distributed to KVPs. [DUPLICATE->10]",
+        "Number of condoms distributed to KVPs. [DUPLICATE->10]",
+        "Number of CSOs trained and equipped to provide comprehensive psychosocial and practical support, including HIV-related support.",
+        "Number of CSOs trained and equipped to provide comprehensive psychosocial and practical support, including HIV-related support. [DUPLICATE->145]",
+        "Number of CSOs trained and equipped to provide comprehensive psychosocial and practical support, including HIV-related support. [DUPLICATE->145]",
+        "Number of CSOs trained and equipped to provide comprehensive psychosocial and practical support, including HIV-related support. [DUPLICATE->145]",
+        "Number of healthcare workers trained on medical ethics and human rights.",
+        "Number of healthcare workers trained on medical ethics and human rights. [DUPLICATE->204]",
+        "Number of healthcare workers trained on medical ethics and human rights. [DUPLICATE->204]",
+        "Number of healthcare workers trained on medical ethics and human rights. [DUPLICATE->204]",
+        "Number of individuals screened for GBV.",
+        "Number of individuals screened for GBV. [DUPLICATE->172]",
+        "Number of individuals screened for GBV. [DUPLICATE->172]",
+        "Number of KPs taking up services.",
+        "Number of KPs taking up services. [DUPLICATE->184]",
+        "Number of KPs taking up services. [DUPLICATE->184]",
+        "Number of KVPs tested for HIV.",
+        "Number of KVPs tested for HIV. [DUPLICATE->158]",
+        "Number of KVPs tested for HIV. [DUPLICATE->158]",
+        "Number of lubricants distributed",
+        "Number of lubricants distributed [DUPLICATE->196]",
+        "Number of lubricants distributed [DUPLICATE->196]",
+        "Number of lubricants distributed [DUPLICATE->196]",
+        "Number of media engagements conducted",
+        "Number of media platforms used  per quarter.",
+        "Number of media platforms used per quarter [DUPLICATE->285]",
+        "Number of media platforms used per quarter [DUPLICATE->285]",
+        "Number of media platforms used per quarter [DUPLICATE->285]",
+        "Number of media platforms used per quarter [DUPLICATE->285]",
+        "Number of people linked to care.",
+        "Number of people linked to care. [DUPLICATE->162]",
+        "Number of people linked to care. [DUPLICATE->162]",
+        "Number of people linked to justice services [DUPLICATE->170]",
+        "Number of people linked to justice services.",
+        "Number of people linked to justice services. [DUPLICATE->170]",
+        "Number of people linked to justice services. [DUPLICATE->170]",
+        "Number of people provided with legal aid services [DUPLICATE->168]",
+        "Number of people provided with legal aid services.",
+        "Number of people provided with legal aid services. [DUPLICATE->168]",
+        "Number of people provided with legal aid services. [DUPLICATE->168]",
+        "Number of people reached with HIV prevention messages.",
+        "Number of people reached with HIV prevention messages. [DUPLICATE->150]",
+        "Number of people reached with HIV prevention messages. [DUPLICATE->150]",
+        "Number of people reached with stigma reduction messages.",
+        "Number of people reached with stigma reduction messages. [DUPLICATE->152]",
+        "Number of people reached with stigma reduction messages. [DUPLICATE->152]",
+        "Number of people reached with stigma reduction messages. [DUPLICATE->152]",
+        "Number of people referred for Hiv testing",
+        "Number of people referred for PEP.",
+        "Number of people referred for PEP. [DUPLICATE->166]",
+        "Number of people referred for PEP. [DUPLICATE->166]",
+        "Number of people referred for PrEP.",
+        "Number of people referred for PrEP. [DUPLICATE->164]",
+        "Number of people referred for PrEP. [DUPLICATE->164]",
+        "Number of people reffered for clinical services for GBV.",
+        "Number of people reffered for clinical services for GBV. [DUPLICATE->176]",
+        "Number of people reffered for clinical services for GBV. [DUPLICATE->176]",
+        "Number of people reffered for justice services for GBV.",
+        "Number of people reffered for justice services for GBV. [DUPLICATE->178]",
+        "Number of people reffered for justice services for GBV. [DUPLICATE->178]",
+        "Number of people screened for STIs",
+        "Number of people screened for STIs [DUPLICATE->186]",
+        "Number of people screened for STIs [DUPLICATE->186]",
+        "Number of people sensitised on basic human rights and HIV.",
+        "Number of people sensitised on basic human rights and HIV. [DUPLICATE->202]",
+        "Number of people sensitised on basic human rights and HIV. [DUPLICATE->202]",
+        "Number of people sensitised on basic human rights and HIV. [DUPLICATE->202]",
+        "Number of People who received psychosocial support on GBV",
+        "Number of People who received psychosocial support on GBV [DUPLICATE->180]",
+        "Number of People who received psychosocial support on GBV [DUPLICATE->180]",
+        "Number of people who report that their rights were violated and who sought redress.",
+        "Number of people who report that their rights were violated and who sought redress. [DUPLICATE->206]",
+        "Number of people who report that their rights were violated and who sought redress. [DUPLICATE->206]",
+        "Number of people who reported collecting condoms for a repeated time.",
+        "Number of people who reported collecting condoms for a repeated time. [DUPLICATE->198]",
+        "Number of people who reported collecting condoms for a repeated time. [DUPLICATE->198]",
+        "Number of promotions on braille labelled condoms held",
+        "Number of promotions on braille labelled condoms held. [DUPLICATE->12]",
+        "Number of promotions on braille labelled condoms held. [DUPLICATE->12]",
+        "Number of promotions on braille labelled condoms held. [DUPLICATE->12]",
+        "Number of PWDs taking up services.",
+        "Number of PWDs taking up services. [DUPLICATE->182]",
+        "Number of PWDs taking up services. [DUPLICATE->182]",
+        "Number of service providers receiving training",
+        "Number of service providers receiving training (community mobilisers,M&E Officers, program officers,stakeholders)",
+        "Number of service providers receiving training (community mobilisers,M&E Officers, program officers,stakeholders) [DUPLICATE->141]",
+        "Number of service providers receiving training (community mobilisers,M&E Officers, program officers,stakeholders) [DUPLICATE->141]",
+        "Number of service providers’ trained on sign language.",
+        "Number of service providers’ trained on sign language. [DUPLICATE->149]",
+        "Number of service providers’ trained on sign language. [DUPLICATE->149]",
+        "Number of stigma reduction campaigns conducted during the project",
+        "Number of stigma reduction campaigns conducted during the project. [DUPLICATE->20]",
+        "Number of sub recipients mentored per month",
+        "Number of sub recipients mentored per month. [DUPLICATE->251]",
+        "Number of sub recipients mentored per month. [DUPLICATE->251]",
+        "Number of sub recipients mentored per month. [DUPLICATE->251]",
+        "Number of sub recipients mentored per month. [DUPLICATE->251]",
+        "Number of sub-recipients submitting quality reports per months.",
+        "Number of sub-recipients submitting quality reports per months. [DUPLICATE->147]",
+        "Number of sub-recipients submitting quality reports per months. [DUPLICATE->147]",
+        "Number of sub-recipients submitting quality reports per months. [DUPLICATE->147]",
+        "Number of target specific demand creation activities conducted",
+        "Numerator",
+        "Numerator [DUPLICATE->139]"
+      ]
+    },
+    {
+      "org_id": 25,
+      "org_name": "Social Dialogue",
+      "parent": 1,
+      "indicator_count": 42,
+      "indicators": [
+        "HIV PREVENTION MESSAGES",
+        "Number of advocacy activities conducted per quarter",
+        "Number of advocacy activities conducted per quarter. [DUPLICATE->16]",
+        "Number of AYP provided with family planning services",
+        "Number of community leaders sensitised on human rights, stigma and descrimination.",
+        "Number of community leaders sensitised on human rights, stigma and descrimination. [DUPLICATE->208]",
+        "Number of community led monitoring conducted for quality of service and human rights.",
+        "Number of community led monitoring conducted for quality of service and human rights. [DUPLICATE->210]",
+        "Number of CSOs trained and equipped to provide comprehensive psychosocial and practical support, including HIV-related support.",
+        "Number of CSOs trained and equipped to provide comprehensive psychosocial and practical support, including HIV-related support. [DUPLICATE->145]",
+        "Number of healthcare workers trained on medical ethics and human rights.",
+        "Number of healthcare workers trained on medical ethics and human rights. [DUPLICATE->204]",
+        "Number of lubricants distributed",
+        "Number of lubricants distributed [DUPLICATE->196]",
+        "Number of media engagements conducted",
+        "Number of media platforms used  per quarter.",
+        "Number of media platforms used per quarter [DUPLICATE->285]",
+        "Number of people linked to justice services [DUPLICATE->170]",
+        "Number of people linked to justice services.",
+        "Number of people provided with legal aid services [DUPLICATE->168]",
+        "Number of people provided with legal aid services.",
+        "Number of people reached with stigma reduction messages.",
+        "Number of people reached with stigma reduction messages. [DUPLICATE->152]",
+        "Number of people sensitised on basic human rights and HIV.",
+        "Number of people sensitised on basic human rights and HIV. [DUPLICATE->202]",
+        "Number of service providers receiving training",
+        "Number of stigma reduction campaigns conducted during the project",
+        "Number of stigma reduction campaigns conducted during the project. [DUPLICATE->20]",
+        "Number of sub recipients mentored per month",
+        "Number of sub recipients mentored per month. [DUPLICATE->251]",
+        "Number of sub-recipients submitting quality reports per months.",
+        "Number of sub-recipients submitting quality reports per months. [DUPLICATE->147]",
+        "Number of target specific demand creation activities conducted",
+        "Total Number of People Reached with  PEP Messages",
+        "Total Number of People Reached with ARV Based Prevention Messages",
+        "Total Number of People Reached with Condom Use Messages",
+        "Total Number of People Reached with EMTCT Messages",
+        "Total Number of People Reached with GBV Messages",
+        "Total Number of People Reached with HIV Messages",
+        "Total Number of people Reached with HIV TESTING Messages",
+        "Total Number of People Reached with HIV Treatment Messages",
+        "Total Number of people Reached with PREP Messages"
+      ]
+    },
+    {
+      "org_id": 153,
+      "org_name": "Bobonong Home Based Care",
+      "parent": 1,
+      "indicator_count": 33,
+      "indicators": [
+        "HIV PREVENTION MESSAGES",
+        "Number of advocacy activities conducted per quarter",
+        "Number of advocacy activities conducted per quarter. [DUPLICATE->16]",
+        "Number of AYP provided with family planning services",
+        "Number of community leaders sensitised on human rights, stigma and descrimination.",
+        "Number of community leaders sensitised on human rights, stigma and descrimination. [DUPLICATE->208]",
+        "Number of community led monitoring conducted for quality of service and human rights.",
+        "Number of community led monitoring conducted for quality of service and human rights. [DUPLICATE->210]",
+        "Number of CSOs trained and equipped to provide comprehensive psychosocial and practical support, including HIV-related support.",
+        "Number of CSOs trained and equipped to provide comprehensive psychosocial and practical support, including HIV-related support. [DUPLICATE->145]",
+        "Number of healthcare workers trained on medical ethics and human rights.",
+        "Number of healthcare workers trained on medical ethics and human rights. [DUPLICATE->204]",
+        "Number of lubricants distributed",
+        "Number of lubricants distributed [DUPLICATE->196]",
+        "Number of media engagements conducted",
+        "Number of media platforms used  per quarter.",
+        "Number of media platforms used per quarter [DUPLICATE->285]",
+        "Number of people linked to justice services [DUPLICATE->170]",
+        "Number of people linked to justice services.",
+        "Number of people provided with legal aid services [DUPLICATE->168]",
+        "Number of people provided with legal aid services.",
+        "Number of people reached with stigma reduction messages.",
+        "Number of people reached with stigma reduction messages. [DUPLICATE->152]",
+        "Number of people sensitised on basic human rights and HIV.",
+        "Number of people sensitised on basic human rights and HIV. [DUPLICATE->202]",
+        "Number of service providers receiving training",
+        "Number of stigma reduction campaigns conducted during the project",
+        "Number of stigma reduction campaigns conducted during the project. [DUPLICATE->20]",
+        "Number of sub recipients mentored per month",
+        "Number of sub recipients mentored per month. [DUPLICATE->251]",
+        "Number of sub-recipients submitting quality reports per months.",
+        "Number of sub-recipients submitting quality reports per months. [DUPLICATE->147]",
+        "Number of target specific demand creation activities conducted"
+      ]
+    },
+    {
+      "org_id": 156,
+      "org_name": "Gumare Advisory",
+      "parent": 1,
+      "indicator_count": 33,
+      "indicators": [
+        "HIV PREVENTION MESSAGES",
+        "Number of advocacy activities conducted per quarter",
+        "Number of advocacy activities conducted per quarter. [DUPLICATE->16]",
+        "Number of AYP provided with family planning services",
+        "Number of community leaders sensitised on human rights, stigma and descrimination.",
+        "Number of community leaders sensitised on human rights, stigma and descrimination. [DUPLICATE->208]",
+        "Number of community led monitoring conducted for quality of service and human rights.",
+        "Number of community led monitoring conducted for quality of service and human rights. [DUPLICATE->210]",
+        "Number of CSOs trained and equipped to provide comprehensive psychosocial and practical support, including HIV-related support.",
+        "Number of CSOs trained and equipped to provide comprehensive psychosocial and practical support, including HIV-related support. [DUPLICATE->145]",
+        "Number of healthcare workers trained on medical ethics and human rights.",
+        "Number of healthcare workers trained on medical ethics and human rights. [DUPLICATE->204]",
+        "Number of lubricants distributed",
+        "Number of lubricants distributed [DUPLICATE->196]",
+        "Number of media engagements conducted",
+        "Number of media platforms used  per quarter.",
+        "Number of media platforms used per quarter [DUPLICATE->285]",
+        "Number of people linked to justice services [DUPLICATE->170]",
+        "Number of people linked to justice services.",
+        "Number of people provided with legal aid services [DUPLICATE->168]",
+        "Number of people provided with legal aid services.",
+        "Number of people reached with stigma reduction messages.",
+        "Number of people reached with stigma reduction messages. [DUPLICATE->152]",
+        "Number of people sensitised on basic human rights and HIV.",
+        "Number of people sensitised on basic human rights and HIV. [DUPLICATE->202]",
+        "Number of service providers receiving training",
+        "Number of stigma reduction campaigns conducted during the project",
+        "Number of stigma reduction campaigns conducted during the project. [DUPLICATE->20]",
+        "Number of sub recipients mentored per month",
+        "Number of sub recipients mentored per month. [DUPLICATE->251]",
+        "Number of sub-recipients submitting quality reports per months.",
+        "Number of sub-recipients submitting quality reports per months. [DUPLICATE->147]",
+        "Number of target specific demand creation activities conducted"
+      ]
+    },
+    {
+      "org_id": 162,
+      "org_name": "Hope Worldwide",
+      "parent": 1,
+      "indicator_count": 33,
+      "indicators": [
+        "HIV PREVENTION MESSAGES",
+        "Number of advocacy activities conducted per quarter",
+        "Number of advocacy activities conducted per quarter. [DUPLICATE->16]",
+        "Number of AYP provided with family planning services",
+        "Number of community leaders sensitised on human rights, stigma and descrimination.",
+        "Number of community leaders sensitised on human rights, stigma and descrimination. [DUPLICATE->208]",
+        "Number of community led monitoring conducted for quality of service and human rights.",
+        "Number of community led monitoring conducted for quality of service and human rights. [DUPLICATE->210]",
+        "Number of CSOs trained and equipped to provide comprehensive psychosocial and practical support, including HIV-related support.",
+        "Number of CSOs trained and equipped to provide comprehensive psychosocial and practical support, including HIV-related support. [DUPLICATE->145]",
+        "Number of healthcare workers trained on medical ethics and human rights.",
+        "Number of healthcare workers trained on medical ethics and human rights. [DUPLICATE->204]",
+        "Number of lubricants distributed",
+        "Number of lubricants distributed [DUPLICATE->196]",
+        "Number of media engagements conducted",
+        "Number of media platforms used  per quarter.",
+        "Number of media platforms used per quarter [DUPLICATE->285]",
+        "Number of people linked to justice services [DUPLICATE->170]",
+        "Number of people linked to justice services.",
+        "Number of people provided with legal aid services [DUPLICATE->168]",
+        "Number of people provided with legal aid services.",
+        "Number of people reached with stigma reduction messages.",
+        "Number of people reached with stigma reduction messages. [DUPLICATE->152]",
+        "Number of people sensitised on basic human rights and HIV.",
+        "Number of people sensitised on basic human rights and HIV. [DUPLICATE->202]",
+        "Number of service providers receiving training",
+        "Number of stigma reduction campaigns conducted during the project",
+        "Number of stigma reduction campaigns conducted during the project. [DUPLICATE->20]",
+        "Number of sub recipients mentored per month",
+        "Number of sub recipients mentored per month. [DUPLICATE->251]",
+        "Number of sub-recipients submitting quality reports per months.",
+        "Number of sub-recipients submitting quality reports per months. [DUPLICATE->147]",
+        "Number of target specific demand creation activities conducted"
+      ]
+    },
+    {
+      "org_id": 160,
+      "org_name": "House of Angels",
+      "parent": 1,
+      "indicator_count": 33,
+      "indicators": [
+        "HIV PREVENTION MESSAGES",
+        "Number of advocacy activities conducted per quarter",
+        "Number of advocacy activities conducted per quarter. [DUPLICATE->16]",
+        "Number of AYP provided with family planning services",
+        "Number of community leaders sensitised on human rights, stigma and descrimination.",
+        "Number of community leaders sensitised on human rights, stigma and descrimination. [DUPLICATE->208]",
+        "Number of community led monitoring conducted for quality of service and human rights.",
+        "Number of community led monitoring conducted for quality of service and human rights. [DUPLICATE->210]",
+        "Number of CSOs trained and equipped to provide comprehensive psychosocial and practical support, including HIV-related support.",
+        "Number of CSOs trained and equipped to provide comprehensive psychosocial and practical support, including HIV-related support. [DUPLICATE->145]",
+        "Number of healthcare workers trained on medical ethics and human rights.",
+        "Number of healthcare workers trained on medical ethics and human rights. [DUPLICATE->204]",
+        "Number of lubricants distributed",
+        "Number of lubricants distributed [DUPLICATE->196]",
+        "Number of media engagements conducted",
+        "Number of media platforms used  per quarter.",
+        "Number of media platforms used per quarter [DUPLICATE->285]",
+        "Number of people linked to justice services [DUPLICATE->170]",
+        "Number of people linked to justice services.",
+        "Number of people provided with legal aid services [DUPLICATE->168]",
+        "Number of people provided with legal aid services.",
+        "Number of people reached with stigma reduction messages.",
+        "Number of people reached with stigma reduction messages. [DUPLICATE->152]",
+        "Number of people sensitised on basic human rights and HIV.",
+        "Number of people sensitised on basic human rights and HIV. [DUPLICATE->202]",
+        "Number of service providers receiving training",
+        "Number of stigma reduction campaigns conducted during the project",
+        "Number of stigma reduction campaigns conducted during the project. [DUPLICATE->20]",
+        "Number of sub recipients mentored per month",
+        "Number of sub recipients mentored per month. [DUPLICATE->251]",
+        "Number of sub-recipients submitting quality reports per months.",
+        "Number of sub-recipients submitting quality reports per months. [DUPLICATE->147]",
+        "Number of target specific demand creation activities conducted"
+      ]
+    },
+    {
+      "org_id": 164,
+      "org_name": "INERELA",
+      "parent": 1,
+      "indicator_count": 33,
+      "indicators": [
+        "HIV PREVENTION MESSAGES",
+        "Number of advocacy activities conducted per quarter",
+        "Number of advocacy activities conducted per quarter. [DUPLICATE->16]",
+        "Number of AYP provided with family planning services",
+        "Number of community leaders sensitised on human rights, stigma and descrimination.",
+        "Number of community leaders sensitised on human rights, stigma and descrimination. [DUPLICATE->208]",
+        "Number of community led monitoring conducted for quality of service and human rights.",
+        "Number of community led monitoring conducted for quality of service and human rights. [DUPLICATE->210]",
+        "Number of CSOs trained and equipped to provide comprehensive psychosocial and practical support, including HIV-related support.",
+        "Number of CSOs trained and equipped to provide comprehensive psychosocial and practical support, including HIV-related support. [DUPLICATE->145]",
+        "Number of healthcare workers trained on medical ethics and human rights.",
+        "Number of healthcare workers trained on medical ethics and human rights. [DUPLICATE->204]",
+        "Number of lubricants distributed",
+        "Number of lubricants distributed [DUPLICATE->196]",
+        "Number of media engagements conducted",
+        "Number of media platforms used  per quarter.",
+        "Number of media platforms used per quarter [DUPLICATE->285]",
+        "Number of people linked to justice services [DUPLICATE->170]",
+        "Number of people linked to justice services.",
+        "Number of people provided with legal aid services [DUPLICATE->168]",
+        "Number of people provided with legal aid services.",
+        "Number of people reached with stigma reduction messages.",
+        "Number of people reached with stigma reduction messages. [DUPLICATE->152]",
+        "Number of people sensitised on basic human rights and HIV.",
+        "Number of people sensitised on basic human rights and HIV. [DUPLICATE->202]",
+        "Number of service providers receiving training",
+        "Number of stigma reduction campaigns conducted during the project",
+        "Number of stigma reduction campaigns conducted during the project. [DUPLICATE->20]",
+        "Number of sub recipients mentored per month",
+        "Number of sub recipients mentored per month. [DUPLICATE->251]",
+        "Number of sub-recipients submitting quality reports per months.",
+        "Number of sub-recipients submitting quality reports per months. [DUPLICATE->147]",
+        "Number of target specific demand creation activities conducted"
+      ]
+    },
+    {
+      "org_id": 154,
+      "org_name": "Mabogo aa Thebana Association South",
+      "parent": 1,
+      "indicator_count": 33,
+      "indicators": [
+        "HIV PREVENTION MESSAGES",
+        "Number of advocacy activities conducted per quarter",
+        "Number of advocacy activities conducted per quarter. [DUPLICATE->16]",
+        "Number of AYP provided with family planning services",
+        "Number of community leaders sensitised on human rights, stigma and descrimination.",
+        "Number of community leaders sensitised on human rights, stigma and descrimination. [DUPLICATE->208]",
+        "Number of community led monitoring conducted for quality of service and human rights.",
+        "Number of community led monitoring conducted for quality of service and human rights. [DUPLICATE->210]",
+        "Number of CSOs trained and equipped to provide comprehensive psychosocial and practical support, including HIV-related support.",
+        "Number of CSOs trained and equipped to provide comprehensive psychosocial and practical support, including HIV-related support. [DUPLICATE->145]",
+        "Number of healthcare workers trained on medical ethics and human rights.",
+        "Number of healthcare workers trained on medical ethics and human rights. [DUPLICATE->204]",
+        "Number of lubricants distributed",
+        "Number of lubricants distributed [DUPLICATE->196]",
+        "Number of media engagements conducted",
+        "Number of media platforms used  per quarter.",
+        "Number of media platforms used per quarter [DUPLICATE->285]",
+        "Number of people linked to justice services [DUPLICATE->170]",
+        "Number of people linked to justice services.",
+        "Number of people provided with legal aid services [DUPLICATE->168]",
+        "Number of people provided with legal aid services.",
+        "Number of people reached with stigma reduction messages.",
+        "Number of people reached with stigma reduction messages. [DUPLICATE->152]",
+        "Number of people sensitised on basic human rights and HIV.",
+        "Number of people sensitised on basic human rights and HIV. [DUPLICATE->202]",
+        "Number of service providers receiving training",
+        "Number of stigma reduction campaigns conducted during the project",
+        "Number of stigma reduction campaigns conducted during the project. [DUPLICATE->20]",
+        "Number of sub recipients mentored per month",
+        "Number of sub recipients mentored per month. [DUPLICATE->251]",
+        "Number of sub-recipients submitting quality reports per months.",
+        "Number of sub-recipients submitting quality reports per months. [DUPLICATE->147]",
+        "Number of target specific demand creation activities conducted"
+      ]
+    },
+    {
+      "org_id": 158,
+      "org_name": "Mind Power",
+      "parent": 1,
+      "indicator_count": 33,
+      "indicators": [
+        "HIV PREVENTION MESSAGES",
+        "Number of advocacy activities conducted per quarter",
+        "Number of advocacy activities conducted per quarter. [DUPLICATE->16]",
+        "Number of AYP provided with family planning services",
+        "Number of community leaders sensitised on human rights, stigma and descrimination.",
+        "Number of community leaders sensitised on human rights, stigma and descrimination. [DUPLICATE->208]",
+        "Number of community led monitoring conducted for quality of service and human rights.",
+        "Number of community led monitoring conducted for quality of service and human rights. [DUPLICATE->210]",
+        "Number of CSOs trained and equipped to provide comprehensive psychosocial and practical support, including HIV-related support.",
+        "Number of CSOs trained and equipped to provide comprehensive psychosocial and practical support, including HIV-related support. [DUPLICATE->145]",
+        "Number of healthcare workers trained on medical ethics and human rights.",
+        "Number of healthcare workers trained on medical ethics and human rights. [DUPLICATE->204]",
+        "Number of lubricants distributed",
+        "Number of lubricants distributed [DUPLICATE->196]",
+        "Number of media engagements conducted",
+        "Number of media platforms used  per quarter.",
+        "Number of media platforms used per quarter [DUPLICATE->285]",
+        "Number of people linked to justice services [DUPLICATE->170]",
+        "Number of people linked to justice services.",
+        "Number of people provided with legal aid services [DUPLICATE->168]",
+        "Number of people provided with legal aid services.",
+        "Number of people reached with stigma reduction messages.",
+        "Number of people reached with stigma reduction messages. [DUPLICATE->152]",
+        "Number of people sensitised on basic human rights and HIV.",
+        "Number of people sensitised on basic human rights and HIV. [DUPLICATE->202]",
+        "Number of service providers receiving training",
+        "Number of stigma reduction campaigns conducted during the project",
+        "Number of stigma reduction campaigns conducted during the project. [DUPLICATE->20]",
+        "Number of sub recipients mentored per month",
+        "Number of sub recipients mentored per month. [DUPLICATE->251]",
+        "Number of sub-recipients submitting quality reports per months.",
+        "Number of sub-recipients submitting quality reports per months. [DUPLICATE->147]",
+        "Number of target specific demand creation activities conducted"
+      ]
+    },
+    {
+      "org_id": 159,
+      "org_name": "Mopipi International Trust",
+      "parent": 1,
+      "indicator_count": 33,
+      "indicators": [
+        "HIV PREVENTION MESSAGES",
+        "Number of advocacy activities conducted per quarter",
+        "Number of advocacy activities conducted per quarter. [DUPLICATE->16]",
+        "Number of AYP provided with family planning services",
+        "Number of community leaders sensitised on human rights, stigma and descrimination.",
+        "Number of community leaders sensitised on human rights, stigma and descrimination. [DUPLICATE->208]",
+        "Number of community led monitoring conducted for quality of service and human rights.",
+        "Number of community led monitoring conducted for quality of service and human rights. [DUPLICATE->210]",
+        "Number of CSOs trained and equipped to provide comprehensive psychosocial and practical support, including HIV-related support.",
+        "Number of CSOs trained and equipped to provide comprehensive psychosocial and practical support, including HIV-related support. [DUPLICATE->145]",
+        "Number of healthcare workers trained on medical ethics and human rights.",
+        "Number of healthcare workers trained on medical ethics and human rights. [DUPLICATE->204]",
+        "Number of lubricants distributed",
+        "Number of lubricants distributed [DUPLICATE->196]",
+        "Number of media engagements conducted",
+        "Number of media platforms used  per quarter.",
+        "Number of media platforms used per quarter [DUPLICATE->285]",
+        "Number of people linked to justice services [DUPLICATE->170]",
+        "Number of people linked to justice services.",
+        "Number of people provided with legal aid services [DUPLICATE->168]",
+        "Number of people provided with legal aid services.",
+        "Number of people reached with stigma reduction messages.",
+        "Number of people reached with stigma reduction messages. [DUPLICATE->152]",
+        "Number of people sensitised on basic human rights and HIV.",
+        "Number of people sensitised on basic human rights and HIV. [DUPLICATE->202]",
+        "Number of service providers receiving training",
+        "Number of stigma reduction campaigns conducted during the project",
+        "Number of stigma reduction campaigns conducted during the project. [DUPLICATE->20]",
+        "Number of sub recipients mentored per month",
+        "Number of sub recipients mentored per month. [DUPLICATE->251]",
+        "Number of sub-recipients submitting quality reports per months.",
+        "Number of sub-recipients submitting quality reports per months. [DUPLICATE->147]",
+        "Number of target specific demand creation activities conducted"
+      ]
+    },
+    {
+      "org_id": 157,
+      "org_name": "Positive Moments",
+      "parent": 1,
+      "indicator_count": 33,
+      "indicators": [
+        "HIV PREVENTION MESSAGES",
+        "Number of advocacy activities conducted per quarter",
+        "Number of advocacy activities conducted per quarter. [DUPLICATE->16]",
+        "Number of AYP provided with family planning services",
+        "Number of community leaders sensitised on human rights, stigma and descrimination.",
+        "Number of community leaders sensitised on human rights, stigma and descrimination. [DUPLICATE->208]",
+        "Number of community led monitoring conducted for quality of service and human rights.",
+        "Number of community led monitoring conducted for quality of service and human rights. [DUPLICATE->210]",
+        "Number of CSOs trained and equipped to provide comprehensive psychosocial and practical support, including HIV-related support.",
+        "Number of CSOs trained and equipped to provide comprehensive psychosocial and practical support, including HIV-related support. [DUPLICATE->145]",
+        "Number of healthcare workers trained on medical ethics and human rights.",
+        "Number of healthcare workers trained on medical ethics and human rights. [DUPLICATE->204]",
+        "Number of lubricants distributed",
+        "Number of lubricants distributed [DUPLICATE->196]",
+        "Number of media engagements conducted",
+        "Number of media platforms used  per quarter.",
+        "Number of media platforms used per quarter [DUPLICATE->285]",
+        "Number of people linked to justice services [DUPLICATE->170]",
+        "Number of people linked to justice services.",
+        "Number of people provided with legal aid services [DUPLICATE->168]",
+        "Number of people provided with legal aid services.",
+        "Number of people reached with stigma reduction messages.",
+        "Number of people reached with stigma reduction messages. [DUPLICATE->152]",
+        "Number of people sensitised on basic human rights and HIV.",
+        "Number of people sensitised on basic human rights and HIV. [DUPLICATE->202]",
+        "Number of service providers receiving training",
+        "Number of stigma reduction campaigns conducted during the project",
+        "Number of stigma reduction campaigns conducted during the project. [DUPLICATE->20]",
+        "Number of sub recipients mentored per month",
+        "Number of sub recipients mentored per month. [DUPLICATE->251]",
+        "Number of sub-recipients submitting quality reports per months.",
+        "Number of sub-recipients submitting quality reports per months. [DUPLICATE->147]",
+        "Number of target specific demand creation activities conducted"
+      ]
+    },
+    {
+      "org_id": 163,
+      "org_name": "Rena le Seabe",
+      "parent": 1,
+      "indicator_count": 33,
+      "indicators": [
+        "HIV PREVENTION MESSAGES",
+        "Number of advocacy activities conducted per quarter",
+        "Number of advocacy activities conducted per quarter. [DUPLICATE->16]",
+        "Number of AYP provided with family planning services",
+        "Number of community leaders sensitised on human rights, stigma and descrimination.",
+        "Number of community leaders sensitised on human rights, stigma and descrimination. [DUPLICATE->208]",
+        "Number of community led monitoring conducted for quality of service and human rights.",
+        "Number of community led monitoring conducted for quality of service and human rights. [DUPLICATE->210]",
+        "Number of CSOs trained and equipped to provide comprehensive psychosocial and practical support, including HIV-related support.",
+        "Number of CSOs trained and equipped to provide comprehensive psychosocial and practical support, including HIV-related support. [DUPLICATE->145]",
+        "Number of healthcare workers trained on medical ethics and human rights.",
+        "Number of healthcare workers trained on medical ethics and human rights. [DUPLICATE->204]",
+        "Number of lubricants distributed",
+        "Number of lubricants distributed [DUPLICATE->196]",
+        "Number of media engagements conducted",
+        "Number of media platforms used  per quarter.",
+        "Number of media platforms used per quarter [DUPLICATE->285]",
+        "Number of people linked to justice services [DUPLICATE->170]",
+        "Number of people linked to justice services.",
+        "Number of people provided with legal aid services [DUPLICATE->168]",
+        "Number of people provided with legal aid services.",
+        "Number of people reached with stigma reduction messages.",
+        "Number of people reached with stigma reduction messages. [DUPLICATE->152]",
+        "Number of people sensitised on basic human rights and HIV.",
+        "Number of people sensitised on basic human rights and HIV. [DUPLICATE->202]",
+        "Number of service providers receiving training",
+        "Number of stigma reduction campaigns conducted during the project",
+        "Number of stigma reduction campaigns conducted during the project. [DUPLICATE->20]",
+        "Number of sub recipients mentored per month",
+        "Number of sub recipients mentored per month. [DUPLICATE->251]",
+        "Number of sub-recipients submitting quality reports per months.",
+        "Number of sub-recipients submitting quality reports per months. [DUPLICATE->147]",
+        "Number of target specific demand creation activities conducted"
+      ]
+    },
+    {
+      "org_id": 150,
+      "org_name": "Sentebale",
+      "parent": 1,
+      "indicator_count": 33,
+      "indicators": [
+        "HIV PREVENTION MESSAGES",
+        "Number of advocacy activities conducted per quarter",
+        "Number of advocacy activities conducted per quarter. [DUPLICATE->16]",
+        "Number of AYP provided with family planning services",
+        "Number of community leaders sensitised on human rights, stigma and descrimination.",
+        "Number of community leaders sensitised on human rights, stigma and descrimination. [DUPLICATE->208]",
+        "Number of community led monitoring conducted for quality of service and human rights.",
+        "Number of community led monitoring conducted for quality of service and human rights. [DUPLICATE->210]",
+        "Number of CSOs trained and equipped to provide comprehensive psychosocial and practical support, including HIV-related support.",
+        "Number of CSOs trained and equipped to provide comprehensive psychosocial and practical support, including HIV-related support. [DUPLICATE->145]",
+        "Number of healthcare workers trained on medical ethics and human rights.",
+        "Number of healthcare workers trained on medical ethics and human rights. [DUPLICATE->204]",
+        "Number of lubricants distributed",
+        "Number of lubricants distributed [DUPLICATE->196]",
+        "Number of media engagements conducted",
+        "Number of media platforms used  per quarter.",
+        "Number of media platforms used per quarter [DUPLICATE->285]",
+        "Number of people linked to justice services [DUPLICATE->170]",
+        "Number of people linked to justice services.",
+        "Number of people provided with legal aid services [DUPLICATE->168]",
+        "Number of people provided with legal aid services.",
+        "Number of people reached with stigma reduction messages.",
+        "Number of people reached with stigma reduction messages. [DUPLICATE->152]",
+        "Number of people sensitised on basic human rights and HIV.",
+        "Number of people sensitised on basic human rights and HIV. [DUPLICATE->202]",
+        "Number of service providers receiving training",
+        "Number of stigma reduction campaigns conducted during the project",
+        "Number of stigma reduction campaigns conducted during the project. [DUPLICATE->20]",
+        "Number of sub recipients mentored per month",
+        "Number of sub recipients mentored per month. [DUPLICATE->251]",
+        "Number of sub-recipients submitting quality reports per months.",
+        "Number of sub-recipients submitting quality reports per months. [DUPLICATE->147]",
+        "Number of target specific demand creation activities conducted"
+      ]
+    },
+    {
+      "org_id": 152,
+      "org_name": "Stepping Stone International",
+      "parent": 1,
+      "indicator_count": 33,
+      "indicators": [
+        "HIV PREVENTION MESSAGES",
+        "Number of advocacy activities conducted per quarter",
+        "Number of advocacy activities conducted per quarter. [DUPLICATE->16]",
+        "Number of AYP provided with family planning services",
+        "Number of community leaders sensitised on human rights, stigma and descrimination.",
+        "Number of community leaders sensitised on human rights, stigma and descrimination. [DUPLICATE->208]",
+        "Number of community led monitoring conducted for quality of service and human rights.",
+        "Number of community led monitoring conducted for quality of service and human rights. [DUPLICATE->210]",
+        "Number of CSOs trained and equipped to provide comprehensive psychosocial and practical support, including HIV-related support.",
+        "Number of CSOs trained and equipped to provide comprehensive psychosocial and practical support, including HIV-related support. [DUPLICATE->145]",
+        "Number of healthcare workers trained on medical ethics and human rights.",
+        "Number of healthcare workers trained on medical ethics and human rights. [DUPLICATE->204]",
+        "Number of lubricants distributed",
+        "Number of lubricants distributed [DUPLICATE->196]",
+        "Number of media engagements conducted",
+        "Number of media platforms used  per quarter.",
+        "Number of media platforms used per quarter [DUPLICATE->285]",
+        "Number of people linked to justice services [DUPLICATE->170]",
+        "Number of people linked to justice services.",
+        "Number of people provided with legal aid services [DUPLICATE->168]",
+        "Number of people provided with legal aid services.",
+        "Number of people reached with stigma reduction messages.",
+        "Number of people reached with stigma reduction messages. [DUPLICATE->152]",
+        "Number of people sensitised on basic human rights and HIV.",
+        "Number of people sensitised on basic human rights and HIV. [DUPLICATE->202]",
+        "Number of service providers receiving training",
+        "Number of stigma reduction campaigns conducted during the project",
+        "Number of stigma reduction campaigns conducted during the project. [DUPLICATE->20]",
+        "Number of sub recipients mentored per month",
+        "Number of sub recipients mentored per month. [DUPLICATE->251]",
+        "Number of sub-recipients submitting quality reports per months.",
+        "Number of sub-recipients submitting quality reports per months. [DUPLICATE->147]",
+        "Number of target specific demand creation activities conducted"
+      ]
+    },
+    {
+      "org_id": 14,
+      "org_name": "Ovajhu",
+      "parent": 1,
+      "indicator_count": 29,
+      "indicators": [
+        "HIV PREVENTION MESSAGES",
+        "Number of advocacy activities conducted per quarter",
+        "Number of AYP provided with family planning services",
+        "Number of community leaders sensitised on human rights, stigma and descrimination.",
+        "Number of community led monitoring conducted for quality of service and human rights.",
+        "Number of CSOs trained and equipped to provide comprehensive psychosocial and practical support, including HIV-related support.",
+        "Number of healthcare workers trained on medical ethics and human rights.",
+        "Number of lubricants distributed",
+        "Number of media engagements conducted",
+        "Number of media platforms used  per quarter.",
+        "Number of media platforms used per quarter [DUPLICATE->285]",
+        "Number of people linked to justice services.",
+        "Number of people provided with legal aid services.",
+        "Number of people reached with stigma reduction messages.",
+        "Number of people sensitised on basic human rights and HIV.",
+        "Number of service providers receiving training",
+        "Number of stigma reduction campaigns conducted during the project",
+        "Number of sub recipients mentored per month",
+        "Number of sub-recipients submitting quality reports per months.",
+        "Number of target specific demand creation activities conducted",
+        "Total Number of People Reached with  PEP Messages",
+        "Total Number of People Reached with ARV Based Prevention Messages",
+        "Total Number of People Reached with Condom Use Messages",
+        "Total Number of People Reached with EMTCT Messages",
+        "Total Number of People Reached with GBV Messages",
+        "Total Number of People Reached with HIV Messages",
+        "Total Number of people Reached with HIV TESTING Messages",
+        "Total Number of People Reached with HIV Treatment Messages",
+        "Total Number of people Reached with PREP Messages"
+      ]
+    },
+    {
+      "org_id": 161,
+      "org_name": "Inspired Horizons",
+      "parent": 1,
+      "indicator_count": 19,
+      "indicators": [
+        "HIV PREVENTION MESSAGES",
+        "Number of advocacy activities conducted per quarter",
+        "Number of AYP provided with family planning services",
+        "Number of community leaders sensitised on human rights, stigma and descrimination.",
+        "Number of community led monitoring conducted for quality of service and human rights.",
+        "Number of CSOs trained and equipped to provide comprehensive psychosocial and practical support, including HIV-related support.",
+        "Number of healthcare workers trained on medical ethics and human rights.",
+        "Number of lubricants distributed",
+        "Number of media engagements conducted",
+        "Number of media platforms used  per quarter.",
+        "Number of people linked to justice services.",
+        "Number of people provided with legal aid services.",
+        "Number of people reached with stigma reduction messages.",
+        "Number of people sensitised on basic human rights and HIV.",
+        "Number of service providers receiving training",
+        "Number of stigma reduction campaigns conducted during the project",
+        "Number of sub recipients mentored per month",
+        "Number of sub-recipients submitting quality reports per months.",
+        "Number of target specific demand creation activities conducted"
+      ]
+    },
+    {
+      "org_id": 155,
+      "org_name": "Ovajhuha",
+      "parent": 1,
+      "indicator_count": 19,
+      "indicators": [
+        "HIV PREVENTION MESSAGES",
+        "Number of advocacy activities conducted per quarter",
+        "Number of AYP provided with family planning services",
+        "Number of community leaders sensitised on human rights, stigma and descrimination.",
+        "Number of community led monitoring conducted for quality of service and human rights.",
+        "Number of CSOs trained and equipped to provide comprehensive psychosocial and practical support, including HIV-related support.",
+        "Number of healthcare workers trained on medical ethics and human rights.",
+        "Number of lubricants distributed",
+        "Number of media engagements conducted",
+        "Number of media platforms used  per quarter.",
+        "Number of people linked to justice services.",
+        "Number of people provided with legal aid services.",
+        "Number of people reached with stigma reduction messages.",
+        "Number of people sensitised on basic human rights and HIV.",
+        "Number of service providers receiving training",
+        "Number of stigma reduction campaigns conducted during the project",
+        "Number of sub recipients mentored per month",
+        "Number of sub-recipients submitting quality reports per months.",
+        "Number of target specific demand creation activities conducted"
+      ]
+    },
+    {
+      "org_id": 165,
+      "org_name": "Tebelopele testing centres",
+      "parent": 1,
+      "indicator_count": 19,
+      "indicators": [
+        "HIV PREVENTION MESSAGES",
+        "Number of advocacy activities conducted per quarter",
+        "Number of AYP provided with family planning services",
+        "Number of community leaders sensitised on human rights, stigma and descrimination.",
+        "Number of community led monitoring conducted for quality of service and human rights.",
+        "Number of CSOs trained and equipped to provide comprehensive psychosocial and practical support, including HIV-related support.",
+        "Number of healthcare workers trained on medical ethics and human rights.",
+        "Number of lubricants distributed",
+        "Number of media engagements conducted",
+        "Number of media platforms used  per quarter.",
+        "Number of people linked to justice services.",
+        "Number of people provided with legal aid services.",
+        "Number of people reached with stigma reduction messages.",
+        "Number of people sensitised on basic human rights and HIV.",
+        "Number of service providers receiving training",
+        "Number of stigma reduction campaigns conducted during the project",
+        "Number of sub recipients mentored per month",
+        "Number of sub-recipients submitting quality reports per months.",
+        "Number of target specific demand creation activities conducted"
+      ]
+    }
+  ]
+}

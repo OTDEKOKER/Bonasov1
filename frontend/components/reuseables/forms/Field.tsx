@@ -96,6 +96,21 @@ export function Field({
     onChange: (value: unknown) => void
     onBlur: () => void
   }) => {
+    const normalizedOptions = options.map((option) => ({
+      ...option,
+      value: option.value,
+      label: option.label,
+    }))
+    const normalizedMultiIntOptions = options
+      .map((option) => {
+        const idValue = option.id ?? Number(option.value)
+        if (!Number.isFinite(idValue)) return null
+        return {
+          id: Number(idValue),
+          name: option.name || option.label,
+        }
+      })
+      .filter((option): option is { id: number; name: string } => Boolean(option))
     const commonProps = {
       name,
       label,
@@ -110,11 +125,12 @@ export function Field({
         return (
           <Select
             {...commonProps}
-            options={options}
+            value={(field.value as string | number | undefined) ?? undefined}
+            options={normalizedOptions}
             valueField={valueField}
             labelField={labelField}
             search={search}
-            searchCallback={searchCallback}
+            searchCallback={searchCallback as ((query: string) => Promise<Array<{ value: string | number; label: string }>>) | undefined}
             placeholder={placeholder}
           />
         )
@@ -132,7 +148,7 @@ export function Field({
         return (
           <MultiCheckbox
             {...commonProps}
-            options={options}
+            options={normalizedOptions}
             value={field.value as (string | number)[]}
             onChange={(v) => field.onChange(v)}
             valueField={valueField}
@@ -144,8 +160,8 @@ export function Field({
         return (
           <RadioButtons
             {...commonProps}
-            options={options}
-            value={field.value}
+            options={normalizedOptions}
+            value={(field.value as string | number | undefined) ?? undefined}
             onChange={(v) => field.onChange(v)}
             valueField={valueField}
             labelField={labelField}
@@ -156,7 +172,7 @@ export function Field({
         return (
           <MultiInt
             {...commonProps}
-            options={options}
+            options={normalizedMultiIntOptions}
             value={field.value as { value: number | null; option: number }[]}
             onChange={(v) => field.onChange(v)}
           />
@@ -166,10 +182,10 @@ export function Field({
         return (
           <ImageSelect
             {...commonProps}
-            options={options}
+            options={normalizedOptions}
             images={images || []}
             multiple={multiple}
-            value={field.value}
+            value={(field.value as string | number | (string | number)[] | undefined) ?? undefined}
             onChange={(v) => field.onChange(v)}
           />
         )
@@ -182,6 +198,7 @@ export function Field({
         return (
           <ModelSelect
             {...commonProps}
+            value={(field.value as Record<string, unknown> | null | undefined) ?? null}
             IndexComponent={IndexComponent}
             blacklist={blacklist}
             callbackText={placeholder || `Choose ${label}`}
@@ -197,6 +214,7 @@ export function Field({
         return (
           <ModelMultiSelect
             {...commonProps}
+            value={(Array.isArray(field.value) ? field.value : []) as Record<string, unknown>[]}
             IndexComponent={IndexComponent}
             blacklist={blacklist}
             callbackText={placeholder || `Add ${label}`}

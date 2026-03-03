@@ -1,8 +1,9 @@
 ﻿"use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Plus, UserSquare2, User, Loader2 } from "lucide-react";
+import { Plus, UserSquare2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -222,7 +223,7 @@ export default function RespondentsPage() {
         actions={
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" asChild>
-              <a href="/respondents/interactions">View Interactions</a>
+              <Link href="/respondents/interactions">View Interactions</Link>
             </Button>
             <Button onClick={() => setIsCreateOpen(true)}>
               <Plus className="mr-2 h-4 w-4" />
@@ -319,7 +320,7 @@ export default function RespondentsPage() {
 
       {/* Create Dialog */}
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent className="w-[95vw] sm:max-w-lg">
+        <DialogContent className="w-[95vw] sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Register Respondent</DialogTitle>
             <DialogDescription>Add a new respondent to the system</DialogDescription>

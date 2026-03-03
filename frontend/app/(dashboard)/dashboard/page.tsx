@@ -12,7 +12,7 @@ import Link from "next/link"
 export default function DashboardPage() {
   const { data: rawStats, isLoading: statsLoading, error: statsError } = useDashboardStats()
   const { data: projectsData, isLoading: projectsLoading } = useProjects({ status: 'active' })
-  const { data: deadlinesData, isLoading: deadlinesLoading } = useDeadlines({ status: 'pending' })
+  const { data: deadlinesData, isLoading: deadlinesLoading } = useDeadlines({ upcoming: 'true' })
 
   const isLoading = statsLoading || projectsLoading || deadlinesLoading
   const activeProjects = projectsData?.results || []
@@ -26,8 +26,8 @@ export default function DashboardPage() {
     pendingFlags: (rawStats.indicators_behind || 0),
     monthlyTrend: [],
     indicatorProgress: [],
-    recentActivity: (rawStats.recent_activity || []).map((a: { type: string; description: string; timestamp: string }) => ({
-      id: Math.random().toString(),
+    recentActivity: (rawStats.recent_activity || []).map((a: { type: string; description: string; timestamp: string }, index: number) => ({
+      id: `${a.timestamp}-${a.type}-${index}`,
       type: a.type,
       description: a.description,
       user: "System",

@@ -1,13 +1,12 @@
 ﻿"use client";
 
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import { PageHeader } from "@/components/shared/page-header";
 import { OrganizationSelect } from "@/components/shared/organization-select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -25,40 +24,46 @@ import {
   Shield,
   Database,
   Palette,
-  Globe,
-  Key,
   Mail,
   Save,
   Upload,
 } from "lucide-react";
 import { useAuth } from "@/lib/contexts/auth-context";
 import { useAllOrganizations } from "@/lib/hooks/use-api";
-import { usersService } from "@/lib/api";
-import { useToast } from "@/hooks/use-toast";
+
+type UserProfileSource = {
+  firstName?: string;
+  first_name?: string;
+  lastName?: string;
+  last_name?: string;
+  email?: string;
+  phone?: string;
+  role?: string;
+  organizationId?: string | number;
+  organization?: string | number;
+};
 
 export default function SettingsPage() {
-  const { user, refreshUser } = useAuth();
-  const { toast } = useToast();
+  const { user } = useAuth();
   const { data: orgsData } = useAllOrganizations();
   const organizations = orgsData?.results || [];
-  const [isSavingProfile, setIsSavingProfile] = useState(false);
-  const [profile, setProfile] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    role: "",
-    organizationId: "",
-  });
+  const userProfile = useMemo(() => {
+    const source = (user ?? {}) as UserProfileSource;
+    return {
+      firstName: source.firstName || source.first_name || "",
+      lastName: source.lastName || source.last_name || "",
+      email: source.email || "",
+      phone: source.phone || "",
+      role: source.role || "",
+      organizationId: String(source.organizationId ?? source.organization ?? ""),
+    };
+  }, [user]);
 
-  const [notifications, setNotifications] = useState({
-    emailAlerts: true,
-    taskReminders: true,
-    dataQualityAlerts: true,
-    reportReady: true,
-    weeklyDigest: false,
-    projectUpdates: true,
-  });
+  const [profileOverrides, setProfileOverrides] = useState<Partial<typeof userProfile>>({});
+  const profile = {
+    ...userProfile,
+    ...profileOverrides,
+  };
 
   const [preferences, setPreferences] = useState({
     language: "en",
@@ -67,47 +72,12 @@ export default function SettingsPage() {
     defaultProject: "all",
   });
 
-  useEffect(() => {
-    if (!user) return;
-    setProfile({
-      firstName: (user as any)?.firstName || (user as any)?.first_name || "",
-      lastName: (user as any)?.lastName || (user as any)?.last_name || "",
-      email: (user as any)?.email || "",
-      phone: (user as any)?.phone || "",
-      role: (user as any)?.role || "",
-      organizationId: String((user as any)?.organizationId ?? (user as any)?.organization ?? ""),
-    });
-  }, [user]);
-
-  const handleSaveProfile = async () => {
-    if (!user) return;
-    setIsSavingProfile(true);
-    try {
-      await usersService.update(Number(user.id), {
-        first_name: profile.firstName || undefined,
-        last_name: profile.lastName || undefined,
-        email: profile.email || undefined,
-        role: profile.role ? (profile.role as any) : undefined,
-        organization: profile.organizationId ? Number(profile.organizationId) : undefined,
-      });
-      toast({
-        title: "Profile updated",
-        description: "Your profile information has been saved.",
-      });
-      await refreshUser();
-    } catch (err: any) {
-      toast({
-        title: "Error",
-        description: err?.message || "Failed to update profile.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSavingProfile(false);
-    }
+  const setProfileField = <K extends keyof typeof userProfile>(key: K, value: (typeof userProfile)[K]) => {
+    setProfileOverrides((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
   };
-
-  const currentOrgName =
-    organizations.find((org) => String(org.id) === profile.organizationId)?.name || "â€”";
 
   return (
     <div className="space-y-6">
@@ -176,7 +146,7 @@ export default function SettingsPage() {
                   <Input
                     id="firstName"
                     value={profile.firstName}
-                    onChange={(e) => setProfile({ ...profile, firstName: e.target.value })}
+                    onChange={(e) => setProfileField("firstName", e.target.value)}
                     className="bg-input border-border text-foreground"
                   />
                 </div>
@@ -185,7 +155,7 @@ export default function SettingsPage() {
                   <Input
                     id="lastName"
                     value={profile.lastName}
-                    onChange={(e) => setProfile({ ...profile, lastName: e.target.value })}
+                    onChange={(e) => setProfileField("lastName", e.target.value)}
                     className="bg-input border-border text-foreground"
                   />
                 </div>
@@ -195,7 +165,7 @@ export default function SettingsPage() {
                     id="email"
                     type="email"
                     value={profile.email}
-                    onChange={(e) => setProfile({ ...profile, email: e.target.value })}
+                    onChange={(e) => setProfileField("email", e.target.value)}
                     className="bg-input border-border text-foreground"
                   />
                 </div>
@@ -204,7 +174,7 @@ export default function SettingsPage() {
                   <Input
                     id="phone"
                     value={profile.phone}
-                    onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
+                    onChange={(e) => setProfileField("phone", e.target.value)}
                     className="bg-input border-border text-foreground"
                   />
                 </div>
@@ -227,7 +197,7 @@ export default function SettingsPage() {
                 <OrganizationSelect
                   organizations={organizations}
                   value={profile.organizationId}
-                  onChange={(value) => setProfile({ ...profile, organizationId: value })}
+                  onChange={(value) => setProfileField("organizationId", value)}
                   includeAll
                   allLabel="All organizations"
                   placeholder="Select organization"

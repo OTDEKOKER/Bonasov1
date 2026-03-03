@@ -31,6 +31,13 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
+import {
+  addGroupToCatalog,
+  getGroupCatalog,
+  getUserGroupsForUser,
+  removeGroupFromCatalog,
+  setUserGroupsForUser,
+} from "@/lib/user-groups"
 
 const roleColors: Record<string, string> = {
   admin: "bg-chart-5/10 text-chart-5",
@@ -66,6 +73,8 @@ export default function UsersPage() {
   const [resetPassword, setResetPassword] = useState("")
   const [resetPasswordConfirm, setResetPasswordConfirm] = useState("")
   const [isResetting, setIsResetting] = useState(false)
+  const [groupCatalog, setGroupCatalog] = useState<string[]>(() => getGroupCatalog())
+  const [newGroupName, setNewGroupName] = useState("")
   const [formData, setFormData] = useState({
     username: "",
     firstName: "",
@@ -76,6 +85,7 @@ export default function UsersPage() {
     password: "",
     passwordConfirm: "",
     permissions: [] as string[],
+    groups: [] as string[],
   })
 
   const users = usersData?.results || []
@@ -116,6 +126,25 @@ export default function UsersPage() {
           {roleLabels[user.role] || user.role}
         </Badge>
       ),
+    },
+    {
+      key: "groups",
+      label: "Groups",
+      render: (user: User) => {
+        const groups = getUserGroupsForUser(user.id)
+        if (groups.length === 0) {
+          return <span className="text-sm text-muted-foreground">—</span>
+        }
+        return (
+          <div className="flex flex-wrap gap-1">
+            {groups.map((group) => (
+              <Badge key={`${user.id}-${group}`} variant="outline" className="text-[10px]">
+                {group}
+              </Badge>
+            ))}
+          </div>
+        )
+      },
     },
     {
       key: "organizationId",
@@ -172,7 +201,7 @@ export default function UsersPage() {
 
     setIsSubmitting(true)
     try {
-      await usersService.create({
+      const createdUser = await usersService.create({
         username: formData.username,
         first_name: formData.firstName,
         last_name: formData.lastName,
@@ -185,6 +214,9 @@ export default function UsersPage() {
         password_confirm: formData.passwordConfirm,
         permissions: formData.permissions,
       })
+      if (createdUser?.id) {
+        setUserGroupsForUser(createdUser.id, formData.groups)
+      }
       toast({
         title: "Success",
         description: "User created successfully",
@@ -200,14 +232,16 @@ export default function UsersPage() {
         password: "",
         passwordConfirm: "",
         permissions: [],
+        groups: [],
       })
       mutate()
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.warn("Create user failed", err)
+      const errorObject = err && typeof err === "object" ? (err as { message?: string; errors?: unknown }) : null
       const errorMessage =
-        err?.errors
-          ? JSON.stringify(err.errors)
-          : err?.message || "Failed to create user"
+        errorObject?.errors
+          ? JSON.stringify(errorObject.errors)
+          : errorObject?.message || "Failed to create user"
       toast({
         title: "Error",
         description: errorMessage,
@@ -245,7 +279,7 @@ export default function UsersPage() {
     }
     setIsResetting(true)
     try {
-      await usersService.adminResetPassword(resetUser.id, resetPassword)
+      await usersService.adminResetPassword(Number(resetUser.id), resetPassword)
       toast({
         title: "Success",
         description: "Password reset successfully.",
@@ -266,7 +300,7 @@ export default function UsersPage() {
     if (!confirm(`Are you sure you want to deactivate ${user.firstName} ${user.lastName}?`)) return
 
     try {
-      await usersService.deactivate(user.id)
+      await usersService.deactivate(Number(user.id))
       toast({
         title: "Success",
         description: "User deactivated successfully",
@@ -284,7 +318,7 @@ export default function UsersPage() {
   const handleActivate = async (user: User) => {
     if (!confirm(`Activate ${user.firstName} ${user.lastName}?`)) return
     try {
-      await usersService.activate(user.id)
+      await usersService.activate(Number(user.id))
       toast({
         title: "Success",
         description: "User activated successfully",
@@ -302,7 +336,9 @@ export default function UsersPage() {
   const actions = (user: User) => [
     { label: "Edit", onClick: () => router.push(`/users/${user.id}/edit`) },
     { label: "Reset Password", onClick: () => handleResetPassword(user) },
-    user.is_active
+    (user as User & { is_active?: boolean; isActive?: boolean }).is_active ??
+      (user as User & { is_active?: boolean; isActive?: boolean }).isActive ??
+      true
       ? { label: "Deactivate", onClick: () => handleDeactivate(user), destructive: true }
       : { label: "Activate", onClick: () => handleActivate(user) },
   ]
@@ -329,6 +365,21 @@ export default function UsersPage() {
     u => u.role === 'officer' || u.role === 'manager' || u.role === 'collector'
   ).length
   const clientCount = users.filter(u => u.role === 'client').length
+
+  const handleAddGroup = () => {
+    const next = newGroupName.trim()
+    if (!next) return
+    setGroupCatalog(addGroupToCatalog(next))
+    setNewGroupName("")
+  }
+
+  const handleRemoveGroup = (groupName: string) => {
+    setGroupCatalog(removeGroupFromCatalog(groupName))
+    setFormData((prev) => ({
+      ...prev,
+      groups: prev.groups.filter((group) => group.toLowerCase() !== groupName.toLowerCase()),
+    }))
+  }
 
   return (
     <div className="space-y-6">
@@ -367,6 +418,33 @@ export default function UsersPage() {
         </div>
       </div>
 
+      <div className="rounded-lg border border-border bg-card p-4 space-y-3">
+        <p className="text-sm font-medium">User Groups</p>
+        <div className="flex flex-wrap gap-2">
+          {groupCatalog.map((group) => (
+            <Badge key={group} variant="secondary" className="cursor-pointer" onClick={() => handleRemoveGroup(group)}>
+              {group} ×
+            </Badge>
+          ))}
+        </div>
+        <div className="flex gap-2">
+          <Input
+            placeholder="Add group (e.g. Coordinators)"
+            value={newGroupName}
+            onChange={(event) => setNewGroupName(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                event.preventDefault()
+                handleAddGroup()
+              }
+            }}
+          />
+          <Button type="button" variant="outline" onClick={handleAddGroup}>
+            Add Group
+          </Button>
+        </div>
+      </div>
+
       <DataTable
         data={users}
         columns={columns}
@@ -378,7 +456,7 @@ export default function UsersPage() {
 
       {/* Create Dialog */}
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent className="w-[95vw] sm:max-w-lg max-h-[90vh] overflow-hidden">
+        <DialogContent className="w-[95vw] sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Add User</DialogTitle>
             <DialogDescription>
@@ -471,6 +549,28 @@ export default function UsersPage() {
                 </SelectContent>
               </Select>
             </div>
+            <div className="space-y-2">
+              <Label>User Groups</Label>
+              <div className="grid gap-2 sm:grid-cols-2 rounded-md border border-border p-3">
+                {groupCatalog.map((group) => (
+                  <label key={group} className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={formData.groups.includes(group)}
+                      onChange={(event) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          groups: event.target.checked
+                            ? [...prev.groups, group]
+                            : prev.groups.filter((entry) => entry !== group),
+                        }))
+                      }
+                    />
+                    <span>{group}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
             <UserPermissionsManager
               availablePermissions={availablePermissions}
               value={formData.permissions}
@@ -507,7 +607,7 @@ export default function UsersPage() {
       </Dialog>
 
       <Dialog open={isResetOpen} onOpenChange={setIsResetOpen}>
-        <DialogContent className="w-[95vw] sm:max-w-md">
+        <DialogContent className="w-[95vw] sm:max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Reset Password</DialogTitle>
             <DialogDescription>

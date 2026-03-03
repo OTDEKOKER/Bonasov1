@@ -21,6 +21,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   Select,
   SelectContent,
@@ -54,6 +55,17 @@ const typeIcons: Record<string, typeof Target> = {
   multi_int: FileText,
 }
 
+const disaggregateGroupOptions = [
+  "Sex",
+  "Age Range",
+  "KP",
+  "Family Planning",
+  "Community Leaders",
+  "Non Traditional Sites",
+  "Social Media Platform",
+  "NCD Screening",
+]
+
 export default function IndicatorsPage() {
   const router = useRouter()
   const { toast } = useToast()
@@ -70,7 +82,21 @@ export default function IndicatorsPage() {
     type: "",
     unit: "",
     options: "",
+    sub_labels: [] as string[],
   })
+
+  const toggleDisaggregate = (value: string, checked: boolean) => {
+    setFormData((prev) => {
+      const next = checked
+        ? Array.from(new Set([...prev.sub_labels, value]))
+        : prev.sub_labels.filter((item) => item !== value)
+
+      return {
+        ...prev,
+        sub_labels: next,
+      }
+    })
+  }
 
   const indicators = indicatorsData || []
   const assessments = assessmentsData?.results || []
@@ -163,6 +189,7 @@ export default function IndicatorsPage() {
         options: formData.options
           ? formData.options.split(",").map((opt) => opt.trim()).filter(Boolean)
           : undefined,
+        sub_labels: formData.sub_labels.length ? formData.sub_labels : undefined,
       })
       toast({
         title: "Success",
@@ -177,6 +204,7 @@ export default function IndicatorsPage() {
         type: "",
         unit: "",
         options: "",
+        sub_labels: [],
       })
       mutate()
     } catch {
@@ -194,7 +222,7 @@ export default function IndicatorsPage() {
     if (!confirm(`Are you sure you want to delete "${indicator.name}"?`)) return
 
     try {
-      await indicatorsService.delete(indicator.id)
+      await indicatorsService.delete(Number(indicator.id))
       toast({
         title: "Success",
         description: "Indicator deleted successfully",
@@ -301,7 +329,7 @@ export default function IndicatorsPage() {
 
       {/* Create Dialog */}
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent className="w-[95vw] sm:max-w-lg">
+        <DialogContent className="w-[95vw] sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Create Indicator</DialogTitle>
             <DialogDescription>
@@ -402,6 +430,27 @@ export default function IndicatorsPage() {
                   value={formData.options}
                   onChange={(e) => setFormData({ ...formData, options: e.target.value })}
                 />
+              </div>
+            </div>
+            <div className="space-y-3">
+              <Label>Disaggregate groups for aggregate data</Label>
+              <div className="grid max-h-44 gap-2 overflow-y-auto rounded-md border border-border p-3 sm:grid-cols-2">
+                {disaggregateGroupOptions.map((group) => {
+                  const id = `disaggregate-group-${group.replace(/[^a-zA-Z0-9]+/g, "-").toLowerCase()}`
+                  const checked = formData.sub_labels.includes(group)
+                  return (
+                    <div key={group} className="flex items-center gap-2">
+                      <Checkbox
+                        id={id}
+                        checked={checked}
+                        onCheckedChange={(value) => toggleDisaggregate(group, Boolean(value))}
+                      />
+                      <Label htmlFor={id} className="text-sm font-normal">
+                        {group}
+                      </Label>
+                    </div>
+                  )
+                })}
               </div>
             </div>
             <DialogFooter>

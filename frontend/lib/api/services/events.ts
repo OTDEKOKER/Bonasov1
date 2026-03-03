@@ -73,7 +73,7 @@ export interface CreatePhaseRequest {
   due_date?: string;
 }
 
-export interface UpdatePhaseRequest extends Partial<CreatePhaseRequest> {}
+export type UpdatePhaseRequest = Partial<CreatePhaseRequest>
 
 // ============================================================================
 // Events Service

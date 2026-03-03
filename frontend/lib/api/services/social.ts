@@ -35,7 +35,7 @@ export interface CreateSocialPostRequest {
   shares?: number;
 }
 
-export interface UpdateSocialPostRequest extends Partial<CreateSocialPostRequest> {}
+export type UpdateSocialPostRequest = Partial<CreateSocialPostRequest>
 
 // ============================================================================
 // Social Posts

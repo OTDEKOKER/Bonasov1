@@ -1,0 +1,6984 @@
+{
+  "generatedAt": "2026-03-02T14:27:46.428Z",
+  "sourceIndicators": 94,
+  "cleanedIndicators": 91,
+  "profileCounts": {
+    "age_sex_matrix_non_kp": 7,
+    "kp_age_sex_matrix": 77,
+    "single_total": 6,
+    "category_or_cadre_breakdown": 1
+  },
+  "indicators": [
+    {
+      "indicatorName": "Number of advocacy activities conducted per quarter.",
+      "codeSamples": [
+        "21",
+        "18",
+        "41",
+        "17"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [],
+        "keyPopOrTargetGroup": [],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "0"
+        ]
+      },
+      "organizations": [
+        "AUGUST 2025",
+        "BOFWA",
+        "BONELA",
+        "BONEPWA+",
+        "BORNUS",
+        "BOTSWANA ASSOCIATION FOR THE BL",
+        "BOTSWANA ASSOCIATION OF THE DEA",
+        "BOTSWANA COUNCIL OF THE DISABLE",
+        "BOTSWANA SOCIETY FOR THE DISABL",
+        "BOTSWANA TRANS INITIATIVE",
+        "Bobonong Home Based Care",
+        "Botswana Bailor Childrens",
+        "CAPTIVE EYE ORG.",
+        "Cynthia's Child Care Trust",
+        "DECEMBER",
+        "DECEMBER 2025",
+        "Diphalana",
+        "FEBRUARY 2026",
+        "Ghantsi Support Group",
+        "Gumare Advisory",
+        "Hope Worldwide",
+        "House of Angels",
+        "INERELA",
+        "Incredible Minds",
+        "Inspired Hozirons",
+        "JANUARY 2026",
+        "LESBIANS, GAYS & BISEXUALS OF B",
+        "Lapologang",
+        "MADIKWE COMMUNITY TRUST",
+        "MARCH 2026",
+        "MEN FOR HEALTH & GENDER JUSTICE",
+        "MWATUMWAYA REHABILITATION CENTR",
+        "Mabogo aa Thebana Association S",
+        "Mind Power",
+        "Mopipi International Trust",
+        "Motheo",
+        "NKAIKELA YOUTH GROUP",
+        "NOVEMBER",
+        "NOVEMBER 2025",
+        "OCTOBER",
+        "OCTOBER 2025",
+        "Ovajua",
+        "Palapye",
+        "Positive Moments",
+        "Rena le Seabe",
+        "SENTEBALE",
+        "SEPTEMBER 2025",
+        "SILENCE KILLS SUPPORT GROUP",
+        "SISONKE",
+        "Social Dialogue",
+        "Stepping Stone International",
+        "TEBELOPELE",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "age_sex_matrix_non_kp",
+        "notes": [
+          "Matrix reporting detected",
+          "Use age + sex matrix without requiring key population"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 0,
+          "keyPopOrTargetGroup": 0,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 1
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of ART defaulters (14-89 days) followed",
+      "codeSamples": [
+        "7e"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "LGBTQI+",
+          "MSM",
+          "PWD",
+          "PWIDs"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BONEPWA+",
+        "BORNUS",
+        "Botswana Bailor Childrens",
+        "Cynthia's Child Care Trust",
+        "Diphalana",
+        "Ghantsi Support Group",
+        "Incredible Minds",
+        "Lapologang",
+        "Motheo",
+        "Palapye",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of ART defaulters (14-89 days) given by facility for tracing",
+      "codeSamples": [
+        "7d"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "LGBTQI+",
+          "MSM",
+          "PWD",
+          "PWIDs"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BONEPWA+",
+        "BORNUS",
+        "Botswana Bailor Childrens",
+        "Cynthia's Child Care Trust",
+        "Diphalana",
+        "Ghantsi Support Group",
+        "Incredible Minds",
+        "Lapologang",
+        "Motheo",
+        "Palapye",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of ART defaulters (14-89 days) reinitiated to treatment",
+      "codeSamples": [
+        "7f"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "LGBTQI+",
+          "MSM",
+          "PWD",
+          "PWIDs"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BONEPWA+",
+        "BORNUS",
+        "Botswana Bailor Childrens",
+        "Cynthia's Child Care Trust",
+        "Diphalana",
+        "Ghantsi Support Group",
+        "Incredible Minds",
+        "Lapologang",
+        "Motheo",
+        "Palapye",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of AYPLHIV engaged in teen and youth club activities",
+      "codeSamples": [
+        "13"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "LGBTQI+",
+          "MSM",
+          "PWD",
+          "PWIDs"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BONEPWA+",
+        "BORNUS",
+        "Botswana Bailor Childrens",
+        "Cynthia's Child Care Trust",
+        "Diphalana",
+        "Ghantsi Support Group",
+        "Incredible Minds",
+        "Lapologang",
+        "Motheo",
+        "Palapye",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of community leaders sensitised on human rights, stigma and descrimination",
+      "codeSamples": [
+        "9a"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "General population",
+          "LGBTQI+",
+          "MSM",
+          "PWD",
+          "PWIDs"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BONEPWA+",
+        "BORNUS",
+        "Botswana Bailor Childrens",
+        "Cynthia's Child Care Trust",
+        "Diphalana",
+        "Ghantsi Support Group",
+        "Incredible Minds",
+        "Lapologang",
+        "Motheo",
+        "Palapye",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 6,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of Community led monitoring conducted for quality of service and human rights",
+      "codeSamples": [
+        "17"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [],
+        "keyPopOrTargetGroup": [],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "0"
+        ]
+      },
+      "organizations": [
+        "BONEPWA+",
+        "BORNUS",
+        "Botswana Bailor Childrens",
+        "Cynthia's Child Care Trust",
+        "Diphalana",
+        "Ghantsi Support Group",
+        "Incredible Minds",
+        "Lapologang",
+        "Motheo",
+        "Palapye",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "age_sex_matrix_non_kp",
+        "notes": [
+          "Matrix reporting detected",
+          "Use age + sex matrix without requiring key population"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 0,
+          "keyPopOrTargetGroup": 0,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 1
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of community led monitoring conducted for quality of service and human rights.",
+      "codeSamples": [
+        "20",
+        "45",
+        "16"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [],
+        "keyPopOrTargetGroup": [],
+        "roleOrCadre": [],
+        "otherBreakdowns": []
+      },
+      "organizations": [
+        "AUGUST 2025",
+        "BOFWA",
+        "BONELA",
+        "BOTSWANA ASSOCIATION FOR THE BL",
+        "BOTSWANA ASSOCIATION OF THE DEA",
+        "BOTSWANA COUNCIL OF THE DISABLE",
+        "BOTSWANA SOCIETY FOR THE DISABL",
+        "BOTSWANA TRANS INITIATIVE",
+        "Bobonong Home Based Care",
+        "CAPTIVE EYE ORG.",
+        "DECEMBER",
+        "DECEMBER 2025",
+        "FEBRUARY 2026",
+        "Gumare Advisory",
+        "Hope Worldwide",
+        "House of Angels",
+        "INERELA",
+        "Inspired Hozirons",
+        "JANUARY 2026",
+        "LESBIANS, GAYS & BISEXUALS OF B",
+        "MADIKWE COMMUNITY TRUST",
+        "MARCH 2026",
+        "MEN FOR HEALTH & GENDER JUSTICE",
+        "MWATUMWAYA REHABILITATION CENTR",
+        "Mabogo aa Thebana Association S",
+        "Mind Power",
+        "Mopipi International Trust",
+        "NKAIKELA YOUTH GROUP",
+        "NOVEMBER",
+        "NOVEMBER 2025",
+        "OCTOBER",
+        "OCTOBER 2025",
+        "Ovajua",
+        "Positive Moments",
+        "Rena le Seabe",
+        "SENTEBALE",
+        "SEPTEMBER 2025",
+        "SILENCE KILLS SUPPORT GROUP",
+        "SISONKE",
+        "Social Dialogue",
+        "Stepping Stone International",
+        "TEBELOPELE",
+        "TOTAL"
+      ],
+      "recommendation": {
+        "profile": "age_sex_matrix_non_kp",
+        "notes": [
+          "Matrix reporting detected",
+          "Use age + sex matrix without requiring key population"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 0,
+          "keyPopOrTargetGroup": 0,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 0
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of community youth dialogues, health campaigns, and youth forums attended",
+      "codeSamples": [
+        "15d"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "LGBTQI+",
+          "MSM",
+          "PWD",
+          "PWIDs"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BONEPWA+",
+        "BORNUS",
+        "Botswana Bailor Childrens",
+        "Cynthia's Child Care Trust",
+        "Diphalana",
+        "Ghantsi Support Group",
+        "Incredible Minds",
+        "Lapologang",
+        "Motheo",
+        "Palapye",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of complex/high-risk cases managed and referred",
+      "codeSamples": [
+        "15b"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "LGBTQI+",
+          "MSM",
+          "PWD",
+          "PWIDs"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BONEPWA+",
+        "BORNUS",
+        "Botswana Bailor Childrens",
+        "Cynthia's Child Care Trust",
+        "Diphalana",
+        "Ghantsi Support Group",
+        "Incredible Minds",
+        "Lapologang",
+        "Motheo",
+        "Palapye",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of CSOs trained and equipped to provide comprehensive psychosocial and practical support, including HIV-related support.",
+      "codeSamples": [
+        "3"
+      ],
+      "reportingShape": [
+        "single-value"
+      ],
+      "disaggregation": {
+        "ageBands": [],
+        "sex": [],
+        "keyPopOrTargetGroup": [],
+        "roleOrCadre": [],
+        "otherBreakdowns": []
+      },
+      "organizations": [
+        "AUGUST 2025",
+        "BOFWA",
+        "BONELA",
+        "BONEPWA+",
+        "BORNUS",
+        "BOTSWANA ASSOCIATION FOR THE BL",
+        "BOTSWANA ASSOCIATION OF THE DEA",
+        "BOTSWANA COUNCIL OF THE DISABLE",
+        "BOTSWANA SOCIETY FOR THE DISABL",
+        "BOTSWANA TRANS INITIATIVE",
+        "Bobonong Home Based Care",
+        "Botswana Bailor Childrens",
+        "CAPTIVE EYE ORG.",
+        "Cynthia's Child Care Trust",
+        "DECEMBER",
+        "DECEMBER 2025",
+        "Diphalana",
+        "FEBRUARY 2026",
+        "Ghantsi Support Group",
+        "Gumare Advisory",
+        "Hope Worldwide",
+        "House of Angels",
+        "INERELA",
+        "Incredible Minds",
+        "Inspired Hozirons",
+        "JANUARY 2026",
+        "LESBIANS, GAYS & BISEXUALS OF B",
+        "Lapologang",
+        "MADIKWE COMMUNITY TRUST",
+        "MARCH 2026",
+        "MEN FOR HEALTH & GENDER JUSTICE",
+        "MWATUMWAYA REHABILITATION CENTR",
+        "Mabogo aa Thebana Association S",
+        "Mind Power",
+        "Mopipi International Trust",
+        "Motheo",
+        "NKAIKELA YOUTH GROUP",
+        "NOVEMBER",
+        "NOVEMBER 2025",
+        "OCTOBER",
+        "OCTOBER 2025",
+        "Ovajua",
+        "Palapye",
+        "Positive Moments",
+        "Rena le Seabe",
+        "SENTEBALE",
+        "SEPTEMBER 2025",
+        "SILENCE KILLS SUPPORT GROUP",
+        "SISONKE",
+        "Social Dialogue",
+        "Stepping Stone International",
+        "TEBELOPELE",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "single_total",
+        "notes": [
+          "Single-value reporting detected"
+        ],
+        "dimensions": {
+          "ageBands": 0,
+          "sexValues": 0,
+          "keyPopOrTargetGroup": 0,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 0
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of disclosure and mental health support sessions delivered",
+      "codeSamples": [
+        "15g"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "LGBTQI+",
+          "MSM",
+          "PWD",
+          "PWIDs"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BONEPWA+",
+        "BORNUS",
+        "Botswana Bailor Childrens",
+        "Cynthia's Child Care Trust",
+        "Diphalana",
+        "Ghantsi Support Group",
+        "Incredible Minds",
+        "Lapologang",
+        "Motheo",
+        "Palapye",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of documented human rights violation cases",
+      "codeSamples": [
+        "8e"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "LGBTQI+",
+          "MSM",
+          "PWD",
+          "PWIDs"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BONEPWA+",
+        "BORNUS",
+        "Botswana Bailor Childrens",
+        "Cynthia's Child Care Trust",
+        "Diphalana",
+        "Ghantsi Support Group",
+        "Incredible Minds",
+        "Lapologang",
+        "Motheo",
+        "Palapye",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of documented success stories and client outcomes",
+      "codeSamples": [
+        "15c"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "LGBTQI+",
+          "MSM",
+          "PWD",
+          "PWIDs"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BONEPWA+",
+        "BORNUS",
+        "Botswana Bailor Childrens",
+        "Cynthia's Child Care Trust",
+        "Diphalana",
+        "Ghantsi Support Group",
+        "Incredible Minds",
+        "Lapologang",
+        "Motheo",
+        "Palapye",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of group counselling sessions conducted for youth and vulnerable groups (support group meetings)",
+      "codeSamples": [
+        "15e"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "LGBTQI+",
+          "MSM",
+          "PWD",
+          "PWIDs"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BONEPWA+",
+        "BORNUS",
+        "Botswana Bailor Childrens",
+        "Cynthia's Child Care Trust",
+        "Diphalana",
+        "Ghantsi Support Group",
+        "Incredible Minds",
+        "Lapologang",
+        "Motheo",
+        "Palapye",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of health talks conducted on PHDP held at IDCC",
+      "codeSamples": [
+        "5f"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "LGBTQI+",
+          "MSM",
+          "PWD",
+          "PWIDs"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BONEPWA+",
+        "BORNUS",
+        "Botswana Bailor Childrens",
+        "Cynthia's Child Care Trust",
+        "Diphalana",
+        "Ghantsi Support Group",
+        "Incredible Minds",
+        "Lapologang",
+        "Motheo",
+        "Palapye",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of individual counselling sessions conducted for youth and vulnerable groups",
+      "codeSamples": [
+        "15f",
+        "15h"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "LGBTQI+",
+          "MSM",
+          "PWD",
+          "PWIDs"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BONEPWA+",
+        "BORNUS",
+        "Botswana Bailor Childrens",
+        "Cynthia's Child Care Trust",
+        "Diphalana",
+        "Ghantsi Support Group",
+        "Incredible Minds",
+        "Lapologang",
+        "Motheo",
+        "Palapye",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of individuals eligible for GBV services",
+      "codeSamples": [
+        "10b"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "LGBTQI+",
+          "MSM",
+          "PWD",
+          "PWIDs"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BONEPWA+",
+        "BORNUS",
+        "Botswana Bailor Childrens",
+        "Cynthia's Child Care Trust",
+        "Diphalana",
+        "Ghantsi Support Group",
+        "Incredible Minds",
+        "Lapologang",
+        "Motheo",
+        "Palapye",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of individuals reached with messaging on equality and human rights",
+      "codeSamples": [
+        "8b"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "LGBTQI+",
+          "MSM",
+          "PWD",
+          "PWIDs"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BONEPWA+",
+        "BORNUS",
+        "Botswana Bailor Childrens",
+        "Cynthia's Child Care Trust",
+        "Diphalana",
+        "Ghantsi Support Group",
+        "Incredible Minds",
+        "Lapologang",
+        "Motheo",
+        "Palapye",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of individuals screened for GBV",
+      "codeSamples": [
+        "10a"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "LGBTQI+",
+          "MSM",
+          "PWD",
+          "PWIDs"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BONEPWA+",
+        "BORNUS",
+        "Botswana Bailor Childrens",
+        "Cynthia's Child Care Trust",
+        "Ghantsi Support Group",
+        "Incredible Minds",
+        "Lapologang",
+        "Motheo",
+        "Palapye",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of LTFU(90+ days) followed",
+      "codeSamples": [
+        "7h"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "LGBTQI+",
+          "MSM",
+          "PWD",
+          "PWIDs"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BONEPWA+",
+        "BORNUS",
+        "Botswana Bailor Childrens",
+        "Cynthia's Child Care Trust",
+        "Diphalana",
+        "Ghantsi Support Group",
+        "Incredible Minds",
+        "Lapologang",
+        "Motheo",
+        "Palapye",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of LTFU(90+ days) given by facility for tracing",
+      "codeSamples": [
+        "7g"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "LGBTQI+",
+          "MSM",
+          "PWD",
+          "PWIDs"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BONEPWA+",
+        "BORNUS",
+        "Botswana Bailor Childrens",
+        "Cynthia's Child Care Trust",
+        "Diphalana",
+        "Ghantsi Support Group",
+        "Incredible Minds",
+        "Lapologang",
+        "Motheo",
+        "Palapye",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of Lubricants distributed to PLHIV",
+      "codeSamples": [
+        "11c"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "LGBTQI+",
+          "MSM",
+          "PWD",
+          "PWIDs"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "BULK Deliivery",
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BONEPWA+",
+        "BORNUS",
+        "Botswana Bailor Childrens",
+        "Cynthia's Child Care Trust",
+        "Diphalana",
+        "Ghantsi Support Group",
+        "Incredible Minds",
+        "Lapologang",
+        "Motheo",
+        "Palapye",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 4
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of media engagements conducted",
+      "codeSamples": [
+        "24",
+        "19b",
+        "43",
+        "19"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [],
+        "sex": [],
+        "keyPopOrTargetGroup": [],
+        "roleOrCadre": [],
+        "otherBreakdowns": []
+      },
+      "organizations": [
+        "AUGUST 2025",
+        "BOFWA",
+        "BONELA",
+        "BONEPWA+",
+        "BORNUS",
+        "BOTSWANA ASSOCIATION FOR THE BL",
+        "BOTSWANA ASSOCIATION OF THE DEA",
+        "BOTSWANA COUNCIL OF THE DISABLE",
+        "BOTSWANA SOCIETY FOR THE DISABL",
+        "BOTSWANA TRANS INITIATIVE",
+        "Bobonong Home Based Care",
+        "Botswana Bailor Childrens",
+        "CAPTIVE EYE ORG.",
+        "Cynthia's Child Care Trust",
+        "DECEMBER",
+        "DECEMBER 2025",
+        "Diphalana",
+        "FEBRUARY 2026",
+        "Ghantsi Support Group",
+        "Gumare Advisory",
+        "Hope Worldwide",
+        "House of Angels",
+        "INERELA",
+        "Incredible Minds",
+        "Inspired Hozirons",
+        "JANUARY 2026",
+        "LESBIANS, GAYS & BISEXUALS OF B",
+        "Lapologang",
+        "MADIKWE COMMUNITY TRUST",
+        "MARCH 2026",
+        "MEN FOR HEALTH & GENDER JUSTICE",
+        "MWATUMWAYA REHABILITATION CENTR",
+        "Mabogo aa Thebana Association S",
+        "Mind Power",
+        "Mopipi International Trust",
+        "Motheo",
+        "NKAIKELA YOUTH GROUP",
+        "NOVEMBER",
+        "NOVEMBER 2025",
+        "OCTOBER",
+        "OCTOBER 2025",
+        "Ovajua",
+        "Palapye",
+        "Positive Moments",
+        "Rena le Seabe",
+        "SENTEBALE",
+        "SEPTEMBER 2025",
+        "SILENCE KILLS SUPPORT GROUP",
+        "SISONKE",
+        "Social Dialogue",
+        "Stepping Stone International",
+        "TEBELOPELE",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "single_total",
+        "notes": [
+          "Matrix reporting detected"
+        ],
+        "dimensions": {
+          "ageBands": 0,
+          "sexValues": 0,
+          "keyPopOrTargetGroup": 0,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 0
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of media platforms used per quarter",
+      "codeSamples": [
+        "22",
+        "19a",
+        "40",
+        "15"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10",
+          "10-14",
+          "11",
+          "12",
+          "13",
+          "14",
+          "15",
+          "15-19",
+          "16",
+          "17",
+          "18",
+          "19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [],
+        "keyPopOrTargetGroup": [],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Facebook",
+          "Instagram",
+          "Physical",
+          "Printed media",
+          "TOTAL",
+          "Tiktok",
+          "X"
+        ]
+      },
+      "organizations": [
+        "AUGUST 2025",
+        "BOFWA",
+        "BONELA",
+        "BONEPWA+",
+        "BORNUS",
+        "BOTSWANA ASSOCIATION FOR THE BL",
+        "BOTSWANA ASSOCIATION OF THE DEA",
+        "BOTSWANA COUNCIL OF THE DISABLE",
+        "BOTSWANA SOCIETY FOR THE DISABL",
+        "BOTSWANA TRANS INITIATIVE",
+        "Bobonong Home Based Care",
+        "Botswana Bailor Childrens",
+        "CAPTIVE EYE ORG.",
+        "Cynthia's Child Care Trust",
+        "DECEMBER",
+        "DECEMBER 2025",
+        "Diphalana",
+        "FEBRUARY 2026",
+        "Ghantsi Support Group",
+        "Gumare Advisory",
+        "Hope Worldwide",
+        "House of Angels",
+        "INERELA",
+        "Incredible Minds",
+        "Inspired Hozirons",
+        "JANUARY 2026",
+        "LESBIANS, GAYS & BISEXUALS OF B",
+        "Lapologang",
+        "MADIKWE COMMUNITY TRUST",
+        "MARCH 2026",
+        "MEN FOR HEALTH & GENDER JUSTICE",
+        "MWATUMWAYA REHABILITATION CENTR",
+        "Mabogo aa Thebana Association S",
+        "Mind Power",
+        "Mopipi International Trust",
+        "Motheo",
+        "NKAIKELA YOUTH GROUP",
+        "NOVEMBER",
+        "NOVEMBER 2025",
+        "OCTOBER",
+        "OCTOBER 2025",
+        "Ovajua",
+        "Palapye",
+        "Positive Moments",
+        "Rena le Seabe",
+        "SENTEBALE",
+        "SEPTEMBER 2025",
+        "SILENCE KILLS SUPPORT GROUP",
+        "SISONKE",
+        "Social Dialogue",
+        "Stepping Stone International",
+        "TEBELOPELE",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "age_sex_matrix_non_kp",
+        "notes": [
+          "Matrix reporting detected",
+          "Use age + sex matrix without requiring key population"
+        ],
+        "dimensions": {
+          "ageBands": 25,
+          "sexValues": 0,
+          "keyPopOrTargetGroup": 0,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 7
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of Missed appointments (1-13 days) followed",
+      "codeSamples": [
+        "7b"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "LGBTQI+",
+          "MSM",
+          "PWD",
+          "PWIDs"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BONEPWA+",
+        "BORNUS",
+        "Botswana Bailor Childrens",
+        "Cynthia's Child Care Trust",
+        "Diphalana",
+        "Ghantsi Support Group",
+        "Incredible Minds",
+        "Lapologang",
+        "Motheo",
+        "Palapye",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of Missed appointments (1-13 days) given by facility for tracing",
+      "codeSamples": [
+        "7a"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "LGBTQI+",
+          "MSM",
+          "PWD",
+          "PWIDs"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BONEPWA+",
+        "BORNUS",
+        "Botswana Bailor Childrens",
+        "Cynthia's Child Care Trust",
+        "Diphalana",
+        "Ghantsi Support Group",
+        "Incredible Minds",
+        "Lapologang",
+        "Motheo",
+        "Palapye",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of Missed appointments (1-13 days) reinitiated to treatment",
+      "codeSamples": [
+        "7c"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "LGBTQI+",
+          "MSM",
+          "PWD",
+          "PWIDs"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BONEPWA+",
+        "BORNUS",
+        "Botswana Bailor Childrens",
+        "Cynthia's Child Care Trust",
+        "Diphalana",
+        "Ghantsi Support Group",
+        "Incredible Minds",
+        "Lapologang",
+        "Motheo",
+        "Palapye",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of people elligible for Clinical services for GBV",
+      "codeSamples": [
+        "10c"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "LGBTQI+",
+          "MSM",
+          "PWD",
+          "PWIDs"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BONEPWA+",
+        "BORNUS",
+        "Botswana Bailor Childrens",
+        "Cynthia's Child Care Trust",
+        "Diphalana",
+        "Ghantsi Support Group",
+        "Incredible Minds",
+        "Lapologang",
+        "Motheo",
+        "Palapye",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of people elligible for Justice Services for GBV",
+      "codeSamples": [
+        "10e"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "LGBTQI+",
+          "MSM",
+          "PWD",
+          "PWIDs"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BONEPWA+",
+        "BORNUS",
+        "Botswana Bailor Childrens",
+        "Cynthia's Child Care Trust",
+        "Diphalana",
+        "Ghantsi Support Group",
+        "Incredible Minds",
+        "Lapologang",
+        "Motheo",
+        "Palapye",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of people elligible for Psychosocial Support for GBV",
+      "codeSamples": [
+        "10g"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "LGBTQI+",
+          "MSM",
+          "PWD",
+          "PWIDs"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BONEPWA+",
+        "BORNUS",
+        "Botswana Bailor Childrens",
+        "Cynthia's Child Care Trust",
+        "Diphalana",
+        "Ghantsi Support Group",
+        "Incredible Minds",
+        "Lapologang",
+        "Motheo",
+        "Palapye",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of people reached at health talks conducted on PHDP held at IDCC",
+      "codeSamples": [
+        "5g"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "LGBTQI+",
+          "MSM",
+          "PWD",
+          "PWIDs"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BONEPWA+",
+        "BORNUS",
+        "Botswana Bailor Childrens",
+        "Cynthia's Child Care Trust",
+        "Diphalana",
+        "Ghantsi Support Group",
+        "Incredible Minds",
+        "Lapologang",
+        "Motheo",
+        "Palapye",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of People Reached with ARV Based Prevention Messages",
+      "codeSamples": [
+        "5g"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "GENERAL POP.",
+          "LGBTQI+",
+          "PWD",
+          "PWID"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "DECEMBER",
+        "NOVEMBER",
+        "OCTOBER"
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of People Reached with Condom Use Messages",
+      "codeSamples": [
+        "5e"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "GENERAL POP.",
+          "LGBTQI+",
+          "PWD",
+          "PWID"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "DECEMBER",
+        "NOVEMBER",
+        "OCTOBER"
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of People Reached with EMTCT Messages",
+      "codeSamples": [
+        "5h"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "GENERAL POP.",
+          "LGBTQI+",
+          "PWD",
+          "PWID"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "DECEMBER",
+        "NOVEMBER",
+        "OCTOBER"
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of People Reached with GBV Messages",
+      "codeSamples": [
+        "5d"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "GENERAL POP.",
+          "LGBTQI+",
+          "PWD",
+          "PWID"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "DECEMBER",
+        "NOVEMBER",
+        "OCTOBER"
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of people Reached with HIV TESTING Messages",
+      "codeSamples": [
+        "5a"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "GENERAL POP.",
+          "LGBTQI+",
+          "PWD",
+          "PWID"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "DECEMBER",
+        "NOVEMBER",
+        "OCTOBER"
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of People Reached with HIV Treatment Messages",
+      "codeSamples": [
+        "5f"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "GENERAL POP.",
+          "LGBTQI+",
+          "PWD",
+          "PWID"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "DECEMBER",
+        "NOVEMBER",
+        "OCTOBER"
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of people reached with NCD prevention messages",
+      "codeSamples": [
+        "14a"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "0 - 4",
+          "11 - 19",
+          "20 - 29",
+          "30 -39",
+          "40 -49",
+          "5- 10",
+          "50 - 59",
+          "60 - 69",
+          "60-69",
+          "70 - 79",
+          "80 - 89",
+          "90+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "LGBTQI+",
+          "MSM",
+          "PWD",
+          "PWIDs"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BONEPWA+",
+        "BORNUS",
+        "Botswana Bailor Childrens",
+        "Cynthia's Child Care Trust",
+        "Diphalana",
+        "Ghantsi Support Group",
+        "Incredible Minds",
+        "Lapologang",
+        "Motheo",
+        "Palapye",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of People Reached with PEP Messages",
+      "codeSamples": [
+        "5b"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSM",
+          "GENERAL POP.",
+          "LGBTQI+",
+          "PWD",
+          "PWID"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "DECEMBER",
+        "NOVEMBER",
+        "OCTOBER"
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of people Reached with PREP Messages",
+      "codeSamples": [
+        "5c"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "GENERAL POP.",
+          "LGBTQI+",
+          "PWD",
+          "PWID"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "DECEMBER",
+        "NOVEMBER",
+        "OCTOBER"
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of people reached with stigma reduction messages.",
+      "codeSamples": [
+        "5h"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "LGBTQI+",
+          "MSM",
+          "PWD",
+          "PWIDs"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BONEPWA+",
+        "BORNUS",
+        "Botswana Bailor Childrens",
+        "Cynthia's Child Care Trust",
+        "Diphalana",
+        "Ghantsi Support Group",
+        "Incredible Minds",
+        "Lapologang",
+        "Motheo",
+        "Palapye",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of people referred for NCD services",
+      "codeSamples": [
+        "14c"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "0 - 4",
+          "11 - 19",
+          "20 - 29",
+          "30 -39",
+          "40 -49",
+          "5- 10",
+          "50 - 59",
+          "60 - 69",
+          "70 - 79",
+          "80 - 89",
+          "90+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "LGBTQI+",
+          "MSM",
+          "PWD",
+          "PWIDs"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BONEPWA+",
+        "BORNUS",
+        "Botswana Bailor Childrens",
+        "Cynthia's Child Care Trust",
+        "Diphalana",
+        "Ghantsi Support Group",
+        "Incredible Minds",
+        "Lapologang",
+        "Motheo",
+        "Palapye",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 14,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of People reffered for Clinical Services for GBV",
+      "codeSamples": [
+        "10d"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "LGBTQI+",
+          "MSM",
+          "PWD",
+          "PWIDs"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BONEPWA+",
+        "BORNUS",
+        "Botswana Bailor Childrens",
+        "Cynthia's Child Care Trust",
+        "Diphalana",
+        "Ghantsi Support Group",
+        "Incredible Minds",
+        "Lapologang",
+        "Motheo",
+        "Palapye",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of people reffered for Justice Services for GBV",
+      "codeSamples": [
+        "10f"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "LGBTQI+",
+          "MSM",
+          "PWD",
+          "PWIDs"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BONEPWA+",
+        "BORNUS",
+        "Botswana Bailor Childrens",
+        "Cynthia's Child Care Trust",
+        "Diphalana",
+        "Ghantsi Support Group",
+        "Incredible Minds",
+        "Lapologang",
+        "Motheo",
+        "Palapye",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of people reffered for Psychosocial Support for GBV",
+      "codeSamples": [
+        "10h"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "General population",
+          "LGBTQI+",
+          "MSM",
+          "PWD",
+          "PWIDs"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "BULK Deliivery",
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BONEPWA+",
+        "BORNUS",
+        "Botswana Bailor Childrens",
+        "Cynthia's Child Care Trust",
+        "Diphalana",
+        "Ghantsi Support Group",
+        "Incredible Minds",
+        "Lapologang",
+        "Motheo",
+        "Palapye",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 6,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 4
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of people screened for NCDs",
+      "codeSamples": [
+        "14b"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "0 - 4",
+          "11 - 19",
+          "20 - 29",
+          "30 -39",
+          "40 -49",
+          "5- 10",
+          "50 - 59",
+          "60 - 69",
+          "70 - 79",
+          "80 - 89",
+          "90+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "LGBTQI+",
+          "MSM",
+          "PWD",
+          "PWIDs"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BONEPWA+",
+        "BORNUS",
+        "Botswana Bailor Childrens",
+        "Cynthia's Child Care Trust",
+        "Diphalana",
+        "Ghantsi Support Group",
+        "Incredible Minds",
+        "Lapologang",
+        "Motheo",
+        "Palapye",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 14,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of people screened for STIs",
+      "codeSamples": [
+        "12a"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "General population",
+          "LGBTQI+",
+          "MSM",
+          "PWD",
+          "PWIDs"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BONEPWA+",
+        "BORNUS",
+        "Botswana Bailor Childrens",
+        "Cynthia's Child Care Trust",
+        "Diphalana",
+        "Ghantsi Support Group",
+        "Incredible Minds",
+        "Lapologang",
+        "Motheo",
+        "Palapye",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 6,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of people sensitised on basic human rights and HIV",
+      "codeSamples": [
+        "8a"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "LGBTQI+",
+          "MSM",
+          "PWD",
+          "PWIDs"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BONEPWA+",
+        "BORNUS",
+        "Botswana Bailor Childrens",
+        "Cynthia's Child Care Trust",
+        "Diphalana",
+        "Ghantsi Support Group",
+        "Incredible Minds",
+        "Lapologang",
+        "Motheo",
+        "Palapye",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of people who LTFU (90+ days) Re-initiated on ART",
+      "codeSamples": [
+        "7i"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "LGBTQI+",
+          "MSM",
+          "PWD",
+          "PWIDs"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BONEPWA+",
+        "BORNUS",
+        "Botswana Bailor Childrens",
+        "Cynthia's Child Care Trust",
+        "Diphalana",
+        "Ghantsi Support Group",
+        "Incredible Minds",
+        "Lapologang",
+        "Motheo",
+        "Palapye",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of people who report that their rights were violated and who sought redness",
+      "codeSamples": [
+        "8d"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "LGBTQI+",
+          "MSM",
+          "PWD",
+          "PWIDs"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BONEPWA+",
+        "BORNUS",
+        "Botswana Bailor Childrens",
+        "Cynthia's Child Care Trust",
+        "Diphalana",
+        "Ghantsi Support Group",
+        "Incredible Minds",
+        "Lapologang",
+        "Motheo",
+        "Palapye",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of People who reported collecting condoms for the repeated time",
+      "codeSamples": [
+        "11b"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "LGBTQI+",
+          "MSM",
+          "PWD",
+          "PWIDs"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BONEPWA+",
+        "BORNUS",
+        "Botswana Bailor Childrens",
+        "Cynthia's Child Care Trust",
+        "Diphalana",
+        "Ghantsi Support Group",
+        "Incredible Minds",
+        "Lapologang",
+        "Motheo",
+        "Palapye",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of PLHIV on TB treatment",
+      "codeSamples": [
+        "6e"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "LGBTQI+",
+          "MSM",
+          "PWD",
+          "PWIDs"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BONEPWA+",
+        "BORNUS",
+        "Botswana Bailor Childrens",
+        "Cynthia's Child Care Trust",
+        "Diphalana",
+        "Ghantsi Support Group",
+        "Incredible Minds",
+        "Lapologang",
+        "Motheo",
+        "Palapye",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of PLHIV on TB treatment interrupting treatment",
+      "codeSamples": [
+        "6f"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "LGBTQI+",
+          "MSM",
+          "PWD",
+          "PWIDs"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BONEPWA+",
+        "BORNUS",
+        "Botswana Bailor Childrens",
+        "Cynthia's Child Care Trust",
+        "Diphalana",
+        "Ghantsi Support Group",
+        "Incredible Minds",
+        "Lapologang",
+        "Motheo",
+        "Palapye",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of PLHIV referred to seek legal services",
+      "codeSamples": [
+        "8c"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "LGBTQI+",
+          "MSM",
+          "PWD",
+          "PWIDs"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BONEPWA+",
+        "BORNUS",
+        "Botswana Bailor Childrens",
+        "Cynthia's Child Care Trust",
+        "Diphalana",
+        "Ghantsi Support Group",
+        "Incredible Minds",
+        "Lapologang",
+        "Motheo",
+        "Palapye",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of PLHIV screened for TB",
+      "codeSamples": [
+        "6b"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "LGBTQI+",
+          "MSM",
+          "PWD",
+          "PWIDs"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BONEPWA+",
+        "BORNUS",
+        "Botswana Bailor Childrens",
+        "Cynthia's Child Care Trust",
+        "Diphalana",
+        "Ghantsi Support Group",
+        "Incredible Minds",
+        "Lapologang",
+        "Motheo",
+        "Palapye",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of PLHIV symptomatic for TB referred for testing",
+      "codeSamples": [
+        "6c"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "LGBTQI+",
+          "MSM",
+          "PWD",
+          "PWIDs"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BONEPWA+",
+        "BORNUS",
+        "Botswana Bailor Childrens",
+        "Cynthia's Child Care Trust",
+        "Diphalana",
+        "Ghantsi Support Group",
+        "Incredible Minds",
+        "Lapologang",
+        "Motheo",
+        "Palapye",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of PLHIV TB treatment interrupters reinitiated on treatment",
+      "codeSamples": [
+        "6g"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "LGBTQI+",
+          "MSM",
+          "PWD",
+          "PWIDs"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BONEPWA+",
+        "BORNUS",
+        "Botswana Bailor Childrens",
+        "Cynthia's Child Care Trust",
+        "Diphalana",
+        "Ghantsi Support Group",
+        "Incredible Minds",
+        "Lapologang",
+        "Motheo",
+        "Palapye",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of PLWH reached with Consistent, correct condom use messages",
+      "codeSamples": [
+        "5d"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "LGBTQI+",
+          "MSM",
+          "PWD",
+          "PWIDs"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BONEPWA+",
+        "BORNUS",
+        "Botswana Bailor Childrens",
+        "Cynthia's Child Care Trust",
+        "Diphalana",
+        "Ghantsi Support Group",
+        "Incredible Minds",
+        "Lapologang",
+        "Motheo",
+        "Palapye",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of PLWH reached with GBV Messages",
+      "codeSamples": [
+        "5e"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "LGBTQI+",
+          "MSM",
+          "PWD",
+          "PWIDs"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BONEPWA+",
+        "BORNUS",
+        "Botswana Bailor Childrens",
+        "Cynthia's Child Care Trust",
+        "Diphalana",
+        "Ghantsi Support Group",
+        "Incredible Minds",
+        "Lapologang",
+        "Motheo",
+        "Palapye",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of PLWH reached with HIV TESTING Messages",
+      "codeSamples": [
+        "5a"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "LGBTQI+",
+          "MSM",
+          "PWD",
+          "PWIDs"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BONEPWA+",
+        "BORNUS",
+        "Botswana Bailor Childrens",
+        "Cynthia's Child Care Trust",
+        "Diphalana",
+        "Ghantsi Support Group",
+        "Incredible Minds",
+        "Lapologang",
+        "Motheo",
+        "Palapye",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of PLWH reached with PEP Messages",
+      "codeSamples": [
+        "5b"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "LGBTQI+",
+          "MSM",
+          "PWD",
+          "PWIDs"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BONEPWA+",
+        "BORNUS",
+        "Botswana Bailor Childrens",
+        "Cynthia's Child Care Trust",
+        "Diphalana",
+        "Ghantsi Support Group",
+        "Incredible Minds",
+        "Lapologang",
+        "Motheo",
+        "Palapye",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of PLWH reached with with PREP Messages",
+      "codeSamples": [
+        "5c"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "LGBTQI+",
+          "MSM",
+          "PWD",
+          "PWIDs"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BONEPWA+",
+        "BORNUS",
+        "Botswana Bailor Childrens",
+        "Cynthia's Child Care Trust",
+        "Diphalana",
+        "Ghantsi Support Group",
+        "Incredible Minds",
+        "Lapologang",
+        "Motheo",
+        "Palapye",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of PLWH who tested positive for TB and are on treatment",
+      "codeSamples": [
+        "6a"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "LGBTQI+",
+          "MSM",
+          "PWD",
+          "PWIDs"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BONEPWA+",
+        "BORNUS",
+        "Botswana Bailor Childrens",
+        "Cynthia's Child Care Trust",
+        "Diphalana",
+        "Ghantsi Support Group",
+        "Incredible Minds",
+        "Lapologang",
+        "Motheo",
+        "Palapye",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of PLWHs provided with treatment literacy",
+      "codeSamples": [
+        "5i"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "LGBTQI+",
+          "MSM",
+          "PWD",
+          "PWIDs"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BONEPWA+",
+        "BORNUS",
+        "Botswana Bailor Childrens",
+        "Cynthia's Child Care Trust",
+        "Diphalana",
+        "Ghantsi Support Group",
+        "Incredible Minds",
+        "Lapologang",
+        "Motheo",
+        "Palapye",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of promotions on braille labelled condoms held.",
+      "codeSamples": [
+        "12"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10",
+          "11",
+          "12",
+          "13",
+          "14",
+          "15",
+          "16",
+          "17",
+          "18",
+          "19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "MINORS",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "B6 Bar, Amazonia Bar, Notwane Bar, Kwa Ga Mothakga Bar, RHEO Bar, Come Together Bar, Russia Bar, Penny Wise Bar, Main Deck, Brown Gate Brothel, Tsabong Bar, Village Dip, Phindane Bar, Hollywood, Old Mall, Malmo Bar, Plateau Bar, Monitapa Bar, Mogobe bar, Leobah's Pub, Tiro's Shebeen, Route 3 Pub, Semphete Bar, Street 6 Bar, Hape Hape Bar.",
+          "Bar",
+          "Bars",
+          "Bars, Night clubs, Outreaches",
+          "Bars, Saloon",
+          "Bars, Saloon, smodern ward house to house, Lesirane ward house to house, tsabong Bars",
+          "Bars,snooker,crack houses, car washes",
+          "Community-based organization (CBO/CSO) leaders",
+          "DOOR TO DOOR",
+          "Door to Door",
+          "Door to Door-PWD",
+          "Etsha 13 main Kgotla",
+          "Etsha 13 main Kgotla, Door to Door, HOME-PWD,",
+          "FSW",
+          "GEN. POPULATION",
+          "HOME-PWD",
+          "Homestead",
+          "Homesteads",
+          "LGBTQI+",
+          "Lesirane ward house to house",
+          "MSM",
+          "Main Kgotla in Gumare village",
+          "Main Kgotla in Gumare village , Etsha 13 main Kgotla",
+          "Night Clubs, Bars, Outreaches",
+          "Night clubs",
+          "None",
+          "Outreachs",
+          "PWD",
+          "PWD-HOME",
+          "PWID",
+          "PWUD",
+          "Political leaders (councillors, MPs, local authorities)",
+          "Religious/faith-based leaders",
+          "SALON-SMOOTH SALE *DEPOT- IN SMODERN",
+          "Saloon",
+          "Traditional leaders (chiefs, headmen/women)",
+          "Trap house",
+          "Trap house, crack house, bars, snookers, and car washes",
+          "Trap houses",
+          "Trap houses, crack houses, car washes, snookers",
+          "Tuckshops, saloons, taxi rank and car wash",
+          "Women leaders (from women’s groups, associations)",
+          "Youth leaders (student representatives, youth movement leaders)",
+          "bars",
+          "car washes",
+          "crack house",
+          "crack houses",
+          "smodern ward house to house",
+          "snooker",
+          "snookers",
+          "tsabong Bars"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "AUGUST 2025",
+        "BONELA",
+        "BOTSWANA ASSOCIATION FOR THE BL",
+        "BOTSWANA ASSOCIATION OF THE DEA",
+        "BOTSWANA COUNCIL OF THE DISABLE",
+        "BOTSWANA SOCIETY FOR THE DISABL",
+        "BOTSWANA TRANS INITIATIVE",
+        "CAPTIVE EYE ORG.",
+        "DECEMBER 2025",
+        "FEBRUARY 2026",
+        "JANUARY 2026",
+        "LESBIANS, GAYS & BISEXUALS OF B",
+        "MADIKWE COMMUNITY TRUST",
+        "MARCH 2026",
+        "MEN FOR HEALTH & GENDER JUSTICE",
+        "MWATUMWAYA REHABILITATION CENTR",
+        "NKAIKELA YOUTH GROUP",
+        "NOVEMBER 2025",
+        "OCTOBER 2025",
+        "SEPTEMBER 2025",
+        "SILENCE KILLS SUPPORT GROUP",
+        "SISONKE",
+        "TOTAL"
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 24,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 51,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of referrals made for complex cases to appropriate services (health, police, social welfare)",
+      "codeSamples": [
+        "15i"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "LGBTQI+",
+          "MSM",
+          "PWD",
+          "PWIDs"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BONEPWA+",
+        "BORNUS",
+        "Botswana Bailor Childrens",
+        "Cynthia's Child Care Trust",
+        "Diphalana",
+        "Ghantsi Support Group",
+        "Incredible Minds",
+        "Lapologang",
+        "Motheo",
+        "Palapye",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of service providers receiving training",
+      "codeSamples": [
+        "1"
+      ],
+      "reportingShape": [
+        "single-value"
+      ],
+      "disaggregation": {
+        "ageBands": [],
+        "sex": [],
+        "keyPopOrTargetGroup": [],
+        "roleOrCadre": [
+          "M&E Officers",
+          "Program Officers",
+          "Stakeholders"
+        ],
+        "otherBreakdowns": [
+          "Total"
+        ]
+      },
+      "organizations": [
+        "AUGUST 2025",
+        "BOFWA",
+        "BONELA",
+        "BONEPWA+",
+        "BORNUS",
+        "BOTSWANA ASSOCIATION FOR THE BL",
+        "BOTSWANA ASSOCIATION OF THE DEA",
+        "BOTSWANA COUNCIL OF THE DISABLE",
+        "BOTSWANA SOCIETY FOR THE DISABL",
+        "BOTSWANA TRANS INITIATIVE",
+        "Bobonong Home Based Care",
+        "Botswana Bailor Childrens",
+        "CAPTIVE EYE ORG.",
+        "Cynthia's Child Care Trust",
+        "DECEMBER",
+        "DECEMBER 2025",
+        "Diphalana",
+        "FEBRUARY 2026",
+        "Ghantsi Support Group",
+        "Gumare Advisory",
+        "Hope Worldwide",
+        "House of Angels",
+        "INERELA",
+        "Incredible Minds",
+        "Inspired Hozirons",
+        "JANUARY 2026",
+        "LESBIANS, GAYS & BISEXUALS OF B",
+        "Lapologang",
+        "MADIKWE COMMUNITY TRUST",
+        "MARCH 2026",
+        "MEN FOR HEALTH & GENDER JUSTICE",
+        "MWATUMWAYA REHABILITATION CENTR",
+        "Mabogo aa Thebana Association S",
+        "Mind Power",
+        "Mopipi International Trust",
+        "Motheo",
+        "NKAIKELA YOUTH GROUP",
+        "NOVEMBER",
+        "NOVEMBER 2025",
+        "OCTOBER",
+        "OCTOBER 2025",
+        "Ovajua",
+        "Palapye",
+        "Positive Moments",
+        "Rena le Seabe",
+        "SENTEBALE",
+        "SEPTEMBER 2025",
+        "SILENCE KILLS SUPPORT GROUP",
+        "SISONKE",
+        "Social Dialogue",
+        "Stepping Stone International",
+        "TEBELOPELE",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "category_or_cadre_breakdown",
+        "notes": [
+          "Single-value reporting detected",
+          "Use role/cadre category totals"
+        ],
+        "dimensions": {
+          "ageBands": 0,
+          "sexValues": 0,
+          "keyPopOrTargetGroup": 0,
+          "roleOrCadre": 3,
+          "otherBreakdowns": 1
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of service providers trained on sign language",
+      "codeSamples": [
+        "5"
+      ],
+      "reportingShape": [
+        "single-value"
+      ],
+      "disaggregation": {
+        "ageBands": [],
+        "sex": [],
+        "keyPopOrTargetGroup": [],
+        "roleOrCadre": [],
+        "otherBreakdowns": []
+      },
+      "organizations": [
+        "AUGUST 2025",
+        "BONELA",
+        "BOTSWANA ASSOCIATION FOR THE BL",
+        "BOTSWANA ASSOCIATION OF THE DEA",
+        "BOTSWANA COUNCIL OF THE DISABLE",
+        "BOTSWANA SOCIETY FOR THE DISABL",
+        "BOTSWANA TRANS INITIATIVE",
+        "CAPTIVE EYE ORG.",
+        "DECEMBER 2025",
+        "FEBRUARY 2026",
+        "JANUARY 2026",
+        "LESBIANS, GAYS & BISEXUALS OF B",
+        "MADIKWE COMMUNITY TRUST",
+        "MARCH 2026",
+        "MEN FOR HEALTH & GENDER JUSTICE",
+        "MWATUMWAYA REHABILITATION CENTR",
+        "NKAIKELA YOUTH GROUP",
+        "NOVEMBER 2025",
+        "OCTOBER 2025",
+        "SEPTEMBER 2025",
+        "SILENCE KILLS SUPPORT GROUP",
+        "SISONKE",
+        "TOTAL"
+      ],
+      "recommendation": {
+        "profile": "single_total",
+        "notes": [
+          "Single-value reporting detected"
+        ],
+        "dimensions": {
+          "ageBands": 0,
+          "sexValues": 0,
+          "keyPopOrTargetGroup": 0,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 0
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of stigma reduction campaigns conducted during the project.",
+      "codeSamples": [
+        "25",
+        "21",
+        "44",
+        "20"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10",
+          "10-14",
+          "11",
+          "12",
+          "13",
+          "14",
+          "15",
+          "15-19",
+          "16",
+          "17",
+          "18",
+          "19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [],
+        "keyPopOrTargetGroup": [],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "0"
+        ]
+      },
+      "organizations": [
+        "AUGUST 2025",
+        "BOFWA",
+        "BONELA",
+        "BONEPWA+",
+        "BORNUS",
+        "BOTSWANA ASSOCIATION FOR THE BL",
+        "BOTSWANA ASSOCIATION OF THE DEA",
+        "BOTSWANA COUNCIL OF THE DISABLE",
+        "BOTSWANA SOCIETY FOR THE DISABL",
+        "BOTSWANA TRANS INITIATIVE",
+        "Bobonong Home Based Care",
+        "Botswana Bailor Childrens",
+        "CAPTIVE EYE ORG.",
+        "Cynthia's Child Care Trust",
+        "DECEMBER",
+        "DECEMBER 2025",
+        "Diphalana",
+        "FEBRUARY 2026",
+        "Ghantsi Support Group",
+        "Gumare Advisory",
+        "Hope Worldwide",
+        "House of Angels",
+        "INERELA",
+        "Incredible Minds",
+        "Inspired Hozirons",
+        "JANUARY 2026",
+        "LESBIANS, GAYS & BISEXUALS OF B",
+        "Lapologang",
+        "MADIKWE COMMUNITY TRUST",
+        "MARCH 2026",
+        "MEN FOR HEALTH & GENDER JUSTICE",
+        "MWATUMWAYA REHABILITATION CENTR",
+        "Mabogo aa Thebana Association S",
+        "Mind Power",
+        "Mopipi International Trust",
+        "Motheo",
+        "NKAIKELA YOUTH GROUP",
+        "NOVEMBER",
+        "NOVEMBER 2025",
+        "OCTOBER",
+        "OCTOBER 2025",
+        "Ovajua",
+        "Palapye",
+        "Positive Moments",
+        "Rena le Seabe",
+        "SENTEBALE",
+        "SEPTEMBER 2025",
+        "SILENCE KILLS SUPPORT GROUP",
+        "SISONKE",
+        "Social Dialogue",
+        "Stepping Stone International",
+        "TEBELOPELE",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "age_sex_matrix_non_kp",
+        "notes": [
+          "Matrix reporting detected",
+          "Use age + sex matrix without requiring key population"
+        ],
+        "dimensions": {
+          "ageBands": 25,
+          "sexValues": 0,
+          "keyPopOrTargetGroup": 0,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 1
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of STIs refferals completed",
+      "codeSamples": [
+        "12c"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "LGBTQI+",
+          "MSM",
+          "PWD",
+          "PWIDs"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BONEPWA+",
+        "BORNUS",
+        "Botswana Bailor Childrens",
+        "Cynthia's Child Care Trust",
+        "Diphalana",
+        "Ghantsi Support Group",
+        "Incredible Minds",
+        "Lapologang",
+        "Motheo",
+        "Palapye",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of sub recipients mentored per month.",
+      "codeSamples": [
+        "2"
+      ],
+      "reportingShape": [
+        "single-value"
+      ],
+      "disaggregation": {
+        "ageBands": [],
+        "sex": [],
+        "keyPopOrTargetGroup": [],
+        "roleOrCadre": [],
+        "otherBreakdowns": []
+      },
+      "organizations": [
+        "AUGUST 2025",
+        "BOFWA",
+        "BONELA",
+        "BOTSWANA ASSOCIATION FOR THE BL",
+        "BOTSWANA ASSOCIATION OF THE DEA",
+        "BOTSWANA COUNCIL OF THE DISABLE",
+        "BOTSWANA SOCIETY FOR THE DISABL",
+        "BOTSWANA TRANS INITIATIVE",
+        "Bobonong Home Based Care",
+        "CAPTIVE EYE ORG.",
+        "DECEMBER",
+        "DECEMBER 2025",
+        "FEBRUARY 2026",
+        "Gumare Advisory",
+        "Hope Worldwide",
+        "House of Angels",
+        "INERELA",
+        "Inspired Hozirons",
+        "JANUARY 2026",
+        "LESBIANS, GAYS & BISEXUALS OF B",
+        "MADIKWE COMMUNITY TRUST",
+        "MARCH 2026",
+        "MEN FOR HEALTH & GENDER JUSTICE",
+        "MWATUMWAYA REHABILITATION CENTR",
+        "Mabogo aa Thebana Association S",
+        "Mind Power",
+        "Mopipi International Trust",
+        "NKAIKELA YOUTH GROUP",
+        "NOVEMBER",
+        "NOVEMBER 2025",
+        "OCTOBER",
+        "OCTOBER 2025",
+        "Ovajua",
+        "Positive Moments",
+        "Rena le Seabe",
+        "SENTEBALE",
+        "SEPTEMBER 2025",
+        "SILENCE KILLS SUPPORT GROUP",
+        "SISONKE",
+        "Social Dialogue",
+        "Stepping Stone International",
+        "TEBELOPELE",
+        "TOTAL"
+      ],
+      "recommendation": {
+        "profile": "single_total",
+        "notes": [
+          "Single-value reporting detected"
+        ],
+        "dimensions": {
+          "ageBands": 0,
+          "sexValues": 0,
+          "keyPopOrTargetGroup": 0,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 0
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of sub recipients mentored per month. (Number of sub-recipients visited )",
+      "codeSamples": [
+        "2"
+      ],
+      "reportingShape": [
+        "single-value"
+      ],
+      "disaggregation": {
+        "ageBands": [],
+        "sex": [],
+        "keyPopOrTargetGroup": [],
+        "roleOrCadre": [],
+        "otherBreakdowns": []
+      },
+      "organizations": [
+        "BONEPWA+",
+        "BORNUS",
+        "Botswana Bailor Childrens",
+        "Cynthia's Child Care Trust",
+        "Diphalana",
+        "Ghantsi Support Group",
+        "Incredible Minds",
+        "Lapologang",
+        "Motheo",
+        "Palapye",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "single_total",
+        "notes": [
+          "Single-value reporting detected"
+        ],
+        "dimensions": {
+          "ageBands": 0,
+          "sexValues": 0,
+          "keyPopOrTargetGroup": 0,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 0
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of sub-recipients submitting quality reports per months.",
+      "codeSamples": [
+        "4"
+      ],
+      "reportingShape": [
+        "single-value"
+      ],
+      "disaggregation": {
+        "ageBands": [],
+        "sex": [],
+        "keyPopOrTargetGroup": [],
+        "roleOrCadre": [],
+        "otherBreakdowns": []
+      },
+      "organizations": [
+        "AUGUST 2025",
+        "BOFWA",
+        "BONELA",
+        "BONEPWA+",
+        "BORNUS",
+        "BOTSWANA ASSOCIATION FOR THE BL",
+        "BOTSWANA ASSOCIATION OF THE DEA",
+        "BOTSWANA COUNCIL OF THE DISABLE",
+        "BOTSWANA SOCIETY FOR THE DISABL",
+        "BOTSWANA TRANS INITIATIVE",
+        "Bobonong Home Based Care",
+        "Botswana Bailor Childrens",
+        "CAPTIVE EYE ORG.",
+        "Cynthia's Child Care Trust",
+        "DECEMBER",
+        "DECEMBER 2025",
+        "Diphalana",
+        "FEBRUARY 2026",
+        "Ghantsi Support Group",
+        "Gumare Advisory",
+        "Hope Worldwide",
+        "House of Angels",
+        "INERELA",
+        "Incredible Minds",
+        "Inspired Hozirons",
+        "JANUARY 2026",
+        "LESBIANS, GAYS & BISEXUALS OF B",
+        "Lapologang",
+        "MADIKWE COMMUNITY TRUST",
+        "MARCH 2026",
+        "MEN FOR HEALTH & GENDER JUSTICE",
+        "MWATUMWAYA REHABILITATION CENTR",
+        "Mabogo aa Thebana Association S",
+        "Mind Power",
+        "Mopipi International Trust",
+        "Motheo",
+        "NKAIKELA YOUTH GROUP",
+        "NOVEMBER",
+        "NOVEMBER 2025",
+        "OCTOBER",
+        "OCTOBER 2025",
+        "Ovajua",
+        "Palapye",
+        "Positive Moments",
+        "Rena le Seabe",
+        "SENTEBALE",
+        "SEPTEMBER 2025",
+        "SILENCE KILLS SUPPORT GROUP",
+        "SISONKE",
+        "Social Dialogue",
+        "Stepping Stone International",
+        "TEBELOPELE",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "single_total",
+        "notes": [
+          "Single-value reporting detected"
+        ],
+        "dimensions": {
+          "ageBands": 0,
+          "sexValues": 0,
+          "keyPopOrTargetGroup": 0,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 0
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of Support groups mentored for Sustainability activities",
+      "codeSamples": [
+        "16"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [],
+        "keyPopOrTargetGroup": [],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "0"
+        ]
+      },
+      "organizations": [
+        "BONEPWA+",
+        "BORNUS",
+        "Botswana Bailor Childrens",
+        "Cynthia's Child Care Trust",
+        "Diphalana",
+        "Ghantsi Support Group",
+        "Incredible Minds",
+        "Lapologang",
+        "Motheo",
+        "Palapye",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "age_sex_matrix_non_kp",
+        "notes": [
+          "Matrix reporting detected",
+          "Use age + sex matrix without requiring key population"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 0,
+          "keyPopOrTargetGroup": 0,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 1
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of target specific demand creation activities conducted",
+      "codeSamples": [
+        "23",
+        "20",
+        "42",
+        "18"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10",
+          "11",
+          "12",
+          "13",
+          "14",
+          "15",
+          "16",
+          "17",
+          "18",
+          "19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [],
+        "keyPopOrTargetGroup": [],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "0"
+        ]
+      },
+      "organizations": [
+        "AUGUST 2025",
+        "BOFWA",
+        "BONELA",
+        "BONEPWA+",
+        "BORNUS",
+        "BOTSWANA ASSOCIATION FOR THE BL",
+        "BOTSWANA ASSOCIATION OF THE DEA",
+        "BOTSWANA COUNCIL OF THE DISABLE",
+        "BOTSWANA SOCIETY FOR THE DISABL",
+        "BOTSWANA TRANS INITIATIVE",
+        "Bobonong Home Based Care",
+        "Botswana Bailor Childrens",
+        "CAPTIVE EYE ORG.",
+        "Cynthia's Child Care Trust",
+        "DECEMBER",
+        "DECEMBER 2025",
+        "Diphalana",
+        "FEBRUARY 2026",
+        "Ghantsi Support Group",
+        "Gumare Advisory",
+        "Hope Worldwide",
+        "House of Angels",
+        "INERELA",
+        "Incredible Minds",
+        "Inspired Hozirons",
+        "JANUARY 2026",
+        "LESBIANS, GAYS & BISEXUALS OF B",
+        "Lapologang",
+        "MADIKWE COMMUNITY TRUST",
+        "MARCH 2026",
+        "MEN FOR HEALTH & GENDER JUSTICE",
+        "MWATUMWAYA REHABILITATION CENTR",
+        "Mabogo aa Thebana Association S",
+        "Mind Power",
+        "Mopipi International Trust",
+        "Motheo",
+        "NKAIKELA YOUTH GROUP",
+        "NOVEMBER",
+        "NOVEMBER 2025",
+        "OCTOBER",
+        "OCTOBER 2025",
+        "Ovajua",
+        "Palapye",
+        "Positive Moments",
+        "Rena le Seabe",
+        "SENTEBALE",
+        "SEPTEMBER 2025",
+        "SILENCE KILLS SUPPORT GROUP",
+        "SISONKE",
+        "Social Dialogue",
+        "Stepping Stone International",
+        "TEBELOPELE",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "age_sex_matrix_non_kp",
+        "notes": [
+          "Matrix reporting detected",
+          "Use age + sex matrix without requiring key population"
+        ],
+        "dimensions": {
+          "ageBands": 23,
+          "sexValues": 0,
+          "keyPopOrTargetGroup": 0,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 1
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of TB testing referrals completed",
+      "codeSamples": [
+        "6d"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "LGBTQI+",
+          "MSM",
+          "PWD",
+          "PWIDs"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BONEPWA+",
+        "BORNUS",
+        "Botswana Bailor Childrens",
+        "Cynthia's Child Care Trust",
+        "Diphalana",
+        "Ghantsi Support Group",
+        "Incredible Minds",
+        "Lapologang",
+        "Motheo",
+        "Palapye",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Number of trauma-informed counselling sessions delivered to PLHIV, GBV survivors, adolescents, and youth",
+      "codeSamples": [
+        "15a"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "LGBTQI+",
+          "MSM",
+          "PWD",
+          "PWIDs"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BONEPWA+",
+        "BORNUS",
+        "Botswana Bailor Childrens",
+        "Cynthia's Child Care Trust",
+        "Diphalana",
+        "Ghantsi Support Group",
+        "Incredible Minds",
+        "Lapologang",
+        "Motheo",
+        "Palapye",
+        "TOTAL",
+        "Tozwimilidizha Muti Amuchile "
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Total Number of Key and Vulnerable Populations Reached with GBV Messages",
+      "codeSamples": [
+        "1d"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10",
+          "11",
+          "12",
+          "13",
+          "14",
+          "15",
+          "16",
+          "17",
+          "18",
+          "19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "MINORS",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "LGBTQI+",
+          "MSM",
+          "PWD",
+          "PWDs",
+          "PWID",
+          "PWUD"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "AUGUST 2025",
+        "BONELA",
+        "BOTSWANA ASSOCIATION FOR THE BL",
+        "BOTSWANA ASSOCIATION OF THE DEA",
+        "BOTSWANA COUNCIL OF THE DISABLE",
+        "BOTSWANA SOCIETY FOR THE DISABL",
+        "BOTSWANA TRANS INITIATIVE",
+        "CAPTIVE EYE ORG.",
+        "DECEMBER 2025",
+        "FEBRUARY 2026",
+        "JANUARY 2026",
+        "LESBIANS, GAYS & BISEXUALS OF B",
+        "MADIKWE COMMUNITY TRUST",
+        "MARCH 2026",
+        "MEN FOR HEALTH & GENDER JUSTICE",
+        "MWATUMWAYA REHABILITATION CENTR",
+        "NKAIKELA YOUTH GROUP",
+        "NOVEMBER 2025",
+        "OCTOBER 2025",
+        "SEPTEMBER 2025",
+        "SILENCE KILLS SUPPORT GROUP",
+        "SISONKE",
+        "TOTAL"
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 24,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 7,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Total Number of Key and Vulnerable Populations Reached with HIV TESTING Messages",
+      "codeSamples": [
+        "1a"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10",
+          "11",
+          "12",
+          "13",
+          "14",
+          "15",
+          "16",
+          "17",
+          "18",
+          "19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "MINORS",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "LGBTQI+",
+          "PWD",
+          "PWID",
+          "PWUD"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "AUGUST 2025",
+        "BONELA",
+        "BOTSWANA ASSOCIATION FOR THE BL",
+        "BOTSWANA ASSOCIATION OF THE DEA",
+        "BOTSWANA COUNCIL OF THE DISABLE",
+        "BOTSWANA SOCIETY FOR THE DISABL",
+        "BOTSWANA TRANS INITIATIVE",
+        "CAPTIVE EYE ORG.",
+        "DECEMBER 2025",
+        "FEBRUARY 2026",
+        "JANUARY 2026",
+        "LESBIANS, GAYS & BISEXUALS OF B",
+        "MADIKWE COMMUNITY TRUST",
+        "MARCH 2026",
+        "MEN FOR HEALTH & GENDER JUSTICE",
+        "MWATUMWAYA REHABILITATION CENTR",
+        "NKAIKELA YOUTH GROUP",
+        "NOVEMBER 2025",
+        "OCTOBER 2025",
+        "SEPTEMBER 2025",
+        "SILENCE KILLS SUPPORT GROUP",
+        "SISONKE",
+        "TOTAL"
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 24,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Total Number of Key and Vulnerable Populations Reached with PEP Messages",
+      "codeSamples": [
+        "1b"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10",
+          "11",
+          "12",
+          "13",
+          "14",
+          "15",
+          "16",
+          "17",
+          "18",
+          "19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "MINORS",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "LGBTQI+",
+          "PWD",
+          "PWID",
+          "PWUD"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "AUGUST 2025",
+        "BONELA",
+        "BOTSWANA ASSOCIATION FOR THE BL",
+        "BOTSWANA ASSOCIATION OF THE DEA",
+        "BOTSWANA COUNCIL OF THE DISABLE",
+        "BOTSWANA SOCIETY FOR THE DISABL",
+        "BOTSWANA TRANS INITIATIVE",
+        "CAPTIVE EYE ORG.",
+        "DECEMBER 2025",
+        "FEBRUARY 2026",
+        "JANUARY 2026",
+        "LESBIANS, GAYS & BISEXUALS OF B",
+        "MADIKWE COMMUNITY TRUST",
+        "MARCH 2026",
+        "MEN FOR HEALTH & GENDER JUSTICE",
+        "MWATUMWAYA REHABILITATION CENTR",
+        "NKAIKELA YOUTH GROUP",
+        "NOVEMBER 2025",
+        "OCTOBER 2025",
+        "SEPTEMBER 2025",
+        "SILENCE KILLS SUPPORT GROUP",
+        "SISONKE",
+        "TOTAL"
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 24,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Total Number of Key and Vulnerable Populations Reached with PREP Messages",
+      "codeSamples": [
+        "1c"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10",
+          "11",
+          "12",
+          "13",
+          "14",
+          "15",
+          "16",
+          "17",
+          "18",
+          "19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "MINORS",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "LGBTQI+",
+          "PWD",
+          "PWID",
+          "PWUD"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "AUGUST 2025",
+        "BONELA",
+        "BOTSWANA ASSOCIATION FOR THE BL",
+        "BOTSWANA ASSOCIATION OF THE DEA",
+        "BOTSWANA COUNCIL OF THE DISABLE",
+        "BOTSWANA SOCIETY FOR THE DISABL",
+        "BOTSWANA TRANS INITIATIVE",
+        "CAPTIVE EYE ORG.",
+        "DECEMBER 2025",
+        "FEBRUARY 2026",
+        "JANUARY 2026",
+        "LESBIANS, GAYS & BISEXUALS OF B",
+        "MADIKWE COMMUNITY TRUST",
+        "MARCH 2026",
+        "MEN FOR HEALTH & GENDER JUSTICE",
+        "MWATUMWAYA REHABILITATION CENTR",
+        "NKAIKELA YOUTH GROUP",
+        "NOVEMBER 2025",
+        "OCTOBER 2025",
+        "SEPTEMBER 2025",
+        "SILENCE KILLS SUPPORT GROUP",
+        "SISONKE",
+        "TOTAL"
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 24,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Total Number of People Reached with ARV Based Prevention Messages",
+      "codeSamples": [
+        "1g"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "GENERAL POP.",
+          "LGBTQI+",
+          "PWD",
+          "PWID"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BOFWA",
+        "Bobonong Home Based Care",
+        "Gumare Advisory",
+        "Hope Worldwide",
+        "House of Angels",
+        "INERELA",
+        "Inspired Hozirons",
+        "Mabogo aa Thebana Association S",
+        "Mind Power",
+        "Mopipi International Trust",
+        "Ovajua",
+        "Positive Moments",
+        "Rena le Seabe",
+        "SENTEBALE",
+        "Social Dialogue",
+        "Stepping Stone International",
+        "TEBELOPELE",
+        "TOTAL"
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Total Number of People Reached with Condom Use Messages",
+      "codeSamples": [
+        "1e"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "GENERAL POP.",
+          "LGBTQI+",
+          "PWD",
+          "PWID"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BOFWA",
+        "Bobonong Home Based Care",
+        "Gumare Advisory",
+        "Hope Worldwide",
+        "House of Angels",
+        "INERELA",
+        "Inspired Hozirons",
+        "Mabogo aa Thebana Association S",
+        "Mind Power",
+        "Mopipi International Trust",
+        "Ovajua",
+        "Positive Moments",
+        "Rena le Seabe",
+        "SENTEBALE",
+        "Social Dialogue",
+        "Stepping Stone International",
+        "TEBELOPELE",
+        "TOTAL"
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Total Number of People Reached with EMTCT Messages",
+      "codeSamples": [
+        "1h"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "GENERAL POP.",
+          "LGBTQI+",
+          "PWD",
+          "PWID"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BOFWA",
+        "Bobonong Home Based Care",
+        "Gumare Advisory",
+        "Hope Worldwide",
+        "House of Angels",
+        "INERELA",
+        "Inspired Hozirons",
+        "Mabogo aa Thebana Association S",
+        "Mind Power",
+        "Mopipi International Trust",
+        "Ovajua",
+        "Positive Moments",
+        "Rena le Seabe",
+        "SENTEBALE",
+        "Social Dialogue",
+        "Stepping Stone International",
+        "TEBELOPELE",
+        "TOTAL"
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Total Number of People Reached with GBV Messages",
+      "codeSamples": [
+        "1d"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "GENERAL POP.",
+          "LGBTQI+",
+          "PWD",
+          "PWID"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BOFWA",
+        "Bobonong Home Based Care",
+        "Gumare Advisory",
+        "Hope Worldwide",
+        "House of Angels",
+        "INERELA",
+        "Inspired Hozirons",
+        "Mabogo aa Thebana Association S",
+        "Mind Power",
+        "Mopipi International Trust",
+        "Ovajua",
+        "Positive Moments",
+        "Rena le Seabe",
+        "SENTEBALE",
+        "Social Dialogue",
+        "Stepping Stone International",
+        "TEBELOPELE",
+        "TOTAL"
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Total Number of People Reached with HIV Messages",
+      "codeSamples": [
+        "5i",
+        "1i"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "Community-based organization (CBO/CSO) leaders",
+          "Contraceptive pills",
+          "Emergency Contraceptive",
+          "FSW",
+          "GENERAL POP.",
+          "IMPLANT 3 YEARS",
+          "IMPLANT 5 YEARS",
+          "IUD",
+          "Injectables",
+          "LGBTQI+",
+          "MSM",
+          "PWD",
+          "PWID",
+          "Political leaders (councillors, MPs, local authorities)",
+          "Religious/faith-based leaders",
+          "Traditional leaders (chiefs, headmen/women)",
+          "Women leaders (from women’s groups, associations)",
+          "Youth leaders (student representatives, youth movement leaders)"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BOFWA",
+        "Bobonong Home Based Care",
+        "DECEMBER",
+        "Gumare Advisory",
+        "Hope Worldwide",
+        "House of Angels",
+        "INERELA",
+        "Inspired Hozirons",
+        "Mabogo aa Thebana Association S",
+        "Mind Power",
+        "Mopipi International Trust",
+        "NOVEMBER",
+        "OCTOBER",
+        "Ovajua",
+        "Positive Moments",
+        "Rena le Seabe",
+        "SENTEBALE",
+        "Social Dialogue",
+        "Stepping Stone International",
+        "TEBELOPELE",
+        "TOTAL"
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 18,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Total Number of people Reached with HIV TESTING Messages",
+      "codeSamples": [
+        "1a"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "GENERAL POP.",
+          "LGBTQI+",
+          "PWD",
+          "PWID"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BOFWA",
+        "Bobonong Home Based Care",
+        "Gumare Advisory",
+        "Hope Worldwide",
+        "House of Angels",
+        "INERELA",
+        "Inspired Hozirons",
+        "Mabogo aa Thebana Association S",
+        "Mind Power",
+        "Mopipi International Trust",
+        "Ovajua",
+        "Positive Moments",
+        "Rena le Seabe",
+        "SENTEBALE",
+        "Social Dialogue",
+        "Stepping Stone International",
+        "TEBELOPELE",
+        "TOTAL"
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Total Number of People Reached with HIV Treatment Messages",
+      "codeSamples": [
+        "1f"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "GENERAL POP.",
+          "LGBTQI+",
+          "PWD",
+          "PWID"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BOFWA",
+        "Bobonong Home Based Care",
+        "Gumare Advisory",
+        "Hope Worldwide",
+        "House of Angels",
+        "INERELA",
+        "Inspired Hozirons",
+        "Mabogo aa Thebana Association S",
+        "Mind Power",
+        "Mopipi International Trust",
+        "Ovajua",
+        "Positive Moments",
+        "Rena le Seabe",
+        "SENTEBALE",
+        "Social Dialogue",
+        "Stepping Stone International",
+        "TEBELOPELE",
+        "TOTAL"
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Total Number of People Reached with PEP Messages",
+      "codeSamples": [
+        "1b"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSM",
+          "GENERAL POP.",
+          "LGBTQI+",
+          "PWD",
+          "PWID"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BOFWA",
+        "Bobonong Home Based Care",
+        "Gumare Advisory",
+        "Hope Worldwide",
+        "House of Angels",
+        "INERELA",
+        "Inspired Hozirons",
+        "Mabogo aa Thebana Association S",
+        "Mind Power",
+        "Mopipi International Trust",
+        "Ovajua",
+        "Positive Moments",
+        "Rena le Seabe",
+        "SENTEBALE",
+        "Social Dialogue",
+        "Stepping Stone International",
+        "TEBELOPELE",
+        "TOTAL"
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    },
+    {
+      "indicatorName": "Total Number of people Reached with PREP Messages",
+      "codeSamples": [
+        "1c"
+      ],
+      "reportingShape": [
+        "matrix-age-sex"
+      ],
+      "disaggregation": {
+        "ageBands": [
+          "10-14",
+          "15-19",
+          "20-24",
+          "25-29",
+          "30-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65+",
+          "AYP (10-24)",
+          "Sub - total",
+          "TOTAL"
+        ],
+        "sex": [
+          "Female",
+          "Male"
+        ],
+        "keyPopOrTargetGroup": [
+          "FSW",
+          "GENERAL POP.",
+          "LGBTQI+",
+          "PWD",
+          "PWID"
+        ],
+        "roleOrCadre": [],
+        "otherBreakdowns": [
+          "Sub - total",
+          "TOTAL FEMALE",
+          "TOTAL MALE"
+        ]
+      },
+      "organizations": [
+        "BOFWA",
+        "Bobonong Home Based Care",
+        "Gumare Advisory",
+        "Hope Worldwide",
+        "House of Angels",
+        "INERELA",
+        "Inspired Hozirons",
+        "Mabogo aa Thebana Association S",
+        "Mind Power",
+        "Mopipi International Trust",
+        "Ovajua",
+        "Positive Moments",
+        "Rena le Seabe",
+        "SENTEBALE",
+        "Social Dialogue",
+        "Stepping Stone International",
+        "TEBELOPELE",
+        "TOTAL"
+      ],
+      "recommendation": {
+        "profile": "kp_age_sex_matrix",
+        "notes": [
+          "Matrix reporting detected",
+          "Use key population + age + sex disaggregates"
+        ],
+        "dimensions": {
+          "ageBands": 15,
+          "sexValues": 2,
+          "keyPopOrTargetGroup": 5,
+          "roleOrCadre": 0,
+          "otherBreakdowns": 3
+        }
+      }
+    }
+  ]
+}

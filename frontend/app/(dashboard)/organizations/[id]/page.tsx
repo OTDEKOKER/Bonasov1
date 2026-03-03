@@ -30,7 +30,7 @@ export default function OrganizationDetailPage() {
 
   const { data: org, isLoading, error } = useOrganization(Number.isFinite(id) ? id : null)
   const { data: orgsData } = useAllOrganizations()
-  const organizations = orgsData || []
+  const organizations = useMemo(() => orgsData?.results ?? [], [orgsData?.results])
   const { data: indicatorsData } = useIndicators(
     Number.isFinite(id) ? { organizations: String(id), page_size: "200" } : undefined
   )
@@ -43,7 +43,7 @@ export default function OrganizationDetailPage() {
   const parentName = useMemo(() => {
     if (!org?.parentId) return null
     return organizations.find((item) => item.id === org.parentId)?.name || null
-  }, [org?.parentId, organizations])
+  }, [org, organizations])
 
   if (isLoading) {
     return (

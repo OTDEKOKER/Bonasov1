@@ -1,0 +1,353 @@
+{
+  "sourcePath": "C:\\Users\\dekok\\Downloads\\Q3 REPORTS\\Q3 REPORTS\\Q3 Makgabaneng\\Quarter 3 2025 Makgabaneng NCD  REPORT .xlsx",
+  "extractedAt": "2026-03-03T08:41:09.945Z",
+  "totalIndicators": 37,
+  "indicators": [
+    {
+      "indicatorName": "Number of advocacy activities conducted per quarter.",
+      "sheets": [
+        "Indicator matrix"
+      ],
+      "disaggregates": [],
+      "disaggregateCount": 0
+    },
+    {
+      "indicatorName": "Number of counselling sessions conducted",
+      "sheets": [
+        "Indicator matrix"
+      ],
+      "disaggregates": [],
+      "disaggregateCount": 0
+    },
+    {
+      "indicatorName": "Number of CSOs trained and equipped to provide comprehensive psychosocial and practical support, including HIV-related support.",
+      "sheets": [
+        "Indicator matrix"
+      ],
+      "disaggregates": [],
+      "disaggregateCount": 0
+    },
+    {
+      "indicatorName": "Number of functional cancer support groups.",
+      "sheets": [
+        "Indicator matrix"
+      ],
+      "disaggregates": [],
+      "disaggregateCount": 0
+    },
+    {
+      "indicatorName": "Number of media engagements conducted",
+      "sheets": [
+        "Indicator matrix"
+      ],
+      "disaggregates": [],
+      "disaggregateCount": 0
+    },
+    {
+      "indicatorName": "Number of media platforms used per quarter",
+      "sheets": [
+        "Indicator matrix"
+      ],
+      "disaggregates": [],
+      "disaggregateCount": 0
+    },
+    {
+      "indicatorName": "Number of people engaged with NCD prevention and control messages through social media.",
+      "sheets": [
+        "Indicator matrix"
+      ],
+      "disaggregates": [
+        "true"
+      ],
+      "disaggregateCount": 1
+    },
+    {
+      "indicatorName": "Number of people on alcohol abuse program.",
+      "sheets": [
+        "Indicator matrix"
+      ],
+      "disaggregates": [
+        "true"
+      ],
+      "disaggregateCount": 1
+    },
+    {
+      "indicatorName": "Number of people on tobacco cessation program.",
+      "sheets": [
+        "Indicator matrix"
+      ],
+      "disaggregates": [
+        "true"
+      ],
+      "disaggregateCount": 1
+    },
+    {
+      "indicatorName": "Number of people reached with cervical cancer education.",
+      "sheets": [
+        "Indicator matrix"
+      ],
+      "disaggregates": [],
+      "disaggregateCount": 0
+    },
+    {
+      "indicatorName": "Number of people reached with NCD Prevention and control messages.",
+      "sheets": [
+        "Indicator matrix"
+      ],
+      "disaggregates": [
+        "true"
+      ],
+      "disaggregateCount": 1
+    },
+    {
+      "indicatorName": "Number of people reached with prostate cancer education.",
+      "sheets": [
+        "Indicator matrix"
+      ],
+      "disaggregates": [
+        "true"
+      ],
+      "disaggregateCount": 1
+    },
+    {
+      "indicatorName": "Number of people reached with self-breast cancer examination education",
+      "sheets": [
+        "Indicator matrix"
+      ],
+      "disaggregates": [
+        "true"
+      ],
+      "disaggregateCount": 1
+    },
+    {
+      "indicatorName": "Number of people receiving counselling .",
+      "sheets": [
+        "Indicator matrix"
+      ],
+      "disaggregates": [
+        "true"
+      ],
+      "disaggregateCount": 1
+    },
+    {
+      "indicatorName": "Number of people referred for further screening service.",
+      "sheets": [
+        "Indicator matrix"
+      ],
+      "disaggregates": [
+        "true"
+      ],
+      "disaggregateCount": 1
+    },
+    {
+      "indicatorName": "Number of people referred for mental health management/treatment services",
+      "sheets": [
+        "Indicator matrix"
+      ],
+      "disaggregates": [
+        "true"
+      ],
+      "disaggregateCount": 1
+    },
+    {
+      "indicatorName": "Number of people screened for breast cancer.",
+      "sheets": [
+        "Indicator matrix"
+      ],
+      "disaggregates": [
+        "true"
+      ],
+      "disaggregateCount": 1
+    },
+    {
+      "indicatorName": "Number of people screened for mental health.",
+      "sheets": [
+        "Indicator matrix"
+      ],
+      "disaggregates": [
+        "true"
+      ],
+      "disaggregateCount": 1
+    },
+    {
+      "indicatorName": "Number of people screened for NCDs behavioural risk factors (alcohol use).",
+      "sheets": [
+        "Indicator matrix"
+      ],
+      "disaggregates": [
+        "true"
+      ],
+      "disaggregateCount": 1
+    },
+    {
+      "indicatorName": "Number of people screened for NCDs behavioural risk factors (tobacco use).",
+      "sheets": [
+        "Indicator matrix"
+      ],
+      "disaggregates": [
+        "true"
+      ],
+      "disaggregateCount": 1
+    },
+    {
+      "indicatorName": "Number of people screened for NCDs risk factors (blood glucose, blood pressure, BMI).",
+      "sheets": [
+        "Indicator matrix"
+      ],
+      "disaggregates": [
+        "true"
+      ],
+      "disaggregateCount": 1
+    },
+    {
+      "indicatorName": "Number of people suspected of having NCDs risk factors (blood glucose, blood pressure, BMI) referred for further health services",
+      "sheets": [
+        "Indicator matrix"
+      ],
+      "disaggregates": [
+        "true"
+      ],
+      "disaggregateCount": 1
+    },
+    {
+      "indicatorName": "Number of people utilizing community based physical activity clubs.",
+      "sheets": [
+        "Indicator matrix"
+      ],
+      "disaggregates": [
+        "true"
+      ],
+      "disaggregateCount": 1
+    },
+    {
+      "indicatorName": "Number of people who attended cervical cancer awareness activities.",
+      "sheets": [
+        "Indicator matrix"
+      ],
+      "disaggregates": [
+        "true"
+      ],
+      "disaggregateCount": 1
+    },
+    {
+      "indicatorName": "Number of people who attended Mental health Day activities.",
+      "sheets": [
+        "Indicator matrix"
+      ],
+      "disaggregates": [
+        "true"
+      ],
+      "disaggregateCount": 1
+    },
+    {
+      "indicatorName": "Number of people who attended Mo-Vember Day activities.",
+      "sheets": [
+        "Indicator matrix"
+      ],
+      "disaggregates": [
+        "true"
+      ],
+      "disaggregateCount": 1
+    },
+    {
+      "indicatorName": "Number of people who attended SADC Healthy Lifestyle commemoration activities.",
+      "sheets": [
+        "Indicator matrix"
+      ],
+      "disaggregates": [
+        "true"
+      ],
+      "disaggregateCount": 1
+    },
+    {
+      "indicatorName": "Number of people who attended the Breast Cancer Month activities.",
+      "sheets": [
+        "Indicator matrix"
+      ],
+      "disaggregates": [
+        "true"
+      ],
+      "disaggregateCount": 1
+    },
+    {
+      "indicatorName": "Number of people who attended World Cancer Day activites.",
+      "sheets": [
+        "Indicator matrix"
+      ],
+      "disaggregates": [
+        "true"
+      ],
+      "disaggregateCount": 1
+    },
+    {
+      "indicatorName": "Number of people who attended World Diabetes Day activites.",
+      "sheets": [
+        "Indicator matrix"
+      ],
+      "disaggregates": [
+        "true"
+      ],
+      "disaggregateCount": 1
+    },
+    {
+      "indicatorName": "Number of peoples referred for diabetes treatment/management services by age,sex",
+      "sheets": [
+        "Indicator matrix"
+      ],
+      "disaggregates": [
+        "true"
+      ],
+      "disaggregateCount": 1
+    },
+    {
+      "indicatorName": "Number of service providers receiving training (community mobilisers,M&E Officers,stakeholders)",
+      "sheets": [
+        "Indicator matrix"
+      ],
+      "disaggregates": [],
+      "disaggregateCount": 0
+    },
+    {
+      "indicatorName": "Number of sub recipients mentored per month",
+      "sheets": [
+        "Indicator matrix"
+      ],
+      "disaggregates": [],
+      "disaggregateCount": 0
+    },
+    {
+      "indicatorName": "Number of sub-recipients submitting quality reports per month.",
+      "sheets": [
+        "Indicator matrix"
+      ],
+      "disaggregates": [],
+      "disaggregateCount": 0
+    },
+    {
+      "indicatorName": "Number of target specific demand creation activities conducted",
+      "sheets": [
+        "Indicator matrix"
+      ],
+      "disaggregates": [],
+      "disaggregateCount": 0
+    },
+    {
+      "indicatorName": "Numerator",
+      "sheets": [
+        "Indicator matrix"
+      ],
+      "disaggregates": [
+        "Age"
+      ],
+      "disaggregateCount": 1
+    },
+    {
+      "indicatorName": "Proportion of functional tobacco cessation and alcohol abuse support group.",
+      "sheets": [
+        "Indicator matrix"
+      ],
+      "disaggregates": [],
+      "disaggregateCount": 0
+    }
+  ]
+}

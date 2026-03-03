@@ -1,20 +1,12 @@
 "use client"
 
 import React, { useEffect, useState } from "react"
-import dynamic from "next/dynamic"
 import { useRouter } from "next/navigation"
 import { AuthProvider, useAuth } from "@/lib/contexts/auth-context"
 import { cn } from "@/lib/utils"
 import { X } from "lucide-react"
-
-const AppSidebarClient = dynamic(
-  () => import("@/components/layout/app-sidebar").then((mod) => mod.AppSidebar),
-  { ssr: false },
-)
-const AppHeaderClient = dynamic(
-  () => import("@/components/layout/app-header").then((mod) => mod.AppHeader),
-  { ssr: false },
-)
+import { AppSidebar } from "@/components/layout/app-sidebar"
+import { AppHeader } from "@/components/layout/app-header"
 
 function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   const router = useRouter()
@@ -55,10 +47,12 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        <AppSidebarClient />
+        <AppSidebar />
         <button
           className="absolute right-2 top-4 rounded-lg p-1 text-sidebar-foreground/70 hover:bg-sidebar-accent"
           onClick={() => setSidebarOpen(false)}
+          aria-label="Close sidebar"
+          title="Close sidebar"
         >
           <X className="h-5 w-5" />
         </button>
@@ -66,12 +60,12 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
 
       {/* Desktop sidebar */}
       <div className="hidden lg:block">
-        <AppSidebarClient />
+        <AppSidebar />
       </div>
 
       {/* Main content */}
       <div className="lg:pl-64">
-        <AppHeaderClient onMenuClick={() => setSidebarOpen(true)} />
+        <AppHeader onMenuClick={() => setSidebarOpen(true)} />
         <main className="h-[calc(100vh-4rem)] overflow-y-auto p-4 lg:p-6">
           {children}
         </main>

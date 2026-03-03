@@ -33,6 +33,7 @@ import { PageHeader } from "@/components/shared/page-header";
 import { OrganizationSelect } from "@/components/shared/organization-select";
 import { useToast } from "@/hooks/use-toast";
 import { reportsService } from "@/lib/api";
+import type { Report } from "@/lib/api";
 import { ReportViewerDialog } from "@/components/shared/report-viewer";
 import {
   useAllIndicators,
@@ -69,7 +70,7 @@ export default function ReportsPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [viewOpen, setViewOpen] = useState(false);
-  const [activeReport, setActiveReport] = useState<any | null>(null);
+  const [activeReport, setActiveReport] = useState<Report | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
   const [formName, setFormName] = useState("");
@@ -86,9 +87,9 @@ export default function ReportsPage() {
   const { data: indicatorsData } = useAllIndicators();
   const { data: organizationsData } = useAllOrganizations();
 
-  const reports = reportsData?.results || [];
+  const reports = useMemo(() => reportsData?.results ?? [], [reportsData?.results]);
   const projects = projectsData?.results || [];
-  const indicators = indicatorsData || [];
+  const indicators = useMemo(() => indicatorsData ?? [], [indicatorsData]);
   const organizations = organizationsData?.results || [];
 
   const filteredReports = useMemo(() => {
@@ -146,7 +147,7 @@ export default function ReportsPage() {
       resetForm();
       setIsDialogOpen(false);
       mutate();
-    } catch (err) {
+    } catch {
       toast({
         title: "Error",
         description: "Failed to generate report.",
@@ -157,7 +158,7 @@ export default function ReportsPage() {
     }
   };
 
-  const handleDownload = async (report: any) => {
+  const handleDownload = async (report: Report) => {
     try {
       const format: "excel" | "csv" = report?.parameters?.format === "csv" ? "csv" : "excel";
       const blob = await reportsService.download(report.id, format);
@@ -177,7 +178,7 @@ export default function ReportsPage() {
     }
   };
 
-  const openViewer = (report: any) => {
+  const openViewer = (report: Report) => {
     setActiveReport(report);
     setViewOpen(true);
   };
@@ -236,7 +237,7 @@ export default function ReportsPage() {
                 New Report
               </Button>
             </DialogTrigger>
-            <DialogContent className="w-[95vw] sm:max-w-2xl">
+            <DialogContent className="w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Create Report</DialogTitle>
                 <DialogDescription>

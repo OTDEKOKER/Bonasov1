@@ -375,6 +375,17 @@ export function useImportJobs(filters?: { status?: string; upload?: string }, co
     { ...defaultConfig, ...config }
   );
 }
+
+export function useAllImportJobs(filters?: { status?: string; upload?: string }, config?: SWRConfiguration) {
+  return useSWR(
+    ['import-jobs-all', filters],
+    async () => {
+      const results = await uploadsService.listAllImports(filters);
+      return { count: results.length, next: null, previous: null, results };
+    },
+    { ...defaultConfig, ...config }
+  );
+}
 // ============================================================================
 // Aggregates Hooks
 // ============================================================================

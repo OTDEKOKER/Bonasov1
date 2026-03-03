@@ -41,10 +41,9 @@ const statusColors: Record<string, string> = {
 
 interface ProjectCardProps {
   project: Project
-  organizations: { id: string; name: string; type: string }[]
 }
 
-function ProjectCard({ project, organizations }: ProjectCardProps) {
+function ProjectCard({ project }: ProjectCardProps) {
   const router = useRouter()
   const progress = project.progress_percentage ?? 0
   const startDate = new Date(project.start_date)
@@ -275,7 +274,6 @@ export default function ProjectsPage() {
               <ProjectCard
                 key={project.id}
                 project={project}
-                organizations={organizations}
               />
             ))}
           </div>
@@ -289,7 +287,7 @@ export default function ProjectsPage() {
 
       {/* Create Dialog */}
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent className="w-[95vw] sm:max-w-lg">
+        <DialogContent className="w-[95vw] sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Create Project</DialogTitle>
             <DialogDescription>

@@ -1,6 +1,7 @@
 ﻿"use client";
 
-import React, { useMemo, useRef, useState, Suspense } from "react";
+import React, { useEffect, useMemo, useRef, useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip as RechartsTooltip, XAxis, YAxis } from "recharts";
 import * as XLSX from "xlsx";
 import {
@@ -14,9 +15,13 @@ import {
   Calendar,
   Calculator,
   Loader2,
+  MessageSquare,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -43,11 +48,12 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { ToastAction } from "@/components/ui/toast";
 import { PageHeader } from "@/components/shared/page-header";
 import { OrganizationSelect } from "@/components/shared/organization-select";
-import { aggregatesService } from "@/lib/api";
+import { aggregatesService, indicatorsService } from "@/lib/api";
 import {
-  useAggregates,
+  useAllAggregates,
   useAggregateTemplates,
   useIndicators,
   useAllOrganizations,
@@ -63,6 +69,15 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import { useAuth } from "@/lib/contexts/auth-context";
+import {
+  buildIndicatorGroupKey,
+  normalizeIndicatorText,
+  rollupLinkedIndicatorTotals,
+} from "@/lib/indicator-linking";
+import { getGroupsFromUnknownUser } from "@/lib/user-groups";
+import { isRecognizedParentOrganizationName } from "@/lib/organization-aliases";
+import indicatorDisaggregationReport from "@/indicator-disaggregation-final-report.json";
 
 type AggregateValue = {
   male?: number;
@@ -70,6 +85,7 @@ type AggregateValue = {
   total?: number;
   age_range?: string;
   key_population?: string;
+  other_disaggregates?: Record<string, number>;
   disaggregates?: Record<
     string,
     Record<string, Record<string, number | undefined>>
@@ -107,6 +123,7 @@ const communityLeadersKeyPopulations = [
   "Youth leaders (student representatives, youth movement leaders)",
   "Women leaders (from women's groups, associations)",
   "Community-based organization (CBO/CSO) leaders",
+  "Religious/faith-based leaders",
 ];
 
 const keyPopulations = [
@@ -119,23 +136,124 @@ const keyPopulations = [
   ...familyPlanningKeyPopulations,
   ...communityLeadersKeyPopulations,
 ];
+
+const disaggregateGroupNames = [
+  "Sex",
+  "Age Range",
+  "KP",
+  "Family Planning",
+  "Community Leaders",
+  "Non Traditional Sites",
+  "Social Media Platform",
+  "NCD Screening",
+  "Tobacco Use",
+  "Alcohol Use",
+  "Mental Health",
+  "Mental Health Management",
+];
+
+const socialMediaPlatforms = [
+  "Facebook",
+  "Instagram",
+  "TikTok",
+  "X",
+  "WhatsApp",
+  "YouTube",
+  "Printed media",
+  "Physical",
+  "Other",
+];
+
+const ncdScreeningTypes = [
+  "Hypertension",
+  "Diabetes",
+  "Cervical Cancer",
+  "Breast Cancer",
+  "Prostate Cancer",
+  "Mental Health",
+  "Other",
+  "Blood Glucose",
+  "BP",
+  "BMI",
+  "Waist Circumference",
+];
+
+const tobaccoUseDisaggregateTypes = ["Tobacco use", "Suicide", "Depression"];
+
+const alcoholUseDisaggregateTypes = ["Alcohol use", "Clinical care", "Psychosocial support"];
+
+const mentalHealthDisaggregateTypes = ["Mental Health"];
+
+const mentalHealthManagementDisaggregateTypes = [
+  "Rehabilitation",
+  "Substance use disorder",
+  "Crisis services",
+  "Specialized care",
+  "Others (State the type)",
+];
+
+const normalizeGroupName = (value: string) =>
+  String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+
+const resolveDisaggregateCategories = (groups: string[]) => {
+  const categories: string[] = [];
+  const add = (value: string) => {
+    if (!categories.includes(value)) categories.push(value);
+  };
+
+  const normalizedGroups = new Set(groups.map(normalizeGroupName).filter(Boolean));
+
+  if (normalizedGroups.has("sex")) add("Sex");
+  if (normalizedGroups.has("age range")) add("Age Range");
+  if (normalizedGroups.has("kp")) keyPopulations.forEach(add);
+  if (normalizedGroups.has("family planning")) familyPlanningKeyPopulations.forEach(add);
+  if (
+    normalizedGroups.has("community leaders") ||
+    normalizedGroups.has("communinity leaders") ||
+    normalizedGroups.has("ommuninity leaders")
+  ) {
+    communityLeadersKeyPopulations.forEach(add);
+  }
+  if (normalizedGroups.has("non traditional sites") || normalizedGroups.has("non traditional site")) {
+    add("Non Traditional Sites");
+  }
+  if (normalizedGroups.has("social media platform") || normalizedGroups.has("media platform")) {
+    socialMediaPlatforms.forEach(add);
+  }
+  if (normalizedGroups.has("ncd screening")) ncdScreeningTypes.forEach(add);
+  if (normalizedGroups.has("tobacco use")) tobaccoUseDisaggregateTypes.forEach(add);
+  if (normalizedGroups.has("alcohol use")) alcoholUseDisaggregateTypes.forEach(add);
+  if (normalizedGroups.has("mental health")) mentalHealthDisaggregateTypes.forEach(add);
+  if (normalizedGroups.has("mental health management")) mentalHealthManagementDisaggregateTypes.forEach(add);
+
+  return categories;
+};
+
 const matrixAgeBands = [...ageRanges, "AYP (10-24)"];
 const matrixAgeBandCore = ageRanges;
+const ageBandLookup = new Map(
+  matrixAgeBands.map((band) => [band.toLowerCase().replace(/[^a-z0-9+]+/g, ""), band] as const),
+);
 
-const chartColors = [
-  "#2563eb",
-  "#16a34a",
-  "#f59e0b",
-  "#ef4444",
-  "#9333ea",
-  "#0891b2",
-  "#f97316",
-  "#14b8a6",
-  "#e11d48",
-  "#84cc16",
-  "#6366f1",
-  "#d946ef",
+const chartPalette = [
+  { color: "#2563eb", dotClass: "bg-[#2563eb]" },
+  { color: "#16a34a", dotClass: "bg-[#16a34a]" },
+  { color: "#f59e0b", dotClass: "bg-[#f59e0b]" },
+  { color: "#ef4444", dotClass: "bg-[#ef4444]" },
+  { color: "#9333ea", dotClass: "bg-[#9333ea]" },
+  { color: "#0891b2", dotClass: "bg-[#0891b2]" },
+  { color: "#f97316", dotClass: "bg-[#f97316]" },
+  { color: "#14b8a6", dotClass: "bg-[#14b8a6]" },
+  { color: "#e11d48", dotClass: "bg-[#e11d48]" },
+  { color: "#84cc16", dotClass: "bg-[#84cc16]" },
+  { color: "#6366f1", dotClass: "bg-[#6366f1]" },
+  { color: "#d946ef", dotClass: "bg-[#d946ef]" },
 ];
+
 
 const formatDate = (value?: string) => {
   if (!value) return "â€”";
@@ -174,6 +292,31 @@ const getAllKeyPopulations = (
   return [...keyPopulations, ...extras];
 };
 
+const mergeDisaggregates = (
+  values: unknown[],
+): Record<string, Record<string, Record<string, number>>> | null => {
+  const merged: Record<string, Record<string, Record<string, number>>> = {};
+
+  values.forEach((value) => {
+    const disaggregates = getDisaggregates(value);
+    if (!disaggregates) return;
+
+    Object.entries(disaggregates).forEach(([kp, kpData]) => {
+      if (!merged[kp]) {
+        merged[kp] = { Male: {}, Female: {} };
+      }
+      (["Male", "Female"] as const).forEach((sex) => {
+        const sexValues = kpData?.[sex] || {};
+        Object.entries(sexValues).forEach(([band, bandValue]) => {
+          merged[kp][sex][band] = (merged[kp][sex][band] || 0) + (Number(bandValue) || 0);
+        });
+      });
+    });
+  });
+
+  return Object.keys(merged).length > 0 ? merged : null;
+};
+
 const sumBands = (values: Record<string, number | undefined>) =>
   matrixAgeBandCore.reduce((acc, band) => acc + (values[band] || 0), 0);
 
@@ -199,24 +342,328 @@ const buildEmptyMatrix = () => {
   return matrix;
 };
 
-const sanitizeSheetName = (value: string) =>
-  value.replace(/[\\/?*\[\]:]/g, " ").slice(0, 31) || "Sheet";
+const normalizeIndicatorCanonicalKey = (value: string) =>
+  value
+    .toLowerCase()
+    .replace(/\bnunber\b/g, "number")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+
+const normalizeLowerTrim = (value: string) => String(value || "").trim().toLowerCase();
+
+const normalizeDisaggregateLabel = (value: string) => {
+  const raw = String(value || "").replace(/[\u2018\u2019]/g, "'").trim();
+  if (!raw) return "";
+
+  const compact = raw
+    .toLowerCase()
+    .replace(/[^a-z0-9+]+/g, " ")
+    .trim();
+
+  const aliases: Record<string, string> = {
+    "tiktok": "TikTok",
+    "gen population": "GENERAL POP.",
+    "general population": "GENERAL POP.",
+    "gen pop": "GENERAL POP.",
+    "general pop": "GENERAL POP.",
+    "women leaders from women s groups associations": "Women leaders (from women's groups, associations)",
+    "emergency contraceptive": "Emergency contraceptive",
+    "implant 3 years": "Implant 3 years",
+    "implant 5 years": "Implant 5 years",
+    "contraceptive pills": "Contraceptive pill",
+    "blood glucose": "Blood Glucose",
+    "waist circumference": "Waist Circumference",
+    "substance use disorder": "Substance use disorder",
+    "printed media": "Printed media",
+    "physical": "Physical",
+    "tobacco use": "Tobacco use",
+    "alcohol use": "Alcohol use",
+    "mental health": "Mental Health",
+    "x": "X",
+  };
+
+  return aliases[compact] || raw.replace(/\s+/g, " ");
+};
+
+const normalizeIndicatorDisplayName = (value: string) => {
+  const normalized = String(value || "")
+    .replace(/â€“|–|—/g, "-")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!normalized) return "Indicator";
+
+  const autoPrefixed = normalized.match(/^AUTO_[A-Z0-9_]+\s*-\s*(.+)$/i);
+  if (autoPrefixed?.[1]) {
+    return autoPrefixed[1].trim();
+  }
+
+  return normalized;
+};
+
+const IMPORT_COLUMN_ALIASES: Record<string, string[]> = {
+  indicator_id: ["indicator", "indicatorid", "indicator_code", "code"],
+  indicator_name: ["indicator", "indicatorname", "indicator_title", "name"],
+  project_id: ["project", "projectid"],
+  project_name: ["project", "projectname"],
+  organization_id: ["organization", "organisation", "organizationid", "organisationid", "org_id"],
+  organization_name: ["organization", "organisation", "organizationname", "organisationname", "org"],
+  period_start: ["start", "start_date", "period_from", "from"],
+  period_end: ["end", "end_date", "period_to", "to"],
+  value_json: ["valuejson", "json", "value"],
+  male: ["m"],
+  female: ["f"],
+  total: ["totals"],
+  notes: ["note", "comment", "comments"],
+};
+
+const IMPORT_FIXED_COLUMNS = new Set([
+  "indicator_id",
+  "indicator_name",
+  "project_id",
+  "project_name",
+  "organization_id",
+  "organization_name",
+  "period_start",
+  "period_end",
+  "value_json",
+  "male",
+  "female",
+  "total",
+  "notes",
+  "key_population",
+  "key_population_name",
+  "age_range",
+  "age_band",
+  "sex",
+  "disaggregate_type",
+  "disaggregate_value",
+  "value",
+  "amount",
+  "count",
+]);
+
+const normalizeImportHeaderKey = (value: string) =>
+  value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+
+const resolveImportHeaderIndex = (header: string[], key: string) => {
+  const searchKeys = [key, ...(IMPORT_COLUMN_ALIASES[key] || [])].map((item) => normalizeImportHeaderKey(item));
+  for (const searchKey of searchKeys) {
+    const index = header.indexOf(searchKey);
+    if (index >= 0) return index;
+  }
+  return -1;
+};
+
+const detectImportHeaderRow = (rows: string[][]) => {
+  let bestIndex = -1;
+  let bestScore = -1;
+  const scanLimit = Math.min(rows.length, 30);
+  for (let i = 0; i < scanLimit; i += 1) {
+    const candidateHeader = (rows[i] || []).map((cell) => normalizeImportHeaderKey(cell));
+    if (!candidateHeader.some(Boolean)) continue;
+
+    let score = 0;
+    const hasIndicatorColumn =
+      resolveImportHeaderIndex(candidateHeader, "indicator_id") >= 0 ||
+      resolveImportHeaderIndex(candidateHeader, "indicator_name") >= 0;
+    const hasValueColumn =
+      resolveImportHeaderIndex(candidateHeader, "male") >= 0 ||
+      resolveImportHeaderIndex(candidateHeader, "female") >= 0 ||
+      resolveImportHeaderIndex(candidateHeader, "total") >= 0 ||
+      resolveImportHeaderIndex(candidateHeader, "value_json") >= 0 ||
+      resolveImportHeaderIndex(candidateHeader, "value") >= 0 ||
+      resolveImportHeaderIndex(candidateHeader, "amount") >= 0 ||
+      resolveImportHeaderIndex(candidateHeader, "count") >= 0;
+
+    if (hasIndicatorColumn) score += 2;
+    if (hasValueColumn) score += 1;
+    if (resolveImportHeaderIndex(candidateHeader, "project_id") >= 0 || resolveImportHeaderIndex(candidateHeader, "project_name") >= 0) score += 1;
+    if (resolveImportHeaderIndex(candidateHeader, "organization_id") >= 0 || resolveImportHeaderIndex(candidateHeader, "organization_name") >= 0) score += 1;
+    if (resolveImportHeaderIndex(candidateHeader, "period_start") >= 0) score += 1;
+    if (resolveImportHeaderIndex(candidateHeader, "period_end") >= 0) score += 1;
+
+    if (score > bestScore) {
+      bestScore = score;
+      bestIndex = i;
+    }
+  }
+
+  if (bestIndex < 0 || bestScore < 2) return null;
+  return {
+    header: (rows[bestIndex] || []).map((cell) => normalizeImportHeaderKey(cell)),
+    dataRows: rows.slice(bestIndex + 1),
+  };
+};
+
+const normalizeImportDateValue = (value: string) => {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+    return raw;
+  }
+
+  const ddmmyyyy = raw.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})$/);
+  if (ddmmyyyy) {
+    const day = Number(ddmmyyyy[1]);
+    const month = Number(ddmmyyyy[2]);
+    const year = Number(ddmmyyyy[3]);
+    if (day >= 1 && day <= 31 && month >= 1 && month <= 12) {
+      return `${year.toString().padStart(4, "0")}-${month
+        .toString()
+        .padStart(2, "0")}-${day.toString().padStart(2, "0")}`;
+    }
+  }
+
+  const numeric = Number(raw);
+  if (!Number.isNaN(numeric) && numeric > 20000 && numeric < 80000) {
+    const utcMillis = Math.round((numeric - 25569) * 86400 * 1000);
+    const excelDate = new Date(utcMillis);
+    if (!Number.isNaN(excelDate.getTime())) {
+      return excelDate.toISOString().slice(0, 10);
+    }
+  }
+
+  const parsedDate = new Date(raw);
+  if (!Number.isNaN(parsedDate.getTime())) {
+    return parsedDate.toISOString().slice(0, 10);
+  }
+
+  return "";
+};
+
+const COMMENT_PREFIX = "[COMMENT]|";
+const COMMENT_WRITE_ROLES = new Set(["admin", "manager", "officer"]);
+const MANUAL_IMPORTS_STORAGE_KEY = "bonaso.manualImportHistory";
+
+type ManualImportHistoryRecord = {
+  id: string;
+  source: "aggregates-manual";
+  fileName: string;
+  importedRows: number;
+  failedRows: number;
+  status: "draft" | "validated" | "failed";
+  indicatorsCreated: number;
+  periodStart: string | null;
+  periodEnd: string | null;
+  error: string | null;
+  reportGroups?: Array<{
+    project: number;
+    organization: number;
+    period_start: string;
+    period_end: string;
+  }>;
+  validatedAt?: string | null;
+  createdAt: string;
+};
+
+type AggregateComment = {
+  id: string;
+  aggregateId: string;
+  author: string;
+  message: string;
+  createdAt: string;
+  isSystem: boolean;
+};
+
+type ImportPreview = {
+  fileName: string;
+  totalRows: number;
+  detectedIndicators: string[];
+  missingIndicators: string[];
+  extraDisaggregateColumns: string[];
+};
+
+type IndicatorImportProfile =
+  | "kp_age_sex_matrix"
+  | "age_sex_matrix_non_kp"
+  | "category_or_cadre_breakdown"
+  | "single_total";
+
+const parseAggregateComments = (aggregate: Aggregate): AggregateComment[] => {
+  const notes = (aggregate.notes || "").trim();
+  if (!notes) return [];
+
+  const lines = notes
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  const parsed = lines
+    .map((line, index) => {
+      if (!line.startsWith(COMMENT_PREFIX)) return null;
+      const parts = line.split("|");
+      if (parts.length < 4) return null;
+      const createdAt = parts[1] || aggregate.updated_at || aggregate.created_at;
+      const author = parts[2] || "Unknown user";
+      const message = parts.slice(3).join("|").trim();
+      if (!message) return null;
+      return {
+        id: `${aggregate.id}-${index}`,
+        aggregateId: String(aggregate.id),
+        author,
+        message,
+        createdAt,
+        isSystem: false,
+      };
+    })
+    .filter((comment): comment is AggregateComment => comment !== null);
+
+  if (parsed.length > 0) return parsed;
+
+  return [
+    {
+      id: `${aggregate.id}-legacy-note`,
+      aggregateId: String(aggregate.id),
+      author: "System note",
+      message: notes,
+      createdAt: aggregate.updated_at || aggregate.created_at,
+      isSystem: true,
+    },
+  ];
+};
+
+const buildCommentLine = (author: string, message: string, createdAt: string) => {
+  const sanitizedAuthor = author.replace(/\|/g, "/").trim() || "Unknown user";
+  const sanitizedMessage = message
+    .replace(/\r?\n+/g, " ")
+    .replace(/\|/g, "/")
+    .trim();
+  return `${COMMENT_PREFIX}${createdAt}|${sanitizedAuthor}|${sanitizedMessage}`;
+};
 
 export default function AggregatesPage() {
   const { toast } = useToast();
+  const router = useRouter();
+  const { user } = useAuth();
+  const searchParams = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [projectFilter, setProjectFilter] = useState("all");
   const [periodFilter, setPeriodFilter] = useState("all");
-  const [parentOrgFilter, setParentOrgFilter] = useState("all");
-  const [orgFilter, setOrgFilter] = useState("all");
+  const [orgScopeFilter, setOrgScopeFilter] = useState("all");
   const [keyPopulationFilter, setKeyPopulationFilter] = useState("all");
-  const [ageFilter, setAgeFilter] = useState<"all" | "ayp" | "older">("all");
   const [ageRangeFilter, setAgeRangeFilter] = useState("all");
+  const [indicatorGroupingMode, setIndicatorGroupingMode] = useState<"exact" | "linked" | "linked_global">("linked_global");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isChartOpen, setIsChartOpen] = useState(false);
   const [isAutoCalcOpen, setIsAutoCalcOpen] = useState(false);
+  const [isImportPreviewOpen, setIsImportPreviewOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAutoCalcSubmitting, setIsAutoCalcSubmitting] = useState(false);
+  const [isPreparingImportPreview, setIsPreparingImportPreview] = useState(false);
+  const [pendingImportFile, setPendingImportFile] = useState<File | null>(null);
+  const [importPreview, setImportPreview] = useState<ImportPreview | null>(null);
+  const [selectedDetectedIndicators, setSelectedDetectedIndicators] = useState<string[]>([]);
+  const [selectedExtraDisaggregates, setSelectedExtraDisaggregates] = useState<string[]>([]);
+  const [importProject, setImportProject] = useState("");
+  const [importOrganization, setImportOrganization] = useState("");
+  const [importPeriodStart, setImportPeriodStart] = useState("");
+  const [importPeriodEnd, setImportPeriodEnd] = useState("");
+  const [importSheetName, setImportSheetName] = useState("");
   const importInputRef = useRef<HTMLInputElement | null>(null);
 
   const [formProject, setFormProject] = useState("");
@@ -247,8 +694,11 @@ export default function AggregatesPage() {
   const [autoSaveAggregate, setAutoSaveAggregate] = useState(true);
   const [autoComputed, setAutoComputed] = useState<number | null>(null);
   const [groupChartsOpen, setGroupChartsOpen] = useState<Record<string, boolean>>({});
+  const [groupCommentDrafts, setGroupCommentDrafts] = useState<Record<string, string>>({});
+  const [groupCommentSubmitting, setGroupCommentSubmitting] = useState<Record<string, boolean>>({});
+  const [systemNotesOpen, setSystemNotesOpen] = useState<Record<string, boolean>>({});
 
-  const { data: aggregatesData, isLoading, error, mutate } = useAggregates();
+  const { data: aggregatesData, isLoading, error, mutate } = useAllAggregates();
   const { data: projectsData } = useProjects();
   const { data: indicatorsData } = useIndicators();
   const { data: organizationsData } = useAllOrganizations();
@@ -257,11 +707,107 @@ export default function AggregatesPage() {
     organization: formOrganization || undefined,
   });
 
-  const aggregates = aggregatesData?.results || [];
-  const projects = projectsData?.results || [];
-  const indicators = indicatorsData?.results || [];
-  const organizations = organizationsData?.results || [];
-  const templates = templatesData || [];
+  const aggregates = useMemo(() => aggregatesData ?? [], [aggregatesData]);
+  const projects = useMemo(() => projectsData?.results ?? [], [projectsData?.results]);
+  const indicators = useMemo(() => indicatorsData?.results ?? [], [indicatorsData?.results]);
+  const organizations = useMemo(() => organizationsData?.results ?? [], [organizationsData?.results]);
+  const templates = useMemo(() => templatesData ?? [], [templatesData]);
+  const normalizedUser = useMemo(
+    () => (user && typeof user === "object" ? (user as unknown as Record<string, unknown>) : null),
+    [user],
+  );
+  const currentUserName = useMemo(() => {
+    if (!normalizedUser) return "Unknown user";
+    const firstName = String(normalizedUser.firstName ?? normalizedUser.first_name ?? "").trim();
+    const lastName = String(normalizedUser.lastName ?? normalizedUser.last_name ?? "").trim();
+    const fullName = `${firstName} ${lastName}`.trim();
+    if (fullName) return fullName;
+    const username = String(normalizedUser.username ?? "").trim();
+    if (username) return username;
+    const email = String(normalizedUser.email ?? "").trim();
+    if (email) return email;
+    return "Unknown user";
+  }, [normalizedUser]);
+  const userRole = useMemo(
+    () => String(normalizedUser?.role ?? "").toLowerCase(),
+    [normalizedUser],
+  );
+  const userGroupNames = useMemo(() => {
+    return getGroupsFromUnknownUser(user)
+      .map((name) => name.trim().toLowerCase())
+      .filter(Boolean);
+  }, [user]);
+  const userPermissionNames = useMemo(() => {
+    const rawPermissions = normalizedUser?.permissions;
+    if (!Array.isArray(rawPermissions)) return [] as string[];
+    return rawPermissions
+      .map((permission) => String(permission).trim().toLowerCase())
+      .filter(Boolean);
+  }, [normalizedUser]);
+  const canPostGroupComments = useMemo(() => {
+    if (!normalizedUser) return false;
+    if (COMMENT_WRITE_ROLES.has(userRole)) return true;
+
+    const hasWriteGroup = userGroupNames.some(
+      (group) => group.includes("coordinator") || group.includes("funder") || group.includes("manager"),
+    );
+    if (hasWriteGroup) return true;
+
+    return userPermissionNames.some(
+      (permission) =>
+        (permission.includes("aggregate") || permission.includes("comment")) &&
+        (permission.includes("add") || permission.includes("change") || permission.includes("write")),
+    );
+  }, [normalizedUser, userGroupNames, userPermissionNames, userRole]);
+  const userOrganizationId = useMemo(() => {
+    if (!user || typeof user !== "object") return null;
+    const normalizedUser = user as unknown as Record<string, unknown>;
+    const rawOrganization =
+      normalizedUser.organizationId ??
+      normalizedUser.organization_id ??
+      normalizedUser.organization;
+    if (rawOrganization === null || rawOrganization === undefined || rawOrganization === "") return null;
+    return String(rawOrganization);
+  }, [user]);
+  const accessibleOrgIds = useMemo(() => {
+    if (!user || typeof user !== "object") return null;
+    const normalizedUser = user as unknown as Record<string, unknown>;
+    const role = String(normalizedUser.role ?? "").toLowerCase();
+    if (role === "admin") return null;
+    if (!userOrganizationId) return null;
+
+    const childrenByParent = new Map<string, string[]>();
+    organizations.forEach((org) => {
+      const parentId = String((org as { parentId?: string | number | null }).parentId ?? "");
+      if (!parentId) return;
+      const list = childrenByParent.get(parentId) || [];
+      list.push(String(org.id));
+      childrenByParent.set(parentId, list);
+    });
+
+    const allowed = new Set<string>([userOrganizationId]);
+    const queue = [userOrganizationId];
+
+    while (queue.length > 0) {
+      const current = queue.shift();
+      if (!current) continue;
+      const children = childrenByParent.get(current) || [];
+      children.forEach((childId) => {
+        if (allowed.has(childId)) return;
+        allowed.add(childId);
+        queue.push(childId);
+      });
+    }
+
+    return allowed;
+  }, [organizations, user, userOrganizationId]);
+  const scopedOrganizations = useMemo(
+    () =>
+      accessibleOrgIds
+        ? organizations.filter((org) => accessibleOrgIds.has(String(org.id)))
+        : organizations,
+    [accessibleOrgIds, organizations],
+  );
 
   const resetAutoCalcForm = () => {
     setAutoOutputIndicator("");
@@ -288,26 +834,130 @@ export default function AggregatesPage() {
       new Map(indicators.map((indicator) => [String(indicator.id), indicator.code])),
     [indicators],
   );
+  const indicatorGroupKeyById = useMemo(
+    () =>
+      new Map(indicators.map((indicator) => [String(indicator.id), buildIndicatorGroupKey(indicator)])),
+    [indicators],
+  );
+  const indicatorGroupLabelByKey = useMemo(() => {
+    const labelByKey = new Map<string, string>();
+    indicators.forEach((indicator) => {
+      const key = buildIndicatorGroupKey(indicator);
+      if (!labelByKey.has(key)) {
+        labelByKey.set(key, indicator.name || "Indicator");
+      }
+    });
+    return labelByKey;
+  }, [indicators]);
   const projectNameById = useMemo(
     () =>
       new Map(projects.map((project) => [String(project.id), project.name])),
     [projects],
   );
-  const orgParentById = useMemo(
-    () =>
-      new Map(organizations.map((org: { id: number; parent?: number | null }) => [String(org.id), org.parent ?? null])),
-    [organizations],
-  );
   const parentOrganizations = useMemo(
-    () => organizations.filter((org: { parent?: number | null }) => !org.parent),
-    [organizations],
+    () =>
+      scopedOrganizations.filter(
+        (org: { parent?: number | string | null; parentId?: number | string | null }) =>
+          !String(org.parentId ?? org.parent ?? "") &&
+          isRecognizedParentOrganizationName(String((org as { name?: string }).name ?? "")),
+      ),
+    [scopedOrganizations],
   );
-  const childOrganizations = useMemo(() => {
-    if (parentOrgFilter === "all") return organizations;
-    return organizations.filter((org: { parent?: number | null }) =>
-      String(org.parent ?? "") === parentOrgFilter || String(org.id) === parentOrgFilter
+  const childOrganizationsByParentId = useMemo(() => {
+    const groups = new Map<string, typeof scopedOrganizations>();
+    parentOrganizations.forEach((parent) => {
+      groups.set(String(parent.id), []);
+    });
+    scopedOrganizations.forEach((organization) => {
+      const parentId = String(
+        (organization as { parent?: number | string | null; parentId?: number | string | null }).parentId ??
+          (organization as { parent?: number | string | null }).parent ??
+          "",
+      );
+      if (!parentId || !groups.has(parentId)) return;
+      const items = groups.get(parentId) || [];
+      items.push(organization);
+      groups.set(parentId, items);
+    });
+    groups.forEach((items, parentId) => {
+      groups.set(
+        parentId,
+        items.slice().sort((left, right) => String(left.name || "").localeCompare(String(right.name || ""))),
+      );
+    });
+    return groups;
+  }, [parentOrganizations, scopedOrganizations]);
+  const descendantsByOrgId = useMemo(() => {
+    const childrenMap = new Map<string, string[]>();
+    scopedOrganizations.forEach((organization) => {
+      const parentId = String(
+        (organization as { parent?: number | string | null; parentId?: number | string | null }).parentId ??
+          (organization as { parent?: number | string | null }).parent ??
+          "",
+      );
+      if (!parentId) return;
+      const list = childrenMap.get(parentId) || [];
+      list.push(String(organization.id));
+      childrenMap.set(parentId, list);
+    });
+
+    const descendants = new Map<string, Set<string>>();
+    scopedOrganizations.forEach((organization) => {
+      const rootId = String(organization.id);
+      const visited = new Set<string>([rootId]);
+      const queue = [rootId];
+      while (queue.length > 0) {
+        const current = queue.shift();
+        if (!current) continue;
+        const children = childrenMap.get(current) || [];
+        children.forEach((childId) => {
+          if (visited.has(childId)) return;
+          visited.add(childId);
+          queue.push(childId);
+        });
+      }
+      descendants.set(rootId, visited);
+    });
+    return descendants;
+  }, [scopedOrganizations]);
+  const quickOrgScopeOptions = useMemo(() => {
+    const options: Array<{ id: string; label: string }> = [];
+    parentOrganizations.forEach((parent) => {
+      options.push({ id: String(parent.id), label: `${parent.name} (with sub-grantees)` });
+      const children = childOrganizationsByParentId.get(String(parent.id)) || [];
+      children.forEach((child) => {
+        options.push({ id: String(child.id), label: `↳ ${child.name}` });
+      });
+    });
+    return options;
+  }, [childOrganizationsByParentId, parentOrganizations]);
+  const quickScopeIds = useMemo(() => {
+    if (orgScopeFilter === "all") return null;
+    return descendantsByOrgId.get(String(orgScopeFilter)) || new Set<string>([String(orgScopeFilter)]);
+  }, [descendantsByOrgId, orgScopeFilter]);
+  const effectiveOrgScopeIds = useMemo(() => quickScopeIds, [quickScopeIds]);
+
+  useEffect(() => {
+    const orgIdQuery = searchParams.get("orgId");
+    if (orgIdQuery) {
+      const targetId = orgIdQuery.trim();
+      const hasMatch = scopedOrganizations.some((organization) => String(organization.id) === targetId);
+      if (hasMatch) {
+        setOrgScopeFilter((prev) => (prev === targetId ? prev : targetId));
+        return;
+      }
+    }
+
+    const parentQuery = searchParams.get("parent");
+    if (!parentQuery) return;
+    const normalized = parentQuery.trim().toLowerCase();
+    const targetParent = parentOrganizations.find(
+      (parent) => String(parent.name || "").trim().toLowerCase() === normalized,
     );
-  }, [organizations, parentOrgFilter]);
+    if (!targetParent) return;
+    const targetId = String(targetParent.id);
+    setOrgScopeFilter((prev) => (prev === targetId ? prev : targetId));
+  }, [parentOrganizations, scopedOrganizations, searchParams]);
 
   const periods = useMemo(
     () => Array.from(new Set(aggregates.map(getPeriodLabel))),
@@ -324,34 +974,36 @@ export default function AggregatesPage() {
     return Array.from(set);
   }, [aggregates]);
 
-  const ageBandsForFilter = useMemo(() => {
-    if (ageFilter === "all") return [...matrixAgeBands];
-    if (ageFilter === "ayp") return ["10-14", "15-19", "20-24", "AYP (10-24)"];
-    return ["25-29", "30-34", "35-39", "40-44", "45-49", "50-54", "55-59", "60-64", "65+"];
-  }, [ageFilter]);
-
   const filteredAggregates = useMemo(() => {
-    const query = searchQuery.toLowerCase();
+    const query = searchQuery.trim().toLowerCase();
+    const queryTerms = query.split(/\s+/).filter(Boolean);
     return aggregates.filter((agg) => {
-      const indicatorName =
-        agg.indicator_name ||
-        indicatorNameById.get(String(agg.indicator)) ||
-        "";
+      const rawIndicatorName = String(agg.indicator_name || "").trim();
+      const mappedIndicatorName = String(
+        indicatorNameById.get(String(agg.indicator)) || "",
+      ).trim();
+      const displayIndicatorName = normalizeIndicatorDisplayName(
+        rawIndicatorName || mappedIndicatorName,
+      );
+      const indicatorCode = String(
+        agg.indicator_code || indicatorCodeById.get(String(agg.indicator)) || "",
+      ).trim();
+      const searchHaystack = [rawIndicatorName, mappedIndicatorName, displayIndicatorName, indicatorCode]
+        .join(" ")
+        .toLowerCase();
       const matchesSearch =
-        query.length === 0 || indicatorName.toLowerCase().includes(query);
+        queryTerms.length === 0 || queryTerms.every((term) => searchHaystack.includes(term));
       const matchesProject =
         projectFilter === "all" || String(agg.project) === projectFilter;
       const matchesPeriod =
         periodFilter === "all" || getPeriodLabel(agg) === periodFilter;
-      const matchesOrg =
-        orgFilter === "all" || String(agg.organization) === orgFilter;
-      const matchesParent =
-        parentOrgFilter === "all" ||
-        String(orgParentById.get(String(agg.organization)) ?? "") === parentOrgFilter ||
-        String(agg.organization) === parentOrgFilter;
+      const matchesOrgScope =
+        !effectiveOrgScopeIds || effectiveOrgScopeIds.has(String(agg.organization));
+      const matchesAccess =
+        !accessibleOrgIds || accessibleOrgIds.has(String(agg.organization));
 
       const hasDisaggregateFilter =
-        keyPopulationFilter !== "all" || ageFilter !== "all" || ageRangeFilter !== "all";
+        keyPopulationFilter !== "all" || ageRangeFilter !== "all";
       let matchesDisaggregate = true;
       if (hasDisaggregateFilter) {
         const disaggregates = getDisaggregates(agg.value);
@@ -365,13 +1017,13 @@ export default function AggregatesPage() {
               const values = kpData[sex] || {};
               if (ageRangeFilter !== "all") {
                 const value = Number(values[ageRangeFilter] || 0);
-                if (value > 0 && ageBandsForFilter.includes(ageRangeFilter)) {
+                if (value > 0 && matrixAgeBands.includes(ageRangeFilter)) {
                   matchesDisaggregate = true;
                   break;
                 }
                 continue;
               }
-              const totalForAgeBands = ageBandsForFilter.reduce(
+              const totalForAgeBands = matrixAgeBands.reduce(
                 (sum, band) => sum + (Number(values[band]) || 0),
                 0,
               );
@@ -385,19 +1037,46 @@ export default function AggregatesPage() {
         }
       }
 
-      return matchesSearch && matchesProject && matchesPeriod && matchesParent && matchesOrg && matchesDisaggregate;
+      return (
+        matchesSearch &&
+        matchesProject &&
+        matchesPeriod &&
+        matchesOrgScope &&
+        matchesAccess &&
+        matchesDisaggregate
+      );
     });
-  }, [ageBandsForFilter, ageFilter, ageRangeFilter, aggregates, indicatorNameById, keyPopulationFilter, orgFilter, orgParentById, parentOrgFilter, periodFilter, projectFilter, searchQuery]);
+  }, [
+    accessibleOrgIds,
+    ageRangeFilter,
+    aggregates,
+    effectiveOrgScopeIds,
+    indicatorCodeById,
+    indicatorNameById,
+    keyPopulationFilter,
+    periodFilter,
+    projectFilter,
+    searchQuery,
+  ]);
 
   const aggregateGroups = useMemo(() => {
     const groups = new Map<string, Aggregate[]>();
     for (const agg of filteredAggregates) {
-      const indicatorName =
+      const rawIndicatorName =
         agg.indicator_name ||
         indicatorNameById.get(String(agg.indicator)) ||
         "Indicator";
-      const orgName = agg.organization_name || "";
-      const key = `${indicatorName}||${orgName}`;
+      const indicatorGroupKey =
+        indicatorGroupingMode === "linked"
+          ? indicatorGroupKeyById.get(String(agg.indicator)) || normalizeIndicatorText(rawIndicatorName)
+          : indicatorGroupingMode === "linked_global"
+            ? indicatorGroupKeyById.get(String(agg.indicator)) || normalizeIndicatorText(rawIndicatorName)
+          : normalizeIndicatorText(rawIndicatorName);
+      const orgName =
+        indicatorGroupingMode === "linked_global"
+          ? "__all_orgs__"
+          : agg.organization_name || "";
+      const key = `${indicatorGroupKey}||${orgName}`;
       if (!groups.has(key)) {
         groups.set(key, []);
       }
@@ -410,23 +1089,58 @@ export default function AggregatesPage() {
       return { num: Number(match[1]), suffix: (match[2] || "").toLowerCase() };
     };
     const entries = Array.from(groups.entries()).map(([key, items]) => {
-      const indicatorName = key.split("||")[0];
-      const organizationName = key.split("||")[1];
+      const indicatorGroupKey = key.split("||")[0];
+      const organizationName =
+        indicatorGroupingMode === "linked_global"
+          ? "All Organizations"
+          : key.split("||")[1];
       const first = items[0];
       const code =
         first?.indicator_code ||
         indicatorCodeById.get(String(first?.indicator)) ||
         "";
-      return { key, indicatorName, organizationName, items, code };
+      const indicatorName =
+        items.length > 0
+          ? indicatorGroupingMode === "linked"
+            ? normalizeIndicatorDisplayName(
+                String(
+                  indicatorGroupLabelByKey.get(indicatorGroupKey) ||
+                    first?.indicator_name ||
+                    indicatorNameById.get(String(first?.indicator)) ||
+                    "Indicator",
+                ),
+              )
+            : normalizeIndicatorDisplayName(
+                String(
+                  first?.indicator_name ||
+                    indicatorNameById.get(String(first?.indicator)) ||
+                    "Indicator",
+                ),
+              )
+          : "Indicator";
+      return {
+        key,
+        indicatorName: String(indicatorName),
+        organizationName: String(organizationName),
+        items,
+        code: String(code),
+      };
     });
     return entries.sort((a, b) => {
-      const ac = parseCode(a.code);
-      const bc = parseCode(b.code);
+      const ac = parseCode(String(a.code));
+      const bc = parseCode(String(b.code));
       if (ac.num !== bc.num) return ac.num - bc.num;
       if (ac.suffix !== bc.suffix) return ac.suffix.localeCompare(bc.suffix);
       return a.organizationName.localeCompare(b.organizationName);
     });
-  }, [filteredAggregates, indicatorCodeById, indicatorNameById]);
+  }, [
+    filteredAggregates,
+    indicatorCodeById,
+    indicatorGroupKeyById,
+    indicatorGroupLabelByKey,
+    indicatorGroupingMode,
+    indicatorNameById,
+  ]);
 
   const totals = useMemo(() => {
     return filteredAggregates.reduce(
@@ -447,46 +1161,6 @@ export default function AggregatesPage() {
     );
   }, [filteredAggregates]);
 
-  const parseCSV = (text: string) => {
-    const rows: string[][] = [];
-    let current = "";
-    let inQuotes = false;
-    const row: string[] = [];
-    for (let i = 0; i < text.length; i += 1) {
-      const char = text[i];
-      const next = text[i + 1];
-      if (char === "\"") {
-        if (inQuotes && next === "\"") {
-          current += "\"";
-          i += 1;
-        } else {
-          inQuotes = !inQuotes;
-        }
-        continue;
-      }
-      if (char === "," && !inQuotes) {
-        row.push(current);
-        current = "";
-        continue;
-      }
-      if ((char === "\n" || char === "\r") && !inQuotes) {
-        if (current !== "" || row.length > 0) {
-          row.push(current);
-          rows.push([...row]);
-          row.length = 0;
-          current = "";
-        }
-        continue;
-      }
-      current += char;
-    }
-    if (current !== "" || row.length > 0) {
-      row.push(current);
-      rows.push(row);
-    }
-    return rows;
-  };
-
   const getPeriodBounds = (label: string) => {
     const match = aggregates.find((agg) => getPeriodLabel(agg) === label);
     if (!match) return null;
@@ -500,7 +1174,7 @@ export default function AggregatesPage() {
       const blob = await aggregatesService.export({
         format: "excel",
         project: projectFilter !== "all" ? projectFilter : undefined,
-        organization: orgFilter !== "all" ? orgFilter : undefined,
+        organization: orgScopeFilter !== "all" ? orgScopeFilter : undefined,
         date_from: periodBounds?.from,
         date_to: periodBounds?.to,
       });
@@ -520,24 +1194,279 @@ export default function AggregatesPage() {
     }
   };
 
-  const resolveId = (value: string, list: Array<{ id: number; name?: string }>) => {
+  const resolveId = (value: string, list: Array<{ id: number | string; name?: string }>) => {
     if (!value) return null;
     const numeric = Number(value);
     if (!Number.isNaN(numeric)) return numeric;
     const match = list.find((item) => (item.name || "").toLowerCase() === value.toLowerCase());
-    return match?.id ?? null;
+    if (!match) return null;
+    const matchId = Number(match.id);
+    return Number.isNaN(matchId) ? null : matchId;
   };
 
-  const handleImport = async (file: File) => {
+  const resolveIndicatorLabel = (
+    indicatorValue: string,
+    templateIndicators: Array<{ id: number; name?: string }>,
+  ) => {
+    const indicatorId =
+      resolveId(indicatorValue, indicators) ||
+      (templateIndicators.length ? resolveId(indicatorValue, templateIndicators) : null);
+
+    if (!indicatorId) {
+      return indicatorValue.trim();
+    }
+
+    const knownName =
+      indicators.find((item) => Number(item.id) === Number(indicatorId))?.name ||
+      templateIndicators.find((item) => Number(item.id) === Number(indicatorId))?.name ||
+      indicatorValue;
+
+    return String(knownName || indicatorValue).trim();
+  };
+
+  const buildImportPreview = async (file: File, selectedSheetName?: string): Promise<ImportPreview> => {
     const extension = file.name.split(".").pop()?.toLowerCase();
-    const normalize = (value: string) => value.trim().toLowerCase();
-    const findOrgBySheet = (sheetName: string) =>
-      organizations.find((org) => normalize(org.name) === normalize(sheetName))?.id ?? null;
+    const isExcelFile = extension === "xlsx" || extension === "xls";
+    if (!isExcelFile) {
+      throw new Error("Only Excel files are supported");
+    }
     const findTemplateBySheet = (sheetName: string) =>
-      templates.find((template) => normalize(template.name) === normalize(sheetName)) ?? null;
+      templates.find((template) => normalizeLowerTrim(template.name) === normalizeLowerTrim(sheetName)) ?? null;
+
+    const missingIndicators = new Set<string>();
+    const detectedIndicators = new Set<string>();
+    const extraDisaggregateColumns = new Set<string>();
+    let totalRows = 0;
+
+    const inspectRows = (rows: string[][], templateIndicators: Array<{ id: number; name?: string }>) => {
+      if (rows.length < 2) return;
+      const headerContext = detectImportHeaderRow(rows);
+      if (!headerContext) return;
+      const { header, dataRows } = headerContext;
+      const get = (row: string[], key: string) => {
+        const idx = resolveImportHeaderIndex(header, key);
+        return idx >= 0 ? String(row[idx] ?? "").trim() : "";
+      };
+
+      for (const row of dataRows) {
+        if (!row.some((cell) => String(cell || "").trim() !== "")) continue;
+        totalRows += 1;
+        const indicatorValue = (get(row, "indicator_id") || get(row, "indicator_name") || "").trim();
+        const indicatorId =
+          resolveId(indicatorValue, indicators) ||
+          (templateIndicators.length ? resolveId(indicatorValue, templateIndicators) : null);
+        if (indicatorValue) {
+          const indicatorLabel = resolveIndicatorLabel(indicatorValue, templateIndicators);
+          if (indicatorLabel) {
+            detectedIndicators.add(indicatorLabel);
+          }
+        }
+        if (!indicatorId && indicatorValue) {
+          missingIndicators.add(indicatorValue);
+        }
+      }
+
+      header.forEach((columnKey) => {
+        if (!columnKey) return;
+        if (IMPORT_FIXED_COLUMNS.has(columnKey)) return;
+        extraDisaggregateColumns.add(columnKey);
+      });
+    };
+
+    if (extension === "xlsx" || extension === "xls") {
+      const data = await file.arrayBuffer();
+      const workbook = XLSX.read(data, { type: "array" });
+      const sheetNames = workbook.SheetNames.length ? workbook.SheetNames : [];
+      const sheetNamesToRead = selectedSheetName
+        ? sheetNames.filter((name) => normalizeLowerTrim(name) === normalizeLowerTrim(selectedSheetName))
+        : sheetNames;
+      for (const sheetName of sheetNamesToRead) {
+        const sheet = workbook.Sheets[sheetName];
+        const rows = (XLSX.utils.sheet_to_json(sheet, { header: 1 }) as Array<Array<unknown>>).map(
+          (row) => row.map((cell) => (cell === undefined || cell === null ? "" : String(cell))),
+        );
+        const template = findTemplateBySheet(sheetName);
+        inspectRows(rows, template?.indicators || []);
+      }
+      if (selectedSheetName && sheetNamesToRead.length === 0) {
+        throw new Error("Selected sheet name was not found in workbook");
+      }
+    } else {
+      throw new Error("Unsupported file type");
+    }
+
+    return {
+      fileName: file.name,
+      totalRows,
+      detectedIndicators: Array.from(detectedIndicators).sort((a, b) => a.localeCompare(b)),
+      missingIndicators: Array.from(missingIndicators).sort((a, b) => a.localeCompare(b)),
+      extraDisaggregateColumns: Array.from(extraDisaggregateColumns).sort((a, b) => a.localeCompare(b)),
+    };
+  };
+
+  const handleImportFileSelection = async (file: File) => {
+    setIsPreparingImportPreview(true);
+    setPendingImportFile(file);
+    try {
+      const preview = await buildImportPreview(file, importSheetName);
+      setImportPreview(preview);
+      setSelectedDetectedIndicators(
+        Array.from(new Set([...(preview.detectedIndicators || []), ...(preview.missingIndicators || [])])),
+      );
+      setSelectedExtraDisaggregates(preview.extraDisaggregateColumns || []);
+      setIsImportPreviewOpen(true);
+    } catch (err) {
+      console.error("Failed to prepare import preview", err);
+      setPendingImportFile(null);
+      setImportPreview(null);
+      setSelectedDetectedIndicators([]);
+      setSelectedExtraDisaggregates([]);
+      toast({
+        title: "Preview failed",
+        description: "Could not inspect the selected file.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsPreparingImportPreview(false);
+    }
+  };
+
+  const handleConfirmImport = async () => {
+    if (!pendingImportFile) return;
+    if (!importProject || !importOrganization || !importPeriodStart || !importPeriodEnd) {
+      toast({
+        title: "Missing required fields",
+        description: "Project, organization, period start, and period end are required for import.",
+        variant: "destructive",
+      });
+      return;
+    }
+    const selectableIndicatorsCount =
+      (importPreview?.detectedIndicators?.length || 0) + (importPreview?.missingIndicators?.length || 0);
+    if (selectableIndicatorsCount > 0 && selectedDetectedIndicators.length === 0) {
+      toast({
+        title: "No indicators selected",
+        description: "Select at least one detected indicator to continue.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setIsImportPreviewOpen(false);
+    await handleImport(pendingImportFile, {
+      projectId: Number(importProject),
+      organizationId: Number(importOrganization),
+      periodStart: importPeriodStart,
+      periodEnd: importPeriodEnd,
+      sheetName: importSheetName.trim() || undefined,
+      selectedIndicators: selectedDetectedIndicators,
+      selectedExtraDisaggregates,
+    });
+    setPendingImportFile(null);
+    setImportPreview(null);
+    setSelectedDetectedIndicators([]);
+    setSelectedExtraDisaggregates([]);
+  };
+
+  const handleImport = async (
+    file: File,
+    defaults?: {
+      projectId?: number;
+      organizationId?: number;
+      periodStart?: string;
+      periodEnd?: string;
+      sheetName?: string;
+      selectedIndicators?: string[];
+      selectedExtraDisaggregates?: string[];
+    },
+  ) => {
+    const persistManualImportHistory = (record: ManualImportHistoryRecord) => {
+      try {
+        const existingRaw = window.localStorage.getItem(MANUAL_IMPORTS_STORAGE_KEY);
+        const parsed = existingRaw ? JSON.parse(existingRaw) : [];
+        const existing = Array.isArray(parsed) ? (parsed as ManualImportHistoryRecord[]) : [];
+        const next = [record, ...existing].slice(0, 100);
+        window.localStorage.setItem(MANUAL_IMPORTS_STORAGE_KEY, JSON.stringify(next));
+      } catch {
+        // Ignore local history persistence issues
+      }
+    };
+
+    const extension = file.name.split(".").pop()?.toLowerCase();
+    const isExcelFile = extension === "xlsx" || extension === "xls";
+    if (!isExcelFile) {
+      toast({
+        title: "Unsupported file",
+        description: "Use Excel files (.xlsx or .xls).",
+        variant: "destructive",
+      });
+      persistManualImportHistory({
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        source: "aggregates-manual",
+        fileName: file.name,
+        importedRows: 0,
+        failedRows: 1,
+        status: "failed",
+        indicatorsCreated: 0,
+        periodStart: null,
+        periodEnd: null,
+        error: "Unsupported file type",
+        createdAt: new Date().toISOString(),
+      });
+      return;
+    }
+    const fallbackProjectId = defaults?.projectId;
+    const fallbackOrganizationId = defaults?.organizationId;
+    const fallbackPeriodStart = normalizeImportDateValue(defaults?.periodStart?.trim() || "");
+    const fallbackPeriodEnd = normalizeImportDateValue(defaults?.periodEnd?.trim() || "");
+    const selectedSheetName = defaults?.sheetName?.trim();
+    const normalizeIndicatorKey = (value: string) => normalizeLowerTrim(value).replace(/[^a-z0-9]+/g, " ").trim();
+    const selectedIndicatorKeys = new Set(
+      (defaults?.selectedIndicators || []).map((value) => normalizeIndicatorKey(value)).filter(Boolean),
+    );
+    const selectedExtraDisaggregateKeys = new Set(
+      (defaults?.selectedExtraDisaggregates || []).map((value) => normalizeImportHeaderKey(value)).filter(Boolean),
+    );
+
+    const indicatorProfileByName = new Map<string, IndicatorImportProfile>();
+    ((indicatorDisaggregationReport as { indicators?: Array<{ indicatorName?: string; recommendation?: { profile?: string } }> }).indicators || []).forEach((entry) => {
+      const nameKey = normalizeIndicatorKey(String(entry.indicatorName || ""));
+      const profile = entry.recommendation?.profile as IndicatorImportProfile | undefined;
+      if (nameKey && profile) {
+        indicatorProfileByName.set(nameKey, profile);
+      }
+    });
+    const findOrgBySheet = (sheetName: string) =>
+      organizations.find((org) => normalizeLowerTrim(org.name) === normalizeLowerTrim(sheetName))?.id ?? null;
+    const findTemplateBySheet = (sheetName: string) =>
+      templates.find((template) => normalizeLowerTrim(template.name) === normalizeLowerTrim(sheetName)) ?? null;
+    const inferOrgIdFromPath = (path: string) => {
+      const segments = path
+        .split("/")
+        .map((segment) => normalizeLowerTrim(segment))
+        .filter(Boolean)
+        .reverse();
+
+      for (const segment of segments) {
+        const exact = organizations.find((org) => normalizeLowerTrim(String(org.name || "")) === segment);
+        if (exact) return Number(exact.id);
+      }
+
+      for (const segment of segments) {
+        const fuzzy = organizations.find((org) => {
+          const orgName = normalizeLowerTrim(String(org.name || ""));
+          if (!orgName) return false;
+          return segment.includes(orgName) || (segment.length >= 5 && orgName.includes(segment));
+        });
+        if (fuzzy) return Number(fuzzy.id);
+      }
+
+      return null;
+    };
 
     let success = 0;
     let failed = 0;
+    let indicatorsCreated = 0;
+    let firstBulkErrorMessage = "";
     const payloads: Array<{
       indicator: number;
       project: number;
@@ -548,29 +1477,212 @@ export default function AggregatesPage() {
       notes?: string;
     }> = [];
 
-    const processRows = (
+    const indicatorIdByName = new Map<string, number>();
+    const indicatorIdByCanonicalName = new Map<string, number>();
+    indicators.forEach((indicator) => {
+      const nameKey = normalizeLowerTrim(String(indicator.name || ""));
+      if (nameKey) indicatorIdByName.set(nameKey, Number(indicator.id));
+      const canonicalKey = normalizeIndicatorCanonicalKey(String(indicator.name || ""));
+      if (canonicalKey && !indicatorIdByCanonicalName.has(canonicalKey)) {
+        indicatorIdByCanonicalName.set(canonicalKey, Number(indicator.id));
+      }
+    });
+
+    const makeIndicatorCode = (name: string) => {
+      const token = name
+        .trim()
+        .toUpperCase()
+        .replace(/[^A-Z0-9]+/g, "_")
+        .replace(/^_+|_+$/g, "")
+        .slice(0, 24) || "AUTO_INDICATOR";
+      return `AUTO_${token}_${Date.now().toString().slice(-6)}`;
+    };
+
+    const normalizeSex = (value: string) => {
+      const normalized = normalizeLowerTrim(value);
+      if (normalized === "male" || normalized === "m") return "Male" as const;
+      if (normalized === "female" || normalized === "f") return "Female" as const;
+      return null;
+    };
+
+    const normalizeAgeBand = (value: string) => {
+      const compact = value
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9+]+/g, "");
+      if (!compact) return "";
+      return ageBandLookup.get(compact) || value.trim();
+    };
+
+    const ensureDisaggregate = (
+      value: AggregateValue,
+      keyPopulation: string,
+      sex: "Male" | "Female",
+      ageBand: string,
+      amount: number,
+    ) => {
+      const kp = normalizeDisaggregateLabel(keyPopulation);
+      const band = normalizeAgeBand(ageBand);
+      if (!kp || !band) return;
+      if (!value.disaggregates) value.disaggregates = {};
+      if (!value.disaggregates[kp]) {
+        value.disaggregates[kp] = { Male: {}, Female: {} };
+      }
+      const current = Number(value.disaggregates[kp][sex][band]) || 0;
+      value.disaggregates[kp][sex][band] = current + amount;
+    };
+
+    const ensureOtherDisaggregate = (
+      value: AggregateValue,
+      label: string,
+      amount: number,
+    ) => {
+      const key = normalizeDisaggregateLabel(label);
+      if (!key) return;
+      if (!value.other_disaggregates) value.other_disaggregates = {};
+      value.other_disaggregates[key] = (Number(value.other_disaggregates[key]) || 0) + amount;
+    };
+
+    const sumDisaggregateTotals = (value: AggregateValue) => {
+      const disaggregates = value.disaggregates;
+      if (!disaggregates) return { male: 0, female: 0, total: 0 };
+      let maleTotal = 0;
+      let femaleTotal = 0;
+      Object.values(disaggregates).forEach((kpData) => {
+        Object.values(kpData.Male || {}).forEach((amount) => {
+          maleTotal += Number(amount) || 0;
+        });
+        Object.values(kpData.Female || {}).forEach((amount) => {
+          femaleTotal += Number(amount) || 0;
+        });
+      });
+      return { male: maleTotal, female: femaleTotal, total: maleTotal + femaleTotal };
+    };
+
+    const ensureIndicatorId = async (
+      indicatorValue: string,
+      orgId: number | null,
+      templateIndicators: Array<{ id: number; name?: string }>,
+    ) => {
+      let indicatorId = resolveId(indicatorValue, indicators);
+      if (!indicatorId && templateIndicators.length) {
+        indicatorId = resolveId(indicatorValue, templateIndicators);
+      }
+      if (indicatorId) return indicatorId;
+
+      const byName = indicatorIdByName.get(normalizeLowerTrim(indicatorValue));
+      if (byName) return byName;
+
+      const byCanonicalName = indicatorIdByCanonicalName.get(
+        normalizeIndicatorCanonicalKey(indicatorValue),
+      );
+      if (byCanonicalName) return byCanonicalName;
+
+      const cleanName = indicatorValue.trim();
+      if (!cleanName) return null;
+
+      const seed = indicators[0];
+      const fallbackCategory = (seed?.category || "hiv_prevention") as "hiv_prevention" | "ncd" | "events";
+      const fallbackType = (seed?.type || "number") as
+        | "yes_no"
+        | "number"
+        | "percentage"
+        | "text"
+        | "select"
+        | "multiselect"
+        | "date"
+        | "multi_int";
+
+      try {
+        const created = await indicatorsService.create({
+          name: cleanName,
+          code: makeIndicatorCode(cleanName),
+          category: fallbackCategory,
+          type: fallbackType,
+          organizations: orgId ? [orgId] : undefined,
+          aggregation_method: "sum",
+        });
+        const createdId = Number(created.id);
+        if (Number.isNaN(createdId)) return null;
+        indicatorIdByName.set(normalizeLowerTrim(cleanName), createdId);
+        const canonicalKey = normalizeIndicatorCanonicalKey(cleanName);
+        if (canonicalKey) {
+          indicatorIdByCanonicalName.set(canonicalKey, createdId);
+        }
+        indicatorsCreated += 1;
+        return createdId;
+      } catch {
+        return null;
+      }
+    };
+
+    const resolveIndicatorProfile = (indicatorValue: string, indicatorId: number | null): IndicatorImportProfile => {
+      const nameFromValue = normalizeIndicatorKey(indicatorValue);
+      if (nameFromValue && indicatorProfileByName.has(nameFromValue)) {
+        return indicatorProfileByName.get(nameFromValue)!;
+      }
+      if (indicatorId) {
+        const existingName = indicators.find((item) => Number(item.id) === Number(indicatorId))?.name || "";
+        const nameKey = normalizeIndicatorKey(existingName);
+        if (nameKey && indicatorProfileByName.has(nameKey)) {
+          return indicatorProfileByName.get(nameKey)!;
+        }
+      }
+      return "kp_age_sex_matrix";
+    };
+
+    const processRows = async (
       rows: string[][],
       sheetOrgId: number | null,
       templateIndicators: Array<{ id: number; name?: string }>,
+      fallbackOrgId: number | null,
     ) => {
       if (rows.length < 2) return;
-      const header = rows[0].map((h) => h.trim().toLowerCase());
+      const headerContext = detectImportHeaderRow(rows);
+      if (!headerContext) return;
+      const { header, dataRows } = headerContext;
       const get = (row: string[], key: string) => {
-        const idx = header.indexOf(key);
-        return idx >= 0 ? row[idx]?.trim() : "";
+        const idx = resolveImportHeaderIndex(header, key);
+        return idx >= 0 ? String(row[idx] ?? "").trim() : "";
       };
-      for (const row of rows.slice(1)) {
+      const getAny = (row: string[], keys: string[]) => {
+        for (const key of keys) {
+          const value = get(row, key);
+          if (value) return value;
+        }
+        return "";
+      };
+      const getIndicatorFallback = (row: string[]) => {
+        for (const cell of row) {
+          const text = String(cell || "").trim();
+          if (!text) continue;
+          if (!Number.isNaN(Number(text))) continue;
+          return text;
+        }
+        return "";
+      };
+      for (const row of dataRows) {
         try {
-          const indicatorValue = get(row, "indicator_id") || get(row, "indicator_name");
-          let indicatorId = resolveId(indicatorValue, indicators);
-          if (!indicatorId && templateIndicators.length) {
-            indicatorId = resolveId(indicatorValue, templateIndicators);
-          }
-          const projectId = resolveId(get(row, "project_id") || get(row, "project_name"), projects);
-          let orgId = resolveId(get(row, "organization_id") || get(row, "organization_name"), organizations);
+          const projectId =
+            resolveId(getAny(row, ["project_id", "project_name"]), projects) || fallbackProjectId || null;
+          let orgId = resolveId(getAny(row, ["organization_id", "organization_name"]), organizations);
+          if (!orgId && fallbackOrganizationId) orgId = fallbackOrganizationId;
           if (!orgId && sheetOrgId) orgId = sheetOrgId;
-          const periodStart = get(row, "period_start");
-          const periodEnd = get(row, "period_end");
+          if (!orgId && fallbackOrgId) orgId = fallbackOrgId;
+
+          const indicatorValue =
+            getAny(row, ["indicator_id", "indicator_name"]) ||
+            getIndicatorFallback(row);
+          const indicatorSelectionLabel = resolveIndicatorLabel(indicatorValue, templateIndicators);
+          const indicatorSelectionKey = normalizeIndicatorKey(indicatorSelectionLabel || indicatorValue);
+          if (selectedIndicatorKeys.size > 0 && !selectedIndicatorKeys.has(indicatorSelectionKey)) {
+            continue;
+          }
+          const indicatorId = await ensureIndicatorId(indicatorValue, orgId, templateIndicators);
+          const indicatorProfile = resolveIndicatorProfile(indicatorValue, indicatorId);
+
+          const periodStart = normalizeImportDateValue(get(row, "period_start") || fallbackPeriodStart);
+          const periodEnd = normalizeImportDateValue(get(row, "period_end") || fallbackPeriodEnd);
           if (!indicatorId || !projectId || !orgId || !periodStart || !periodEnd) {
             failed += 1;
             continue;
@@ -587,6 +1699,14 @@ export default function AggregatesPage() {
           const male = parseNumber(get(row, "male"));
           const female = parseNumber(get(row, "female"));
           const total = parseNumber(get(row, "total"));
+
+          const rowKeyPopulation = getAny(row, ["key_population", "key_population_name"]);
+          const rowAgeBand = getAny(row, ["age_range", "age_band"]);
+          const rowSex = normalizeSex(get(row, "sex"));
+          const rowCategory = getAny(row, ["category", "cadre", "breakdown", "population_group"]);
+          const rowDisaggregateType = get(row, "disaggregate_type");
+          const rowDisaggregateValue = get(row, "disaggregate_value");
+
           if (typeof value === "object" && value !== null) {
             if (male !== undefined) (value as AggregateValue).male = male;
             if (female !== undefined) (value as AggregateValue).female = female;
@@ -598,6 +1718,93 @@ export default function AggregatesPage() {
               ...(male !== undefined ? { male } : {}),
               ...(female !== undefined ? { female } : {}),
             };
+          }
+
+          const valueObject = value as AggregateValue;
+
+          const allowAgeSex =
+            indicatorProfile === "kp_age_sex_matrix" || indicatorProfile === "age_sex_matrix_non_kp";
+          const requireKeyPopulation = indicatorProfile === "kp_age_sex_matrix";
+          const allowCategoryOnly = indicatorProfile === "category_or_cadre_breakdown";
+          const singleTotalOnly = indicatorProfile === "single_total";
+
+          if (!singleTotalOnly && rowAgeBand && rowSex && allowAgeSex) {
+            const rowAmount =
+              rowSex === "Male"
+                ? male ?? total ?? 0
+                : female ?? total ?? 0;
+            if (rowAmount > 0) {
+              ensureDisaggregate(
+                valueObject,
+                requireKeyPopulation
+                  ? rowKeyPopulation || rowCategory || "GENERAL POP."
+                  : "ALL POPULATIONS",
+                rowSex,
+                rowAgeBand,
+                rowAmount,
+              );
+            }
+          }
+
+          const rowGenericAmount =
+            parseNumber(getAny(row, ["value", "amount", "count"])) ?? total ?? male ?? female;
+          if (!singleTotalOnly && rowDisaggregateType && rowDisaggregateValue && rowGenericAmount !== undefined) {
+            ensureOtherDisaggregate(valueObject, `${rowDisaggregateType}:${rowDisaggregateValue}`, rowGenericAmount);
+          }
+          if (!singleTotalOnly && allowCategoryOnly && rowCategory && rowGenericAmount !== undefined) {
+            ensureOtherDisaggregate(valueObject, rowCategory, rowGenericAmount);
+          }
+
+          header.forEach((columnKey, index) => {
+            if (singleTotalOnly) return;
+            if (IMPORT_FIXED_COLUMNS.has(columnKey)) return;
+            if (
+              selectedExtraDisaggregateKeys.size > 0
+              && !selectedExtraDisaggregateKeys.has(normalizeImportHeaderKey(columnKey))
+            ) {
+              return;
+            }
+            const amount = parseNumber(row[index] || "");
+            if (amount === undefined) return;
+
+            const tokens = columnKey.split("_").filter(Boolean);
+            const sexIndex = tokens.findIndex((token) => token === "male" || token === "female");
+            if (allowCategoryOnly) {
+              ensureOtherDisaggregate(valueObject, columnKey, amount);
+              return;
+            }
+            if (!allowAgeSex) {
+              ensureOtherDisaggregate(valueObject, columnKey, amount);
+              return;
+            }
+            if (sexIndex <= 0 || sexIndex >= tokens.length - 1) {
+              ensureOtherDisaggregate(valueObject, columnKey, amount);
+              return;
+            }
+
+            const kp = tokens.slice(0, sexIndex).join(" ");
+            const sex = tokens[sexIndex] === "male" ? "Male" : "Female";
+            const ageBandToken = tokens.slice(sexIndex + 1).join("-");
+            const ageBand = normalizeAgeBand(ageBandToken);
+            if (kp && ageBand) {
+              ensureDisaggregate(
+                valueObject,
+                requireKeyPopulation ? kp : "ALL POPULATIONS",
+                sex,
+                ageBand,
+                amount,
+              );
+              return;
+            }
+
+            ensureOtherDisaggregate(valueObject, columnKey, amount);
+          });
+
+          if (valueObject.disaggregates) {
+            const totalsFromDisaggregates = sumDisaggregateTotals(valueObject);
+            if (valueObject.male === undefined) valueObject.male = totalsFromDisaggregates.male;
+            if (valueObject.female === undefined) valueObject.female = totalsFromDisaggregates.female;
+            if (valueObject.total === undefined) valueObject.total = totalsFromDisaggregates.total;
           }
 
           payloads.push({
@@ -619,24 +1826,54 @@ export default function AggregatesPage() {
       const data = await file.arrayBuffer();
       const workbook = XLSX.read(data, { type: "array" });
       const sheetNames = workbook.SheetNames.length ? workbook.SheetNames : [];
-      for (const sheetName of sheetNames) {
+      const sheetNamesToRead = selectedSheetName
+        ? sheetNames.filter((name) => normalizeLowerTrim(name) === normalizeLowerTrim(selectedSheetName))
+        : sheetNames;
+      if (selectedSheetName && sheetNamesToRead.length === 0) {
+        toast({
+          title: "Sheet not found",
+          description: `No sheet named "${selectedSheetName}" was found in this workbook.`,
+          variant: "destructive",
+        });
+        return;
+      }
+      const fileOrgId = inferOrgIdFromPath(file.name);
+      for (const sheetName of sheetNamesToRead) {
         const sheet = workbook.Sheets[sheetName];
         const rows = (XLSX.utils.sheet_to_json(sheet, { header: 1 }) as Array<Array<unknown>>).map(
           (row) => row.map((cell) => (cell === undefined || cell === null ? "" : String(cell))),
         );
-        const sheetOrgId = findOrgBySheet(sheetName);
+        const sheetOrgCandidate = findOrgBySheet(sheetName);
+        const parsedSheetOrgId = sheetOrgCandidate === null ? null : Number(sheetOrgCandidate);
+        const sheetOrgId = Number.isNaN(parsedSheetOrgId) ? fileOrgId : parsedSheetOrgId;
         const template = findTemplateBySheet(sheetName);
         const templateIndicators = template?.indicators || [];
-        processRows(rows, sheetOrgId, templateIndicators);
+        await processRows(rows, sheetOrgId, templateIndicators, fileOrgId);
       }
     } else {
-      const text = await file.text();
-      const rows = parseCSV(text);
-      processRows(rows, null, []);
+      toast({
+        title: "Unsupported file",
+        description: "Use Excel files (.xlsx or .xls).",
+        variant: "destructive",
+      });
+      return;
     }
 
     if (payloads.length === 0) {
       toast({ title: "Invalid file", description: "No rows found.", variant: "destructive" });
+      persistManualImportHistory({
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        source: "aggregates-manual",
+        fileName: file.name,
+        importedRows: 0,
+        failedRows: 1,
+        status: "failed",
+        indicatorsCreated,
+        periodStart: fallbackPeriodStart || null,
+        periodEnd: fallbackPeriodEnd || null,
+        error: "No rows found",
+        createdAt: new Date().toISOString(),
+      });
       return;
     }
 
@@ -669,7 +1906,9 @@ export default function AggregatesPage() {
       });
     }
 
-    for (const group of grouped.values()) {
+    const reportGroups = Array.from(grouped.values());
+
+    for (const group of reportGroups) {
       try {
         const result = await aggregatesService.bulkCreate({
           project: group.project,
@@ -679,101 +1918,54 @@ export default function AggregatesPage() {
           data: group.data,
         });
         success += result.length;
-      } catch {
+      } catch (err) {
         failed += group.data.length;
+        if (!firstBulkErrorMessage) {
+          firstBulkErrorMessage =
+            err && typeof err === "object" && "message" in err
+              ? String((err as { message?: string }).message || "")
+              : "";
+        }
       }
     }
 
     await mutate();
+
     toast({
       title: "Import complete",
-      description: `Imported ${success} rows. ${failed} failed.`,
+      description: `Imported ${success} rows. ${failed} failed.${indicatorsCreated ? ` Created ${indicatorsCreated} new indicator(s).` : ""}${failed && firstBulkErrorMessage ? ` Error: ${firstBulkErrorMessage}` : ""} Saved as draft. Validate in All Imports to populate reports.`,
       variant: failed ? "destructive" : "default",
+      action: (
+        <ToastAction altText="View all imports" onClick={() => router.push("/uploads/imports")}>
+          View imports
+        </ToastAction>
+      ),
     });
-  };
 
-  const buildDisaggregateSeed = () => {
-    const disaggregates: Record<string, Record<string, Record<string, number>>> = {};
-    for (const kp of keyPopulations) {
-      disaggregates[kp] = { Male: {}, Female: {} };
-      for (const ageBand of matrixAgeBands) {
-        disaggregates[kp].Male[ageBand] = 0;
-        disaggregates[kp].Female[ageBand] = 0;
-      }
-    }
-    return disaggregates;
-  };
-
-  const handleDownloadMakgabanengTemplate = () => {
-    const normalize = (value: string) => value.trim().toLowerCase();
-    const makgabaneng = organizations.find((org: any) =>
-      normalize(org.name).includes("makgabaneng"),
-    );
-
-    if (!makgabaneng) {
-      toast({
-        title: "Makgabaneng not found",
-        description: "No organization named Makgabaneng is available in this environment.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const subGrantees = organizations.filter(
-      (org: any) => Number(org.parent) === Number(makgabaneng.id),
-    );
-    const targetOrgs = [makgabaneng, ...subGrantees];
-    const workbook = XLSX.utils.book_new();
-
-    const project = projects[0];
-    const periodStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
-      .toISOString()
-      .slice(0, 10);
-    const periodEnd = new Date().toISOString().slice(0, 10);
-    const disaggregateTemplate = buildDisaggregateSeed();
-    const selectedTemplate = templates.find(
-      (template) => Number(template.organization) === Number(makgabaneng.id),
-    );
-    const indicatorRows =
-      selectedTemplate?.indicators?.length
-        ? selectedTemplate.indicators
-        : indicators.map((indicator) => ({
-            id: indicator.id,
-            name: indicator.name,
-            code: indicator.code,
-          }));
-
-    for (const org of targetOrgs) {
-      const rows = indicatorRows.map((indicator) => ({
-        project_id: project?.id || "",
-        project_name: project?.name || "",
-        indicator_id: indicator.id,
-        indicator_code: indicator.code || "",
-        indicator_name: indicator.name,
-        organization_id: org.id,
-        organization_name: org.name,
-        period_start: periodStart,
-        period_end: periodEnd,
-        key_populations: keyPopulations.join(" | "),
-        age_ranges: matrixAgeBands.join(" | "),
-        value_json: JSON.stringify({ disaggregates: disaggregateTemplate }),
-        notes: "",
-      }));
-
-      const sheet = XLSX.utils.json_to_sheet(rows);
-      XLSX.utils.book_append_sheet(workbook, sheet, sanitizeSheetName(org.name));
-    }
-
-    const fileName = `makgabaneng_aggregate_template_${new Date().toISOString().slice(0, 10)}.xlsx`;
-    XLSX.writeFile(workbook, fileName);
-    toast({
-      title: "Template ready",
-      description: `Created workbook with ${targetOrgs.length} sheet(s) for Makgabaneng and sub-grantees.`,
+    persistManualImportHistory({
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      source: "aggregates-manual",
+      fileName: file.name,
+      importedRows: success,
+      failedRows: failed,
+      status: success > 0 ? "draft" : "failed",
+      indicatorsCreated,
+      periodStart: fallbackPeriodStart || null,
+      periodEnd: fallbackPeriodEnd || null,
+      error: firstBulkErrorMessage || null,
+      reportGroups: reportGroups.map((group) => ({
+        project: group.project,
+        organization: group.organization,
+        period_start: group.period_start,
+        period_end: group.period_end,
+      })),
+      validatedAt: null,
+      createdAt: new Date().toISOString(),
     });
   };
 
   const chartData = useMemo(() => {
-    const totalsByIndicator = new Map<string, number>();
+    const totalsByIndicatorId = new Map<string, number>();
     for (const agg of filteredAggregates) {
       const value = parseAggregateValue(agg.value);
       const male = Number(value.male) || 0;
@@ -782,20 +1974,20 @@ export default function AggregatesPage() {
         value.total !== undefined
           ? Number(value.total) || 0
           : male + female;
-      const indicatorName =
-        agg.indicator_name ||
-        indicatorNameById.get(String(agg.indicator)) ||
-        "Indicator";
-      totalsByIndicator.set(
-        indicatorName,
-        (totalsByIndicator.get(indicatorName) || 0) + total,
+      const indicatorId = String(agg.indicator);
+      totalsByIndicatorId.set(
+        indicatorId,
+        (totalsByIndicatorId.get(indicatorId) || 0) + total,
       );
     }
-    return Array.from(totalsByIndicator.entries()).map(([name, total]) => ({
-      name,
+
+    const rolledTotals = rollupLinkedIndicatorTotals(indicators, totalsByIndicatorId);
+
+    return Array.from(rolledTotals.entries()).map(([indicatorId, total]) => ({
+      name: indicatorNameById.get(indicatorId) || "Indicator",
       total,
     }));
-  }, [filteredAggregates, indicatorNameById]);
+  }, [filteredAggregates, indicatorNameById, indicators]);
 
   const resetForm = () => {
     setFormProject("");
@@ -810,6 +2002,7 @@ export default function AggregatesPage() {
     setFormNotes("");
     setFormDataSource("");
     setMatrixValues(buildEmptyMatrix());
+    setSelectedDisaggregates([...keyPopulations]);
   };
 
   const downloadChartSvg = () => {
@@ -845,6 +2038,34 @@ export default function AggregatesPage() {
       code: indicator.code,
     }));
   }, [formTemplate, indicators, templates]);
+
+  const selectedFormIndicator = useMemo(
+    () => indicators.find((indicator) => String(indicator.id) === formIndicator),
+    [formIndicator, indicators],
+  );
+
+  const selectedIndicatorDisaggregateGroups = useMemo(() => {
+    const labels = Array.isArray(selectedFormIndicator?.sub_labels)
+      ? selectedFormIndicator.sub_labels
+      : [];
+    const known = new Set(disaggregateGroupNames.map((name) => normalizeGroupName(name)));
+    return labels.filter((label) => known.has(normalizeGroupName(label)));
+  }, [selectedFormIndicator]);
+
+  const disaggregateCategoryOptions = useMemo(() => {
+    const fromGroups = resolveDisaggregateCategories(selectedIndicatorDisaggregateGroups);
+    return fromGroups.length > 0 ? fromGroups : [...keyPopulations];
+  }, [selectedIndicatorDisaggregateGroups]);
+
+  useEffect(() => {
+    if (!useMatrixEntry) return;
+    setSelectedDisaggregates((prev) => {
+      const allowed = new Set(disaggregateCategoryOptions);
+      const next = prev.filter((item) => allowed.has(item));
+      if (next.length > 0) return next;
+      return [...disaggregateCategoryOptions];
+    });
+  }, [disaggregateCategoryOptions, useMatrixEntry]);
 
   const computedTotal = useMemo(() => {
     if (useMatrixEntry) {
@@ -1017,6 +2238,82 @@ export default function AggregatesPage() {
     }
   };
 
+  const handlePostGroupComment = async (groupKey: string, items: Aggregate[]) => {
+    if (!canPostGroupComments) {
+      toast({
+        title: "Read-only comments",
+        description: "Your role or group can view comments but cannot post new ones.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const message = (groupCommentDrafts[groupKey] || "").trim();
+    if (!message) {
+      toast({
+        title: "Comment required",
+        description: "Please type a comment before posting.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const targetAggregate = items
+      .slice()
+      .sort(
+        (left, right) =>
+          new Date(right.updated_at || right.created_at).getTime() -
+          new Date(left.updated_at || left.created_at).getTime(),
+      )[0];
+
+    if (!targetAggregate) {
+      toast({
+        title: "Unable to post",
+        description: "No aggregate record found for this group.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const targetId = Number(targetAggregate.id);
+    if (Number.isNaN(targetId)) {
+      toast({
+        title: "Unable to post",
+        description: "This aggregate record cannot be updated.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const createdAt = new Date().toISOString();
+    const line = buildCommentLine(currentUserName, message, createdAt);
+    const existingNotes = (targetAggregate.notes || "").trim();
+    const nextNotes = existingNotes ? `${existingNotes}\n${line}` : line;
+
+    setGroupCommentSubmitting((prev) => ({ ...prev, [groupKey]: true }));
+    try {
+      await aggregatesService.update(targetId, { notes: nextNotes });
+      setGroupCommentDrafts((prev) => ({ ...prev, [groupKey]: "" }));
+      await mutate();
+      toast({
+        title: "Comment posted",
+        description: "Your comment is now visible to users with access to this data.",
+      });
+    } catch (err: unknown) {
+      const errorMessage =
+        err && typeof err === "object" && "message" in err
+          ? String((err as { message?: string }).message || "Failed to save comment.")
+          : "Failed to save comment.";
+      toast({
+        title: "Failed to post comment",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setGroupCommentSubmitting((prev) => ({ ...prev, [groupKey]: false }));
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex h-[60vh] items-center justify-center">
@@ -1036,7 +2333,7 @@ export default function AggregatesPage() {
 
   return (
     <Suspense fallback={<Loading />}>
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-6 pb-6">
         <PageHeader
           title="Aggregates"
           description="Enter and manage aggregate data without individual respondent tracking"
@@ -1045,34 +2342,279 @@ export default function AggregatesPage() {
             { label: "Aggregates" },
           ]}
           actions={
-            <div className="flex items-center gap-2">
+            <div className="flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto">
               <Button
                 variant="outline"
                 onClick={() => importInputRef.current?.click()}
+                disabled={isPreparingImportPreview}
               >
-                <Upload className="mr-2 h-4 w-4" /> Import
+                {isPreparingImportPreview ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
+                {isPreparingImportPreview ? "Preparing..." : "Import"}
               </Button>
               <Button variant="outline" onClick={handleExport}>
                 <Download className="mr-2 h-4 w-4" /> Export
               </Button>
-              <Button variant="outline" onClick={handleDownloadMakgabanengTemplate}>
-                <Table2 className="mr-2 h-4 w-4" /> Makgabaneng Template
-              </Button>
               <input
                 ref={importInputRef}
                 type="file"
-                accept=".csv,.xlsx,.xls"
+                accept=".xlsx,.xls"
+                aria-label="Select aggregate import file"
+                title="Select aggregate import file"
                 className="hidden"
                 onChange={(event) => {
                   const file = event.target.files?.[0];
                   if (file) {
-                    void handleImport(file);
+                    void handleImportFileSelection(file);
                   }
                   if (importInputRef.current) {
                     importInputRef.current.value = "";
                   }
                 }}
               />
+
+              <Dialog
+                open={isImportPreviewOpen}
+                onOpenChange={(open) => {
+                  setIsImportPreviewOpen(open);
+                  if (!open) {
+                    setPendingImportFile(null);
+                    setImportPreview(null);
+                    setSelectedDetectedIndicators([]);
+                    setSelectedExtraDisaggregates([]);
+                  }
+                }}
+              >
+                <DialogContent className="flex max-h-[90vh] max-w-2xl flex-col">
+                  <DialogHeader>
+                    <DialogTitle>Import Preview</DialogTitle>
+                    <DialogDescription>
+                      Review what will be imported before applying changes.
+                    </DialogDescription>
+                  </DialogHeader>
+
+                  <div className="flex-1 space-y-4 overflow-y-auto pr-1 text-sm">
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label>Project</Label>
+                        <Select value={importProject} onValueChange={setImportProject}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select project" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {projects.map((project) => (
+                              <SelectItem key={project.id} value={String(project.id)}>
+                                {project.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Organization</Label>
+                        <Select value={importOrganization} onValueChange={setImportOrganization}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select organization" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {organizations.map((org) => (
+                              <SelectItem key={org.id} value={String(org.id)}>
+                                {org.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Period Start</Label>
+                        <Input type="date" value={importPeriodStart} onChange={(event) => setImportPeriodStart(event.target.value)} />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Period End</Label>
+                        <Input type="date" value={importPeriodEnd} onChange={(event) => setImportPeriodEnd(event.target.value)} />
+                      </div>
+
+                      <div className="space-y-2 md:col-span-2">
+                        <Label>Sheet Name (optional)</Label>
+                        <Input
+                          value={importSheetName}
+                          onChange={(event) => setImportSheetName(event.target.value)}
+                          placeholder="Leave blank to import all sheets"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <p className="font-medium">File</p>
+                      <p className="text-muted-foreground">{importPreview?.fileName || "-"}</p>
+                    </div>
+                    <div>
+                      <p className="font-medium">Rows detected</p>
+                      <p className="text-muted-foreground">{importPreview?.totalRows ?? 0}</p>
+                    </div>
+                    <div>
+                      <div className="mb-2 flex items-center justify-between gap-2">
+                        <p className="font-medium">Detected indicators</p>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                              setSelectedDetectedIndicators(
+                                Array.from(
+                                  new Set([
+                                    ...(importPreview?.detectedIndicators || []),
+                                    ...(importPreview?.missingIndicators || []),
+                                  ]),
+                                ),
+                              )
+                            }
+                          >
+                            Select all
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setSelectedDetectedIndicators([])}
+                          >
+                            Clear
+                          </Button>
+                        </div>
+                      </div>
+                      {importPreview?.detectedIndicators?.length ? (
+                        <div className="max-h-40 space-y-2 overflow-auto rounded-md border border-border p-2 text-xs">
+                          {importPreview.detectedIndicators.map((name) => {
+                            const id = `import-detected-indicator-${name.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}`;
+                            const checked = selectedDetectedIndicators.includes(name);
+                            return (
+                              <label key={name} htmlFor={id} className="flex cursor-pointer items-center gap-2">
+                                <Checkbox
+                                  id={id}
+                                  checked={checked}
+                                  onCheckedChange={(value) => {
+                                    setSelectedDetectedIndicators((prev) => {
+                                      if (value === true) {
+                                        if (prev.includes(name)) return prev;
+                                        return [...prev, name];
+                                      }
+                                      return prev.filter((item) => item !== name);
+                                    });
+                                  }}
+                                />
+                                <span className="text-muted-foreground">{name}</span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <p className="text-muted-foreground">None</p>
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-medium">Missing indicators (will be auto-created)</p>
+                      {importPreview?.missingIndicators?.length ? (
+                        <div className="max-h-28 space-y-2 overflow-auto rounded-md border border-border p-2 text-xs">
+                          {importPreview.missingIndicators.map((name) => {
+                            const id = `import-missing-indicator-${name.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}`;
+                            const checked = selectedDetectedIndicators.includes(name);
+                            return (
+                              <label key={name} htmlFor={id} className="flex cursor-pointer items-center gap-2">
+                                <Checkbox
+                                  id={id}
+                                  checked={checked}
+                                  onCheckedChange={(value) => {
+                                    setSelectedDetectedIndicators((prev) => {
+                                      if (value === true) {
+                                        if (prev.includes(name)) return prev;
+                                        return [...prev, name];
+                                      }
+                                      return prev.filter((item) => item !== name);
+                                    });
+                                  }}
+                                />
+                                <span className="text-muted-foreground">{name}</span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <p className="text-muted-foreground">None</p>
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-medium">Extra disaggregate columns detected</p>
+                      {importPreview?.extraDisaggregateColumns?.length ? (
+                        <>
+                          <div className="mb-2 flex items-center gap-2">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setSelectedExtraDisaggregates(importPreview.extraDisaggregateColumns)}
+                            >
+                              Select all
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setSelectedExtraDisaggregates([])}
+                            >
+                              Clear
+                            </Button>
+                          </div>
+                          <div className="max-h-28 space-y-2 overflow-auto rounded-md border border-border p-2 text-xs">
+                            {importPreview.extraDisaggregateColumns.map((column) => {
+                              const id = `import-extra-disaggregate-${column.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}`;
+                              const checked = selectedExtraDisaggregates.includes(column);
+                              return (
+                                <label key={column} htmlFor={id} className="flex cursor-pointer items-center gap-2">
+                                  <Checkbox
+                                    id={id}
+                                    checked={checked}
+                                    onCheckedChange={(value) => {
+                                      setSelectedExtraDisaggregates((prev) => {
+                                        if (value === true) {
+                                          if (prev.includes(column)) return prev;
+                                          return [...prev, column];
+                                        }
+                                        return prev.filter((item) => item !== column);
+                                      });
+                                    }}
+                                  />
+                                  <span className="text-muted-foreground">{column}</span>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        </>
+                      ) : (
+                        <p className="text-muted-foreground">None</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <DialogFooter className="shrink-0">
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setIsImportPreviewOpen(false);
+                        setPendingImportFile(null);
+                        setImportPreview(null);
+                        setSelectedDetectedIndicators([]);
+                        setSelectedExtraDisaggregates([]);
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                    <Button onClick={() => void handleConfirmImport()}>Import now</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
 
               <Dialog
                 open={isAutoCalcOpen}
@@ -1089,7 +2631,10 @@ export default function AggregatesPage() {
                 </DialogTrigger>
                 <DialogContent className="max-w-2xl">
                   <DialogHeader>
-                    <DialogTitle>Auto-calculate Aggregate</DialogTitle>
+                    <DialogTitle className="flex items-center gap-2">
+                      <Calculator className="h-4 w-4" />
+                      Auto-calculate
+                    </DialogTitle>
                     <DialogDescription>
                       Create/update a derivation rule and compute an aggregate from interaction responses.
                     </DialogDescription>
@@ -1119,7 +2664,7 @@ export default function AggregatesPage() {
                           <SelectValue placeholder="Select organization" />
                         </SelectTrigger>
                         <SelectContent>
-                          {organizations.map((org: any) => (
+                          {organizations.map((org) => (
                             <SelectItem key={org.id} value={String(org.id)}>
                               {org.name}
                             </SelectItem>
@@ -1293,7 +2838,7 @@ export default function AggregatesPage() {
                     <Plus className="mr-2 h-4 w-4" /> Add Entry
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="fixed inset-0 !top-0 !left-0 !translate-x-0 !translate-y-0 !max-w-none !w-screen !h-screen overflow-hidden rounded-none p-0">
+                <DialogContent className="fixed inset-0 !top-0 !left-0 !translate-x-0 !translate-y-0 !max-w-none !w-screen !h-screen overflow-y-auto rounded-none p-0">
                   <DialogHeader>
                     <DialogTitle>Add Aggregate Entry</DialogTitle>
                     <DialogDescription>
@@ -1405,7 +2950,7 @@ export default function AggregatesPage() {
                           <div className="mb-2 flex items-center justify-between gap-2">
                             <p className="text-sm font-medium">Select disaggregate categories</p>
                             <div className="flex gap-2">
-                              <Button type="button" variant="outline" size="sm" onClick={() => setSelectedDisaggregates([...keyPopulations])}>
+                              <Button type="button" variant="outline" size="sm" onClick={() => setSelectedDisaggregates([...disaggregateCategoryOptions])}>
                                 Select all
                               </Button>
                               <Button type="button" variant="outline" size="sm" onClick={() => setSelectedDisaggregates([])}>
@@ -1413,8 +2958,13 @@ export default function AggregatesPage() {
                               </Button>
                             </div>
                           </div>
+                          {selectedIndicatorDisaggregateGroups.length > 0 ? (
+                            <div className="mb-2 text-xs text-muted-foreground">
+                              Indicator groups: {selectedIndicatorDisaggregateGroups.join(", ")}
+                            </div>
+                          ) : null}
                           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                            {keyPopulations.map((kp) => {
+                            {disaggregateCategoryOptions.map((kp) => {
                               const checked = selectedDisaggregates.includes(kp);
                               return (
                                 <label key={`disagg-option-${kp}`} className="flex items-center gap-2 text-xs">
@@ -1442,7 +2992,7 @@ export default function AggregatesPage() {
                           <table className="min-w-[960px] w-full border-collapse text-xs [&_td]:border [&_td]:border-border [&_th]:border [&_th]:border-border">
                             <thead className="bg-muted/50 sticky top-0 z-10">
                               <tr>
-                                <th className="p-1.5 text-left">Key Population</th>
+                                <th className="p-1.5 text-left">Disaggregate Category</th>
                                 <th className="p-1.5 text-left">Sex</th>
                                 {matrixAgeBands.map((band) => (
                                   <th key={band} className="p-1.5 text-center whitespace-nowrap">
@@ -1561,9 +3111,9 @@ export default function AggregatesPage() {
           }
         />
 
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-1 flex-wrap items-center gap-2">
-            <div className="relative flex-1 max-w-sm">
+        <div className="flex flex-col gap-4">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+            <div className="relative xl:col-span-2">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Search indicators..."
@@ -1574,7 +3124,7 @@ export default function AggregatesPage() {
             </div>
 
             <Select value={projectFilter} onValueChange={setProjectFilter}>
-              <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectTrigger className="w-full">
                 <Filter className="mr-2 h-4 w-4" />{" "}
                 <SelectValue placeholder="Project" />
               </SelectTrigger>
@@ -1589,56 +3139,39 @@ export default function AggregatesPage() {
             </Select>
 
             <Select
-              value={parentOrgFilter}
-              onValueChange={(value) => {
-                setParentOrgFilter(value);
-                setOrgFilter("all");
-              }}
+              value={orgScopeFilter}
+              onValueChange={setOrgScopeFilter}
             >
-              <SelectTrigger className="w-full sm:w-[200px]">
-                <SelectValue placeholder="Parent Org" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Parents</SelectItem>
-                {parentOrganizations.map((org) => (
-                  <SelectItem key={org.id} value={String(org.id)}>
-                    {org.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={orgFilter} onValueChange={setOrgFilter}>
-              <SelectTrigger className="w-full sm:w-[200px]">
-                <SelectValue placeholder="Organization" />
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Organization Scope" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Organizations</SelectItem>
-                {childOrganizations.map((org) => (
-                  <SelectItem key={org.id} value={String(org.id)}>
-                    {org.name}
+                {quickOrgScopeOptions.map((option) => (
+                  <SelectItem key={option.id} value={option.id}>
+                    {option.label}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
 
             <Select value={periodFilter} onValueChange={setPeriodFilter}>
-              <SelectTrigger className="w-full sm:w-[200px]">
+              <SelectTrigger className="w-full">
                 <Calendar className="mr-2 h-4 w-4" />{" "}
                 <SelectValue placeholder="Period" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Periods</SelectItem>
                 {periods.map((period) => (
-                  <SelectItem key={period} value={period}>
-                    {period}
+                  <SelectItem key={String(period)} value={String(period)}>
+                    {String(period)}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
 
             <Select value={keyPopulationFilter} onValueChange={setKeyPopulationFilter}>
-              <SelectTrigger className="w-full sm:w-[220px]">
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Key Population" />
               </SelectTrigger>
               <SelectContent>
@@ -1651,19 +3184,9 @@ export default function AggregatesPage() {
               </SelectContent>
             </Select>
 
-            <Select value={ageFilter} onValueChange={(value) => setAgeFilter(value as "all" | "ayp" | "older")}>
-              <SelectTrigger className="w-full sm:w-[170px]">
-                <SelectValue placeholder="Age" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Ages</SelectItem>
-                <SelectItem value="ayp">AYP (10-24)</SelectItem>
-                <SelectItem value="older">25+ Years</SelectItem>
-              </SelectContent>
-            </Select>
 
             <Select value={ageRangeFilter} onValueChange={setAgeRangeFilter}>
-              <SelectTrigger className="w-full sm:w-[170px]">
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Age Range" />
               </SelectTrigger>
               <SelectContent>
@@ -1673,6 +3196,22 @@ export default function AggregatesPage() {
                     {band}
                   </SelectItem>
                 ))}
+              </SelectContent>
+            </Select>
+
+            <Select
+              value={indicatorGroupingMode}
+              onValueChange={(value) =>
+                setIndicatorGroupingMode(value as "exact" | "linked" | "linked_global")
+              }
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Indicator Grouping" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="exact">Exact indicator + organization</SelectItem>
+                <SelectItem value="linked">Linked family + organization</SelectItem>
+                <SelectItem value="linked_global">Linked families (all organizations)</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -1740,19 +3279,38 @@ export default function AggregatesPage() {
             <div className="space-y-6">
               {aggregateGroups.map((group) => {
                 const agg = group.items[0];
-                const disaggregates = agg ? getDisaggregates(agg.value) : null;
-                const keyPops = getAllKeyPopulations(disaggregates);
+                const disaggregates = mergeDisaggregates(group.items.map((item) => item.value));
+                const comments = group.items
+                  .flatMap((item) => parseAggregateComments(item))
+                  .sort(
+                    (left, right) =>
+                      new Date(left.createdAt).getTime() - new Date(right.createdAt).getTime(),
+                  );
+                const regularComments = comments.filter((comment) => !comment.isSystem);
+                const groupSystemNotes = comments.filter((comment) => comment.isSystem);
+                const isSystemNotesOpen = systemNotesOpen[group.key] || false;
+                const commentDraft = groupCommentDrafts[group.key] || "";
+                const isPostingComment = groupCommentSubmitting[group.key] || false;
+                const keyPops = getAllKeyPopulations(disaggregates).filter((kp) => {
+                  const kpData = disaggregates?.[kp];
+                  if (!kpData) return false;
+                  return (["Male", "Female"] as const).some((sex) => {
+                    const values = kpData[sex] || {};
+                    return matrixAgeBands.some((band) => (Number(values[band]) || 0) > 0);
+                  });
+                });
                 const projectName =
                   agg?.project_name ||
                   projectNameById.get(String(agg?.project)) ||
                   "Project";
                 const periodLabel = agg ? getPeriodLabel(agg) : "";
-                const totalValue = agg ? parseAggregateValue(agg.value).total ?? 0 : 0;
-                const indicatorCode =
-                  agg?.indicator_code ||
-                  indicatorCodeById.get(String(agg?.indicator)) ||
-                  "";
-
+                const totalValue = group.items.reduce((sum, item) => {
+                  const value = parseAggregateValue(item.value);
+                  const male = Number(value.male) || 0;
+                  const female = Number(value.female) || 0;
+                  const total = value.total !== undefined ? Number(value.total) || 0 : male + female;
+                  return sum + total;
+                }, 0);
                 if (!disaggregates) {
                   return (
                     <div key={group.key} className="rounded-lg border border-border p-4">
@@ -1761,7 +3319,7 @@ export default function AggregatesPage() {
                           <p className="text-sm text-muted-foreground">Indicator</p>
                           <p className="text-base font-semibold">{group.indicatorName}</p>
                           <p className="text-sm text-muted-foreground">
-                            {group.organizationName} ? {projectName} ? {periodLabel}
+                            {String(group.organizationName)} ? {String(projectName)} ? {String(periodLabel)}
                           </p>
                         </div>
                         <div className="text-right">
@@ -1805,7 +3363,6 @@ export default function AggregatesPage() {
                   (sexTotals.Male["AYP (10-24)"] || 0) + (sexTotals.Female["AYP (10-24)"] || 0);
                 const combinedSubTotal = sumBands(combinedTotals);
                 const combinedTotal = combinedSubTotal;
-                const rowSpan = keyPops.length * 2 + 3;
 
                 const chartSeries = keyPops.flatMap((kp) =>
                   (["Male", "Female"] as const).map((sex) => ({
@@ -1832,10 +3389,10 @@ export default function AggregatesPage() {
                       <div>
                         <p className="text-sm text-muted-foreground">Indicator</p>
                         <p className="text-base font-semibold">
-                          {indicatorCode ? `${indicatorCode} â€” ` : ""}{group.indicatorName}
+                          {group.indicatorName}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          {group.organizationName} ? {projectName} ? {periodLabel}
+                          {String(group.organizationName)} ? {String(projectName)} ? {String(periodLabel)}
                         </p>
                       </div>
                       <Badge variant="outline">Total {Number(totalValue).toLocaleString()}</Badge>
@@ -1861,8 +3418,7 @@ export default function AggregatesPage() {
                       <table className="min-w-[960px] w-full border-collapse text-xs [&_td]:border [&_td]:border-border [&_th]:border [&_th]:border-border">
                         <thead className="bg-muted/50">
                           <tr>
-                            <th className="p-1.5 text-left">Indicator</th>
-                            <th className="p-1.5 text-left">Key Population</th>
+                            <th className="w-[140px] p-1.5 text-left">Key Population</th>
                             <th className="p-1.5 text-left">Age/Sex</th>
                             {matrixAgeBandCore.map((band) => (
                               <th key={band} className="p-1.5 text-center whitespace-nowrap">
@@ -1875,7 +3431,7 @@ export default function AggregatesPage() {
                           </tr>
                         </thead>
                         <tbody>
-                          {keyPops.map((kp, kpIndex) => {
+                          {keyPops.map((kp) => {
                             const kpData = disaggregates[kp] || { Male: {}, Female: {} };
                             return (
                               <React.Fragment key={kp}>
@@ -1886,13 +3442,8 @@ export default function AggregatesPage() {
                                   const total = subTotal;
                                   return (
                                     <tr key={`${kp}-${sex}`} className="border-t border-border">
-                                      {kpIndex === 0 && sex === "Male" && (
-                                        <td className="p-1.5 font-medium min-w-[240px]" rowSpan={rowSpan}>
-                                          {group.indicatorName}
-                                        </td>
-                                      )}
                                       {sex === "Male" ? (
-                                        <td className="p-1.5 font-medium whitespace-nowrap" rowSpan={2}>
+                                        <td className="max-w-[140px] p-1.5 font-medium whitespace-normal break-words leading-tight" rowSpan={2}>
                                           {kp}
                                         </td>
                                       ) : null}
@@ -1914,7 +3465,7 @@ export default function AggregatesPage() {
                             );
                           })}
                           <tr className="bg-muted/20 font-semibold">
-                            <td className="p-1.5" colSpan={1}>
+                            <td className="p-1.5" colSpan={2}>
                               Sub - total
                             </td>
                             {matrixAgeBandCore.map((band) => (
@@ -1933,7 +3484,7 @@ export default function AggregatesPage() {
                             const total = subTotal;
                             return (
                               <tr key={`total-${sex}`} className="bg-muted/30 font-semibold">
-                                <td className="p-1.5" colSpan={1}>
+                                <td className="p-1.5" colSpan={2}>
                                   TOTAL {sex.toUpperCase()}
                                 </td>
                                 {matrixAgeBandCore.map((band) => (
@@ -1962,8 +3513,7 @@ export default function AggregatesPage() {
                               className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-2 py-1 text-[11px]"
                             >
                               <span
-                                className="inline-block h-2.5 w-2.5 rounded-full"
-                                style={{ backgroundColor: chartColors[index % chartColors.length] }}
+                                className={`inline-block h-2.5 w-2.5 rounded-full ${chartPalette[index % chartPalette.length].dotClass}`}
                                 aria-hidden="true"
                               />
                               {series.label}
@@ -1982,7 +3532,7 @@ export default function AggregatesPage() {
                                   key={series.key}
                                   dataKey={series.key}
                                   name={series.label}
-                                  fill={chartColors[index % chartColors.length]}
+                                  fill={chartPalette[index % chartPalette.length].color}
                                   radius={[3, 3, 0, 0]}
                                 />
                               ))}
@@ -1991,6 +3541,107 @@ export default function AggregatesPage() {
                         </div>
                       </div>
                     ) : null}
+
+                    <div className="mt-4 rounded-lg border border-border p-3">
+                      <div className="mb-3 flex items-center gap-2">
+                        <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                        <p className="text-sm font-semibold">Comments</p>
+                        {!canPostGroupComments ? (
+                          <Badge variant="outline" className="text-[10px]">
+                            Read-only
+                          </Badge>
+                        ) : null}
+                      </div>
+
+                      <div className="space-y-2">
+                        {regularComments.length === 0 ? (
+                          <p className="text-xs text-muted-foreground">
+                            No comments yet. Start a discussion for coordinators, funders, and partner organizations.
+                          </p>
+                        ) : (
+                          regularComments.map((comment) => (
+                            <div key={comment.id} className="rounded-md border border-border/70 bg-muted/20 p-2">
+                              <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+                                <span className="text-xs font-medium">{comment.author}</span>
+                                <span className="text-xs text-muted-foreground">
+                                  {formatDate(comment.createdAt)}
+                                </span>
+                              </div>
+                              <p className="text-xs leading-relaxed">{comment.message}</p>
+                            </div>
+                          ))
+                        )}
+                      </div>
+
+                      {groupSystemNotes.length > 0 ? (
+                        <div className="mt-3 rounded-md border border-border/70 p-2">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 px-2 text-xs"
+                            onClick={() =>
+                              setSystemNotesOpen((prev) => ({
+                                ...prev,
+                                [group.key]: !prev[group.key],
+                              }))
+                            }
+                          >
+                            {isSystemNotesOpen ? <ChevronDown className="mr-1 h-3 w-3" /> : <ChevronRight className="mr-1 h-3 w-3" />}
+                            System notes ({groupSystemNotes.length})
+                          </Button>
+                          {isSystemNotesOpen ? (
+                            <div className="mt-2 space-y-2">
+                              {groupSystemNotes.map((comment) => (
+                                <div key={comment.id} className="rounded-md border border-border/70 bg-muted/20 p-2">
+                                  <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+                                    <span className="text-xs font-medium">{comment.author}</span>
+                                    <span className="text-xs text-muted-foreground">
+                                      {formatDate(comment.createdAt)}
+                                    </span>
+                                  </div>
+                                  <p className="text-xs leading-relaxed">{comment.message}</p>
+                                </div>
+                              ))}
+                            </div>
+                          ) : null}
+                        </div>
+                      ) : null}
+
+                      {canPostGroupComments ? (
+                        <div className="mt-3 space-y-2">
+                          <Label htmlFor={`comment-${group.key}`} className="text-xs text-muted-foreground">
+                            Add comment
+                          </Label>
+                          <Textarea
+                            id={`comment-${group.key}`}
+                            value={commentDraft}
+                            onChange={(event) =>
+                              setGroupCommentDrafts((prev) => ({
+                                ...prev,
+                                [group.key]: event.target.value,
+                              }))
+                            }
+                            rows={3}
+                            placeholder="Write a comment for this indicator group..."
+                          />
+                          <div className="flex justify-end">
+                            <Button
+                              size="sm"
+                              onClick={() => handlePostGroupComment(group.key, group.items)}
+                              disabled={isPostingComment || !commentDraft.trim()}
+                            >
+                              {isPostingComment ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                              Post comment
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="mt-3 text-xs text-muted-foreground">
+                          Your current role/group has view-only access to this discussion.
+                        </p>
+                      )}
+                    </div>
                   </div>
                 );
               })}

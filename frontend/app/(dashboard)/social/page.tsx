@@ -77,7 +77,7 @@ export default function SocialPage() {
 
   const organizations = organizationsData?.results || [];
   const indicators = indicatorsData?.results || [];
-  const posts = postsData?.results || [];
+  const posts = useMemo(() => postsData?.results ?? [], [postsData?.results]);
 
   const filteredPosts = useMemo(() => {
     const query = postSearch.toLowerCase();
@@ -464,7 +464,7 @@ export default function SocialPage() {
       </div>
 
       <Dialog open={isMetricsDialogOpen} onOpenChange={setIsMetricsDialogOpen}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-sm max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Update Metrics</DialogTitle>
             <DialogDescription>

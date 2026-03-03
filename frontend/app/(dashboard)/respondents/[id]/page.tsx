@@ -22,7 +22,7 @@ export default function RespondentDetailPage() {
   const demographicsEntries = useMemo(() => {
     if (!respondent?.demographics) return []
     return Object.entries(respondent.demographics)
-  }, [respondent?.demographics])
+  }, [respondent])
 
   if (isLoading) {
     return (

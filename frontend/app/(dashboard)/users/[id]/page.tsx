@@ -6,6 +6,22 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { PageHeader } from "@/components/shared/page-header"
 import { useUser, useAllOrganizations } from "@/lib/hooks/use-api"
+import { getUserGroupsForUser } from "@/lib/user-groups"
+
+type UserView = {
+  organizationId?: string | number
+  organization?: string | number
+  firstName?: string
+  first_name?: string
+  lastName?: string
+  last_name?: string
+  role?: string
+  email?: string
+  createdAt?: string
+  date_joined?: string
+  lastLogin?: string
+  last_activity?: string
+}
 
 export default function UserDetailPage() {
   const router = useRouter()
@@ -14,12 +30,16 @@ export default function UserDetailPage() {
   const { data: user, isLoading, error } = useUser(Number.isNaN(userId) ? null : userId)
   const { data: orgsData } = useAllOrganizations()
   const organizations = orgsData?.results || []
+  const userView = (user ?? {}) as UserView
 
   const orgId =
-    (user as any)?.organizationId ??
-    (user as any)?.organization ??
+    userView.organizationId ??
+    userView.organization ??
     ""
   const orgName = organizations.find((org) => String(org.id) === String(orgId))?.name
+  const createdAtValue = userView.createdAt || userView.date_joined
+  const lastActiveValue = userView.lastLogin || userView.last_activity
+  const groups = user ? getUserGroupsForUser((user as { id: string | number }).id) : []
 
   if (isLoading) {
     return (
@@ -61,19 +81,19 @@ export default function UserDetailPage() {
           <div>
             <p className="text-sm text-muted-foreground">Name</p>
             <p className="text-lg font-semibold">
-              {(user as any)?.firstName || (user as any)?.first_name || ""}{" "}
-              {(user as any)?.lastName || (user as any)?.last_name || ""}
+              {userView.firstName || userView.first_name || ""}{" "}
+              {userView.lastName || userView.last_name || ""}
             </p>
           </div>
           <Badge variant="secondary" className="capitalize">
-            {(user as any)?.role?.replace("_", " ") || "user"}
+            {userView.role?.replace("_", " ") || "user"}
           </Badge>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <p className="text-sm text-muted-foreground">Email</p>
-            <p className="text-sm">{(user as any)?.email || "â€”"}</p>
+            <p className="text-sm">{userView.email || "â€”"}</p>
           </div>
           <div>
             <p className="text-sm text-muted-foreground">Organization</p>
@@ -82,16 +102,31 @@ export default function UserDetailPage() {
           <div>
             <p className="text-sm text-muted-foreground">Created</p>
             <p className="text-sm">
-              {new Date((user as any)?.createdAt || (user as any)?.date_joined || Date.now()).toLocaleDateString()}
+              {createdAtValue ? new Date(createdAtValue).toLocaleDateString() : "â€”"}
             </p>
           </div>
           <div>
             <p className="text-sm text-muted-foreground">Last Active</p>
             <p className="text-sm">
-              {(user as any)?.lastLogin || (user as any)?.last_activity
-                ? new Date((user as any)?.lastLogin || (user as any)?.last_activity).toLocaleDateString()
+              {lastActiveValue
+                ? new Date(lastActiveValue).toLocaleDateString()
                 : "Never"}
             </p>
+          </div>
+        </div>
+
+        <div>
+          <p className="text-sm text-muted-foreground">Groups</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {groups.length === 0 ? (
+              <span className="text-sm">—</span>
+            ) : (
+              groups.map((group) => (
+                <Badge key={group} variant="outline" className="text-xs">
+                  {group}
+                </Badge>
+              ))
+            )}
           </div>
         </div>
       </div>

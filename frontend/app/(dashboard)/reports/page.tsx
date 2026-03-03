@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   FileText,
   Download,
@@ -64,6 +64,10 @@ import {
 import {
   reportsService,
 } from "@/lib/api";
+import type { Report } from "@/lib/api";
+import type { Indicator } from "@/lib/types";
+import { rollupLinkedIndicatorTotals } from "@/lib/indicator-linking";
+import { formatDate } from "@/lib/date-utils";
 import { ReportViewerDialog } from "@/components/shared/report-viewer";
 import {
   useDashboardStats,
@@ -204,7 +208,7 @@ export default function ReportsPage() {
   const [scheduleRecipients, setScheduleRecipients] = useState("");
   const [activeIndicatorIndex, setActiveIndicatorIndex] = useState<number | null>(null);
   const [viewOpen, setViewOpen] = useState(false);
-  const [activeReport, setActiveReport] = useState<any | null>(null);
+  const [activeReport, setActiveReport] = useState<Report | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [reportOrgId, setReportOrgId] = useState("all");
   const [reportDateMode, setReportDateMode] = useState<"quarter" | "dates">("quarter");
@@ -231,12 +235,12 @@ export default function ReportsPage() {
   );
   const { data: respondentStats } = useRespondentStats();
 
-  const projects = projectsData?.results || [];
-  const indicators = indicatorsData || [];
-  const organizations = organizationsData || [];
-  const reports = reportsData?.results || [];
-  const scheduledReports = scheduledReportsData || [];
-  const aggregates = aggregatesData || [];
+  const projects = projectsData?.results ?? [];
+  const indicators = useMemo<Indicator[]>(() => (indicatorsData ?? []) as Indicator[], [indicatorsData]);
+  const organizations = organizationsData ?? [];
+  const reports = useMemo(() => reportsData?.results ?? [], [reportsData?.results]);
+  const scheduledReports = scheduledReportsData ?? [];
+  const aggregates = useMemo(() => aggregatesData ?? [], [aggregatesData]);
 
   useEffect(() => {
     if (reportDateMode !== "quarter") return;
@@ -266,10 +270,11 @@ export default function ReportsPage() {
       const value = extractAggregateTotal(agg.value);
       totals.set(agg.indicator, (totals.get(agg.indicator) || 0) + value);
     });
-    return totals;
-  }, [aggregates]);
 
-  const buildSeriesFromNames = (names: string[]) => {
+    return rollupLinkedIndicatorTotals(indicators, totals);
+  }, [aggregates, indicators]);
+
+  const buildSeriesFromNames = useCallback((names: string[]) => {
     return names.map((name) => {
       const match = indicatorLookup[normalizeName(name)];
       const indicatorId = match?.id;
@@ -280,19 +285,19 @@ export default function ReportsPage() {
         missing: !indicatorId,
       };
     });
-  };
+  }, [indicatorLookup, totalsByIndicatorId]);
 
   const hivPreventionSeries = useMemo(
     () => buildSeriesFromNames(SOCIAL_CONTRACTING_INDICATORS),
-    [indicatorLookup, totalsByIndicatorId],
+    [buildSeriesFromNames],
   );
   const eventsSeries = useMemo(
     () => buildSeriesFromNames(SOCIAL_CONTRACTING_EVENTS),
-    [indicatorLookup, totalsByIndicatorId],
+    [buildSeriesFromNames],
   );
   const ncdSeries = useMemo(
     () => buildSeriesFromNames(SOCIAL_CONTRACTING_NCD),
-    [indicatorLookup, totalsByIndicatorId],
+    [buildSeriesFromNames],
   );
 
   const hivPieData = useMemo(
@@ -388,7 +393,7 @@ export default function ReportsPage() {
     }
   };
 
-  const handleDownload = async (report: any) => {
+  const handleDownload = async (report: Report) => {
     try {
       const format = (report?.parameters?.format as "pdf" | "excel" | "csv") || "excel";
       const blob = await reportsService.download(report.id, format);
@@ -409,7 +414,7 @@ export default function ReportsPage() {
     }
   };
 
-  const openViewer = (report: any) => {
+  const openViewer = (report: Report) => {
     setActiveReport(report);
     setViewOpen(true);
   };
@@ -480,6 +485,11 @@ export default function ReportsPage() {
     }
   };
 
+  const handlePrint = () => {
+    if (typeof window === "undefined") return;
+    window.print();
+  };
+
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
@@ -491,7 +501,7 @@ export default function ReportsPage() {
         ]}
       >
         <div className="flex items-center gap-2">
-          <Button variant="outline" disabled>
+          <Button variant="outline" onClick={handlePrint}>
             <Printer className="mr-2 h-4 w-4" />
             Print
           </Button>
@@ -502,7 +512,7 @@ export default function ReportsPage() {
                 Schedule
               </Button>
             </DialogTrigger>
-            <DialogContent className="w-[95vw] sm:max-w-lg">
+            <DialogContent className="w-[95vw] sm:max-w-lg max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Schedule Report</DialogTitle>
                 <DialogDescription>
@@ -575,7 +585,7 @@ export default function ReportsPage() {
                 Generate Report
               </Button>
             </DialogTrigger>
-            <DialogContent className="w-[95vw] sm:max-w-lg">
+            <DialogContent className="w-[95vw] sm:max-w-lg max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Generate Report</DialogTitle>
                 <DialogDescription>
@@ -903,8 +913,8 @@ export default function ReportsPage() {
                                     <Label>Organization</Label>
                   <OrganizationSelect
                     organizations={organizations}
-                    value={formOrg}
-                    onChange={setFormOrg}
+                    value={reportOrgId}
+                    onChange={setReportOrgId}
                     includeAll
                     allLabel="All organizations"
                     placeholder="Select organization"
@@ -1298,7 +1308,7 @@ export default function ReportsPage() {
                             <span>{(report.type || "custom").replace("_", " ")}</span>
                             <span className="flex items-center gap-1">
                               <Clock className="h-3 w-3" />
-                              {new Date(report.created_at).toLocaleDateString()}
+                              {formatDate(report.created_at)}
                             </span>
                           </div>
                         </div>

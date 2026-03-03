@@ -51,6 +51,8 @@ const chartPalette = [
   "#FACC15",
 ];
 
+const EMPTY_ROWS: Array<Record<string, unknown>> = [];
+
 const toNumber = (value: unknown): number => {
   if (value === null || value === undefined) return 0;
   if (typeof value === "number") return Number.isFinite(value) ? value : 0;
@@ -97,9 +99,10 @@ export function ReportViewerDialog(props: {
   refreshing?: boolean;
 }) {
   const { open, onOpenChange, report, onRefresh, onDownload, refreshing } = props;
-  const cachedRows = Array.isArray(report?.cached_data)
-    ? (report?.cached_data as Array<Record<string, unknown>>)
-    : [];
+  const cachedRows = useMemo(
+    () => (Array.isArray(report?.cached_data) ? (report.cached_data as Array<Record<string, unknown>>) : EMPTY_ROWS),
+    [report?.cached_data]
+  );
 
   const [pivotRowKey, setPivotRowKey] = useState("indicator_name");
   const [pivotColKey, setPivotColKey] = useState("none");
@@ -413,7 +416,7 @@ export function ReportViewerDialog(props: {
                           borderRadius: "8px",
                           fontSize: "12px",
                         }}
-                        formatter={(value: any) => formatNumber(Number(value))}
+                        formatter={(value: unknown) => formatNumber(Number(value))}
                       />
                       <Bar dataKey="value" radius={[4, 4, 0, 0]} fillOpacity={0.88}>
                         {chartData.map((entry, idx) => (

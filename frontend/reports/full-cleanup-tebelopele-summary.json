@@ -1,0 +1,22 @@
+{
+  "completed_at": "2026-03-03T06:50:49.700Z",
+  "tebelopele_family_size": 19,
+  "backup_file": "C:\\Users\\dekok\\OneDrive\\Desktop\\Bonasov1\\frontend\\reports\\full-backup-before-cleanup-2026-03-03T06-50-39-230Z.json",
+  "organizations": {
+    "total": 85,
+    "kept_active_in_scope": 19,
+    "deactivated_out_of_scope": 66,
+    "already_inactive_out_of_scope": 0,
+    "active_out_of_scope_after_cleanup": 0,
+    "active_in_scope_after_cleanup": 19
+  },
+  "indicators": {
+    "total": 315,
+    "trimmed_to_scope": 0,
+    "deactivated_no_scope_orgs": 19,
+    "reactivated_due_to_scope_orgs": 124,
+    "unchanged": 172,
+    "active_after_cleanup": 226,
+    "invalid_active_after_cleanup": 0
+  }
+}

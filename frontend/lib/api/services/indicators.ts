@@ -17,6 +17,7 @@ export interface IndicatorFilters {
   type?: IndicatorType;
   category?: string;
   is_active?: string;
+  organizations?: string;
   page?: string;
   page_size?: string;
 }
@@ -55,7 +56,10 @@ export interface CreateAssessmentRequest {
   organizations?: number[];
 }
 
-export interface UpdateAssessmentRequest extends Partial<CreateAssessmentRequest> {}
+export type UpdateAssessmentRequest = Partial<CreateAssessmentRequest>
+export interface BulkAssessmentRequest {
+  assessments: CreateAssessmentRequest[];
+}
 
 // ============================================================================
 // Indicators Service
@@ -78,7 +82,7 @@ export const indicatorsService = {
     const results: Indicator[] = [];
     let page = filters?.page ? String(filters.page) : "1";
     const baseFilters = { ...(filters || {}) } as Record<string, string>;
-    delete (baseFilters as any).page;
+    delete baseFilters.page;
 
     while (true) {
       const { data } = await api.get<PaginatedResponse<Indicator>>('/indicators/', {
@@ -162,7 +166,12 @@ export const indicatorsService = {
     average_value: number | null;
     completion_rate: number;
   }> {
-    const { data } = await api.get(`/indicators/${id}/stats/`);
+    const { data } = await api.get<{
+      total_assessments: number;
+      unique_respondents: number;
+      average_value: number | null;
+      completion_rate: number;
+    }>(`/indicators/${id}/stats/`);
     return data;
   },
 };

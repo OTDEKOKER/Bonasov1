@@ -71,7 +71,7 @@ export default function FlagsPage() {
   const [filterPriority, setFilterPriority] = useState<string>("all");
   const [isUpdating, setIsUpdating] = useState(false);
 
-  const flags = flagsData?.results || [];
+  const flags = useMemo(() => flagsData?.results ?? [], [flagsData?.results]);
 
   const filteredFlags = useMemo(() => {
     return flags.filter((flag) => {
@@ -326,7 +326,7 @@ export default function FlagsPage() {
         open={!!selectedFlag && !isResolveDialogOpen}
         onOpenChange={() => setSelectedFlag(null)}
       >
-        <DialogContent className="bg-card border-border">
+        <DialogContent className="bg-card border-border max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-foreground">Flag Details</DialogTitle>
             <DialogDescription>
@@ -413,7 +413,7 @@ export default function FlagsPage() {
           if (!open) setResolution("");
         }}
       >
-        <DialogContent className="bg-card border-border">
+        <DialogContent className="bg-card border-border max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-foreground">Resolve Flag</DialogTitle>
             <DialogDescription>

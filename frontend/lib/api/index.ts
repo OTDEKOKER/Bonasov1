@@ -18,7 +18,16 @@
  */
 
 // Core client
-export { api, setAuthToken, clearAuthToken, setAuthTokens, clearAuthTokens, getRefreshToken } from './client';
+export {
+  api,
+  fetchWithAuth,
+  normalizeApiError,
+  setAuthToken,
+  clearAuthToken,
+  setAuthTokens,
+  clearAuthTokens,
+  getRefreshToken,
+} from './client';
 export type { ApiResponse, ApiError, PaginatedResponse } from './client';
 
 // Authentication
@@ -73,7 +82,6 @@ export type {
   AssessmentFilters,
   CreateAssessmentRequest,
   UpdateAssessmentRequest,
-  BulkAssessmentRequest,
 } from './services/indicators';
 
 // Respondents & Interactions
@@ -111,6 +119,7 @@ export type {
   UpdateAggregateRequest,
   BulkAggregateRequest,
   AggregateTemplate,
+  DerivationRule,
 } from './services/aggregates';
 
 // Reports, Analysis & Flags
