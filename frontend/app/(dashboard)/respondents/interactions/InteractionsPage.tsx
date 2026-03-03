@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 "use client"
 
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react"
@@ -6,6 +7,16 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { PageHeader } from "@/components/shared/page-header"
+=======
+"use client"
+
+import { useEffect, useMemo, useRef, useState } from "react"
+import { Plus, Upload, Download, Calendar, User, FileSpreadsheet, Loader2 } from "lucide-react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { PageHeader } from "@/components/shared/page-header"
+>>>>>>> 3960472ef9ed0f607ccbe8b7a3ea740529e44c66
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -50,6 +61,7 @@ function isEmptyResponseValue(type: IndicatorType, value: unknown): boolean {
   }
   return false
 }
+<<<<<<< HEAD
 
 export default function InteractionsPage() {
   const router = useRouter()
@@ -57,6 +69,14 @@ export default function InteractionsPage() {
   const { toast } = useToast()
   const uploadInputRef = useRef<HTMLInputElement | null>(null)
 
+=======
+
+export default function InteractionsPage() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const { toast } = useToast()
+
+>>>>>>> 3960472ef9ed0f607ccbe8b7a3ea740529e44c66
   const { data: interactionsData, isLoading, error, mutate } = useInteractions()
   const { data: respondentsData } = useRespondents()
   const { data: assessmentsData } = useAssessments()
@@ -115,6 +135,7 @@ export default function InteractionsPage() {
   const [answersByIndicatorId, setAnswersByIndicatorId] = useState<Record<string, unknown>>({})
   const [indicatorDetailsById, setIndicatorDetailsById] = useState<Record<string, Indicator>>({})
   const didPrefill = useRef(false)
+<<<<<<< HEAD
 
   const handleDownloadTemplate = () => {
     const headers = [
@@ -151,6 +172,9 @@ export default function InteractionsPage() {
     }
   }
 
+=======
+
+>>>>>>> 3960472ef9ed0f607ccbe8b7a3ea740529e44c66
   useEffect(() => {
     if (didPrefill.current) return
     const respondentId = searchParams.get("respondentId")
@@ -247,6 +271,7 @@ export default function InteractionsPage() {
     setAnswersByIndicatorId({})
     setIsCreateOpen(false)
   }
+<<<<<<< HEAD
 
   if (isLoading) {
     return (
@@ -374,6 +399,126 @@ export default function InteractionsPage() {
             </DialogDescription>
           </DialogHeader>
 
+=======
+
+  if (isLoading) {
+    return (
+      <div className="flex h-[60vh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-[60vh] flex-col items-center justify-center gap-4">
+        <p className="text-muted-foreground">Failed to load interactions</p>
+        <Button onClick={() => mutate()}>Retry</Button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        title="Interactions"
+        description="Record and manage respondent interactions"
+        breadcrumbs={[
+          { label: "Dashboard", href: "/dashboard" },
+          { label: "Respondents", href: "/respondents" },
+          { label: "Interactions" },
+        ]}
+        actions={
+          <div className="flex gap-2">
+            <Button variant="outline" disabled>
+              <Download className="mr-2 h-4 w-4" />
+              Download Template
+            </Button>
+            <Button variant="outline" disabled>
+              <Upload className="mr-2 h-4 w-4" />
+              Upload Data
+            </Button>
+            <Button onClick={() => setIsCreateOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              New Interaction
+            </Button>
+          </div>
+        }
+      />
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Recent Interactions</CardTitle>
+          <CardDescription>Latest recorded interactions across all projects</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {interactions.map((interaction) => {
+              const respondent = respondents.find((r) => r.id === interaction.respondent)
+              return (
+                <div
+                  key={interaction.id}
+                  className="flex items-center justify-between rounded-lg border border-border p-4 transition-colors hover:bg-secondary/50"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="rounded-full bg-primary/10 p-2">
+                      <FileSpreadsheet className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-foreground">
+                        {interaction.assessment_name || "Assessment"}
+                      </p>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <User className="h-3 w-3" />
+                        <span>
+                          {respondent?.full_name ||
+                            `${respondent?.first_name ?? ""} ${respondent?.last_name ?? ""}`}
+                        </span>
+                        <span>|</span>
+                        <span>{interaction.project_name || "—"}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <Badge variant="secondary">
+                      {interaction.responses_count || interaction.responses?.length || 0} responses
+                    </Badge>
+                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                      <Calendar className="h-3 w-3" />
+                      {interaction.date ? new Date(interaction.date).toLocaleDateString() : "—"}
+                    </div>
+                    <Button variant="ghost" size="sm" onClick={() => router.push(`/respondents/${interaction.respondent}`)}>
+                      View
+                    </Button>
+                  </div>
+                </div>
+              )
+            })}
+            {interactions.length === 0 && (
+              <div className="rounded-lg border border-dashed border-border p-6 text-center text-muted-foreground">
+                No interactions recorded yet.
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Dialog
+        open={isCreateOpen}
+        onOpenChange={(open) => {
+          if (!open) resetDialog()
+          else setIsCreateOpen(true)
+        }}
+      >
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>New Interaction</DialogTitle>
+            <DialogDescription>
+              Record an interaction for a respondent and assessment.
+            </DialogDescription>
+          </DialogHeader>
+
+>>>>>>> 3960472ef9ed0f607ccbe8b7a3ea740529e44c66
           <div className="grid gap-4 py-2">
             <div className="space-y-2">
               <Label htmlFor="interaction-entry-mode">Entry Type *</Label>

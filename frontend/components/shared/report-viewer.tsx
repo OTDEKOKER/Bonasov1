@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Download, RefreshCcw } from "lucide-react";
+<<<<<<< HEAD
 import {
   Bar,
   BarChart,
@@ -104,6 +105,107 @@ export function ReportViewerDialog(props: {
     [report?.cached_data]
   );
 
+=======
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+
+type ReportLike = {
+  id: number;
+  name?: string;
+  type?: string;
+  status?: string;
+  cached_data?: unknown;
+  last_generated?: string | null;
+  parameters?: Record<string, unknown>;
+};
+
+const chartPalette = [
+  "#1CE783",
+  "#0EA5E9",
+  "#F97316",
+  "#A855F7",
+  "#14B8A6",
+  "#EF4444",
+  "#84CC16",
+  "#FACC15",
+];
+
+const toNumber = (value: unknown): number => {
+  if (value === null || value === undefined) return 0;
+  if (typeof value === "number") return Number.isFinite(value) ? value : 0;
+  const text = String(value).replace(/,/g, "").trim();
+  const parsed = Number(text);
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const guessDefaults = (row: Record<string, unknown>) => {
+  const keys = Object.keys(row);
+  const has = (key: string) => keys.includes(key);
+
+  const rowKey =
+    (has("indicator_name") && "indicator_name") ||
+    (has("project_name") && "project_name") ||
+    (has("organization_name") && "organization_name") ||
+    keys.find((key) => key.endsWith("_name")) ||
+    keys[0] ||
+    "indicator_name";
+
+  const valueKey =
+    (has("total_value") && "total_value") ||
+    (has("value") && "value") ||
+    (has("entries") && "entries") ||
+    keys.find((key) => typeof row[key] === "number") ||
+    "value";
+
+  let colKey =
+    (has("organization_name") && rowKey !== "organization_name" && "organization_name") ||
+    (has("period_start") && rowKey !== "period_start" && "period_start") ||
+    "none";
+
+  if (colKey === rowKey) colKey = "none";
+
+  return { rowKey, colKey, valueKey };
+};
+
+export function ReportViewerDialog(props: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  report: ReportLike | null;
+  onRefresh: () => Promise<void>;
+  onDownload: () => Promise<void> | void;
+  refreshing?: boolean;
+}) {
+  const { open, onOpenChange, report, onRefresh, onDownload, refreshing } = props;
+  const cachedRows = Array.isArray(report?.cached_data)
+    ? (report?.cached_data as Array<Record<string, unknown>>)
+    : [];
+
+>>>>>>> 3960472ef9ed0f607ccbe8b7a3ea740529e44c66
   const [pivotRowKey, setPivotRowKey] = useState("indicator_name");
   const [pivotColKey, setPivotColKey] = useState("none");
   const [pivotValueKey, setPivotValueKey] = useState("value");
@@ -395,6 +497,7 @@ export function ReportViewerDialog(props: {
                 <div className="mt-3 h-[360px]" ref={chartRef}>
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={chartData} margin={{ top: 10, right: 10, bottom: 60, left: 10 }}>
+<<<<<<< HEAD
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                       <XAxis
                         dataKey="label"
@@ -468,3 +571,78 @@ export function ReportViewerDialog(props: {
 }
 
 
+=======
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis
+                        dataKey="label"
+                        interval={0}
+                        angle={-25}
+                        textAnchor="end"
+                        height={70}
+                        tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }}
+                        tickFormatter={(value: string) =>
+                          value.length > 18 ? `${value.slice(0, 18)}â€¦` : value
+                        }
+                      />
+                      <YAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }} />
+                      <Tooltip
+                        cursor={{ fill: "rgba(16, 24, 40, 0.06)" }}
+                        contentStyle={{
+                          backgroundColor: "hsl(var(--card))",
+                          border: "1px solid hsl(var(--border))",
+                          borderRadius: "8px",
+                          fontSize: "12px",
+                        }}
+                        formatter={(value: any) => formatNumber(Number(value))}
+                      />
+                      <Bar dataKey="value" radius={[4, 4, 0, 0]} fillOpacity={0.88}>
+                        {chartData.map((entry, idx) => (
+                          <Cell key={entry.label} fill={chartPalette[idx % chartPalette.length]} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="table" className="space-y-3">
+              <div className="max-h-[60vh] overflow-auto rounded-lg border">
+                <table className="w-full text-[11px]">
+                  <thead className="sticky top-0 bg-card">
+                    <tr>
+                      {Object.keys(cachedRows[0] || {}).map((key) => (
+                        <th key={key} className="whitespace-nowrap border-b px-3 py-2 text-left font-medium">
+                          {key}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {cachedRows.slice(0, 500).map((row, idx) => (
+                      <tr key={idx} className="border-b last:border-b-0">
+                        {Object.keys(cachedRows[0] || {}).map((key) => (
+                          <td key={key} className="whitespace-nowrap px-3 py-2 align-top">
+                            {row?.[key] === null || row?.[key] === undefined ? "" : String(row[key])}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {cachedRows.length > 500 ? (
+                  <div className="border-t px-3 py-2 text-xs text-muted-foreground">
+                    Showing first 500 rows (download for full data).
+                  </div>
+                ) : null}
+              </div>
+            </TabsContent>
+          </Tabs>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+
+>>>>>>> 3960472ef9ed0f607ccbe8b7a3ea740529e44c66

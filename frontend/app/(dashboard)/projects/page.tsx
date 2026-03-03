@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ﻿"use client"
 
 import { useState } from "react"
@@ -125,6 +126,136 @@ export default function ProjectsPage() {
   const { data: projectsData, isLoading, error, mutate } = useProjects()
   const { data: orgsData } = useAllOrganizations()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
+=======
+﻿"use client"
+
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { Plus, Calendar, Users, FolderKanban, ArrowRight, Loader2 } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Progress } from "@/components/ui/progress"
+import { PageHeader } from "@/components/shared/page-header"
+import { useProjects, useAllOrganizations } from "@/lib/hooks/use-api"
+import { projectsService } from "@/lib/api"
+import type { Project } from "@/lib/types"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Checkbox } from "@/components/ui/checkbox"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useToast } from "@/hooks/use-toast"
+
+const statusColors: Record<string, string> = {
+  active: "bg-primary/10 text-primary",
+  completed: "bg-chart-2/10 text-chart-2",
+  draft: "bg-muted text-muted-foreground",
+  archived: "bg-muted text-muted-foreground",
+}
+
+interface ProjectCardProps {
+  project: Project
+  organizations: { id: string; name: string; type: string }[]
+}
+
+function ProjectCard({ project, organizations }: ProjectCardProps) {
+  const router = useRouter()
+  const progress = project.progress_percentage ?? 0
+  const startDate = new Date(project.start_date)
+  const endDate = new Date(project.end_date)
+  const now = new Date()
+  const totalDays = (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
+  const daysPassed = (now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
+  const timeProgress =
+    Number.isFinite(totalDays) && totalDays > 0
+      ? Math.min(100, Math.max(0, Math.round((daysPassed / totalDays) * 100)))
+      : 0
+
+  return (
+    <div
+      className="group cursor-pointer rounded-xl border border-border bg-card p-6 transition-colors hover:border-primary/50"
+      onClick={() => router.push(`/projects/${project.id}`)}
+    >
+      <div className="mb-4 flex items-start justify-between">
+        <div>
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary" className={statusColors[project.status] || ""}>
+              {project.status.charAt(0).toUpperCase() + project.status.slice(1)}
+            </Badge>
+            <span className="text-sm text-muted-foreground">{project.code}</span>
+          </div>
+          <h3 className="mt-2 text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
+            {project.name}
+          </h3>
+          {project.description && (
+            <p className="mt-1 text-sm text-muted-foreground line-clamp-2">
+              {project.description}
+            </p>
+          )}
+        </div>
+        <ArrowRight className="h-5 w-5 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+      </div>
+
+      {/* Project details */}
+      <div className="mb-4 flex flex-wrap gap-4 text-sm text-muted-foreground">
+        <div className="flex items-center gap-1">
+          <Calendar className="h-4 w-4" />
+          <span>{startDate.toLocaleDateString()} - {endDate.toLocaleDateString()}</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <Users className="h-4 w-4" />
+          <span>{project.organizations?.length || 0} organizations</span>
+        </div>
+        {project.funder && (
+          <div className="flex items-center gap-1">
+            <FolderKanban className="h-4 w-4" />
+            <span>{project.funder}</span>
+          </div>
+        )}
+      </div>
+
+      {/* Progress */}
+      <div className="space-y-3">
+        <div className="space-y-1">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">Target Progress</span>
+            <span className="font-medium text-foreground">{progress}%</span>
+          </div>
+          <Progress value={progress} className="h-2" />
+        </div>
+        <div className="space-y-1">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">Time Elapsed</span>
+            <span className="font-medium text-foreground">{timeProgress}%</span>
+          </div>
+          <Progress value={timeProgress} className="h-2 [&>div]:bg-chart-3" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default function ProjectsPage() {
+  const { toast } = useToast()
+  const { data: projectsData, isLoading, error, mutate } = useProjects()
+  const { data: orgsData } = useAllOrganizations()
+  const [isCreateOpen, setIsCreateOpen] = useState(false)
+>>>>>>> 3960472ef9ed0f607ccbe8b7a3ea740529e44c66
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [activeTab, setActiveTab] = useState("all")
   const [orgSearch, setOrgSearch] = useState("")
@@ -145,6 +276,7 @@ export default function ProjectsPage() {
   const filteredPartnerOrganizations = partnerOrganizations.filter((org) =>
     org.name.toLowerCase().includes(orgSearch.toLowerCase())
   )
+<<<<<<< HEAD
 
   const filteredProjects = activeTab === "all"
     ? projects
@@ -368,6 +500,232 @@ export default function ProjectsPage() {
                   ))}
                 </SelectContent>
               </Select>
+=======
+
+  const filteredProjects = activeTab === "all"
+    ? projects
+    : projects.filter(p => p.status === activeTab)
+
+  const handleCreate = async () => {
+    if (!formData.name || !formData.code || !formData.start_date || !formData.end_date) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      })
+      return
+    }
+    const codeExists = projects.some(
+      (project) => project.code?.toLowerCase() === formData.code.trim().toLowerCase()
+    )
+    if (codeExists) {
+      toast({
+        title: "Project code already exists",
+        description: "Choose a unique project code.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setIsSubmitting(true)
+    try {
+      const funderOrg = organizations.find((org) => org.id === formData.funderId)
+      await projectsService.create({
+        name: formData.name,
+        code: formData.code,
+        description: formData.description || undefined,
+        start_date: formData.start_date,
+        end_date: formData.end_date,
+        funder: funderOrg?.name,
+        organizations: selectedOrganizations.length
+          ? selectedOrganizations.map((id) => Number(id))
+          : undefined,
+      })
+      toast({
+        title: "Success",
+        description: "Project created successfully",
+      })
+      setIsCreateOpen(false)
+      setFormData({ name: "", code: "", description: "", start_date: "", end_date: "", funderId: "" })
+      setSelectedOrganizations([])
+      mutate()
+    } catch (err: unknown) {
+      const message =
+        err && typeof err === "object" && "message" in err
+          ? (err as { message: string }).message
+          : "Failed to create project"
+      const errors =
+        err && typeof err === "object" && "errors" in err
+          ? (err as { errors: Record<string, string[]> }).errors
+          : null
+      const details = errors
+        ? Object.entries(errors)
+            .map(([field, issues]) => `${field}: ${issues.join(", ")}`)
+            .join(" | ")
+        : ""
+      toast({
+        title: "Error",
+        description: details ? `${message}. ${details}` : message,
+        variant: "destructive",
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex h-[60vh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-[60vh] flex-col items-center justify-center gap-4">
+        <p className="text-muted-foreground">Failed to load projects</p>
+        <Button onClick={() => mutate()}>Retry</Button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        title="Projects"
+        description="Manage projects, tasks, and targets"
+        breadcrumbs={[
+          { label: "Dashboard", href: "/dashboard" },
+          { label: "Projects" },
+        ]}
+        actions={
+          <Button onClick={() => setIsCreateOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            New Project
+          </Button>
+        }
+      />
+
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="bg-secondary">
+          <TabsTrigger value="all">
+            All ({projects.length})
+          </TabsTrigger>
+          <TabsTrigger value="active">
+            Active ({projects.filter(p => p.status === 'active').length})
+          </TabsTrigger>
+          <TabsTrigger value="completed">
+            Completed ({projects.filter(p => p.status === 'completed').length})
+          </TabsTrigger>
+          <TabsTrigger value="draft">
+            Draft ({projects.filter(p => p.status === 'draft').length})
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value={activeTab} className="mt-6">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {filteredProjects.map((project) => (
+              <ProjectCard
+                key={project.id}
+                project={project}
+                organizations={organizations}
+              />
+            ))}
+          </div>
+          {filteredProjects.length === 0 && (
+            <div className="flex h-40 items-center justify-center rounded-lg border border-dashed border-border">
+              <p className="text-muted-foreground">No projects found</p>
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
+
+      {/* Create Dialog */}
+      <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+        <DialogContent className="w-[95vw] sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Create Project</DialogTitle>
+            <DialogDescription>
+              Create a new project to track indicators and targets
+            </DialogDescription>
+          </DialogHeader>
+          <form
+            className="space-y-4"
+            onSubmit={(e) => {
+              e.preventDefault()
+              handleCreate()
+            }}
+          >
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="name">Project Name *</Label>
+                <Input
+                  id="name"
+                  placeholder="Enter project name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="code">Project Code *</Label>
+                <Input
+                  id="code"
+                  placeholder="e.g., HPP2025"
+                  value={formData.code}
+                  onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                placeholder="Brief description of the project"
+                rows={3}
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              />
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="startDate">Start Date *</Label>
+                <Input
+                  id="startDate"
+                  type="date"
+                  value={formData.start_date}
+                  onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="endDate">End Date *</Label>
+                <Input
+                  id="endDate"
+                  type="date"
+                  value={formData.end_date}
+                  onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="funder">Funder</Label>
+              <Select
+                value={formData.funderId}
+                onValueChange={(value) => setFormData({ ...formData, funderId: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select funder" />
+                </SelectTrigger>
+                <SelectContent>
+                  {funders.map((org) => (
+                    <SelectItem key={org.id} value={org.id}>
+                      {org.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+>>>>>>> 3960472ef9ed0f607ccbe8b7a3ea740529e44c66
             </div>
             <div className="space-y-2">
               <Label>Participating Organizations</Label>

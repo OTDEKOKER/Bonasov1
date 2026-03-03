@@ -1,7 +1,16 @@
+<<<<<<< HEAD
 ﻿import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 /** @type {import('next').NextConfig} */
+=======
+﻿/** @type {import('next').NextConfig} */
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+>>>>>>> 3960472ef9ed0f607ccbe8b7a3ea740529e44c66
 const backendApiBase =
   process.env.BACKEND_API_URL ||
   process.env.NEXT_PUBLIC_API_URL ||
@@ -29,7 +38,15 @@ const nextConfig = {
 
   // Allow accessing the dev server via LAN IP without Next blocking /_next/* assets.
   // This list is hostnames (not full URLs).
+<<<<<<< HEAD
   allowedDevOrigins: ['127.0.0.1', 'localhost', '192.168.0.108', '192.168.0.112', '192.168.103.4', '192.168.117.4'],
+=======
+  allowedDevOrigins: ['127.0.0.1', 'localhost', '192.168.0.112', '192.168.103.4', '192.168.117.4'],
+  turbopack: {
+    // Pin root to this frontend directory to avoid workspace mis-detection.
+    root: __dirname,
+  },
+>>>>>>> 3960472ef9ed0f607ccbe8b7a3ea740529e44c66
 
   // Proxy frontend /api/* -> Django backend /api/*.
   // In production set BACKEND_API_URL (or NEXT_PUBLIC_API_URL) to your deployed backend URL.
