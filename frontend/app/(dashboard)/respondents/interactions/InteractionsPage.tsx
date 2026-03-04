@@ -17,8 +17,17 @@ import { useToast } from "@/hooks/use-toast"
 import { aggregatesService, indicatorsService, interactionsService, type DerivationRule } from "@/lib/api"
 import { useAllIndicators, useAssessment, useAssessments, useInteractions, useProjects, useRespondents } from "@/lib/hooks/use-api"
 import type { Indicator, IndicatorType } from "@/lib/types"
+import { useAuth } from "@/lib/contexts/auth-context"
 
 type IndicatorOption = { label: string; value: string }
+
+const resolveOrganizationId = (user: unknown): number => {
+  if (!user || typeof user !== "object") return Number.NaN
+  const candidate = user as { organizationId?: unknown; organization?: unknown }
+  const raw = candidate.organizationId ?? candidate.organization
+  const parsed = Number(raw)
+  return Number.isFinite(parsed) ? parsed : Number.NaN
+}
 
 function normalizeOptions(options: Indicator["options"]): IndicatorOption[] {
   if (!options || !Array.isArray(options)) return []
@@ -54,12 +63,20 @@ export default function InteractionsPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { toast } = useToast()
+  const { user } = useAuth()
+  const organizationId = resolveOrganizationId(user)
+  const assessmentFilters = Number.isFinite(organizationId) && organizationId > 0
+    ? { organizations: String(organizationId) }
+    : undefined
+  const indicatorFilters = Number.isFinite(organizationId) && organizationId > 0
+    ? { organizations: String(organizationId) }
+    : undefined
 
   const { data: interactionsData, isLoading, error, mutate } = useInteractions()
   const { data: respondentsData } = useRespondents()
-  const { data: assessmentsData } = useAssessments()
+  const { data: assessmentsData } = useAssessments(assessmentFilters)
   const { data: projectsData } = useProjects()
-  const { data: indicatorsData } = useAllIndicators()
+  const { data: indicatorsData } = useAllIndicators(indicatorFilters)
 
   const interactions = interactionsData?.results || []
   const respondents = respondentsData?.results || []

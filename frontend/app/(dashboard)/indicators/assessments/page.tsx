@@ -34,6 +34,15 @@ import {
 } from "@/components/ui/accordion"
 import { useToast } from "@/hooks/use-toast"
 import type { CreateIndicatorRequest } from "@/lib/api"
+import { useAuth } from "@/lib/contexts/auth-context"
+
+const resolveOrganizationId = (user: unknown): number => {
+  if (!user || typeof user !== "object") return Number.NaN
+  const candidate = user as { organizationId?: unknown; organization?: unknown }
+  const raw = candidate.organizationId ?? candidate.organization
+  const parsed = Number(raw)
+  return Number.isFinite(parsed) ? parsed : Number.NaN
+}
 
 const typeLabels: Record<string, string> = {
   yes_no: "Yes/No",
@@ -49,7 +58,12 @@ const typeLabels: Record<string, string> = {
 export default function AssessmentsPage() {
   const router = useRouter()
   const { toast } = useToast()
-  const { data, isLoading, error, mutate } = useAssessments()
+  const { user } = useAuth()
+  const organizationId = resolveOrganizationId(user)
+  const assessmentFilters = Number.isFinite(organizationId) && organizationId > 0
+    ? { organizations: String(organizationId) }
+    : undefined
+  const { data, isLoading, error, mutate } = useAssessments(assessmentFilters)
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isTemplatesOpen, setIsTemplatesOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -64,9 +78,15 @@ export default function AssessmentsPage() {
   const ensureIndicator = async (request: CreateIndicatorRequest): Promise<number> => {
     const list = await indicatorsService.list({
       search: request.code,
+      organizations: request.organizations?.[0] ? String(request.organizations[0]) : undefined,
       page_size: "100",
     })
-    const exactMatch = (list.results || []).find((i) => i.code === request.code)
+    const exactMatch = (list.results || []).find((i) => {
+      if (i.code !== request.code) return false
+      if (!request.organizations?.length) return true
+      const orgId = String(request.organizations[0])
+      return Array.isArray(i.organizations) && i.organizations.some((org) => String(org) === orgId)
+    })
     if (exactMatch?.id) return Number(exactMatch.id)
 
     try {
@@ -75,12 +95,20 @@ export default function AssessmentsPage() {
     } catch {
       const retry = await indicatorsService.list({
         search: request.code,
+        organizations: request.organizations?.[0] ? String(request.organizations[0]) : undefined,
         page_size: "100",
       })
-      const retryMatch = (retry.results || []).find((i) => i.code === request.code)
+      const retryMatch = (retry.results || []).find((i) => {
+        if (i.code !== request.code) return false
+        if (!request.organizations?.length) return true
+        const orgId = String(request.organizations[0])
+        return Array.isArray(i.organizations) && i.organizations.some((org) => String(org) === orgId)
+      })
       if (retryMatch?.id) return Number(retryMatch.id)
 
-      const all = await indicatorsService.listAll()
+      const all = await indicatorsService.listAll({
+        organizations: request.organizations?.[0] ? String(request.organizations[0]) : undefined,
+      })
       const allMatch = all.find((i) => i.code === request.code)
       if (allMatch?.id) return Number(allMatch.id)
       throw new Error(`Failed to create indicator: ${request.code}`)
@@ -94,6 +122,7 @@ export default function AssessmentsPage() {
         name: "HIV Prevention Messages Assessment",
         description:
           "Starter template (v1) for HIV prevention and control messages, screening, and linkage to care.",
+        organizations: organizationId > 0 ? [organizationId] : undefined,
       })
 
       const category = "hiv_prevention"
@@ -112,6 +141,7 @@ export default function AssessmentsPage() {
             type: "text",
             category,
             is_active: true,
+            organizations: organizationId > 0 ? [organizationId] : undefined,
           },
         },
         {
@@ -123,6 +153,7 @@ export default function AssessmentsPage() {
             type: "date",
             category,
             is_active: true,
+            organizations: organizationId > 0 ? [organizationId] : undefined,
           },
         },
         {
@@ -135,6 +166,7 @@ export default function AssessmentsPage() {
             type: "text",
             category,
             is_active: true,
+            organizations: organizationId > 0 ? [organizationId] : undefined,
           },
         },
         {
@@ -147,6 +179,7 @@ export default function AssessmentsPage() {
             type: "multiselect",
             category,
             is_active: true,
+            organizations: organizationId > 0 ? [organizationId] : undefined,
             options: [
               { label: "HIV testing messages", value: "hiv_testing" },
               { label: "PEP messages", value: "pep" },
@@ -170,6 +203,7 @@ export default function AssessmentsPage() {
             type: "yes_no",
             category,
             is_active: true,
+            organizations: organizationId > 0 ? [organizationId] : undefined,
           },
         },
         {
@@ -181,6 +215,7 @@ export default function AssessmentsPage() {
             type: "select",
             category,
             is_active: true,
+            organizations: organizationId > 0 ? [organizationId] : undefined,
             options: [
               { label: "Yes", value: "yes" },
               { label: "No", value: "no" },
@@ -197,6 +232,7 @@ export default function AssessmentsPage() {
             type: "yes_no",
             category,
             is_active: true,
+            organizations: organizationId > 0 ? [organizationId] : undefined,
           },
         },
         {
@@ -208,6 +244,7 @@ export default function AssessmentsPage() {
             type: "yes_no",
             category,
             is_active: true,
+            organizations: organizationId > 0 ? [organizationId] : undefined,
           },
         },
         {
@@ -219,6 +256,7 @@ export default function AssessmentsPage() {
             type: "yes_no",
             category,
             is_active: true,
+            organizations: organizationId > 0 ? [organizationId] : undefined,
           },
         },
         {
@@ -230,6 +268,7 @@ export default function AssessmentsPage() {
             type: "yes_no",
             category,
             is_active: true,
+            organizations: organizationId > 0 ? [organizationId] : undefined,
           },
         },
       ]
@@ -273,6 +312,7 @@ export default function AssessmentsPage() {
       await assessmentsService.create({
         name: formData.name,
         description: formData.description || undefined,
+        organizations: organizationId > 0 ? [organizationId] : undefined,
       })
       toast({ title: "Success", description: "Assessment created successfully" })
       setIsCreateOpen(false)
