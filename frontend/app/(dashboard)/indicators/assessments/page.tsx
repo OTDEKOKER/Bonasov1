@@ -35,14 +35,7 @@ import {
 import { useToast } from "@/hooks/use-toast"
 import type { CreateIndicatorRequest } from "@/lib/api"
 import { useAuth } from "@/lib/contexts/auth-context"
-
-const resolveOrganizationId = (user: unknown): number => {
-  if (!user || typeof user !== "object") return Number.NaN
-  const candidate = user as { organizationId?: unknown; organization?: unknown }
-  const raw = candidate.organizationId ?? candidate.organization
-  const parsed = Number(raw)
-  return Number.isFinite(parsed) ? parsed : Number.NaN
-}
+import { getUserOrganizationId } from "@/lib/utils/organization"
 
 const typeLabels: Record<string, string> = {
   yes_no: "Yes/No",
@@ -59,10 +52,8 @@ export default function AssessmentsPage() {
   const router = useRouter()
   const { toast } = useToast()
   const { user } = useAuth()
-  const organizationId = resolveOrganizationId(user)
-  const assessmentFilters = Number.isFinite(organizationId) && organizationId > 0
-    ? { organizations: String(organizationId) }
-    : undefined
+  const organizationId = getUserOrganizationId(user)
+  const assessmentFilters = organizationId ? { organizations: String(organizationId) } : undefined
   const { data, isLoading, error, mutate } = useAssessments(assessmentFilters)
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isTemplatesOpen, setIsTemplatesOpen] = useState(false)
@@ -122,7 +113,7 @@ export default function AssessmentsPage() {
         name: "HIV Prevention Messages Assessment",
         description:
           "Starter template (v1) for HIV prevention and control messages, screening, and linkage to care.",
-        organizations: organizationId > 0 ? [organizationId] : undefined,
+        organizations: organizationId ? [organizationId] : undefined,
       })
 
       const category = "hiv_prevention"
@@ -141,7 +132,7 @@ export default function AssessmentsPage() {
             type: "text",
             category,
             is_active: true,
-            organizations: organizationId > 0 ? [organizationId] : undefined,
+            organizations: organizationId ? [organizationId] : undefined,
           },
         },
         {
@@ -153,7 +144,7 @@ export default function AssessmentsPage() {
             type: "date",
             category,
             is_active: true,
-            organizations: organizationId > 0 ? [organizationId] : undefined,
+            organizations: organizationId ? [organizationId] : undefined,
           },
         },
         {
@@ -166,7 +157,7 @@ export default function AssessmentsPage() {
             type: "text",
             category,
             is_active: true,
-            organizations: organizationId > 0 ? [organizationId] : undefined,
+            organizations: organizationId ? [organizationId] : undefined,
           },
         },
         {
@@ -179,7 +170,7 @@ export default function AssessmentsPage() {
             type: "multiselect",
             category,
             is_active: true,
-            organizations: organizationId > 0 ? [organizationId] : undefined,
+            organizations: organizationId ? [organizationId] : undefined,
             options: [
               { label: "HIV testing messages", value: "hiv_testing" },
               { label: "PEP messages", value: "pep" },
@@ -203,7 +194,7 @@ export default function AssessmentsPage() {
             type: "yes_no",
             category,
             is_active: true,
-            organizations: organizationId > 0 ? [organizationId] : undefined,
+            organizations: organizationId ? [organizationId] : undefined,
           },
         },
         {
@@ -215,7 +206,7 @@ export default function AssessmentsPage() {
             type: "select",
             category,
             is_active: true,
-            organizations: organizationId > 0 ? [organizationId] : undefined,
+            organizations: organizationId ? [organizationId] : undefined,
             options: [
               { label: "Yes", value: "yes" },
               { label: "No", value: "no" },
@@ -232,7 +223,7 @@ export default function AssessmentsPage() {
             type: "yes_no",
             category,
             is_active: true,
-            organizations: organizationId > 0 ? [organizationId] : undefined,
+            organizations: organizationId ? [organizationId] : undefined,
           },
         },
         {
@@ -244,7 +235,7 @@ export default function AssessmentsPage() {
             type: "yes_no",
             category,
             is_active: true,
-            organizations: organizationId > 0 ? [organizationId] : undefined,
+            organizations: organizationId ? [organizationId] : undefined,
           },
         },
         {
@@ -256,7 +247,7 @@ export default function AssessmentsPage() {
             type: "yes_no",
             category,
             is_active: true,
-            organizations: organizationId > 0 ? [organizationId] : undefined,
+            organizations: organizationId ? [organizationId] : undefined,
           },
         },
         {
@@ -268,7 +259,7 @@ export default function AssessmentsPage() {
             type: "yes_no",
             category,
             is_active: true,
-            organizations: organizationId > 0 ? [organizationId] : undefined,
+            organizations: organizationId ? [organizationId] : undefined,
           },
         },
       ]
@@ -312,7 +303,7 @@ export default function AssessmentsPage() {
       await assessmentsService.create({
         name: formData.name,
         description: formData.description || undefined,
-        organizations: organizationId > 0 ? [organizationId] : undefined,
+        organizations: organizationId ? [organizationId] : undefined,
       })
       toast({ title: "Success", description: "Assessment created successfully" })
       setIsCreateOpen(false)
@@ -346,7 +337,7 @@ export default function AssessmentsPage() {
     <div className="space-y-6">
       <PageHeader
         title="Assessments"
-        description="Manage assessment forms and their indicators"
+        description="Manage assessment forms and their questions"
         breadcrumbs={[
           { label: "Dashboard", href: "/dashboard" },
           { label: "Indicators", href: "/indicators" },
@@ -384,7 +375,7 @@ export default function AssessmentsPage() {
                     </div>
                   </div>
                   <Badge variant="secondary">
-                    {assessment.indicators_count ?? indicators.length} indicators
+                    {assessment.indicators_count ?? indicators.length} questions
                   </Badge>
                 </div>
               </CardHeader>
@@ -393,7 +384,7 @@ export default function AssessmentsPage() {
                   <AccordionItem value="indicators" className="border-0">
                     <AccordionTrigger className="px-6 py-4 hover:no-underline">
                       <span className="text-sm text-muted-foreground">
-                        View Indicators
+                        View Questions
                       </span>
                     </AccordionTrigger>
                     <AccordionContent className="px-6 pb-4">
@@ -472,7 +463,7 @@ export default function AssessmentsPage() {
           <DialogHeader>
             <DialogTitle>Create Assessment</DialogTitle>
             <DialogDescription>
-              Create a new assessment form to group indicators
+              Create a new assessment form to group questions
             </DialogDescription>
           </DialogHeader>
           <form className="space-y-4">

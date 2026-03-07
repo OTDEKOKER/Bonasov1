@@ -18,16 +18,9 @@ import { aggregatesService, indicatorsService, interactionsService, type Derivat
 import { useAllIndicators, useAssessment, useAssessments, useInteractions, useProjects, useRespondents } from "@/lib/hooks/use-api"
 import type { Indicator, IndicatorType } from "@/lib/types"
 import { useAuth } from "@/lib/contexts/auth-context"
+import { getUserOrganizationId } from "@/lib/utils/organization"
 
 type IndicatorOption = { label: string; value: string }
-
-const resolveOrganizationId = (user: unknown): number => {
-  if (!user || typeof user !== "object") return Number.NaN
-  const candidate = user as { organizationId?: unknown; organization?: unknown }
-  const raw = candidate.organizationId ?? candidate.organization
-  const parsed = Number(raw)
-  return Number.isFinite(parsed) ? parsed : Number.NaN
-}
 
 function normalizeOptions(options: Indicator["options"]): IndicatorOption[] {
   if (!options || !Array.isArray(options)) return []
@@ -64,13 +57,9 @@ export default function InteractionsPage() {
   const searchParams = useSearchParams()
   const { toast } = useToast()
   const { user } = useAuth()
-  const organizationId = resolveOrganizationId(user)
-  const assessmentFilters = Number.isFinite(organizationId) && organizationId > 0
-    ? { organizations: String(organizationId) }
-    : undefined
-  const indicatorFilters = Number.isFinite(organizationId) && organizationId > 0
-    ? { organizations: String(organizationId) }
-    : undefined
+  const organizationId = getUserOrganizationId(user)
+  const assessmentFilters = organizationId ? { organizations: String(organizationId) } : undefined
+  const indicatorFilters = organizationId ? { organizations: String(organizationId) } : undefined
 
   const { data: interactionsData, isLoading, error, mutate } = useInteractions()
   const { data: respondentsData } = useRespondents()
@@ -366,7 +355,7 @@ export default function InteractionsPage() {
                   <SelectValue placeholder="Select entry type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="assessment">Assessment (indicator set)</SelectItem>
+                  <SelectItem value="assessment">Assessment (question set)</SelectItem>
                   <SelectItem value="derived">Derived Indicator (linked screening)</SelectItem>
                 </SelectContent>
               </Select>
