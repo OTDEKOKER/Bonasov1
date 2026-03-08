@@ -74,62 +74,8 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
     due_date: "",
   })
 
-  if (isLoading) {
-    return (
-      <div className="flex h-[50vh] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    )
-  }
-
-  if (error || !project) {
-    return (
-      <div className="flex h-[50vh] items-center justify-center">
-        <p className="text-muted-foreground">Project not found</p>
-      </div>
-    )
-  }
-
-  const orgs = Array.isArray(organizationsData)
-    ? organizationsData
-    : organizationsData?.results || []
-  const projectOrgIds = new Set(
-    Array.isArray(project.organizations)
-      ? project.organizations.map((org) =>
-          typeof org === "object" && org !== null ? String(org.id ?? "") : String(org)
-        )
-      : []
-  )
-  const projectOrgs = orgs.filter((org) => projectOrgIds.has(String(org.id)))
-  const rawTasks = tasksData?.results || []
-  const allIndicators = Array.isArray(indicatorsData)
-    ? indicatorsData
-    : indicatorsData?.results || []
-  const orgIndicators = allIndicators.filter((indicator) => {
-    const orgs = (indicator.organizations || []) as Array<string | number | { id?: string | number }>
-    if (!orgs.length) return true
-    return orgs.some((orgId) => {
-      const value =
-        typeof orgId === "object" && orgId !== null
-          ? (orgId as { id?: string | number }).id
-          : orgId
-      return value !== undefined && projectOrgIds.has(String(value))
-    })
-  })
-  const indicatorTasks = orgIndicators.map((indicator, index) => ({
-    id: `indicator-${indicator.id}-${index}`,
-    project: project.id,
-    project_name: project.name,
-    name: indicator.name,
-    description: indicator.description || "",
-    status: "pending",
-    priority: "medium",
-    due_date: project.end_date,
-  })) as Task[]
-  const projectTasks = indicatorTasks.length ? indicatorTasks : rawTasks
-  const projectDeadlines = deadlinesData?.results || []
-  const progress = project.progress_percentage ?? 0
   const groupedTargets = useMemo(() => {
+    if (!project) return []
     const targets = project.organization_targets || []
     const groups = new Map<
       string,
@@ -165,7 +111,23 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
         ),
       }))
       .sort((left, right) => left.organizationName.localeCompare(right.organizationName))
-  }, [project.organization_targets])
+  }, [project?.organization_targets])
+
+  if (isLoading) {
+    return (
+      <div className="flex h-[50vh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
+  }
+
+  if (error || !project) {
+    return (
+      <div className="flex h-[50vh] items-center justify-center">
+        <p className="text-muted-foreground">Project not found</p>
+      </div>
+    )
+  }
 
   const taskColumns = [
     {
