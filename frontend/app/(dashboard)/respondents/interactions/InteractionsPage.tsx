@@ -17,6 +17,8 @@ import { useToast } from "@/hooks/use-toast"
 import { aggregatesService, indicatorsService, interactionsService, type DerivationRule } from "@/lib/api"
 import { useAllIndicators, useAssessment, useAssessments, useInteractions, useProjects, useRespondents } from "@/lib/hooks/use-api"
 import type { Indicator, IndicatorType } from "@/lib/types"
+import { useAuth } from "@/lib/contexts/auth-context"
+import { getUserOrganizationId } from "@/lib/utils/organization"
 
 type IndicatorOption = { label: string; value: string }
 
@@ -54,12 +56,16 @@ export default function InteractionsPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { toast } = useToast()
+  const { user } = useAuth()
+  const organizationId = getUserOrganizationId(user)
+  const assessmentFilters = organizationId ? { organizations: String(organizationId) } : undefined
+  const indicatorFilters = organizationId ? { organizations: String(organizationId) } : undefined
 
   const { data: interactionsData, isLoading, error, mutate } = useInteractions()
   const { data: respondentsData } = useRespondents()
-  const { data: assessmentsData } = useAssessments()
+  const { data: assessmentsData } = useAssessments(assessmentFilters)
   const { data: projectsData } = useProjects()
-  const { data: indicatorsData } = useAllIndicators()
+  const { data: indicatorsData } = useAllIndicators(indicatorFilters)
 
   const interactions = interactionsData?.results || []
   const respondents = respondentsData?.results || []
@@ -349,7 +355,7 @@ export default function InteractionsPage() {
                   <SelectValue placeholder="Select entry type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="assessment">Assessment (indicator set)</SelectItem>
+                  <SelectItem value="assessment">Assessment (question set)</SelectItem>
                   <SelectItem value="derived">Derived Indicator (linked screening)</SelectItem>
                 </SelectContent>
               </Select>
