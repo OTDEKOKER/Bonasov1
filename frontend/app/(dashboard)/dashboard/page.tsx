@@ -26,8 +26,8 @@ export default function DashboardPage() {
     pendingFlags: (rawStats.indicators_behind || 0),
     monthlyTrend: [],
     indicatorProgress: [],
-    recentActivity: (rawStats.recent_activity || []).map((a: { type: string; description: string; timestamp: string }) => ({
-      id: Math.random().toString(),
+    recentActivity: (rawStats.recent_activity || []).map((a: { type: string; description: string; timestamp: string }, index: number) => ({
+      id: `${a.timestamp}-${index}`,
       type: a.type,
       description: a.description,
       user: "System",
