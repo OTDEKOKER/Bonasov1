@@ -3,12 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "next build",
-
-
-    "prebuild": "node scripts/validate-no-diff-markers.mjs",
     "build": "node scripts/validate-no-diff-markers.mjs && next build",
-
+    "prebuild": "node scripts/validate-no-diff-markers.mjs",
     "dev": "next dev",
     "lint": "eslint .",
     "start": "next start"

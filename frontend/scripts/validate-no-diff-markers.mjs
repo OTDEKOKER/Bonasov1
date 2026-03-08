@@ -19,9 +19,18 @@ function walk(dir) {
     if (!targets.has(extname(name))) continue
 
     const content = readFileSync(full, 'utf8')
-    const firstLine = content.split(/\r?\n/, 1)[0]?.replace(/^\uFEFF/, '') || ''
-    if (firstLine.startsWith('diff --git ')) {
-      offenders.push(full.replace(`${root}/`, ''))
+    const lines = content.split(/\r?\n/)
+
+    for (const [index, rawLine] of lines.entries()) {
+      const line = index === 0 ? rawLine.replace(/^\uFEFF/, '') : rawLine
+      if (
+        line.startsWith('diff --git ') ||
+        line.startsWith('<<<<<<< ') ||
+        line === '=======' ||
+        line.startsWith('>>>>>>> ')
+      ) {
+        offenders.push(`${full.replace(`${root}/`, '')}:${index + 1}`)
+      }
     }
   }
 }
@@ -29,11 +38,11 @@ function walk(dir) {
 walk(root)
 
 if (offenders.length > 0) {
-  console.error('Found git patch headers committed as source code in:')
-  for (const file of offenders) {
-    console.error(`- ${file}`)
+  console.error('Found accidental patch/conflict markers in source files:')
+  for (const entry of offenders) {
+    console.error(`- ${entry}`)
   }
   process.exit(1)
 }
 
-console.log('No accidental git patch headers found in source files.')
+console.log('No accidental git patch or merge-conflict markers found in source files.')
