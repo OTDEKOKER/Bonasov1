@@ -257,10 +257,13 @@ export default function InteractionsPage() {
   const { toast } = useToast()
   const { user } = useAuth()
   const uploadInputRef = useRef<HTMLInputElement | null>(null)
+  const orgId = user?.organizationId ? Number(user.organizationId) : null
 
   const { data: interactionsData, isLoading, error, mutate } = useInteractions()
   const { data: respondentsData } = useRespondents()
-  const { data: assessmentsData } = useAssessments()
+  const { data: assessmentsData } = useAssessments(
+    orgId ? { organization: String(orgId) } : undefined
+  )
   const { data: projectsData } = useProjects()
   const { data: eventsData } = useEvents({ page_size: "200" })
   const { data: indicatorsData } = useAllIndicators()

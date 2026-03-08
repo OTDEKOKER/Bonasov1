@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { PageHeader } from "@/components/shared/page-header"
 import { useAssessments } from "@/lib/hooks/use-api"
 import { assessmentsService, indicatorsService } from "@/lib/api"
+import { useAuth } from "@/lib/contexts/auth-context"
 import {
   Dialog,
   DialogContent,
@@ -49,7 +50,11 @@ const typeLabels: Record<string, string> = {
 export default function AssessmentsPage() {
   const router = useRouter()
   const { toast } = useToast()
-  const { data, isLoading, error, mutate } = useAssessments()
+  const { user } = useAuth()
+  const orgId = user?.organizationId ? Number(user.organizationId) : null
+  const { data, isLoading, error, mutate } = useAssessments(
+    orgId ? { organization: String(orgId) } : undefined
+  )
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isTemplatesOpen, setIsTemplatesOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -62,11 +67,21 @@ export default function AssessmentsPage() {
   const assessments = data?.results || []
 
   const ensureIndicator = async (request: CreateIndicatorRequest): Promise<number> => {
+    const orgFilter = request.organizations?.[0] ? { organizations: String(request.organizations[0]) } : {}
     const list = await indicatorsService.list({
       search: request.code,
       page_size: "100",
+      ...orgFilter,
     })
-    const exactMatch = (list.results || []).find((i) => i.code === request.code)
+    const exactMatch = (list.results || []).find((i) => {
+      if (i.code !== request.code) return false
+      if (!request.organizations?.length) return true
+      const orgId = String(request.organizations[0])
+      return Array.isArray(i.organizations) && i.organizations.some((org) => {
+        const orgValue = typeof org === 'object' && org !== null ? (org as { id?: string | number }).id : org
+        return String(orgValue) === orgId
+      })
+    })
     if (exactMatch?.id) return Number(exactMatch.id)
 
     try {
@@ -76,12 +91,29 @@ export default function AssessmentsPage() {
       const retry = await indicatorsService.list({
         search: request.code,
         page_size: "100",
+        ...orgFilter,
       })
-      const retryMatch = (retry.results || []).find((i) => i.code === request.code)
+      const retryMatch = (retry.results || []).find((i) => {
+        if (i.code !== request.code) return false
+        if (!request.organizations?.length) return true
+        const orgId = String(request.organizations[0])
+        return Array.isArray(i.organizations) && i.organizations.some((org) => {
+          const orgValue = typeof org === 'object' && org !== null ? (org as { id?: string | number }).id : org
+          return String(orgValue) === orgId
+        })
+      })
       if (retryMatch?.id) return Number(retryMatch.id)
 
       const all = await indicatorsService.listAll()
-      const allMatch = all.find((i) => i.code === request.code)
+      const allMatch = all.find((i) => {
+        if (i.code !== request.code) return false
+        if (!request.organizations?.length) return true
+        const orgId = String(request.organizations[0])
+        return Array.isArray(i.organizations) && i.organizations.some((org) => {
+          const orgValue = typeof org === 'object' && org !== null ? (org as { id?: string | number }).id : org
+          return String(orgValue) === orgId
+        })
+      })
       if (allMatch?.id) return Number(allMatch.id)
       throw new Error(`Failed to create indicator: ${request.code}`)
     }
@@ -97,6 +129,7 @@ export default function AssessmentsPage() {
       })
 
       const category = "hiv_prevention"
+      const orgArray = orgId ? [orgId] : []
       const indicators: Array<{
         request: CreateIndicatorRequest
         order: number
@@ -112,6 +145,7 @@ export default function AssessmentsPage() {
             type: "text",
             category,
             is_active: true,
+            organizations: orgArray,
           },
         },
         {
@@ -123,6 +157,7 @@ export default function AssessmentsPage() {
             type: "date",
             category,
             is_active: true,
+            organizations: orgArray,
           },
         },
         {
@@ -135,6 +170,7 @@ export default function AssessmentsPage() {
             type: "text",
             category,
             is_active: true,
+            organizations: orgArray,
           },
         },
         {
@@ -147,6 +183,7 @@ export default function AssessmentsPage() {
             type: "multiselect",
             category,
             is_active: true,
+            organizations: orgArray,
             options: [
               { label: "HIV testing messages", value: "hiv_testing" },
               { label: "PEP messages", value: "pep" },
@@ -170,6 +207,7 @@ export default function AssessmentsPage() {
             type: "yes_no",
             category,
             is_active: true,
+            organizations: orgArray,
           },
         },
         {
@@ -181,6 +219,7 @@ export default function AssessmentsPage() {
             type: "select",
             category,
             is_active: true,
+            organizations: orgArray,
             options: [
               { label: "Yes", value: "yes" },
               { label: "No", value: "no" },
@@ -197,6 +236,7 @@ export default function AssessmentsPage() {
             type: "yes_no",
             category,
             is_active: true,
+            organizations: orgArray,
           },
         },
         {
@@ -208,6 +248,7 @@ export default function AssessmentsPage() {
             type: "yes_no",
             category,
             is_active: true,
+            organizations: orgArray,
           },
         },
         {
@@ -219,6 +260,7 @@ export default function AssessmentsPage() {
             type: "yes_no",
             category,
             is_active: true,
+            organizations: orgArray,
           },
         },
         {
@@ -230,6 +272,7 @@ export default function AssessmentsPage() {
             type: "yes_no",
             category,
             is_active: true,
+            organizations: orgArray,
           },
         },
       ]

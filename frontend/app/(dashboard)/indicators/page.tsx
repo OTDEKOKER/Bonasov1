@@ -9,6 +9,7 @@ import { PageHeader } from "@/components/shared/page-header"
 import { DataTable } from "@/components/shared/data-table"
 import { useAllIndicators, useAssessments } from "@/lib/hooks/use-api"
 import { indicatorsService } from "@/lib/api"
+import { useAuth } from "@/lib/contexts/auth-context"
 import type { Indicator } from "@/lib/types"
 import {
   Dialog,
