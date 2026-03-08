@@ -158,9 +158,9 @@ export const usersService = {
       return data;
     } catch (err) {
       const status = (err as { status?: number })?.status;
-      // Some deployments may not expose a dedicated permissions endpoint yet.
-      // Treat this as non-fatal so user creation/editing remains usable.
-      if (status === 403 || status === 404 || status === 405) {
+      // Permissions list is optional in some deployments.
+      // Keep user create/edit usable by falling back to no explicit permissions.
+      if (status !== 401) {
         return [];
       }
       throw err;
