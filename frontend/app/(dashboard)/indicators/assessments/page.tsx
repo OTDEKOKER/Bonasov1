@@ -270,7 +270,7 @@ export default function AssessmentsPage() {
 
     setIsSubmitting(true)
     try {
-      await assessmentsService.create({
+      const created = await assessmentsService.create({
         name: formData.name,
         description: formData.description || undefined,
       })
@@ -278,6 +278,7 @@ export default function AssessmentsPage() {
       setIsCreateOpen(false)
       setFormData({ name: "", description: "" })
       mutate()
+      router.push(`/indicators/assessments/${created.id}`)
     } catch {
       toast({ title: "Error", description: "Failed to create assessment", variant: "destructive" })
     } finally {

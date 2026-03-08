@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import JSZip from "jszip";
-import * as XLSX from "xlsx";
+import * as XLSX from "xlsx-js-style";
 
 const zipPath = "C:/Users/dekok/Downloads/CSOs Reports (2).zip";
 

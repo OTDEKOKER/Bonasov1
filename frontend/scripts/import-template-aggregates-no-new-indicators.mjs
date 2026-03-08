@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import XLSX from "xlsx";
+import XLSX from "xlsx-js-style";
 
 const SOURCE_PATH = process.env.AGGREGATE_SOURCE_PATH || "C:/Users/dekok/Downloads/Copy of TEBELOPELE- NAHPA REPORTING TEMPLATE 2025_26 QUARTER 3.xlsm";
 const API_BASE = (process.env.BONASO_API_BASE || "http://localhost:8000/api").replace(/\/$/, "");

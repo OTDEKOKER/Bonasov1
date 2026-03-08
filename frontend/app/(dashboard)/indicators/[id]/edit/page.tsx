@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { PageHeader } from "@/components/shared/page-header"
+import QuarterlyTargetsSection from "@/components/indicators/quarterly-targets-section"
 import { indicatorsService } from "@/lib/api"
 import { useIndicator } from "@/lib/hooks/use-api"
 import type { Indicator } from "@/lib/types"
@@ -350,6 +351,13 @@ export default function IndicatorEditPage() {
           </div>
         </CardContent>
       </Card>
+
+      <QuarterlyTargetsSection
+        indicatorId={id}
+        projectTargets={indicator.project_targets}
+        editable
+        onUpdated={() => mutate()}
+      />
     </div>
   )
 }

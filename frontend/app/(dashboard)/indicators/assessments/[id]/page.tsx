@@ -6,7 +6,6 @@ import { ArrowLeft, Loader2, Plus, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-<<<<<<< HEAD
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
@@ -37,10 +36,11 @@ export default function AssessmentDetailPage() {
   const router = useRouter()
   const { toast } = useToast()
   const params = useParams()
-  const id = Number(params?.id)
+  const rawId = Array.isArray(params?.id) ? params.id[0] : params?.id
+  const assessmentId = rawId ? String(rawId) : null
 
   const { data: assessment, isLoading, error, mutate } = useAssessment(
-    Number.isFinite(id) ? id : null,
+    assessmentId,
   )
   const { data: indicatorsData } = useIndicators()
 
@@ -56,57 +56,6 @@ export default function AssessmentDetailPage() {
   })
   const [selectedIndicator, setSelectedIndicator] = useState("")
   const [orderValue, setOrderValue] = useState("")
-=======
-import { Label } from "@/components/ui/label"
-import { Checkbox } from "@/components/ui/checkbox"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
-import { PageHeader } from "@/components/shared/page-header"
-import { assessmentsService } from "@/lib/api"
-import { useAssessment, useIndicators } from "@/lib/hooks/use-api"
-import { useToast } from "@/hooks/use-toast"
-
-const typeLabels: Record<string, string> = {
-  yes_no: "Yes/No",
-  number: "Number",
-  percentage: "Percentage",
-  text: "Text",
-  select: "Single Select",
-  multiselect: "Multiselect",
-  date: "Date",
-  multi_int: "Numbers",
-}
-
-export default function AssessmentDetailPage() {
-  const router = useRouter()
-  const { toast } = useToast()
-  const params = useParams()
-  const id = Number(params?.id)
-
-  const { data: assessment, isLoading, error, mutate } = useAssessment(
-    Number.isFinite(id) ? id : null,
-  )
-  const { data: indicatorsData } = useIndicators()
-
-  const indicators = indicatorsData?.results || []
-  const indicatorOptions = useMemo(
-    () => indicators.filter((indicator) => indicator.is_active),
-    [indicators],
-  )
-
-  const [formState, setFormState] = useState({
-    name: "",
-    description: "",
-  })
-  const [selectedIndicator, setSelectedIndicator] = useState("")
-  const [orderValue, setOrderValue] = useState("")
->>>>>>> 3960472ef9ed0f607ccbe8b7a3ea740529e44c66
   const [isRequired, setIsRequired] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -133,7 +82,7 @@ export default function AssessmentDetailPage() {
     }
     setIsSubmitting(true)
     try {
-      await assessmentsService.update(Number(assessment.id), {
+      await assessmentsService.update(String(assessment.id), {
         name: formState.name,
         description: formState.description || undefined,
       })
@@ -156,7 +105,7 @@ export default function AssessmentDetailPage() {
     const order = orderValue ? Number(orderValue) : indicatorsDetail.length + 1
     setIsSubmitting(true)
     try {
-      await assessmentsService.addIndicator(Number(assessment.id), Number(selectedIndicator), order, isRequired)
+      await assessmentsService.addIndicator(String(assessment.id), selectedIndicator, order, isRequired)
       toast({ title: "Added", description: "Indicator added to assessment." })
       setSelectedIndicator("")
       setOrderValue("")
@@ -179,7 +128,7 @@ export default function AssessmentDetailPage() {
     if (!confirm("Remove this indicator from the assessment?")) return
     setIsSubmitting(true)
     try {
-      await assessmentsService.removeIndicator(Number(assessment.id), Number(indicatorId))
+      await assessmentsService.removeIndicator(String(assessment.id), indicatorId)
       toast({ title: "Removed", description: "Indicator removed." })
       mutate()
     } catch (err) {

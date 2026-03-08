@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import * as XLSX from "xlsx";
+import * as XLSX from "xlsx-js-style";
 
 const SOURCE_PATH = process.argv[2] || process.env.SOURCE_PATH || "";
 

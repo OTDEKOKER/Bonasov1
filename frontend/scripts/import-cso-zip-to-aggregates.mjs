@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import JSZip from "jszip";
-import XLSX from "xlsx";
+import XLSX from "xlsx-js-style";
 
 const ZIP_PATH = process.env.CSO_ZIP_PATH || "C:/Users/dekok/Downloads/CSOs Reports (2).zip";
 const API_BASE = (process.env.BONASO_API_BASE || "http://localhost:8000/api").replace(/\/$/, "");

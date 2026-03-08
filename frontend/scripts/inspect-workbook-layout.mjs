@@ -1,4 +1,4 @@
-import XLSX from "xlsx";
+import XLSX from "xlsx-js-style";
 
 const sourcePath = process.argv[2];
 if (!sourcePath) {

@@ -1,4 +1,4 @@
-import XLSX from "xlsx";
+import XLSX from "xlsx-js-style";
 import fs from "node:fs";
 import path from "node:path";
 

@@ -11,6 +11,9 @@ const OFFLINE_SYNC_TAG = 'bonaso-sync-mutations';
 let replayInFlight = null;
 
 const SHELL_ASSETS = [
+  '/',
+  '/login/',
+  '/dashboard/',
   OFFLINE_PAGE,
   '/favicon.ico',
   '/icon-dark-32x32.png',
