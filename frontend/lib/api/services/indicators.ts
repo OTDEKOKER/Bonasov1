@@ -17,6 +17,7 @@ export interface IndicatorFilters {
   type?: IndicatorType;
   category?: string;
   is_active?: string;
+  organizations?: string;
   page?: string;
   page_size?: string;
 }

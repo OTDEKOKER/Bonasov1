@@ -20,10 +20,24 @@ interface AppHeaderProps {
   onMenuClick?: () => void
 }
 
+const resolveUserName = (user: unknown): { first: string; last: string } => {
+  if (!user || typeof user !== "object") return { first: "", last: "" }
+  const candidate = user as {
+    firstName?: unknown
+    lastName?: unknown
+    first_name?: unknown
+    last_name?: unknown
+  }
+  const first = String(candidate.firstName ?? candidate.first_name ?? "").trim()
+  const last = String(candidate.lastName ?? candidate.last_name ?? "").trim()
+  return { first, last }
+}
+
 export function AppHeader({ onMenuClick }: AppHeaderProps) {
   const router = useRouter()
   const { user, logout } = useAuth()
   const currentUser = user
+  const userName = resolveUserName(currentUser)
   const handleLogout = async () => {
     await logout()
   }
@@ -103,13 +117,13 @@ export function AppHeader({ onMenuClick }: AppHeaderProps) {
             <Button variant="ghost" className="flex items-center gap-2 px-2">
               <Avatar className="h-8 w-8">
                 <AvatarFallback className="bg-primary text-primary-foreground text-sm">
-                  {(currentUser?.firstName?.[0] || "U").toUpperCase()}
-                  {(currentUser?.lastName?.[0] || "").toUpperCase()}
+                  {(userName.first[0] || "U").toUpperCase()}
+                  {(userName.last[0] || "").toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               <div className="hidden flex-col items-start text-left md:flex">
                 <span className="text-sm font-medium">
-                  {currentUser ? `${currentUser.firstName} ${currentUser.lastName}` : "My Account"}
+                  {currentUser ? `${userName.first} ${userName.last}`.trim() || "My Account" : "My Account"}
                 </span>
                 <span className="text-xs text-muted-foreground capitalize">
                   {currentUser ? getUserRoleLabel(currentUser.role) : "user"}

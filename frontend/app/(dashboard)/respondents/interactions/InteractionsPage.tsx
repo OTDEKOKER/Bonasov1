@@ -17,6 +17,8 @@ import { useToast } from "@/hooks/use-toast"
 import { aggregatesService, indicatorsService, interactionsService, type DerivationRule } from "@/lib/api"
 import { useAllIndicators, useAssessment, useAssessments, useInteractions, useProjects, useRespondents } from "@/lib/hooks/use-api"
 import type { Indicator, IndicatorType } from "@/lib/types"
+import { useAuth } from "@/lib/contexts/auth-context"
+import { getUserOrganizationId } from "@/lib/utils/organization"
 
 type IndicatorOption = { label: string; value: string }
 
@@ -54,12 +56,16 @@ export default function InteractionsPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { toast } = useToast()
+  const { user } = useAuth()
+  const organizationId = getUserOrganizationId(user)
+  const assessmentFilters = organizationId ? { organizations: String(organizationId) } : undefined
+  const indicatorFilters = organizationId ? { organizations: String(organizationId) } : undefined
 
   const { data: interactionsData, isLoading, error, mutate } = useInteractions()
   const { data: respondentsData } = useRespondents()
-  const { data: assessmentsData } = useAssessments()
+  const { data: assessmentsData } = useAssessments(assessmentFilters)
   const { data: projectsData } = useProjects()
-  const { data: indicatorsData } = useAllIndicators()
+  const { data: indicatorsData } = useAllIndicators(indicatorFilters)
 
   const interactions = interactionsData?.results || []
   const respondents = respondentsData?.results || []
@@ -69,6 +75,7 @@ export default function InteractionsPage() {
 
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [formStep, setFormStep] = useState<"details" | "assessment">("details")
   const [entryMode, setEntryMode] = useState<"assessment" | "derived">("assessment")
   const [derivedOutputIndicatorId, setDerivedOutputIndicatorId] = useState("")
   const [derivedRule, setDerivedRule] = useState<DerivationRule | null>(null)
@@ -208,7 +215,20 @@ export default function InteractionsPage() {
     setDerivedOutputIndicatorId("")
     setDerivedRule(null)
     setAnswersByIndicatorId({})
+    setFormStep("details")
     setIsCreateOpen(false)
+  }
+
+  const validateInteractionDetails = (): boolean => {
+    if (!formData.respondentId || !formData.date) return false
+
+    if (entryMode === "assessment") {
+      return Boolean(formData.assessmentId)
+    }
+
+    if (!derivedOutputIndicatorId || !derivedRule) return false
+    if (!formData.projectId || formData.projectId === "none") return false
+    return true
   }
 
   if (isLoading) {
@@ -324,7 +344,7 @@ export default function InteractionsPage() {
           <DialogHeader>
             <DialogTitle>New Interaction</DialogTitle>
             <DialogDescription>
-              Record an interaction for a respondent and assessment.
+              Step 1: enter interaction details. Step 2: complete the assessment questions.
             </DialogDescription>
           </DialogHeader>
 
@@ -336,6 +356,7 @@ export default function InteractionsPage() {
                 onValueChange={(value) => {
                   const mode = value as "assessment" | "derived"
                   setEntryMode(mode)
+                  setFormStep("details")
                   setAnswersByIndicatorId({})
                   if (mode === "assessment") {
                     setDerivedOutputIndicatorId("")
@@ -349,7 +370,7 @@ export default function InteractionsPage() {
                   <SelectValue placeholder="Select entry type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="assessment">Assessment (indicator set)</SelectItem>
+                  <SelectItem value="assessment">Assessment (question set)</SelectItem>
                   <SelectItem value="derived">Derived Indicator (linked screening)</SelectItem>
                 </SelectContent>
               </Select>
@@ -360,7 +381,10 @@ export default function InteractionsPage() {
                 <Label htmlFor="interaction-assessment">Assessment *</Label>
                 <Select
                   value={formData.assessmentId}
-                  onValueChange={(value) => setFormData({ ...formData, assessmentId: value })}
+                  onValueChange={(value) => {
+                    setFormData({ ...formData, assessmentId: value })
+                    setAnswersByIndicatorId({})
+                  }}
                 >
                   <SelectTrigger id="interaction-assessment">
                     <SelectValue placeholder="Select assessment" />
@@ -377,7 +401,10 @@ export default function InteractionsPage() {
             ) : (
               <div className="space-y-2">
                 <Label htmlFor="interaction-derived-output">Derived Output Indicator *</Label>
-                <Select value={derivedOutputIndicatorId} onValueChange={setDerivedOutputIndicatorId}>
+                <Select value={derivedOutputIndicatorId} onValueChange={(value) => {
+                  setDerivedOutputIndicatorId(value)
+                  setAnswersByIndicatorId({})
+                }}>
                   <SelectTrigger id="interaction-derived-output">
                     <SelectValue placeholder="Select output indicator" />
                   </SelectTrigger>
@@ -460,7 +487,7 @@ export default function InteractionsPage() {
               />
             </div>
 
-            {screeningItems.length ? (
+            {formStep === "assessment" && screeningItems.length ? (
               <div className="space-y-3 rounded-lg border border-border p-4">
                 <div>
                   <p className="text-sm font-medium text-foreground">Screening Indicators</p>
@@ -655,96 +682,115 @@ export default function InteractionsPage() {
             <Button variant="outline" onClick={resetDialog}>
               Cancel
             </Button>
-            <Button
-              disabled={
-                isSubmitting ||
-                (entryMode === "assessment"
-                  ? !formData.assessmentId
-                  : !derivedOutputIndicatorId || !derivedRule) ||
-                (entryMode === "derived" &&
-                  (!formData.projectId || formData.projectId === "none")) ||
-                !formData.respondentId ||
-                !formData.date
-              }
-              onClick={async () => {
-                setIsSubmitting(true)
-                try {
-                  if (entryMode === "derived" && (!formData.projectId || formData.projectId === "none")) {
+
+            {formStep === "assessment" ? (
+              <Button variant="outline" onClick={() => setFormStep("details")} disabled={isSubmitting}>
+                Back to Details
+              </Button>
+            ) : null}
+
+            {formStep === "details" ? (
+              <Button
+                onClick={() => {
+                  if (!validateInteractionDetails()) {
                     toast({
                       title: "Validation Error",
-                      description: "Project is required for derived indicators.",
+                      description:
+                        entryMode === "derived"
+                          ? "Please complete all interaction details, including project and linked indicator setup."
+                          : "Please complete all required interaction details before continuing.",
                       variant: "destructive",
                     })
-                    setIsSubmitting(false)
                     return
                   }
+                  setFormStep("assessment")
+                }}
+              >
+                Continue to Assessment
+              </Button>
+            ) : (
+              <Button
+                disabled={isSubmitting}
+                onClick={async () => {
+                  setIsSubmitting(true)
+                  try {
+                    if (entryMode === "derived" && (!formData.projectId || formData.projectId === "none")) {
+                      toast({
+                        title: "Validation Error",
+                        description: "Project is required for derived indicators.",
+                        variant: "destructive",
+                      })
+                      setIsSubmitting(false)
+                      return
+                    }
 
-                  const questions = screeningItems
-                  const missingRequired = questions.find((q) => {
-                    if (!q.is_required) return false
-                    const indicatorId = String(q.indicator)
-                    const indicator =
-                      indicatorDetailsById[indicatorId] ||
-                      (q.indicator_detail as unknown as Indicator | undefined)
-                    const type = (indicator?.type || q.indicator_detail?.type || "text") as IndicatorType
-                    const value = answersByIndicatorId[indicatorId]
-                    return isEmptyResponseValue(type, value)
-                  })
-
-                  if (missingRequired) {
-                    toast({
-                      title: "Validation Error",
-                      description: "Please answer all required screening questions.",
-                      variant: "destructive",
-                    })
-                    setIsSubmitting(false)
-                    return
-                  }
-
-                  const responses = questions
-                    .map((q) => {
+                    const questions = screeningItems
+                    const missingRequired = questions.find((q) => {
+                      if (!q.is_required) return false
                       const indicatorId = String(q.indicator)
                       const indicator =
                         indicatorDetailsById[indicatorId] ||
                         (q.indicator_detail as unknown as Indicator | undefined)
                       const type = (indicator?.type || q.indicator_detail?.type || "text") as IndicatorType
                       const value = answersByIndicatorId[indicatorId]
-                      if (isEmptyResponseValue(type, value)) return null
-                      return { indicator: Number(indicatorId), value }
+                      return isEmptyResponseValue(type, value)
                     })
-                    .filter(Boolean) as Array<{ indicator: number; value: unknown }>
 
-                  await interactionsService.create({
-                    respondent: Number(formData.respondentId),
-                    assessment: entryMode === "assessment" && formData.assessmentId ? Number(formData.assessmentId) : undefined,
-                    project:
-                      formData.projectId && formData.projectId !== "none"
-                        ? Number(formData.projectId)
-                        : undefined,
-                    date: formData.date,
-                    notes: formData.notes || undefined,
-                    responses,
-                  })
-                  toast({
-                    title: "Saved",
-                    description: "Interaction recorded successfully.",
-                  })
-                  mutate()
-                  resetDialog()
-                } catch (err) {
-                  toast({
-                    title: "Error",
-                    description: "Failed to save interaction",
-                    variant: "destructive",
-                  })
-                } finally {
-                  setIsSubmitting(false)
-                }
-              }}
-            >
-              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Save Interaction
-            </Button>
+                    if (missingRequired) {
+                      toast({
+                        title: "Validation Error",
+                        description: "Please answer all required screening questions.",
+                        variant: "destructive",
+                      })
+                      setIsSubmitting(false)
+                      return
+                    }
+
+                    const responses = questions
+                      .map((q) => {
+                        const indicatorId = String(q.indicator)
+                        const indicator =
+                          indicatorDetailsById[indicatorId] ||
+                          (q.indicator_detail as unknown as Indicator | undefined)
+                        const type = (indicator?.type || q.indicator_detail?.type || "text") as IndicatorType
+                        const value = answersByIndicatorId[indicatorId]
+                        if (isEmptyResponseValue(type, value)) return null
+                        return { indicator: Number(indicatorId), value }
+                      })
+                      .filter(Boolean) as Array<{ indicator: number; value: unknown }>
+
+                    await interactionsService.create({
+                      respondent: Number(formData.respondentId),
+                      assessment: entryMode === "assessment" && formData.assessmentId ? Number(formData.assessmentId) : undefined,
+                      project:
+                        formData.projectId && formData.projectId !== "none"
+                          ? Number(formData.projectId)
+                          : undefined,
+                      date: formData.date,
+                      notes: formData.notes || undefined,
+                      responses,
+                    })
+                    toast({
+                      title: "Saved",
+                      description: "Interaction recorded successfully.",
+                    })
+                    mutate()
+                    resetDialog()
+                  } catch (err) {
+                    toast({
+                      title: "Error",
+                      description: "Failed to save interaction",
+                      variant: "destructive",
+                    })
+                  } finally {
+                    setIsSubmitting(false)
+                  }
+                }}
+              >
+                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Save Interaction
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>

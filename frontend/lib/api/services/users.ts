@@ -153,8 +153,18 @@ export const usersService = {
    * Django endpoint: GET /api/users/permissions/
    */
   async listPermissions(): Promise<UserPermissionOption[]> {
-    const { data } = await api.get<UserPermissionOption[]>('/users/permissions/');
-    return data;
+    try {
+      const { data } = await api.get<UserPermissionOption[]>('/users/permissions/');
+      return data;
+    } catch (err) {
+      const status = (err as { status?: number })?.status;
+      // Some deployments may not expose a dedicated permissions endpoint yet.
+      // Treat this as non-fatal so user creation/editing remains usable.
+      if (status === 403 || status === 404 || status === 405) {
+        return [];
+      }
+      throw err;
+    }
   },
 
   /**
