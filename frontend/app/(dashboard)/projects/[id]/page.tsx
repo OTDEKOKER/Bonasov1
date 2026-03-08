@@ -1,6 +1,6 @@
 "use client"
 
-import { use, useMemo, useState } from "react"
+import { use, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Calendar, Users, Target, CheckCircle2, Clock, Edit, Trash2, Plus, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -74,7 +74,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
     due_date: "",
   })
 
-  const groupedTargets = useMemo(() => {
+  const groupedTargets = (() => {
     if (!project) return []
     const targets = project.organization_targets || []
     const groups = new Map<
@@ -111,7 +111,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
         ),
       }))
       .sort((left, right) => left.organizationName.localeCompare(right.organizationName))
-  }, [project?.organization_targets])
+  })()
 
   if (isLoading) {
     return (
