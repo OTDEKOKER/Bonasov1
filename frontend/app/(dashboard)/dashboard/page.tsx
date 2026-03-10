@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Users, Activity, FolderKanban, AlertTriangle, ArrowRight, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -68,6 +68,15 @@ export default function DashboardPage() {
       return projectMatch && searchMatch
     })
   }, [activeProjects, selectedProjectFilter, projectSearch])
+
+  useEffect(() => {
+    if (selectedProjectFilter === "all") return
+
+    const projectStillExists = activeProjects.some((project) => String(project.id) === selectedProjectFilter)
+    if (!projectStillExists) {
+      setSelectedProjectFilter("all")
+    }
+  }, [activeProjects, selectedProjectFilter])
 
   const filteredDeadlines = useMemo(() => {
     const now = Date.now()
@@ -154,9 +163,23 @@ export default function DashboardPage() {
       </div>
 
       <div className="rounded-xl border border-border bg-card p-4 sm:p-6">
-        <div className="mb-4">
+        <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
           <h2 className="text-sm font-medium text-muted-foreground">Quick filters</h2>
-          <p className="text-xs text-muted-foreground">Refine dashboard lists by project, activity type, keyword, and deadline window.</p>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setActivityTypeFilter("all")
+              setActivitySearch("")
+              setSelectedProjectFilter("all")
+              setProjectSearch("")
+              setDeadlineWindow("30")
+            }}
+          >
+            Reset filters
+          </Button>
+          <p className="w-full text-xs text-muted-foreground">Refine dashboard lists by project, activity type, keyword, and deadline window.</p>
         </div>
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
           <Select value={selectedProjectFilter} onValueChange={setSelectedProjectFilter}>
