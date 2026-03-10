@@ -47,9 +47,9 @@ export default function DashboardsPage() {
   const { data: indicatorsData } = useAllIndicators();
   const { data: organizationsData } = useAllOrganizations();
   const { data: projectsData } = useAllProjects();
-  const indicators = indicatorsData || [];
-  const organizations = organizationsData?.results || [];
-  const projects = projectsData?.results || [];
+  const indicators = useMemo(() => indicatorsData ?? [], [indicatorsData]);
+  const organizations = useMemo(() => organizationsData?.results ?? [], [organizationsData?.results]);
+  const projects = useMemo(() => projectsData?.results ?? [], [projectsData?.results]);
   const [indicatorSearch, setIndicatorSearch] = useState("");
   const [selectedIndicatorIds, setSelectedIndicatorIds] = useState<number[]>([]);
   const [organizationId, setOrganizationId] = useState<string>("all");
@@ -66,7 +66,7 @@ export default function DashboardsPage() {
   const chartRef = useRef<HTMLDivElement | null>(null);
 
   const { data: savedChartsData, mutate: mutateSavedCharts } = useDashboardCharts();
-  const savedCharts = savedChartsData?.results || [];
+  const savedCharts = useMemo(() => savedChartsData?.results ?? [], [savedChartsData?.results]);
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [saveName, setSaveName] = useState("");
   const [saveShared, setSaveShared] = useState(false);
@@ -101,7 +101,7 @@ export default function DashboardsPage() {
     setDateTo(range.end);
   }, [dateMode, quarter, year]);
 
-  const chartSeries = trendsBulk?.series || [];
+  const chartSeries = useMemo(() => trendsBulk?.series ?? [], [trendsBulk?.series]);
 
   const chartData = useMemo(() => {
     if (chartSeries.length === 0) return [];

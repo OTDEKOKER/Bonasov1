@@ -75,9 +75,9 @@ export default function SocialPage() {
     mutate: mutatePosts,
   } = useSocialPosts();
 
-  const organizations = organizationsData?.results || [];
-  const indicators = indicatorsData?.results || [];
-  const posts = postsData?.results || [];
+  const organizations = useMemo(() => organizationsData?.results ?? [], [organizationsData?.results]);
+  const indicators = useMemo(() => indicatorsData?.results ?? [], [indicatorsData?.results]);
+  const posts = useMemo(() => postsData?.results ?? [], [postsData?.results]);
 
   const filteredPosts = useMemo(() => {
     const query = postSearch.toLowerCase();

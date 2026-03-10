@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   FileText,
   Download,
@@ -206,7 +206,7 @@ export default function ReportsPage() {
   const [viewOpen, setViewOpen] = useState(false);
   const [activeReport, setActiveReport] = useState<any | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [reportOrgId, setReportOrgId] = useState("all");
+  const [reportOrgId] = useState("all");
   const [reportDateMode, setReportDateMode] = useState<"quarter" | "dates">("quarter");
   const now = new Date();
   const currentQuarter = `Q${Math.floor(now.getMonth() / 3) + 1}`;
@@ -231,12 +231,12 @@ export default function ReportsPage() {
   );
   const { data: respondentStats } = useRespondentStats();
 
-  const projects = projectsData?.results || [];
-  const indicators = indicatorsData || [];
-  const organizations = organizationsData || [];
-  const reports = reportsData?.results || [];
-  const scheduledReports = scheduledReportsData || [];
-  const aggregates = aggregatesData || [];
+  const projects = useMemo(() => projectsData?.results ?? [], [projectsData?.results]);
+  const indicators = useMemo(() => indicatorsData ?? [], [indicatorsData]);
+  const organizations = useMemo(() => organizationsData ?? [], [organizationsData]);
+  const reports = useMemo(() => reportsData?.results ?? [], [reportsData?.results]);
+  const scheduledReports = useMemo(() => scheduledReportsData ?? [], [scheduledReportsData]);
+  const aggregates = useMemo(() => aggregatesData ?? [], [aggregatesData]);
 
   useEffect(() => {
     if (reportDateMode !== "quarter") return;
@@ -269,7 +269,7 @@ export default function ReportsPage() {
     return totals;
   }, [aggregates]);
 
-  const buildSeriesFromNames = (names: string[]) => {
+  const buildSeriesFromNames = useCallback((names: string[]) => {
     return names.map((name) => {
       const match = indicatorLookup[normalizeName(name)];
       const indicatorId = match?.id;
@@ -280,19 +280,19 @@ export default function ReportsPage() {
         missing: !indicatorId,
       };
     });
-  };
+  }, [indicatorLookup, totalsByIndicatorId]);
 
   const hivPreventionSeries = useMemo(
     () => buildSeriesFromNames(SOCIAL_CONTRACTING_INDICATORS),
-    [indicatorLookup, totalsByIndicatorId],
+    [buildSeriesFromNames],
   );
   const eventsSeries = useMemo(
     () => buildSeriesFromNames(SOCIAL_CONTRACTING_EVENTS),
-    [indicatorLookup, totalsByIndicatorId],
+    [buildSeriesFromNames],
   );
   const ncdSeries = useMemo(
     () => buildSeriesFromNames(SOCIAL_CONTRACTING_NCD),
-    [indicatorLookup, totalsByIndicatorId],
+    [buildSeriesFromNames],
   );
 
   const hivPieData = useMemo(
@@ -332,7 +332,7 @@ export default function ReportsPage() {
   }, [indicators]);
 
   const genderData = useMemo(() => {
-    const entries = respondentStats?.by_gender || [];
+    const entries = respondentStats?.by_gender ?? [];
     return entries.map((entry: { gender: string | null; count: number }, index) => ({
       name: entry.gender || "Unknown",
       value: entry.count,

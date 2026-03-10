@@ -44,7 +44,7 @@ interface ProjectCardProps {
   organizations: { id: string; name: string; type: string }[]
 }
 
-function ProjectCard({ project, organizations }: ProjectCardProps) {
+function ProjectCard({ project }: ProjectCardProps) {
   const router = useRouter()
   const progress = project.progress_percentage ?? 0
   const startDate = new Date(project.start_date)

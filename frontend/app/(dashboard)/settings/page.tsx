@@ -7,7 +7,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -25,8 +24,6 @@ import {
   Shield,
   Database,
   Palette,
-  Globe,
-  Key,
   Mail,
   Save,
   Upload,
@@ -50,15 +47,6 @@ export default function SettingsPage() {
     phone: "",
     role: "",
     organizationId: "",
-  });
-
-  const [notifications, setNotifications] = useState({
-    emailAlerts: true,
-    taskReminders: true,
-    dataQualityAlerts: true,
-    reportReady: true,
-    weeklyDigest: false,
-    projectUpdates: true,
   });
 
   const [preferences, setPreferences] = useState({
@@ -107,8 +95,6 @@ export default function SettingsPage() {
     }
   };
 
-  const currentOrgName =
-    organizations.find((org) => String(org.id) === profile.organizationId)?.name || "-";
 
   return (
     <div className="space-y-6">
@@ -285,9 +271,9 @@ export default function SettingsPage() {
               </div>
 
               <div className="flex justify-end">
-                <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
+                <Button onClick={handleSaveProfile} disabled={isSavingProfile} className="bg-primary text-primary-foreground hover:bg-primary/90">
                   <Save className="h-4 w-4 mr-2" />
-                  Save Preferences
+                  {isSavingProfile ? "Saving..." : "Save Preferences"}
                 </Button>
               </div>
             </CardContent>

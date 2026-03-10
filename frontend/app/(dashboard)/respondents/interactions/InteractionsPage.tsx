@@ -737,7 +737,7 @@ export default function InteractionsPage() {
                   })
                   mutate()
                   resetDialog()
-                } catch (err) {
+                } catch {
                   toast({
                     title: "Error",
                     description: "Failed to save interaction",

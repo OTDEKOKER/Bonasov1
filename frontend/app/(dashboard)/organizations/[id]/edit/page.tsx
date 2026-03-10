@@ -1,6 +1,6 @@
 ﻿"use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { ArrowLeft, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -45,11 +45,6 @@ export default function OrganizationEditPage() {
     description: "",
     isActive: true,
   })
-
-  const parentOptions = useMemo(
-    () => organizations.filter((item) => item.id !== id),
-    [organizations, id],
-  )
 
   useEffect(() => {
     if (!org) return

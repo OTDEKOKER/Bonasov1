@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect } from "react"
+import React from "react"
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -40,12 +40,7 @@ interface NavItemProps {
 function NavItem({ title, href, icon, badge, isActive, children }: NavItemProps) {
   const [isOpen, setIsOpen] = useState(false)
   const pathname = usePathname()
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-  const safePathname = mounted ? pathname : ""
+  const safePathname = pathname ?? ""
 
   if (children) {
     const hasActiveChild = children.some(child => safePathname === child.href)

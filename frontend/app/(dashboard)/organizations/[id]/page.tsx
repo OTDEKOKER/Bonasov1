@@ -31,20 +31,19 @@ export default function OrganizationDetailPage() {
 
   const { data: org, isLoading, error } = useOrganization(Number.isFinite(id) ? id : null)
   const { data: orgsData } = useAllOrganizations()
-  const organizations = orgsData || []
+  const organizations = useMemo(() => orgsData ?? [], [orgsData])
   const { data: indicatorsData } = useIndicators(
     Number.isFinite(id) ? { organizations: String(id), page_size: "200" } : undefined
   )
   const { data: usersData } = useUsers(
     Number.isFinite(id) ? { organization: String(id), is_active: "true", page_size: "200" } : undefined
   )
-  const indicators = indicatorsData?.results || []
-  const activeUsers = usersData?.results || []
+  const indicators = useMemo(() => indicatorsData?.results ?? [], [indicatorsData?.results])
+  const activeUsers = useMemo(() => usersData?.results ?? [], [usersData?.results])
 
-  const parentName = useMemo(() => {
-    if (!org?.parentId) return null
-    return organizations.find((item) => item.id === org.parentId)?.name || null
-  }, [org?.parentId, organizations])
+  const parentName = !org?.parentId
+    ? null
+    : organizations.find((item) => item.id === org.parentId)?.name || null
 
   if (isLoading) {
     return (
