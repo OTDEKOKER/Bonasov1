@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { PageHeader } from "@/components/shared/page-header"
 import { DataTable } from "@/components/shared/data-table"
-import { useAllIndicators, useAllOrganizations, useDeadlines, useProject, useTasks } from "@/lib/hooks/use-api"
+import { useAllOrganizations, useDeadlines, useProject, useTasks } from "@/lib/hooks/use-api"
 import { deadlinesService, projectsService, tasksService } from "@/lib/api"
 import type { ProjectDeadline, ProjectIndicatorTarget, Task } from "@/lib/types"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -49,7 +49,6 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
   const { data: tasksData, mutate: mutateTasks } = useTasks(Number.isFinite(projectId) ? { project: String(projectId) } : undefined)
   const { data: deadlinesData, mutate: mutateDeadlines } = useDeadlines(Number.isFinite(projectId) ? { project: String(projectId) } : undefined)
   const { data: organizationsData } = useAllOrganizations()
-  const { data: indicatorsData } = useAllIndicators()
   const [isEditOpen, setIsEditOpen] = useState(false)
   const [isTaskOpen, setIsTaskOpen] = useState(false)
   const [isDeadlineOpen, setIsDeadlineOpen] = useState(false)
