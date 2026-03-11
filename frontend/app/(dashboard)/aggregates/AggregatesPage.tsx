@@ -2,9 +2,26 @@
 
 import React, { useEffect, useMemo, useRef, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Funnel,
+  FunnelChart,
+  LabelList,
+  Line,
+  LineChart,
+  XAxis,
+  YAxis,
+} from "recharts";
 import * as XLSX from "xlsx-js-style";
 import {
+  Activity,
+  ArrowDownToLine,
+  ArrowUpRight,
+  Building2,
+  CheckCircle2,
   Plus,
   Search,
   Filter,
@@ -14,6 +31,9 @@ import {
   BarChart3,
   Calendar,
   Calculator,
+  Target,
+  TrendingUp,
+  Users2,
   Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -376,6 +396,424 @@ const buildEmptyMatrix = () => {
   return matrix;
 };
 
+type DashboardRollupDatum = {
+  id: string;
+  name: string;
+  total: number;
+  target: number;
+  percentAchieved: number;
+  organizations: number;
+  indicators: number;
+};
+
+type ComplianceDatum = {
+  id: string;
+  name: string;
+  submitted: number;
+  late: number;
+  missing: number;
+  details: Record<"submitted" | "late" | "missing", string[]>;
+};
+
+type BreakdownDatum = {
+  name: string;
+  Male?: number;
+  Female?: number;
+  Other?: number;
+  Total: number;
+};
+
+type CascadePreset = {
+  id: string;
+  label: string;
+  stages: Array<{ label: string; patterns: string[] }>;
+};
+
+const cascadePresets: CascadePreset[] = [
+  {
+    id: "art",
+    label: "HIV Testing to ART",
+    stages: [
+      { label: "Tested", patterns: ["tested", "hiv testing"] },
+      { label: "Positive", patterns: ["positive"] },
+      { label: "Initiated on ART", patterns: ["initiated on art", "art initiated"] },
+    ],
+  },
+  {
+    id: "screening",
+    label: "Screening to Linkage",
+    stages: [
+      { label: "Screened", patterns: ["screened", "screening"] },
+      { label: "Eligible", patterns: ["eligible"] },
+      { label: "Referred", patterns: ["referred", "referral"] },
+      { label: "Linked", patterns: ["linked", "linkage"] },
+    ],
+  },
+  {
+    id: "wellness",
+    label: "Psychoeducation to Counselling",
+    stages: [
+      { label: "Psychoeducation", patterns: ["psychoeducation"] },
+      { label: "Screened", patterns: ["screened", "screening"] },
+      { label: "Referred", patterns: ["referred", "referral"] },
+      { label: "Counselling", patterns: ["counselling", "counseling"] },
+    ],
+  },
+];
+
+const dashboardSeriesColors = [
+  "hsl(var(--primary))",
+  "hsl(var(--chart-1))",
+  "hsl(var(--chart-2))",
+  "hsl(var(--chart-3))",
+  "hsl(var(--chart-4))",
+  "hsl(var(--chart-5))",
+];
+
+const normalizeText = (value?: string | null) =>
+  String(value || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+
+const sumValueBucket = (values: Record<string, number | undefined>) => {
+  const keys = Object.keys(values || {});
+  const hasCoreAges = keys.some((key) => matrixAgeBandCore.includes(key));
+  const keysToSum = hasCoreAges ? matrixAgeBandCore : keys.filter((key) => key !== aypBandLabel);
+  return keysToSum.reduce((sum, key) => sum + toSafeNumber(values[key]), 0);
+};
+
+const deriveSexTotals = (value: unknown) => {
+  const disaggregates = getDisaggregates(value);
+  if (!disaggregates) {
+    const parsed = parseAggregateValue(value);
+    return {
+      male: toSafeNumber(parsed.male),
+      female: toSafeNumber(parsed.female),
+      total:
+        parsed.total !== undefined
+          ? toSafeNumber(parsed.total)
+          : toSafeNumber(parsed.male) + toSafeNumber(parsed.female),
+    };
+  }
+
+  let male = 0;
+  let female = 0;
+  let total = 0;
+  Object.values(disaggregates).forEach((dimensions) => {
+    Object.entries(dimensions || {}).forEach(([dimension, bands]) => {
+      const bucketTotal = sumValueBucket(bands || {});
+      total += bucketTotal;
+      const normalized = normalizeText(dimension);
+      if (normalized === "male") male += bucketTotal;
+      if (normalized === "female") female += bucketTotal;
+    });
+  });
+
+  return { male, female, total };
+};
+
+const formatCompactNumber = (value: number) =>
+  new Intl.NumberFormat(undefined, {
+    notation: "compact",
+    maximumFractionDigits: value >= 100 ? 0 : 1,
+  }).format(value);
+
+const getHeatColor = (value: number, maxValue: number) => {
+  if (value <= 0 || maxValue <= 0) return undefined;
+  const intensity = Math.max(0.12, Math.min(0.72, value / maxValue));
+  return `rgba(22, 163, 74, ${intensity})`;
+};
+
+const sortPeriods = (values: string[]) =>
+  [...values].sort((left, right) => {
+    const leftDate = new Date(left.split(" - ")[0]).getTime();
+    const rightDate = new Date(right.split(" - ")[0]).getTime();
+    if (Number.isNaN(leftDate) || Number.isNaN(rightDate)) {
+      return left.localeCompare(right);
+    }
+    return leftDate - rightDate;
+  });
+
+const buildRollupData = ({
+  aggregates,
+  bucketForOrganization,
+  bucketNames,
+  targetByBucketId,
+}: {
+  aggregates: Aggregate[];
+  bucketForOrganization: Map<string, string>;
+  bucketNames: Map<string, string>;
+  targetByBucketId: Map<string, number>;
+}): DashboardRollupDatum[] => {
+  const buckets = new Map<
+    string,
+    { total: number; organizations: Set<string>; indicators: Set<string> }
+  >();
+
+  aggregates.forEach((aggregate) => {
+    const bucketId =
+      bucketForOrganization.get(String(aggregate.organization)) || String(aggregate.organization);
+    if (!buckets.has(bucketId)) {
+      buckets.set(bucketId, {
+        total: 0,
+        organizations: new Set<string>(),
+        indicators: new Set<string>(),
+      });
+    }
+    const bucket = buckets.get(bucketId)!;
+    bucket.total += getAggregateTotal(aggregate);
+    bucket.organizations.add(String(aggregate.organization));
+    bucket.indicators.add(String(aggregate.indicator));
+  });
+
+  return Array.from(buckets.entries())
+    .map(([id, value]) => {
+      const target = toSafeNumber(targetByBucketId.get(id));
+      return {
+        id,
+        name: bucketNames.get(id) || id,
+        total: value.total,
+        target,
+        percentAchieved: target > 0 ? (value.total / target) * 100 : 0,
+        organizations: value.organizations.size,
+        indicators: value.indicators.size,
+      };
+    })
+    .sort((left, right) => right.total - left.total);
+};
+
+const buildContributionData = (
+  aggregates: Aggregate[],
+  organizationNames: Map<string, string>,
+  limit = 10,
+) => {
+  const totals = new Map<string, number>();
+  aggregates.forEach((aggregate) => {
+    const id = String(aggregate.organization);
+    totals.set(id, (totals.get(id) || 0) + getAggregateTotal(aggregate));
+  });
+  return Array.from(totals.entries())
+    .map(([id, total]) => ({
+      id,
+      name: organizationNames.get(id) || id,
+      total,
+    }))
+    .sort((left, right) => right.total - left.total)
+    .slice(0, limit);
+};
+
+const buildTrendData = ({
+  aggregates,
+  indicatorId,
+  mode,
+  bucketForOrganization,
+  bucketNames,
+  limit = 5,
+}: {
+  aggregates: Aggregate[];
+  indicatorId: string;
+  mode: "consolidated" | "compare";
+  bucketForOrganization: Map<string, string>;
+  bucketNames: Map<string, string>;
+  limit?: number;
+}) => {
+  const scoped = aggregates.filter((aggregate) => String(aggregate.indicator) === indicatorId);
+  const periods = sortPeriods(Array.from(new Set(scoped.map((aggregate) => getPeriodLabel(aggregate)))));
+  if (mode === "consolidated") {
+    return {
+      seriesKeys: ["total"],
+      data: periods.map((period) => ({
+        period,
+        total: scoped
+          .filter((aggregate) => getPeriodLabel(aggregate) === period)
+          .reduce((sum, aggregate) => sum + getAggregateTotal(aggregate), 0),
+      })),
+    };
+  }
+
+  const bucketTotals = new Map<string, number>();
+  scoped.forEach((aggregate) => {
+    const bucketId =
+      bucketForOrganization.get(String(aggregate.organization)) || String(aggregate.organization);
+    bucketTotals.set(bucketId, (bucketTotals.get(bucketId) || 0) + getAggregateTotal(aggregate));
+  });
+  const seriesKeys = Array.from(bucketTotals.entries())
+    .sort((left, right) => right[1] - left[1])
+    .slice(0, limit)
+    .map(([id]) => id);
+
+  return {
+    seriesKeys,
+    data: periods.map((period) => {
+      const row: Record<string, string | number> = { period };
+      seriesKeys.forEach((bucketId) => {
+        row[bucketId] = scoped
+          .filter(
+            (aggregate) =>
+              getPeriodLabel(aggregate) === period &&
+              (bucketForOrganization.get(String(aggregate.organization)) ||
+                String(aggregate.organization)) === bucketId,
+          )
+          .reduce((sum, aggregate) => sum + getAggregateTotal(aggregate), 0);
+      });
+      row.total = seriesKeys.reduce((sum, key) => sum + toSafeNumber(row[key]), 0);
+      return row;
+    }),
+    seriesNames: bucketNames,
+  };
+};
+
+const buildComplianceData = ({
+  organizations,
+  aggregates,
+  organizationNames,
+  coordinatorNames,
+  coordinatorByOrgId,
+  activePeriod,
+}: {
+  organizations: Array<{ id: string | number; name?: string }>;
+  aggregates: Aggregate[];
+  organizationNames: Map<string, string>;
+  coordinatorNames: Map<string, string>;
+  coordinatorByOrgId: Map<string, string>;
+  activePeriod: string | null;
+}): ComplianceDatum[] => {
+  if (!activePeriod) return [];
+  const recordsByOrg = new Map<string, Aggregate[]>();
+  aggregates
+    .filter((aggregate) => getPeriodLabel(aggregate) === activePeriod)
+    .forEach((aggregate) => {
+      const orgId = String(aggregate.organization);
+      if (!recordsByOrg.has(orgId)) recordsByOrg.set(orgId, []);
+      recordsByOrg.get(orgId)!.push(aggregate);
+    });
+
+  const coordinatorBuckets = new Map<string, ComplianceDatum>();
+  organizations.forEach((organization) => {
+    const orgId = String(organization.id);
+    const coordinatorId = coordinatorByOrgId.get(orgId) || orgId;
+    if (!coordinatorBuckets.has(coordinatorId)) {
+      coordinatorBuckets.set(coordinatorId, {
+        id: coordinatorId,
+        name: coordinatorNames.get(coordinatorId) || coordinatorId,
+        submitted: 0,
+        late: 0,
+        missing: 0,
+        details: { submitted: [], late: [], missing: [] },
+      });
+    }
+    const bucket = coordinatorBuckets.get(coordinatorId)!;
+    const orgRecords = recordsByOrg.get(orgId) || [];
+    if (orgRecords.length === 0) {
+      bucket.missing += 1;
+      bucket.details.missing.push(organizationNames.get(orgId) || orgId);
+      return;
+    }
+
+    const latestUpdatedAt = orgRecords
+      .map((record) => new Date(record.updated_at || record.created_at).getTime())
+      .filter((value) => Number.isFinite(value))
+      .sort((left, right) => right - left)[0];
+    const periodEnd = orgRecords
+      .map((record) => new Date(record.period_end).getTime())
+      .filter((value) => Number.isFinite(value))
+      .sort((left, right) => right - left)[0];
+
+    if (Number.isFinite(latestUpdatedAt) && Number.isFinite(periodEnd) && latestUpdatedAt > periodEnd) {
+      bucket.late += 1;
+      bucket.details.late.push(organizationNames.get(orgId) || orgId);
+      return;
+    }
+
+    bucket.submitted += 1;
+    bucket.details.submitted.push(organizationNames.get(orgId) || orgId);
+  });
+
+  return Array.from(coordinatorBuckets.values()).sort((left, right) =>
+    left.name.localeCompare(right.name),
+  );
+};
+
+const buildDisaggregateBreakdownData = ({
+  disaggregates,
+  indicatorGroups,
+  mode,
+}: {
+  disaggregates: MatrixDisaggregates | null;
+  indicatorGroups: Set<string>;
+  mode: "sex" | "age" | "primary";
+}): BreakdownDatum[] => {
+  if (!disaggregates) return [];
+  const {
+    matrix,
+    keyPops,
+    secondDimensionValues,
+    ageBands,
+  } = buildDisplayMatrix(disaggregates, indicatorGroups);
+
+  if (mode === "sex") {
+    return secondDimensionValues.map((dimension) => {
+      const total = keyPops.reduce(
+        (sum, kp) => sum + sumValueBucket(matrix[kp]?.[dimension] || {}),
+        0,
+      );
+      return { name: dimension, Total: total };
+    });
+  }
+
+  if (mode === "age") {
+    const baseBands = ageBands.filter((band) => band !== aypBandLabel);
+    return baseBands.map((band) => {
+      let male = 0;
+      let female = 0;
+      let other = 0;
+      keyPops.forEach((kp) => {
+        secondDimensionValues.forEach((dimension) => {
+          const value = toSafeNumber(matrix[kp]?.[dimension]?.[band]);
+          const normalized = normalizeText(dimension);
+          if (normalized === "male") male += value;
+          else if (normalized === "female") female += value;
+          else other += value;
+        });
+      });
+      return { name: band, Male: male, Female: female, Other: other, Total: male + female + other };
+    });
+  }
+
+  return keyPops.map((kp) => {
+    let male = 0;
+    let female = 0;
+    let other = 0;
+    secondDimensionValues.forEach((dimension) => {
+      const total = sumValueBucket(matrix[kp]?.[dimension] || {});
+      const normalized = normalizeText(dimension);
+      if (normalized === "male") male += total;
+      else if (normalized === "female") female += total;
+      else other += total;
+    });
+    return { name: kp, Male: male, Female: female, Other: other, Total: male + female + other };
+  });
+};
+
+const buildCascadeData = (
+  groups: Array<{ indicatorName: string; totalValue: number }>,
+  presetId: string,
+) => {
+  const preset = cascadePresets.find((item) => item.id === presetId) || cascadePresets[0];
+  return preset.stages.map((stage) => {
+    const match = groups.find((group) => {
+      const normalized = normalizeText(group.indicatorName);
+      return stage.patterns.some((pattern) => normalized.includes(normalizeText(pattern)));
+    });
+    return {
+      stage: stage.label,
+      total: match?.totalValue || 0,
+      indicatorName: match?.indicatorName || "No matching indicator",
+    };
+  });
+};
+
 export default function AggregatesPage() {
   const { toast } = useToast();
   const { user } = useAuth();
@@ -405,6 +843,13 @@ export default function AggregatesPage() {
   const [formDataSource, setFormDataSource] = useState("");
   const [matrixValues, setMatrixValues] = useState(buildEmptyMatrix);
   const chartRef = useRef<HTMLDivElement | null>(null);
+  const comparisonChartRef = useRef<HTMLDivElement | null>(null);
+  const targetsChartRef = useRef<HTMLDivElement | null>(null);
+  const trendChartRef = useRef<HTMLDivElement | null>(null);
+  const contributionChartRef = useRef<HTMLDivElement | null>(null);
+  const complianceChartRef = useRef<HTMLDivElement | null>(null);
+  const breakdownChartRef = useRef<HTMLDivElement | null>(null);
+  const cascadeChartRef = useRef<HTMLDivElement | null>(null);
 
   const [autoOutputIndicator, setAutoOutputIndicator] = useState("");
   const [autoSourceIndicator, setAutoSourceIndicator] = useState("");
@@ -418,6 +863,14 @@ export default function AggregatesPage() {
   const [autoSaveRule, setAutoSaveRule] = useState(true);
   const [autoSaveAggregate, setAutoSaveAggregate] = useState(true);
   const [autoComputed, setAutoComputed] = useState<number | null>(null);
+  const [detailIndicatorId, setDetailIndicatorId] = useState("");
+  const [trendMode, setTrendMode] = useState<"consolidated" | "compare">("consolidated");
+  const [breakdownMode, setBreakdownMode] = useState<"sex" | "age" | "primary">("age");
+  const [selectedCascadeId, setSelectedCascadeId] = useState(cascadePresets[0].id);
+  const [complianceSelection, setComplianceSelection] = useState<{
+    coordinatorId: string;
+    status: "submitted" | "late" | "missing";
+  } | null>(null);
 
   const { data: aggregatesData, isLoading, error, mutate } = useAggregates();
   const { data: projectsData } = useProjects();
