@@ -7,7 +7,6 @@ import Link from "next/link"
 import { usePathname, useSearchParams } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { useAllOrganizations } from "@/lib/hooks/use-api"
-import { isRecognizedParentOrganizationName } from "@/lib/organization-aliases"
 import {
   LayoutDashboard,
   Building2,
@@ -246,31 +245,16 @@ export function AppSidebar() {
     .filter((org) => {
       const parentId = (org as { parentId?: string | number | null; parent?: string | number | null }).parentId
         ?? (org as { parent?: string | number | null }).parent
-      return !String(parentId ?? "") && isRecognizedParentOrganizationName(String(org.name || ""))
+      return !String(parentId ?? "")
     })
     .sort((left, right) => String(left.name || "").localeCompare(String(right.name || "")))
 
   const aggregateChildren: SidebarSubItem[] = [
     { title: "All Aggregates", href: "/aggregates" },
-    ...parentOrganizations.map((parent) => {
-      const parentId = String(parent.id)
-      const children = organizations
-        .filter((org) => {
-          const currentParentId = (org as { parentId?: string | number | null; parent?: string | number | null }).parentId
-            ?? (org as { parent?: string | number | null }).parent
-          return String(currentParentId ?? "") === parentId
-        })
-        .sort((left, right) => String(left.name || "").localeCompare(String(right.name || "")))
-
-      return {
-        title: String(parent.name || "Parent"),
-        href: `/aggregates?orgId=${encodeURIComponent(parentId)}`,
-        subItems: children.map((child) => ({
-          title: String(child.name || "Sub-grantee"),
-          href: `/aggregates?orgId=${encodeURIComponent(String(child.id))}`,
-        })),
-      }
-    }),
+    ...parentOrganizations.map((parent) => ({
+      title: String(parent.name || "Parent"),
+      href: `/aggregates?orgId=${encodeURIComponent(String(parent.id))}`,
+    })),
   ]
 
   const navigation = baseNavigation.map((item) =>

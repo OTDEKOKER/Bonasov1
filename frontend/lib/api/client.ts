@@ -411,10 +411,19 @@ async function apiRequest<T>(
  * API Client with typed methods
  */
 export const api = {
-  get: <T>(endpoint: string, params?: Record<string, string>) => {
-    const url = params 
-      ? `${endpoint}?${new URLSearchParams(params).toString()}`
-      : endpoint;
+  get: <T>(endpoint: string, params?: Record<string, string | number | boolean | null | undefined>) => {
+    const searchParams = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value === null || value === undefined) return;
+        const normalized = String(value);
+        if (!normalized) return;
+        searchParams.append(key, normalized);
+      });
+    }
+
+    const query = searchParams.toString();
+    const url = query ? `${endpoint}?${query}` : endpoint;
     return apiRequest<T>(url, { method: 'GET' });
   },
   

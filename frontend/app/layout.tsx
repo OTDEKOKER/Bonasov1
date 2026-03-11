@@ -12,7 +12,6 @@ export const metadata: Metadata = {
   description:
     "Enterprise data management system for health indicators, projects, and analytics",
   generator: "v0.app",
-  manifest: "/manifest.webmanifest",
   icons: {
     icon: "/favicon.ico",
     apple: "/apple-icon.png",

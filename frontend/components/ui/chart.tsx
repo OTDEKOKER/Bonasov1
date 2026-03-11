@@ -46,6 +46,20 @@ function ChartContainer({
 }) {
   const uniqueId = React.useId()
   const chartId = `chart-${id || uniqueId.replace(/:/g, '')}`
+  const responsiveChild = React.useMemo(() => {
+    if (React.isValidElement(children)) {
+      return children
+    }
+
+    const childArray = React.Children.toArray(children)
+    for (const child of childArray) {
+      if (React.isValidElement(child)) {
+        return child
+      }
+    }
+
+    return null
+  }, [children])
 
   return (
     <ChartContext.Provider value={{ config }}>
@@ -60,7 +74,7 @@ function ChartContainer({
       >
         <ChartStyle id={chartId} config={config} />
         <RechartsPrimitive.ResponsiveContainer>
-          {React.isValidElement(children) ? children : <>{children}</>}
+          {responsiveChild}
         </RechartsPrimitive.ResponsiveContainer>
       </div>
     </ChartContext.Provider>

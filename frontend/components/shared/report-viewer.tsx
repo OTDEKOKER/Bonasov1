@@ -53,31 +53,94 @@ const chartPalette = [
 
 const EMPTY_ROWS: Array<Record<string, unknown>> = [];
 
+const NUMERIC_PRIORITY_KEYS = [
+  "total_value",
+  "value",
+  "total",
+  "entries",
+  "count",
+  "male",
+  "female",
+];
+
+const isObject = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+const toRecordArray = (value: unknown): Array<Record<string, unknown>> => {
+  if (!Array.isArray(value)) return EMPTY_ROWS;
+  return value.filter((item): item is Record<string, unknown> => isObject(item));
+};
+
+const normalizeCachedRows = (cachedData: unknown): Array<Record<string, unknown>> => {
+  const directRows = toRecordArray(cachedData);
+  if (directRows.length) return directRows;
+
+  if (!isObject(cachedData)) return EMPTY_ROWS;
+
+  for (const key of ["results", "rows", "data", "items", "cached_data"]) {
+    const nestedRows = toRecordArray(cachedData[key]);
+    if (nestedRows.length) return nestedRows;
+  }
+
+  return EMPTY_ROWS;
+};
+
+const isNumericLike = (value: unknown): boolean => {
+  if (typeof value === "number") return Number.isFinite(value);
+  if (typeof value === "string") {
+    const parsed = Number(value.replace(/,/g, "").trim());
+    return Number.isFinite(parsed);
+  }
+  if (isObject(value)) {
+    return ["total", "value", "male", "female", "count", "entries"].some(
+      (key) => key in value && isNumericLike(value[key])
+    );
+  }
+  return false;
+};
+
 const toNumber = (value: unknown): number => {
   if (value === null || value === undefined) return 0;
   if (typeof value === "number") return Number.isFinite(value) ? value : 0;
+  if (isObject(value)) {
+    if ("total" in value) return toNumber(value.total);
+    if ("value" in value) return toNumber(value.value);
+    const male = toNumber(value.male);
+    const female = toNumber(value.female);
+    if (male !== 0 || female !== 0) return male + female;
+    return 0;
+  }
   const text = String(value).replace(/,/g, "").trim();
   const parsed = Number(text);
   return Number.isFinite(parsed) ? parsed : 0;
 };
 
-const guessDefaults = (row: Record<string, unknown>) => {
-  const keys = Object.keys(row);
+const guessDefaults = (rows: Array<Record<string, unknown>>) => {
+  if (!rows.length) return { rowKey: "indicator_name", colKey: "none", valueKey: "value" };
+  const sampleRows = rows.slice(0, 200);
+  const keys = Array.from(
+    new Set(sampleRows.flatMap((row) => Object.keys(row)))
+  );
   const has = (key: string) => keys.includes(key);
+  const isNumericKey = (key: string) => sampleRows.some((row) => isNumericLike(row[key]));
+
+  const rowCandidates = keys.filter(
+    (key) => !key.endsWith("_id") && !NUMERIC_PRIORITY_KEYS.includes(key) && !isNumericKey(key)
+  );
 
   const rowKey =
-    (has("indicator_name") && "indicator_name") ||
-    (has("project_name") && "project_name") ||
-    (has("organization_name") && "organization_name") ||
-    keys.find((key) => key.endsWith("_name")) ||
+    (rowCandidates.includes("indicator_name") && "indicator_name") ||
+    (rowCandidates.includes("project_name") && "project_name") ||
+    (rowCandidates.includes("organization_name") && "organization_name") ||
+    rowCandidates.find((key) => key.endsWith("_name")) ||
+    rowCandidates[0] ||
+    keys.find((key) => !key.endsWith("_id")) ||
     keys[0] ||
     "indicator_name";
 
   const valueKey =
-    (has("total_value") && "total_value") ||
-    (has("value") && "value") ||
-    (has("entries") && "entries") ||
-    keys.find((key) => typeof row[key] === "number") ||
+    NUMERIC_PRIORITY_KEYS.find((key) => has(key) && isNumericKey(key)) ||
+    keys.find((key) => !key.endsWith("_id") && isNumericKey(key)) ||
     "value";
 
   let colKey =
@@ -99,10 +162,7 @@ export function ReportViewerDialog(props: {
   refreshing?: boolean;
 }) {
   const { open, onOpenChange, report, onRefresh, onDownload, refreshing } = props;
-  const cachedRows = useMemo(
-    () => (Array.isArray(report?.cached_data) ? (report.cached_data as Array<Record<string, unknown>>) : EMPTY_ROWS),
-    [report?.cached_data]
-  );
+  const cachedRows = useMemo(() => normalizeCachedRows(report?.cached_data), [report?.cached_data]);
 
   const [pivotRowKey, setPivotRowKey] = useState("indicator_name");
   const [pivotColKey, setPivotColKey] = useState("none");
@@ -112,7 +172,7 @@ export function ReportViewerDialog(props: {
   useEffect(() => {
     if (!open) return;
     if (!cachedRows.length) return;
-    const defaults = guessDefaults(cachedRows[0] || {});
+    const defaults = guessDefaults(cachedRows);
     setPivotRowKey(defaults.rowKey);
     setPivotColKey(defaults.colKey);
     setPivotValueKey(defaults.valueKey);
@@ -120,24 +180,20 @@ export function ReportViewerDialog(props: {
 
   const fieldOptions = useMemo(() => {
     if (!cachedRows.length) return { rows: [], cols: [], values: [] };
-    const sample = cachedRows[0] || {};
-    const keys = Object.keys(sample);
+    const sampleRows = cachedRows.slice(0, 200);
+    const keys = Array.from(new Set(sampleRows.flatMap((row) => Object.keys(row))));
+    const isNumericKey = (key: string) => sampleRows.some((row) => isNumericLike(row[key]));
 
     const dimensionKeys = keys.filter((key) => {
-      if (key === "value" || key === "total_value" || key === "entries") return false;
+      if (NUMERIC_PRIORITY_KEYS.includes(key)) return false;
       if (key.endsWith("_id")) return false;
-      const v = sample[key];
-      return typeof v === "string" || key.endsWith("_name") || key.endsWith("_code") || key.startsWith("period_");
+      if (isNumericKey(key)) return false;
+      return true;
     });
 
     const valueKeys = keys.filter((key) => {
-      const v = sample[key];
-      return (
-        key === "value" ||
-        key === "total_value" ||
-        key === "entries" ||
-        typeof v === "number"
-      );
+      if (key.endsWith("_id")) return false;
+      return NUMERIC_PRIORITY_KEYS.includes(key) || isNumericKey(key);
     });
 
     return {
@@ -208,6 +264,48 @@ export function ReportViewerDialog(props: {
     if (!Number.isFinite(value)) return "0";
     if (Math.abs(value) >= 1000) return value.toLocaleString();
     return String(Math.round(value * 100) / 100);
+  };
+
+  const tableHeaders = useMemo(() => {
+    if (!cachedRows.length) return [] as string[];
+    const keys = Array.from(new Set(cachedRows.slice(0, 500).flatMap((row) => Object.keys(row))));
+    const preferredOrder = [
+      "indicator_name",
+      "project_name",
+      "organization_name",
+      "period_start",
+      "period_end",
+      "value",
+      "total_value",
+      "entries",
+      "indicator_code",
+      "project_id",
+      "organization_id",
+      "indicator_id",
+    ];
+    return [
+      ...preferredOrder.filter((key) => keys.includes(key)),
+      ...keys.filter((key) => !preferredOrder.includes(key)),
+    ];
+  }, [cachedRows]);
+
+  const formatCellValue = (value: unknown) => {
+    if (value === null || value === undefined) return "";
+    if (typeof value === "number") return formatNumber(value);
+    if (isObject(value)) {
+      if ("total" in value || "male" in value || "female" in value || "value" in value) {
+        return formatNumber(toNumber(value));
+      }
+      try {
+        return JSON.stringify(value);
+      } catch {
+        return String(value);
+      }
+    }
+    if (Array.isArray(value)) {
+      return value.join(", ");
+    }
+    return String(value);
   };
 
   const downloadChartSvg = () => {
@@ -416,7 +514,7 @@ export function ReportViewerDialog(props: {
                           borderRadius: "8px",
                           fontSize: "12px",
                         }}
-                        formatter={(value: unknown) => formatNumber(Number(value))}
+                        formatter={(value: unknown) => formatNumber(toNumber(value))}
                       />
                       <Bar dataKey="value" radius={[4, 4, 0, 0]} fillOpacity={0.88}>
                         {chartData.map((entry, idx) => (
@@ -434,7 +532,7 @@ export function ReportViewerDialog(props: {
                 <table className="w-full text-[11px]">
                   <thead className="sticky top-0 bg-card">
                     <tr>
-                      {Object.keys(cachedRows[0] || {}).map((key) => (
+                      {tableHeaders.map((key) => (
                         <th key={key} className="whitespace-nowrap border-b px-3 py-2 text-left font-medium">
                           {key}
                         </th>
@@ -444,9 +542,9 @@ export function ReportViewerDialog(props: {
                   <tbody>
                     {cachedRows.slice(0, 500).map((row, idx) => (
                       <tr key={idx} className="border-b last:border-b-0">
-                        {Object.keys(cachedRows[0] || {}).map((key) => (
+                        {tableHeaders.map((key) => (
                           <td key={key} className="whitespace-nowrap px-3 py-2 align-top">
-                            {row?.[key] === null || row?.[key] === undefined ? "" : String(row[key])}
+                            {formatCellValue(row?.[key])}
                           </td>
                         ))}
                       </tr>
@@ -466,5 +564,3 @@ export function ReportViewerDialog(props: {
     </Dialog>
   );
 }
-
-

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { PageHeader } from "@/components/shared/page-header"
 import { OrganizationSelect } from "@/components/shared/organization-select"
-import { useOrganizations, useOrganizationTree } from "@/lib/hooks/use-api"
+import { useAllOrganizations } from "@/lib/hooks/use-api"
 import { organizationsService } from "@/lib/api"
 import type { Organization } from "@/lib/types"
 import {
@@ -35,7 +35,6 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
 import { useToast } from "@/hooks/use-toast"
-import { isRecognizedParentOrganizationName } from "@/lib/organization-aliases"
 
 const orgTypeColors: Record<string, string> = {
   headquarters: "bg-chart-1/10 text-chart-1",
@@ -53,15 +52,26 @@ const orgTypeLabels: Record<string, string> = {
   ngo: "NGO",
 }
 
-type OrganizationTreeNode = Organization & {
-  children?: OrganizationTreeNode[]
+const resolveParentId = (org: Organization & { parent?: string | number | null }) => {
+  const rawParent = (org as { parentId?: string | number | null }).parentId ?? org.parent ?? null
+  if (rawParent === null || rawParent === undefined) return ""
+  const normalized = String(rawParent).trim().toLowerCase()
+  if (
+    normalized === "" ||
+    normalized === "null" ||
+    normalized === "none" ||
+    normalized === "undefined" ||
+    normalized === "0"
+  ) {
+    return ""
+  }
+  return String(rawParent)
 }
 
 export default function OrganizationsPage() {
   const router = useRouter()
   const { toast } = useToast()
-  const { data, isLoading, error, mutate } = useOrganizations({ page_size: "200" })
-  const { data: treeData } = useOrganizationTree()
+  const { data, isLoading, error, mutate } = useAllOrganizations()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
@@ -77,23 +87,18 @@ export default function OrganizationsPage() {
   })
 
   const organizations = data?.results || []
-  const tree = (Array.isArray(treeData) ? treeData : []) as OrganizationTreeNode[]
-  const recognizedParentOrganizations = organizations.filter((org) =>
-    isRecognizedParentOrganizationName(org.name || ""),
-  )
-  console.log("[orgs] loaded", {
-    listCount: organizations.length,
-    treeCount: tree.length,
-  })
+  const parentOrganizations = organizations
+    .filter((org) => !resolveParentId(org as Organization & { parent?: string | number | null }))
+    .slice()
+    .sort((a, b) => (a.name || "").localeCompare(b.name || ""))
 
-  const filteredParents = (tree.length
-    ? tree.filter((org) => isRecognizedParentOrganizationName(org.name || ""))
-    : organizations.filter((org) => !org.parentId && isRecognizedParentOrganizationName(org.name || ""))
-  ).filter((parent) => {
+  const filteredParents = parentOrganizations.filter((parent) => {
     const query = searchQuery.trim().toLowerCase()
     if (!query) return true
     if ((parent.name || "").toLowerCase().includes(query)) return true
-    const children = parent.children || organizations.filter((org) => org.parentId === parent.id)
+    const children = organizations.filter((org) =>
+      resolveParentId(org as Organization & { parent?: string | number | null }) === String(parent.id),
+    )
     return children.some((child) => (child.name || "").toLowerCase().includes(query))
   })
 
@@ -222,8 +227,9 @@ export default function OrganizationsPage() {
           </div>
         ) : (
           filteredParents.map((org) => {
-            const rawChildren = org.children || organizations.filter((child) => child.parentId === org.id)
-            const children = (rawChildren || []).slice().sort((a, b) =>
+            const children = organizations.filter((child) =>
+              resolveParentId(child as Organization & { parent?: string | number | null }) === String(org.id),
+            ).slice().sort((a, b) =>
               (a.name || "").localeCompare(b.name || ""),
             )
             return (
@@ -343,7 +349,7 @@ export default function OrganizationsPage() {
             <div className="space-y-2">
                             <Label htmlFor="parent">Parent Organization (Optional)</Label>
               <OrganizationSelect
-                organizations={recognizedParentOrganizations}
+                organizations={parentOrganizations}
                 value={formData.parentId}
                 onChange={(value) => setFormData({ ...formData, parentId: value === "none" ? "" : value })}
                 includeNone
@@ -418,5 +424,3 @@ export default function OrganizationsPage() {
     </div>
   )
 }
-
-

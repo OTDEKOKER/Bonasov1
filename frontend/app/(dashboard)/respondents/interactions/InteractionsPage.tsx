@@ -791,7 +791,7 @@ export default function InteractionsPage() {
                   <SelectValue placeholder="Select entry type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="assessment">Assessment (indicator set)</SelectItem>
+                  <SelectItem value="assessment">Assessment (question set)</SelectItem>
                   <SelectItem value="derived">Derived Indicator (linked screening)</SelectItem>
                 </SelectContent>
               </Select>

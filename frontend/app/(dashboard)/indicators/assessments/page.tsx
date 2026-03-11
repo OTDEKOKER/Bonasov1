@@ -35,6 +35,7 @@ import {
 } from "@/components/ui/accordion"
 import { useToast } from "@/hooks/use-toast"
 import type { CreateIndicatorRequest } from "@/lib/api"
+import { getUserOrganizationId } from "@/lib/utils/organization"
 
 const typeLabels: Record<string, string> = {
   yes_no: "Yes/No",
@@ -51,10 +52,9 @@ export default function AssessmentsPage() {
   const router = useRouter()
   const { toast } = useToast()
   const { user } = useAuth()
-  const orgId = user?.organizationId ? Number(user.organizationId) : null
-  const { data, isLoading, error, mutate } = useAssessments(
-    orgId ? { organization: String(orgId) } : undefined
-  )
+  const organizationId = getUserOrganizationId(user)
+  const assessmentFilters = organizationId ? { organizations: String(organizationId) } : undefined
+  const { data, isLoading, error, mutate } = useAssessments(assessmentFilters)
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isTemplatesOpen, setIsTemplatesOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -67,54 +67,50 @@ export default function AssessmentsPage() {
   const assessments = data?.results || []
 
   const ensureIndicator = async (request: CreateIndicatorRequest): Promise<number> => {
-    const orgFilter = request.organizations?.[0] ? { organizations: String(request.organizations[0]) } : {}
-    const list = await indicatorsService.list({
+    const organizationFilter = request.organizations?.[0]
+      ? String(request.organizations[0])
+      : undefined
+
+    const listFilters: { search: string; page_size: string; organizations?: string } = {
       search: request.code,
       page_size: "100",
-      ...orgFilter,
-    })
-    const exactMatch = (list.results || []).find((i) => {
-      if (i.code !== request.code) return false
-      if (!request.organizations?.length) return true
-      const orgId = String(request.organizations[0])
-      return Array.isArray(i.organizations) && i.organizations.some((org) => {
-        const orgValue = typeof org === 'object' && org !== null ? (org as { id?: string | number }).id : org
-        return String(orgValue) === orgId
+    }
+    if (organizationFilter) {
+      listFilters.organizations = organizationFilter
+    }
+
+    const findExactMatchId = (results: Array<{ code?: string; id?: number | string; organizations?: unknown }>) => {
+      const exactMatch = (results || []).find((i) => {
+        if (i.code !== request.code) return false
+        if (!request.organizations?.length) return true
+        const orgId = String(request.organizations[0])
+        return Array.isArray(i.organizations) && i.organizations.some((org) => {
+          const orgValue = typeof org === 'object' && org !== null ? (org as { id?: string | number }).id : org
+          return String(orgValue) === orgId
+        })
       })
-    })
-    if (exactMatch?.id) return Number(exactMatch.id)
+      return exactMatch?.id ? Number(exactMatch.id) : null
+    }
+
+    try {
+      const list = await indicatorsService.list(listFilters)
+      const existingId = findExactMatchId(list.results || [])
+      if (existingId) return existingId
+    } catch (listError) {
+      console.warn("Indicator lookup failed; continuing with create attempt", listError)
+    }
 
     try {
       const created = await indicatorsService.create(request)
       return Number(created.id)
     } catch {
-      const retry = await indicatorsService.list({
-        search: request.code,
-        page_size: "100",
-        ...orgFilter,
-      })
-      const retryMatch = (retry.results || []).find((i) => {
-        if (i.code !== request.code) return false
-        if (!request.organizations?.length) return true
-        const orgId = String(request.organizations[0])
-        return Array.isArray(i.organizations) && i.organizations.some((org) => {
-          const orgValue = typeof org === 'object' && org !== null ? (org as { id?: string | number }).id : org
-          return String(orgValue) === orgId
-        })
-      })
-      if (retryMatch?.id) return Number(retryMatch.id)
-
-      const all = await indicatorsService.listAll()
-      const allMatch = all.find((i) => {
-        if (i.code !== request.code) return false
-        if (!request.organizations?.length) return true
-        const orgId = String(request.organizations[0])
-        return Array.isArray(i.organizations) && i.organizations.some((org) => {
-          const orgValue = typeof org === 'object' && org !== null ? (org as { id?: string | number }).id : org
-          return String(orgValue) === orgId
-        })
-      })
-      if (allMatch?.id) return Number(allMatch.id)
+      try {
+        const retry = await indicatorsService.list(listFilters)
+        const retryMatchId = findExactMatchId(retry.results || [])
+        if (retryMatchId) return retryMatchId
+      } catch (retryError) {
+        console.warn("Indicator retry lookup failed", retryError)
+      }
       throw new Error(`Failed to create indicator: ${request.code}`)
     }
   }
@@ -126,10 +122,11 @@ export default function AssessmentsPage() {
         name: "HIV Prevention Messages Assessment",
         description:
           "Starter template (v1) for HIV prevention and control messages, screening, and linkage to care.",
+        organizations: organizationId ? [organizationId] : undefined,
       })
 
       const category = "hiv_prevention"
-      const orgArray = orgId ? [orgId] : []
+      const orgArray = organizationId ? [organizationId] : []
       const indicators: Array<{
         request: CreateIndicatorRequest
         order: number
@@ -291,9 +288,10 @@ export default function AssessmentsPage() {
       router.push(`/indicators/assessments/${assessment.id}`)
     } catch (err) {
       console.error("Failed to create template assessment", err)
+      const description = err instanceof Error && err.message ? err.message : "Failed to create template assessment."
       toast({
         title: "Error",
-        description: "Failed to create template assessment.",
+        description,
         variant: "destructive",
       })
     } finally {
@@ -316,6 +314,7 @@ export default function AssessmentsPage() {
       const created = await assessmentsService.create({
         name: formData.name,
         description: formData.description || undefined,
+        organizations: organizationId ? [organizationId] : undefined,
       })
       toast({ title: "Success", description: "Assessment created successfully" })
       setIsCreateOpen(false)
@@ -350,7 +349,7 @@ export default function AssessmentsPage() {
     <div className="space-y-6">
       <PageHeader
         title="Assessments"
-        description="Manage assessment forms and their indicators"
+        description="Manage assessment forms and their questions"
         breadcrumbs={[
           { label: "Dashboard", href: "/dashboard" },
           { label: "Indicators", href: "/indicators" },
@@ -388,7 +387,7 @@ export default function AssessmentsPage() {
                     </div>
                   </div>
                   <Badge variant="secondary">
-                    {assessment.indicators_count ?? indicators.length} indicators
+                    {assessment.indicators_count ?? indicators.length} questions
                   </Badge>
                 </div>
               </CardHeader>
@@ -397,7 +396,7 @@ export default function AssessmentsPage() {
                   <AccordionItem value="indicators" className="border-0">
                     <AccordionTrigger className="px-6 py-4 hover:no-underline">
                       <span className="text-sm text-muted-foreground">
-                        View Indicators
+                        View Questions
                       </span>
                     </AccordionTrigger>
                     <AccordionContent className="px-6 pb-4">

@@ -25,6 +25,7 @@ import {
   Search,
   Trash2,
 } from "lucide-react";
+
 import { PageHeader } from "@/components/shared/page-header";
 import { OrganizationSelect } from "@/components/shared/organization-select";
 import {
@@ -39,7 +40,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -96,6 +104,24 @@ const formatFiscalYearLabel = (fiscalYearStart: string) => {
   return `FY ${start}/${String(start + 1).slice(-2)}`;
 };
 
+const toNumberArray = (value: unknown): number[] => {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((entry) => Number(entry))
+    .filter((entry) => Number.isFinite(entry));
+};
+
+const palette = [
+  "#1CE783",
+  "#0EA5E9",
+  "#F97316",
+  "#A855F7",
+  "#14B8A6",
+  "#EF4444",
+  "#84CC16",
+  "#FACC15",
+];
+
 export function DashboardWorkspace() {
   const initialFiscal = useMemo(() => getCurrentFiscalSelection(), []);
   const { toast } = useToast();
@@ -130,6 +156,7 @@ export function DashboardWorkspace() {
   const [activePieIndex, setActivePieIndex] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [hasInitializedIndicators, setHasInitializedIndicators] = useState(false);
 
   const selectedDashboard = useMemo(
     () => savedCharts.find((chart) => chart.id === activeDashboardId) ?? null,
@@ -143,32 +170,62 @@ export function DashboardWorkspace() {
   }, [savedCharts.length]);
 
   useEffect(() => {
-    if (selectedIndicatorIds.length === 0 && indicators.length > 0) {
-      setSelectedIndicatorIds([indicators[0].id]);
-    }
-  }, [indicators, selectedIndicatorIds.length]);
+    if (hasInitializedIndicators) return;
+    if (indicators.length === 0) return;
+
+    setSelectedIndicatorIds([indicators[0].id]);
+    setHasInitializedIndicators(true);
+  }, [hasInitializedIndicators, indicators]);
 
   useEffect(() => {
     if (dateMode !== "quarter") return;
     const fiscalYearStart = Number(year);
     if (Number.isNaN(fiscalYearStart)) return;
+
     const range = getFiscalQuarterRange(fiscalYearStart, quarter);
     setDateFrom(range.start);
     setDateTo(range.end);
   }, [dateMode, quarter, year]);
 
+  const resetWorkspace = () => {
+    const range = getFiscalQuarterRange(initialFiscal.fiscalYearStart, initialFiscal.quarter);
+
+    setCreating(true);
+    setActiveDashboardId(null);
+    setDashboardName("");
+    setDashboardShared(false);
+    setDashboardSearch("");
+    setIndicatorSearch("");
+    setOrganizationId("all");
+    setProjectId("all");
+    setDateMode("quarter");
+    setQuarter(initialFiscal.quarter);
+    setYear(String(initialFiscal.fiscalYearStart));
+    setDateFrom(range.start);
+    setDateTo(range.end);
+    setChartType("line");
+    setActivePieIndex(null);
+    setSelectedIndicatorIds(indicators[0] ? [indicators[0].id] : []);
+  };
+
   const applyChartParameters = (params: Record<string, unknown>) => {
-    const indicatorIds = Array.isArray(params.indicator_ids)
-      ? params.indicator_ids.filter((value): value is number => typeof value === "number")
-      : [];
+    const indicatorIds = toNumberArray(params.indicator_ids);
 
     setSelectedIndicatorIds(indicatorIds);
-    setOrganizationId(params.organization_id ? String(params.organization_id) : "all");
-    setProjectId(params.project_id ? String(params.project_id) : "all");
+    setOrganizationId(
+      params.organization_id !== null && params.organization_id !== undefined
+        ? String(params.organization_id)
+        : "all",
+    );
+    setProjectId(
+      params.project_id !== null && params.project_id !== undefined
+        ? String(params.project_id)
+        : "all",
+    );
     setDateMode(params.date_mode === "dates" ? "dates" : "quarter");
 
     if (typeof params.quarter === "string") setQuarter(params.quarter);
-    if (params.year) setYear(String(params.year));
+    if (params.year !== null && params.year !== undefined) setYear(String(params.year));
     if (typeof params.date_from === "string") setDateFrom(params.date_from);
     if (typeof params.date_to === "string") setDateTo(params.date_to);
 
@@ -184,6 +241,7 @@ export function DashboardWorkspace() {
 
   useEffect(() => {
     if (!selectedDashboard) return;
+
     setDashboardName(selectedDashboard.name);
     setDashboardShared(Boolean(selectedDashboard.is_public));
     applyChartParameters((selectedDashboard.parameters || {}) as Record<string, unknown>);
@@ -191,25 +249,13 @@ export function DashboardWorkspace() {
   }, [selectedDashboard]);
 
   const startNewDashboard = () => {
-    setCreating(true);
-    setActiveDashboardId(null);
-    setDashboardName("");
-    setDashboardShared(false);
-    setDashboardSearch("");
-    setOrganizationId("all");
-    setProjectId("all");
-    setDateMode("quarter");
-    setQuarter(initialFiscal.quarter);
-    setYear(String(initialFiscal.fiscalYearStart));
-    setChartType("line");
-    setDateFrom("");
-    setDateTo("");
-    setSelectedIndicatorIds(indicators[0] ? [indicators[0].id] : []);
+    resetWorkspace();
   };
 
   const visibleDashboards = useMemo(() => {
     const query = dashboardSearch.trim().toLowerCase();
     if (!query) return savedCharts;
+
     return savedCharts.filter((chart) => {
       const haystack = `${chart.name} ${chart.description || ""} ${chart.created_by_name || ""}`.toLowerCase();
       return haystack.includes(query);
@@ -224,7 +270,7 @@ export function DashboardWorkspace() {
 
   const selectedIndicatorsLabel = useMemo(() => {
     if (selectedIndicatorIds.length === 0) return "Select indicators";
-    if (selectedIndicatorIds.length === indicators.length) return "All indicators";
+    if (selectedIndicatorIds.length === indicators.length && indicators.length > 0) return "All indicators";
     if (selectedIndicatorIds.length === 1) {
       const match = indicators.find((indicator) => indicator.id === selectedIndicatorIds[0]);
       return match ? match.name : "Selected indicators";
@@ -249,12 +295,19 @@ export function DashboardWorkspace() {
 
   const chartData = useMemo(() => {
     if (chartSeries.length === 0) return [];
-    const months = chartSeries[0]?.data?.map((item) => item.month) || [];
-    return months.map((month, index) => {
+
+    const allPeriods = Array.from(
+      new Set(chartSeries.flatMap((series) => series.data.map((item) => item.month))),
+    );
+
+    return allPeriods.map((month) => {
       const row: Record<string, string | number> = { period: month };
+
       chartSeries.forEach((series) => {
-        row[`indicator_${series.indicator_id}`] = series.data[index]?.value ?? 0;
+        const point = series.data.find((item) => item.month === month);
+        row[`indicator_${series.indicator_id}`] = point?.value ?? 0;
       });
+
       return row;
     });
   }, [chartSeries]);
@@ -268,17 +321,6 @@ export function DashboardWorkspace() {
   }, [chartSeries]);
 
   const chartConfig = useMemo<ChartConfig>(() => {
-    const palette = [
-      "#1CE783",
-      "#0EA5E9",
-      "#F97316",
-      "#A855F7",
-      "#14B8A6",
-      "#EF4444",
-      "#84CC16",
-      "#FACC15",
-    ];
-
     return chartSeries.reduce<Record<string, { label: string; color: string }>>((acc, series, index) => {
       acc[`indicator_${series.indicator_id}`] = {
         label: series.indicator_name,
@@ -378,10 +420,7 @@ export function DashboardWorkspace() {
     try {
       await dashboardChartsService.delete(activeDashboardId);
       await mutateSavedCharts();
-      setActiveDashboardId(null);
-      setDashboardName("");
-      setDashboardShared(false);
-      setCreating(savedCharts.length <= 1);
+      resetWorkspace();
 
       toast({
         title: "Dashboard deleted",
@@ -403,10 +442,15 @@ export function DashboardWorkspace() {
     const svg = chartRef.current?.querySelector("svg");
     if (!svg) return;
 
+    if (!svg.getAttribute("xmlns")) {
+      svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    }
+
     const serializer = new XMLSerializer();
     const svgString = serializer.serializeToString(svg);
     const blob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
     const url = URL.createObjectURL(blob);
+
     const link = document.createElement("a");
     const safeName = previewTitle.replace(/[^a-z0-9_-]+/gi, "_").slice(0, 60) || "dashboard";
     link.href = url;
@@ -429,7 +473,7 @@ export function DashboardWorkspace() {
           .map((key) => {
             const value = (row as Record<string, unknown>)[key];
             const text = value === null || value === undefined ? "" : String(value);
-            return `"${text.replace(/\"/g, '""')}"`;
+            return `"${text.replace(/"/g, '""')}"`;
           })
           .join(","),
       ),
@@ -437,6 +481,7 @@ export function DashboardWorkspace() {
 
     const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
+
     const link = document.createElement("a");
     const safeName = previewTitle.replace(/[^a-z0-9_-]+/gi, "_").slice(0, 60) || "dashboard";
     link.href = url;
@@ -493,6 +538,7 @@ export function DashboardWorkspace() {
                 />
               </div>
             </CardHeader>
+
             <CardContent className="space-y-2">
               {visibleDashboards.length === 0 ? (
                 <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
@@ -501,6 +547,7 @@ export function DashboardWorkspace() {
               ) : (
                 visibleDashboards.map((chart) => {
                   const active = chart.id === activeDashboardId;
+
                   return (
                     <button
                       key={chart.id}
@@ -529,7 +576,7 @@ export function DashboardWorkspace() {
           </Card>
         )}
 
-        <div className="space-y-6">
+        <div className="space-y-6 min-w-0">
           {!creating && !selectedDashboard && savedCharts.length > 0 ? (
             <Card className="border-dashed">
               <CardContent className="flex min-h-[220px] flex-col items-center justify-center gap-3 text-center">
@@ -564,6 +611,7 @@ export function DashboardWorkspace() {
                         placeholder="New Dashboard"
                       />
                     </div>
+
                     <div className="flex items-center justify-between rounded-lg border px-4 py-3">
                       <div>
                         <div className="text-sm font-medium">Shared dashboard</div>
@@ -578,21 +626,17 @@ export function DashboardWorkspace() {
                       <Save className="mr-2 h-4 w-4" />
                       {saving ? "Saving..." : activeDashboardId ? "Update Dashboard" : "Save Dashboard"}
                     </Button>
-                    <Button
-                      variant="outline"
-                      onClick={downloadChartSvg}
-                      disabled={!chartData.length && !pieData.length}
-                    >
+
+                    <Button variant="outline" onClick={downloadChartSvg} disabled={!chartData.length && !pieData.length}>
                       <Download className="mr-2 h-4 w-4" />
                       Download SVG
                     </Button>
-                    <Button
-                      variant="outline"
-                      onClick={downloadChartCsv}
-                      disabled={!chartData.length && !pieData.length}
-                    >
+
+                    <Button variant="outline" onClick={downloadChartCsv} disabled={!chartData.length && !pieData.length}>
+                      <Download className="mr-2 h-4 w-4" />
                       Download CSV
                     </Button>
+
                     {activeDashboardId ? (
                       <Button variant="ghost" onClick={handleDeleteDashboard} disabled={deleting}>
                         <Trash2 className="mr-2 h-4 w-4" />
@@ -608,6 +652,7 @@ export function DashboardWorkspace() {
                   <CardTitle>Dashboard Filters</CardTitle>
                   <CardDescription>Pick indicators, scope, and fiscal quarter filters</CardDescription>
                 </CardHeader>
+
                 <CardContent className="space-y-4">
                   <div className="flex flex-wrap items-end gap-2">
                     <Popover>
@@ -617,6 +662,7 @@ export function DashboardWorkspace() {
                           <span className="text-xs text-muted-foreground">{selectedIndicatorIds.length}</span>
                         </Button>
                       </PopoverTrigger>
+
                       <PopoverContent align="start" className="w-[calc(100vw-2rem)] p-0 sm:w-[320px]">
                         <Command>
                           <CommandInput
@@ -627,13 +673,13 @@ export function DashboardWorkspace() {
                           <CommandList>
                             <CommandEmpty>No indicators found.</CommandEmpty>
                             <CommandGroup heading="Indicators">
-                              <CommandItem
-                                onSelect={toggleAllIndicators}
-                                className="flex items-center justify-between"
-                              >
+                              <CommandItem onSelect={toggleAllIndicators} className="flex items-center justify-between">
                                 <span>All indicators</span>
-                                <Checkbox checked={selectedIndicatorIds.length === indicators.length && indicators.length > 0} />
+                                <Checkbox
+                                  checked={selectedIndicatorIds.length === indicators.length && indicators.length > 0}
+                                />
                               </CommandItem>
+
                               {filteredIndicators.map((indicator) => (
                                 <CommandItem
                                   key={indicator.id}
@@ -750,6 +796,7 @@ export function DashboardWorkspace() {
                   <CardTitle>{previewTitle}</CardTitle>
                   <CardDescription>Trend view for the selected dashboard</CardDescription>
                 </CardHeader>
+
                 <CardContent>
                   {isLoading ? (
                     <div className="flex h-[320px] items-center justify-center">
@@ -770,8 +817,8 @@ export function DashboardWorkspace() {
                   ) : null}
 
                   {!isLoading && !error && chartData.length > 0 && chartType !== "pie" ? (
-                    <div ref={chartRef}>
-                      <ChartContainer config={chartConfig} className="h-[360px]">
+                    <div ref={chartRef} className="min-w-0">
+                      <ChartContainer config={chartConfig} className="h-[360px] w-full">
                         {chartType === "line" ? (
                           <LineChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 10 }}>
                             <CartesianGrid vertical={false} strokeDasharray="3 3" />
@@ -851,8 +898,8 @@ export function DashboardWorkspace() {
                   ) : null}
 
                   {!isLoading && !error && chartType === "pie" && pieData.length > 0 ? (
-                    <div ref={chartRef}>
-                      <ChartContainer config={chartConfig} className="h-[360px]">
+                    <div ref={chartRef} className="min-w-0">
+                      <ChartContainer config={chartConfig} className="h-[360px] w-full">
                         <PieChart>
                           <ChartTooltip
                             cursor={{ fill: "rgba(16, 24, 40, 0.06)" }}

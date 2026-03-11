@@ -24,6 +24,15 @@ export function AppHeader({ onMenuClick }: AppHeaderProps) {
   const router = useRouter()
   const { user, logout } = useAuth()
   const currentUser = user
+  const userRecord = (currentUser ?? {}) as Record<string, unknown>
+  const firstName = String(
+    (userRecord.firstName ?? userRecord.first_name ?? "") as string
+  ).trim()
+  const lastName = String(
+    (userRecord.lastName ?? userRecord.last_name ?? "") as string
+  ).trim()
+  const displayName = [firstName, lastName].filter(Boolean).join(" ") || String(currentUser?.email || "My Account")
+  const initials = `${(firstName[0] || String(currentUser?.email || "U")[0] || "U").toUpperCase()}${(lastName[0] || "").toUpperCase()}`
   const handleLogout = async () => {
     await logout()
   }
@@ -103,13 +112,12 @@ export function AppHeader({ onMenuClick }: AppHeaderProps) {
             <Button variant="ghost" className="flex items-center gap-2 px-2">
               <Avatar className="h-8 w-8">
                 <AvatarFallback className="bg-primary text-primary-foreground text-sm">
-                  {(currentUser?.firstName?.[0] || "U").toUpperCase()}
-                  {(currentUser?.lastName?.[0] || "").toUpperCase()}
+                  {initials}
                 </AvatarFallback>
               </Avatar>
               <div className="hidden flex-col items-start text-left md:flex">
                 <span className="text-sm font-medium">
-                  {currentUser ? `${currentUser.firstName} ${currentUser.lastName}` : "My Account"}
+                  {currentUser ? displayName : "My Account"}
                 </span>
                 <span className="text-xs text-muted-foreground capitalize">
                   {currentUser ? getUserRoleLabel(currentUser.role) : "user"}
