@@ -19,6 +19,9 @@ npm run dev
 ```
 Open `http://localhost:3000`.
 
+## User Documentation
+- End-user guide: `docs/user-manual.md`
+
 ## Architecture
 The frontend is a Next.js App Router project:
 - `app/` routes for dashboard modules.
@@ -112,4 +115,36 @@ npm run start
 ### Development mode note
 Service worker registration is disabled by default in `npm run dev`.
 Set `NEXT_PUBLIC_ENABLE_SW=true` if you need to test service worker behavior in development.
+
+## Android App (Play Store)
+This project is configured with Capacitor for Android packaging.
+
+### Commands
+```bash
+npm run mobile:doctor
+npm run mobile:sync
+npm run mobile:open:android
+```
+
+To point the Android app at a deployed frontend, set `CAP_SERVER_URL` before syncing.
+If unset, the Android app defaults to `https://bonasov1.onrender.com`.
+
+Bash:
+```bash
+export CAP_SERVER_URL="https://your-frontend-domain"
+npm run mobile:sync
+```
+
+PowerShell:
+```powershell
+$env:CAP_SERVER_URL="https://your-frontend-domain"
+npm run mobile:sync
+```
+
+Full Play Store checklist is in `docs/playstore-android.md`.
+
+### Android offline behavior
+- First app launch should be online to warm caches.
+- After that, previously visited screens and cached API `GET` responses work offline.
+- Mutations are queued locally and replayed when the device reconnects.
 

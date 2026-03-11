@@ -18,7 +18,16 @@
  */
 
 // Core client
-export { api, setAuthToken, clearAuthToken, setAuthTokens, clearAuthTokens, getRefreshToken } from './client';
+export {
+  api,
+  fetchWithAuth,
+  normalizeApiError,
+  setAuthToken,
+  clearAuthToken,
+  setAuthTokens,
+  clearAuthTokens,
+  getRefreshToken,
+} from './client';
 export type { ApiResponse, ApiError, PaginatedResponse } from './client';
 
 // Authentication
@@ -73,11 +82,10 @@ export type {
   AssessmentFilters,
   CreateAssessmentRequest,
   UpdateAssessmentRequest,
-  BulkAssessmentRequest,
 } from './services/indicators';
 
 // Respondents & Interactions
-export { respondentsService, interactionsService } from './services/respondents';
+export { respondentsService, interactionsService, responsesService } from './services/respondents';
 export type {
   RespondentFilters,
   CreateRespondentRequest,
@@ -85,6 +93,9 @@ export type {
   InteractionFilters,
   CreateInteractionRequest,
   UpdateInteractionRequest,
+  ResponseFilters,
+  CreateResponseRequest,
+  UpdateResponseRequest,
   RespondentImportRequest,
   RespondentExportRequest,
 } from './services/respondents';
@@ -111,6 +122,7 @@ export type {
   UpdateAggregateRequest,
   BulkAggregateRequest,
   AggregateTemplate,
+  DerivationRule,
 } from './services/aggregates';
 
 // Reports, Analysis & Flags
@@ -134,5 +146,4 @@ export type {
 // Uploads
 export { uploadsService } from './services/uploads';
 export type { UploadFilters, CreateUploadRequest, UpdateUploadRequest, UploadRecord, ImportJob } from './services/uploads';
-
 

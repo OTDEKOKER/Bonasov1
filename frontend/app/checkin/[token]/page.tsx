@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { api } from "@/lib/api";
 
 interface CheckinEvent {
   event_id: number;
@@ -30,14 +31,13 @@ export default function EventCheckinPage() {
       if (!token) return;
       setIsLoading(true);
       try {
-        const response = await fetch(`/api/activities/checkin/${token}/`);
-        if (!response.ok) {
+        const { data } = await api.get<CheckinEvent>(`/activities/checkin/${token}/`);
+        if (!data) {
           throw new Error("Invalid check-in link");
         }
-        const data = (await response.json()) as CheckinEvent;
         setEventInfo(data);
-      } catch (err: any) {
-        setError(err?.message || "Unable to load event");
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : "Unable to load event");
       } finally {
         setIsLoading(false);
       }
@@ -53,22 +53,15 @@ export default function EventCheckinPage() {
     }
     setError("");
     try {
-      const response = await fetch(`/api/activities/checkin/${token}/`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          organization_name: organizationName,
-          name: participantName,
-          email,
-          contact,
-        }),
+      await api.post(`/activities/checkin/${token}/`, {
+        organization_name: organizationName,
+        name: participantName,
+        email,
+        contact,
       });
-      if (!response.ok) {
-        throw new Error("Unable to register attendance.");
-      }
       setSubmitted(true);
-    } catch (err: any) {
-      setError(err?.message || "Unable to register attendance.");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Unable to register attendance.");
     }
   };
 

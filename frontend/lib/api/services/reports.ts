@@ -5,9 +5,7 @@
  * Django endpoint base: /api/analysis/reports/ and /api/analysis/
  */
 
-import { api, type PaginatedResponse } from '../client';
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
+import { api, fetchWithAuth, normalizeApiError, type PaginatedResponse } from '../client';
 import type { Flag } from '@/lib/types';
 
 // ============================================================================
@@ -74,6 +72,13 @@ export interface CreateReportRequest {
   };
 }
 
+type RawReport = Partial<Report> & {
+  report_type?: string;
+  type?: Report['type'];
+  status?: Report['status'];
+  last_generated?: string | null;
+};
+
 const normalizeReportType = (reportType?: string): Report['type'] => {
   switch (reportType) {
     case 'dashboard':
@@ -88,17 +93,17 @@ const normalizeReportType = (reportType?: string): Report['type'] => {
   }
 };
 
-const normalizeReportStatus = (report: any): Report['status'] => {
+const normalizeReportStatus = (report: RawReport): Report['status'] => {
   if (report?.status) return report.status;
   if (report?.last_generated) return 'completed';
   return 'pending';
 };
 
-const normalizeReport = (report: any): Report => ({
+const normalizeReport = (report: RawReport): Report => ({
   ...report,
   type: normalizeReportType(report.report_type || report.type),
   status: normalizeReportStatus(report),
-});
+}) as Report;
 
 export interface ScheduledReport {
   id: number;
@@ -246,17 +251,18 @@ export const reportsService = {
    */
   async download(id: number, format?: 'pdf' | 'excel' | 'csv'): Promise<Blob> {
     const query = format ? `?format=${encodeURIComponent(format)}` : '';
-    const base = API_BASE_URL.startsWith('/') && typeof window !== 'undefined'
-      ? `${window.location.origin}${API_BASE_URL}`
-      : API_BASE_URL;
-    const response = await fetch(
-      `${base}/analysis/reports/${id}/download/${query}`,
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('access_token')}`,
-        },
-      }
-    );
+    const response = await fetchWithAuth(`/analysis/reports/${id}/download/${query}`);
+    if (!response.ok) {
+      const contentType = response.headers.get('content-type');
+      const payload = contentType?.includes('application/json')
+        ? await response.json()
+        : await response.text();
+      throw normalizeApiError({
+        status: response.status,
+        payload,
+        fallbackMessage: 'Failed to download report',
+      });
+    }
     return response.blob();
   },
 
@@ -412,7 +418,18 @@ export const analysisService = {
     }>;
   }> {
     const params = projectId ? { project: projectId.toString() } : undefined;
-    const { data } = await api.get('/analysis/dashboard/overview/', params);
+    const { data } = await api.get<{
+      total_respondents: number;
+      total_assessments: number;
+      active_projects: number;
+      total_indicators: number;
+      indicators_behind: number;
+      recent_activity: Array<{
+        type: string;
+        description: string;
+        timestamp: string;
+      }>;
+    }>('/analysis/dashboard/overview/', params);
     return data;
   },
 
@@ -441,7 +458,11 @@ export const analysisService = {
     if (params?.organizationId) query.organization = String(params.organizationId);
     if (params?.dateFrom) query.date_from = params.dateFrom;
     if (params?.dateTo) query.date_to = params.dateTo;
-    const { data } = await api.get(`/analysis/trends/${indicatorId}/`, query);
+    const { data } = await api.get<{
+      data: Array<{ month: string; value: number; target: number }>;
+      trend: 'up' | 'down' | 'stable';
+      forecast: number;
+    }>(`/analysis/trends/${indicatorId}/`, query);
     return data;
   },
 
@@ -469,7 +490,13 @@ export const analysisService = {
     if (params?.dateFrom) query.date_from = params.dateFrom;
     if (params?.dateTo) query.date_to = params.dateTo;
     query.indicator_ids = indicatorIds.join(',');
-    const { data } = await api.get('/analysis/trends/', query);
+    const { data } = await api.get<{
+      series: Array<{
+        indicator_id: number;
+        indicator_name: string;
+        data: Array<{ month: string; value: number; target: number }>;
+      }>;
+    }>('/analysis/trends/', query);
     return data;
   },
 
@@ -489,7 +516,13 @@ export const analysisService = {
     target: number;
     progress: number;
   }>> {
-    const { data } = await api.post('/analysis/compare/', request);
+    const { data } = await api.post<Array<{
+      project_id: number;
+      project_name: string;
+      value: number;
+      target: number;
+      progress: number;
+    }>>('/analysis/compare/', request);
     return data;
   },
 };
@@ -556,7 +589,14 @@ export const flagsService = {
     by_type: Array<{ flag_type: string; count: number }>;
     by_priority: Array<{ priority: string; count: number }>;
   }> {
-    const { data } = await api.get('/flags/stats/');
+    const { data } = await api.get<{
+      total: number;
+      open: number;
+      in_progress: number;
+      resolved: number;
+      by_type: Array<{ flag_type: string; count: number }>;
+      by_priority: Array<{ priority: string; count: number }>;
+    }>('/flags/stats/');
     return data;
   },
 
@@ -568,7 +608,10 @@ export const flagsService = {
     flags_created: number;
     checks_run: string[];
   }> {
-    const { data } = await api.post('/flags/run-checks/', { project_id: projectId });
+    const { data } = await api.post<{
+      flags_created: number;
+      checks_run: string[];
+    }>('/flags/run-checks/', { project_id: projectId });
     return data;
   },
 };

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { PageHeader } from "@/components/shared/page-header"
 import { OrganizationSelect } from "@/components/shared/organization-select"
-import { useOrganizations, useOrganizationTree } from "@/lib/hooks/use-api"
+import { useAllOrganizations } from "@/lib/hooks/use-api"
 import { organizationsService } from "@/lib/api"
 import type { Organization } from "@/lib/types"
 import {
@@ -52,11 +52,26 @@ const orgTypeLabels: Record<string, string> = {
   ngo: "NGO",
 }
 
+const resolveParentId = (org: Organization & { parent?: string | number | null }) => {
+  const rawParent = (org as { parentId?: string | number | null }).parentId ?? org.parent ?? null
+  if (rawParent === null || rawParent === undefined) return ""
+  const normalized = String(rawParent).trim().toLowerCase()
+  if (
+    normalized === "" ||
+    normalized === "null" ||
+    normalized === "none" ||
+    normalized === "undefined" ||
+    normalized === "0"
+  ) {
+    return ""
+  }
+  return String(rawParent)
+}
+
 export default function OrganizationsPage() {
   const router = useRouter()
   const { toast } = useToast()
-  const { data, isLoading, error, mutate } = useOrganizations({ page_size: "200" })
-  const { data: treeData } = useOrganizationTree()
+  const { data, isLoading, error, mutate } = useAllOrganizations()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
@@ -72,18 +87,19 @@ export default function OrganizationsPage() {
   })
 
   const organizations = data?.results || []
-  const tree = (treeData as any[]) || []
-  console.log("[orgs] loaded", {
-    listCount: organizations.length,
-    treeCount: tree.length,
-  })
+  const parentOrganizations = organizations
+    .filter((org) => !resolveParentId(org as Organization & { parent?: string | number | null }))
+    .slice()
+    .sort((a, b) => (a.name || "").localeCompare(b.name || ""))
 
-  const filteredParents = (tree.length ? tree : organizations.filter((org) => !org.parentId)).filter((parent) => {
+  const filteredParents = parentOrganizations.filter((parent) => {
     const query = searchQuery.trim().toLowerCase()
     if (!query) return true
     if ((parent.name || "").toLowerCase().includes(query)) return true
-    const children = (parent as any).children || organizations.filter((org) => org.parentId === parent.id)
-    return children.some((child: any) => (child.name || "").toLowerCase().includes(query))
+    const children = organizations.filter((org) =>
+      resolveParentId(org as Organization & { parent?: string | number | null }) === String(parent.id),
+    )
+    return children.some((child) => (child.name || "").toLowerCase().includes(query))
   })
 
   const handleCreate = async () => {
@@ -139,7 +155,7 @@ export default function OrganizationsPage() {
     if (!confirm(`Are you sure you want to delete "${org.name}"?`)) return
 
     try {
-      await organizationsService.delete(org.id)
+      await organizationsService.delete(Number(org.id))
       toast({
         title: "Success",
         description: "Organization deleted successfully",
@@ -153,12 +169,6 @@ export default function OrganizationsPage() {
       })
     }
   }
-
-  const actions = (org: Organization) => [
-    { label: "View Details", onClick: () => router.push(`/organizations/${org.id}`) },
-    { label: "Edit", onClick: () => router.push(`/organizations/${org.id}/edit`) },
-    { label: "Delete", onClick: () => handleDelete(org), destructive: true },
-  ]
 
   if (isLoading) {
     return (
@@ -216,9 +226,10 @@ export default function OrganizationsPage() {
             No organizations found.
           </div>
         ) : (
-          filteredParents.map((org: any) => {
-            const rawChildren = org.children || organizations.filter((child) => child.parentId === org.id)
-            const children = (rawChildren || []).slice().sort((a: any, b: any) =>
+          filteredParents.map((org) => {
+            const children = organizations.filter((child) =>
+              resolveParentId(child as Organization & { parent?: string | number | null }) === String(org.id),
+            ).slice().sort((a, b) =>
               (a.name || "").localeCompare(b.name || ""),
             )
             return (
@@ -265,7 +276,7 @@ export default function OrganizationsPage() {
                     {children.length === 0 ? (
                       <p className="text-sm text-muted-foreground">No sub-grantees.</p>
                     ) : (
-                      children.map((child: any) => (
+                      children.map((child) => (
                         <div key={child.id} className="flex flex-col gap-2 rounded-md bg-background p-3 sm:flex-row sm:items-center sm:justify-between">
                           <div className="flex items-center gap-2">
                             <Building2 className="h-4 w-4 text-muted-foreground" />
@@ -295,7 +306,7 @@ export default function OrganizationsPage() {
 
       {/* Create Dialog */}
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent className="w-[95vw] sm:max-w-lg">
+        <DialogContent className="w-[95vw] sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Add Organization</DialogTitle>
             <DialogDescription>
@@ -338,7 +349,7 @@ export default function OrganizationsPage() {
             <div className="space-y-2">
                             <Label htmlFor="parent">Parent Organization (Optional)</Label>
               <OrganizationSelect
-                organizations={organizations}
+                organizations={parentOrganizations}
                 value={formData.parentId}
                 onChange={(value) => setFormData({ ...formData, parentId: value === "none" ? "" : value })}
                 includeNone
@@ -413,5 +424,3 @@ export default function OrganizationsPage() {
     </div>
   )
 }
-
-

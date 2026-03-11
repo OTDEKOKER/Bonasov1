@@ -56,7 +56,10 @@ export interface CreateAssessmentRequest {
   organizations?: number[];
 }
 
-export interface UpdateAssessmentRequest extends Partial<CreateAssessmentRequest> {}
+export type UpdateAssessmentRequest = Partial<CreateAssessmentRequest>
+export interface BulkAssessmentRequest {
+  assessments: CreateAssessmentRequest[];
+}
 
 // ============================================================================
 // Indicators Service
@@ -79,7 +82,7 @@ export const indicatorsService = {
     const results: Indicator[] = [];
     let page = filters?.page ? String(filters.page) : "1";
     const baseFilters = { ...(filters || {}) } as Record<string, string>;
-    delete (baseFilters as any).page;
+    delete baseFilters.page;
 
     while (true) {
       const { data } = await api.get<PaginatedResponse<Indicator>>('/indicators/', {
@@ -163,7 +166,12 @@ export const indicatorsService = {
     average_value: number | null;
     completion_rate: number;
   }> {
-    const { data } = await api.get(`/indicators/${id}/stats/`);
+    const { data } = await api.get<{
+      total_assessments: number;
+      unique_respondents: number;
+      average_value: number | null;
+      completion_rate: number;
+    }>(`/indicators/${id}/stats/`);
     return data;
   },
 };
@@ -187,7 +195,7 @@ export const assessmentsService = {
    * Get a single assessment by ID
    * Django endpoint: GET /api/indicators/assessments/:id/
    */
-  async get(id: number): Promise<Assessment> {
+  async get(id: number | string): Promise<Assessment> {
     const { data } = await api.get<Assessment>(`/indicators/assessments/${id}/`);
     return data;
   },
@@ -205,7 +213,7 @@ export const assessmentsService = {
    * Update an assessment
    * Django endpoint: PATCH /api/indicators/assessments/:id/
    */
-  async update(id: number, request: UpdateAssessmentRequest): Promise<Assessment> {
+  async update(id: number | string, request: UpdateAssessmentRequest): Promise<Assessment> {
     const { data } = await api.patch<Assessment>(`/indicators/assessments/${id}/`, request);
     return data;
   },
@@ -214,12 +222,12 @@ export const assessmentsService = {
    * Delete an assessment
    * Django endpoint: DELETE /api/indicators/assessments/:id/
    */
-  async delete(id: number): Promise<void> {
+  async delete(id: number | string): Promise<void> {
     await api.delete(`/indicators/assessments/${id}/`);
   },
   async addIndicator(
-    assessmentId: number,
-    indicatorId: number,
+    assessmentId: number | string,
+    indicatorId: number | string,
     order: number = 0,
     isRequired: boolean = true,
   ): Promise<void> {
@@ -230,7 +238,7 @@ export const assessmentsService = {
     });
   },
 
-  async removeIndicator(assessmentId: number, indicatorId: number): Promise<void> {
+  async removeIndicator(assessmentId: number | string, indicatorId: number | string): Promise<void> {
     await api.post(`/indicators/assessments/${assessmentId}/remove_indicator/`, {
       indicator_id: indicatorId,
     });

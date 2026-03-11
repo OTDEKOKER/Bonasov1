@@ -81,6 +81,9 @@ export const authService = {
       credentials
     );
     setAuthTokens(data.access, data.refresh);
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('show_login_disclaimer', '1');
+    }
     
     // Fetch user info after login
     try {

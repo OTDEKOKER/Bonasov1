@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { PageHeader } from "@/components/shared/page-header"
 import { useAllOrganizations, useIndicators, useOrganization, useUsers } from "@/lib/hooks/use-api"
-import { getUserRoleLabel } from "@/lib/roles"
 
 const orgTypeColors: Record<string, string> = {
   headquarters: "bg-chart-1/10 text-chart-1",
@@ -31,7 +30,7 @@ export default function OrganizationDetailPage() {
 
   const { data: org, isLoading, error } = useOrganization(Number.isFinite(id) ? id : null)
   const { data: orgsData } = useAllOrganizations()
-  const organizations = orgsData || []
+  const organizations = useMemo(() => orgsData?.results ?? [], [orgsData?.results])
   const { data: indicatorsData } = useIndicators(
     Number.isFinite(id) ? { organizations: String(id), page_size: "200" } : undefined
   )
@@ -44,7 +43,7 @@ export default function OrganizationDetailPage() {
   const parentName = useMemo(() => {
     if (!org?.parentId) return null
     return organizations.find((item) => item.id === org.parentId)?.name || null
-  }, [org?.parentId, organizations])
+  }, [org, organizations])
 
   if (isLoading) {
     return (
@@ -184,7 +183,7 @@ export default function OrganizationDetailPage() {
                 <span className="text-foreground">
                   {user.first_name} {user.last_name}
                 </span>
-                <span className="text-muted-foreground">{getUserRoleLabel(user.role)}</span>
+                <span className="text-muted-foreground">{user.role}</span>
               </div>
             ))}
             {!activeUsers.length && (

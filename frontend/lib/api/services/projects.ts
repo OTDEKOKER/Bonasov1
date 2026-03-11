@@ -6,7 +6,7 @@
  */
 
 import { api, type PaginatedResponse } from '../client';
-import type { Project, Task, Deadline } from '@/lib/types';
+import type { Project, Task, ProjectDeadline } from '@/lib/types';
 
 // ============================================================================
 // Types
@@ -60,6 +60,7 @@ export interface UpdateTaskRequest extends Partial<CreateTaskRequest> {
 export interface DeadlineFilters {
   project?: string;
   indicator?: string;
+  status?: string;
   upcoming?: string;
   page?: string;
   page_size?: string;
@@ -79,7 +80,11 @@ export interface UpdateDeadlineRequest extends Partial<CreateDeadlineRequest> {
 
 export interface TargetRequest {
   indicator_id: number;
-  target_value: number;
+  organization_id: number;
+  q1_target: number;
+  q2_target: number;
+  q3_target: number;
+  q4_target: number;
   baseline_value?: number;
 }
 
@@ -104,7 +109,7 @@ export const projectsService = {
     const results: Project[] = [];
     let page = filters?.page ? String(filters.page) : "1";
     const baseFilters = { ...(filters || {}) } as Record<string, string>;
-    delete (baseFilters as any).page;
+    delete baseFilters.page;
 
     while (true) {
       const { data } = await api.get<PaginatedResponse<Project>>('/manage/projects/', {
@@ -170,7 +175,12 @@ export const projectsService = {
     pending_deadlines: number;
     progress_percentage: number;
   }> {
-    const { data } = await api.get(`/manage/projects/${id}/stats/`);
+    const { data } = await api.get<{
+      total_indicators: number;
+      completed_targets: number;
+      pending_deadlines: number;
+      progress_percentage: number;
+    }>(`/manage/projects/${id}/stats/`);
     return data;
   },
 
@@ -260,9 +270,9 @@ export const deadlinesService = {
    * List all deadlines with optional filters
    * Django endpoint: GET /api/manage/deadlines/
    */
-  async list(filters?: DeadlineFilters): Promise<PaginatedResponse<Deadline>> {
+  async list(filters?: DeadlineFilters): Promise<PaginatedResponse<ProjectDeadline>> {
     const params = filters as Record<string, string> | undefined;
-    const { data } = await api.get<PaginatedResponse<Deadline>>('/manage/deadlines/', params);
+    const { data } = await api.get<PaginatedResponse<ProjectDeadline>>('/manage/deadlines/', params);
     return data;
   },
 
@@ -270,8 +280,8 @@ export const deadlinesService = {
    * Get a single deadline by ID
    * Django endpoint: GET /api/manage/deadlines/:id/
    */
-  async get(id: number): Promise<Deadline> {
-    const { data } = await api.get<Deadline>(`/manage/deadlines/${id}/`);
+  async get(id: number): Promise<ProjectDeadline> {
+    const { data } = await api.get<ProjectDeadline>(`/manage/deadlines/${id}/`);
     return data;
   },
 
@@ -279,8 +289,8 @@ export const deadlinesService = {
    * Create a new deadline
    * Django endpoint: POST /api/manage/deadlines/
    */
-  async create(request: CreateDeadlineRequest): Promise<Deadline> {
-    const { data } = await api.post<Deadline>('/manage/deadlines/', request);
+  async create(request: CreateDeadlineRequest): Promise<ProjectDeadline> {
+    const { data } = await api.post<ProjectDeadline>('/manage/deadlines/', request);
     return data;
   },
 
@@ -288,8 +298,8 @@ export const deadlinesService = {
    * Update a deadline
    * Django endpoint: PATCH /api/manage/deadlines/:id/
    */
-  async update(id: number, request: UpdateDeadlineRequest): Promise<Deadline> {
-    const { data } = await api.patch<Deadline>(`/manage/deadlines/${id}/`, request);
+  async update(id: number, request: UpdateDeadlineRequest): Promise<ProjectDeadline> {
+    const { data } = await api.patch<ProjectDeadline>(`/manage/deadlines/${id}/`, request);
     return data;
   },
 
@@ -305,8 +315,8 @@ export const deadlinesService = {
    * Get upcoming deadlines
    * Django endpoint: GET /api/manage/deadlines/upcoming/
    */
-  async getUpcoming(days: number = 7): Promise<Deadline[]> {
-    const { data } = await api.get<Deadline[]>('/manage/deadlines/upcoming/', { days: days.toString() });
+  async getUpcoming(days: number = 7): Promise<ProjectDeadline[]> {
+    const { data } = await api.get<ProjectDeadline[]>('/manage/deadlines/upcoming/', { days: days.toString() });
     return data;
   },
 
@@ -314,12 +324,10 @@ export const deadlinesService = {
    * Submit deadline
    * Django endpoint: POST /api/manage/deadlines/:id/submit/
    */
-  async submit(id: number): Promise<Deadline> {
-    const { data } = await api.post<Deadline>(`/manage/deadlines/${id}/submit/`);
+  async submit(id: number): Promise<ProjectDeadline> {
+    const { data } = await api.post<ProjectDeadline>(`/manage/deadlines/${id}/submit/`);
     return data;
   },
 };
 
 ;
-
-

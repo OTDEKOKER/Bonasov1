@@ -1,17 +1,46 @@
-﻿"use client"
+"use client"
 
-import { useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Plus, Shield, Clock, Loader2 } from "lucide-react"
+import {
+  ArrowDown,
+  ArrowUp,
+  ArrowUpDown,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  FilterX,
+  Loader2,
+  MoreHorizontal,
+  Plus,
+  Search,
+  Shield,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { PageHeader } from "@/components/shared/page-header"
 import { OrganizationSelect } from "@/components/shared/organization-select"
-import { DataTable } from "@/components/shared/data-table"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { useUsers, useAllOrganizations, useUserPermissions } from "@/lib/hooks/use-api"
 import { usersService } from "@/lib/api"
 import type { User } from "@/lib/types"
+import { USER_ROLE_COLORS, USER_ROLE_LABELS, USER_ROLE_OPTIONS } from "@/lib/roles"
+import { canChangeUserActivation, canManageUsers, canResetUserPasswords } from "@/lib/permissions"
+import { useAuth } from "@/lib/contexts/auth-context"
 import { UserPermissionsManager } from "@/components/users/user-permissions-manager"
 import {
   Dialog,
@@ -31,12 +60,84 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
-import { USER_ROLE_COLORS, USER_ROLE_LABELS, USER_ROLE_OPTIONS } from "@/lib/roles"
+import { cn } from "@/lib/utils"
+import {
+  addGroupToCatalog,
+  getGroupCatalog,
+  getUserGroupsForUser,
+  removeGroupFromCatalog,
+  setUserGroupsForUser,
+} from "@/lib/user-groups"
+
+type SearchBy = "name" | "email" | "username"
+type LastActiveFilter = "all" | "today" | "last_7_days" | "last_30_days" | "never"
+type SortField = "user" | "last_active"
+type SortDirection = "asc" | "desc"
+
+const PAGE_SIZE = 10
+const BASE_GROUP_OPTIONS = [
+  "Admin",
+  "Data Collector",
+  "Coordinator",
+  "Viewer",
+  "Partner Org",
+  "Funder",
+]
+
+const ROLE_GROUP_FALLBACK: Record<User["role"], string[]> = {
+  admin: ["Admin"],
+  collector: ["Data Collector"],
+  manager: ["Coordinator"],
+  officer: ["Viewer"],
+  client: ["Partner Org"],
+}
+
+function normalizeUsername(user: User): string {
+  const withUsername = user as User & { username?: string }
+  return typeof withUsername.username === "string" ? withUsername.username : ""
+}
+
+function uniqueGroups(groups: string[]): string[] {
+  const normalized = groups.map((group) => String(group || "").trim()).filter(Boolean)
+  return Array.from(new Set(normalized))
+}
+
+function parseLastLogin(value?: string): Date | null {
+  if (!value) return null
+  const parsed = new Date(value)
+  return Number.isNaN(parsed.getTime()) ? null : parsed
+}
+
+function formatLastActive(value?: string): string {
+  const parsed = parseLastLogin(value)
+  if (!parsed) return "Never"
+  return parsed.toLocaleDateString()
+}
+
+function isSameDay(date: Date, comparison: Date): boolean {
+  return (
+    date.getFullYear() === comparison.getFullYear() &&
+    date.getMonth() === comparison.getMonth() &&
+    date.getDate() === comparison.getDate()
+  )
+}
+
+function getPageWindow(currentPage: number, totalPages: number): number[] {
+  const start = Math.max(1, currentPage - 2)
+  const end = Math.min(totalPages, currentPage + 2)
+  const pages: number[] = []
+  for (let page = start; page <= end; page += 1) {
+    pages.push(page)
+  }
+  return pages
+}
 
 export default function UsersPage() {
   const router = useRouter()
   const { toast } = useToast()
-  const { data: usersData, isLoading, error, mutate } = useUsers()
+  const { user: currentUser } = useAuth()
+
+  const { data: usersData, isLoading, error, mutate } = useUsers({ page_size: "500" })
   const { data: orgsData } = useAllOrganizations()
   const {
     data: availablePermissions = [],
@@ -44,6 +145,7 @@ export default function UsersPage() {
     error: permissionsError,
     mutate: mutatePermissions,
   } = useUserPermissions()
+
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isResetOpen, setIsResetOpen] = useState(false)
@@ -51,6 +153,21 @@ export default function UsersPage() {
   const [resetPassword, setResetPassword] = useState("")
   const [resetPasswordConfirm, setResetPasswordConfirm] = useState("")
   const [isResetting, setIsResetting] = useState(false)
+
+  const [groupCatalog, setGroupCatalog] = useState<string[]>(() =>
+    uniqueGroups([...BASE_GROUP_OPTIONS, ...getGroupCatalog()]),
+  )
+  const [newGroupName, setNewGroupName] = useState("")
+
+  const [searchQuery, setSearchQuery] = useState("")
+  const [searchBy, setSearchBy] = useState<SearchBy>("name")
+  const [groupFilter, setGroupFilter] = useState("all")
+  const [organizationFilter, setOrganizationFilter] = useState("all")
+  const [lastActiveFilter, setLastActiveFilter] = useState<LastActiveFilter>("all")
+  const [sortField, setSortField] = useState<SortField>("user")
+  const [sortDirection, setSortDirection] = useState<SortDirection>("asc")
+  const [currentPage, setCurrentPage] = useState(1)
+
   const [formData, setFormData] = useState({
     username: "",
     firstName: "",
@@ -61,75 +178,169 @@ export default function UsersPage() {
     password: "",
     passwordConfirm: "",
     permissions: [] as string[],
+    groups: [] as string[],
   })
 
   const users = usersData?.results || []
   const organizations = orgsData?.results || []
+  const canAdministerUsers = canManageUsers(currentUser)
+  const canResetPasswords = canResetUserPasswords(currentUser)
+  const canActivateDeactivateUsers = canChangeUserActivation(currentUser)
   const permissionsErrorMessage = permissionsError
     ? (permissionsError as { message?: string })?.message || "Failed to load permissions from server."
     : undefined
 
-  const columns = [
-    {
-      key: "name",
-      label: "User",
-      sortable: true,
-      render: (user: User) => (
-        <div className="flex items-center gap-3">
-          <Avatar className="h-10 w-10">
-            <AvatarFallback className="bg-primary/10 text-primary">
-              {(user.firstName?.[0] || "").toUpperCase()}
-              {(user.lastName?.[0] || "").toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <p className="font-medium text-foreground">
-              {user.firstName} {user.lastName}
-            </p>
-            <p className="text-sm text-muted-foreground">{user.email}</p>
-          </div>
-        </div>
-      ),
-    },
-    {
-      key: "role",
-      label: "Role",
-      sortable: true,
-      render: (user: User) => (
-        <Badge variant="secondary" className={USER_ROLE_COLORS[user.role] || ""}>
-          <Shield className="mr-1 h-3 w-3" />
-          {USER_ROLE_LABELS[user.role] || user.role}
-        </Badge>
-      ),
-    },
-    {
-      key: "organizationId",
-      label: "Organization",
-      render: (user: User) => {
-        const org = organizations.find(o => o.id === user.organizationId)
-        return (
-          <span className="text-sm text-muted-foreground">
-            {org?.name || "-"}
-          </span>
-        )
-      },
-    },
-    {
-      key: "lastLogin",
-      label: "Last Active",
-      sortable: true,
-      render: (user: User) => (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Clock className="h-3 w-3" />
-          {user.lastLogin
-            ? new Date(user.lastLogin).toLocaleDateString()
-            : "Never"}
-        </div>
-      ),
-    },
-  ]
+  const groupFilterOptions = useMemo(() => {
+    const extras = groupCatalog.filter((group) => !BASE_GROUP_OPTIONS.includes(group))
+    return [...BASE_GROUP_OPTIONS, ...extras]
+  }, [groupCatalog])
+
+  const organizationNameById = useMemo(() => {
+    const map = new Map<string, string>()
+    organizations.forEach((org) => {
+      map.set(String(org.id), org.name)
+    })
+    return map
+  }, [organizations])
+
+  const enrichedUsers = useMemo(() => {
+    return users.map((user) => {
+      const roleFallbackGroups = ROLE_GROUP_FALLBACK[user.role] || []
+      const assignedGroups = getUserGroupsForUser(user.id)
+      const groups = uniqueGroups([...roleFallbackGroups, ...assignedGroups])
+      const displayName = [user.firstName, user.lastName].filter(Boolean).join(" ") || user.email
+      const username = normalizeUsername(user)
+      return {
+        user,
+        groups,
+        displayName,
+        username,
+        lastLoginDate: parseLastLogin(user.lastLogin),
+        organizationName: organizationNameById.get(String(user.organizationId)) || "-",
+      }
+    })
+  }, [users, organizationNameById, groupCatalog])
+
+  const filteredUsers = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase()
+    const now = new Date()
+
+    return enrichedUsers.filter((entry) => {
+      if (query) {
+        const haystack =
+          searchBy === "name"
+            ? `${entry.user.firstName || ""} ${entry.user.lastName || ""}`
+            : searchBy === "email"
+              ? entry.user.email || ""
+              : entry.username
+        if (!haystack.toLowerCase().includes(query)) {
+          return false
+        }
+      }
+
+      if (groupFilter !== "all" && !entry.groups.some((group) => group.toLowerCase() === groupFilter.toLowerCase())) {
+        return false
+      }
+
+      if (organizationFilter !== "all" && String(entry.user.organizationId) !== organizationFilter) {
+        return false
+      }
+
+      const lastLogin = entry.lastLoginDate
+      if (lastActiveFilter === "never") {
+        return !lastLogin
+      }
+      if (!lastLogin) {
+        return lastActiveFilter === "all"
+      }
+
+      if (lastActiveFilter === "today") {
+        return isSameDay(lastLogin, now)
+      }
+      if (lastActiveFilter === "last_7_days") {
+        const sevenDaysAgo = new Date(now)
+        sevenDaysAgo.setDate(now.getDate() - 7)
+        return lastLogin >= sevenDaysAgo
+      }
+      if (lastActiveFilter === "last_30_days") {
+        const thirtyDaysAgo = new Date(now)
+        thirtyDaysAgo.setDate(now.getDate() - 30)
+        return lastLogin >= thirtyDaysAgo
+      }
+
+      return true
+    })
+  }, [enrichedUsers, searchQuery, searchBy, groupFilter, organizationFilter, lastActiveFilter])
+
+  const sortedUsers = useMemo(() => {
+    const sorted = [...filteredUsers]
+    sorted.sort((a, b) => {
+      if (sortField === "user") {
+        const compare = a.displayName.localeCompare(b.displayName)
+        return sortDirection === "asc" ? compare : -compare
+      }
+
+      const aTime = a.lastLoginDate ? a.lastLoginDate.getTime() : 0
+      const bTime = b.lastLoginDate ? b.lastLoginDate.getTime() : 0
+      return sortDirection === "asc" ? aTime - bTime : bTime - aTime
+    })
+    return sorted
+  }, [filteredUsers, sortField, sortDirection])
+
+  const totalUsers = sortedUsers.length
+  const totalPages = Math.max(1, Math.ceil(totalUsers / PAGE_SIZE))
+  const pageStartIndex = (currentPage - 1) * PAGE_SIZE
+  const pagedUsers = sortedUsers.slice(pageStartIndex, pageStartIndex + PAGE_SIZE)
+  const visiblePages = getPageWindow(currentPage, totalPages)
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchQuery, searchBy, groupFilter, organizationFilter, lastActiveFilter])
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages)
+    }
+  }, [currentPage, totalPages])
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDirection((current) => (current === "asc" ? "desc" : "asc"))
+      return
+    }
+    setSortField(field)
+    setSortDirection("asc")
+  }
+
+  const renderSortIcon = (field: SortField) => {
+    if (sortField !== field) {
+      return <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground" />
+    }
+    return sortDirection === "asc" ? (
+      <ArrowUp className="h-3.5 w-3.5 text-foreground" />
+    ) : (
+      <ArrowDown className="h-3.5 w-3.5 text-foreground" />
+    )
+  }
+
+  const clearFilters = () => {
+    setSearchQuery("")
+    setSearchBy("name")
+    setGroupFilter("all")
+    setOrganizationFilter("all")
+    setLastActiveFilter("all")
+    setCurrentPage(1)
+  }
 
   const handleCreate = async () => {
+    if (!canAdministerUsers) {
+      toast({
+        title: "Permission denied",
+        description: "Only admins can create users.",
+        variant: "destructive",
+      })
+      return
+    }
     if (!formData.username || !formData.firstName || !formData.lastName || !formData.email || !formData.role) {
       toast({
         title: "Validation Error",
@@ -157,7 +368,7 @@ export default function UsersPage() {
 
     setIsSubmitting(true)
     try {
-      await usersService.create({
+      const createdUser = await usersService.create({
         username: formData.username,
         first_name: formData.firstName,
         last_name: formData.lastName,
@@ -170,6 +381,9 @@ export default function UsersPage() {
         password_confirm: formData.passwordConfirm,
         permissions: formData.permissions,
       })
+      if (createdUser?.id) {
+        setUserGroupsForUser(createdUser.id, formData.groups)
+      }
       toast({
         title: "Success",
         description: "User created successfully",
@@ -185,14 +399,16 @@ export default function UsersPage() {
         password: "",
         passwordConfirm: "",
         permissions: [],
+        groups: [],
       })
       mutate()
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.warn("Create user failed", err)
+      const errorObject = err && typeof err === "object" ? (err as { message?: string; errors?: unknown }) : null
       const errorMessage =
-        err?.errors
-          ? JSON.stringify(err.errors)
-          : err?.message || "Failed to create user"
+        errorObject?.errors
+          ? JSON.stringify(errorObject.errors)
+          : errorObject?.message || "Failed to create user"
       toast({
         title: "Error",
         description: errorMessage,
@@ -204,6 +420,14 @@ export default function UsersPage() {
   }
 
   const handleResetPassword = async (user: User) => {
+    if (!canResetPasswords) {
+      toast({
+        title: "Permission denied",
+        description: "Only admins can reset passwords.",
+        variant: "destructive",
+      })
+      return
+    }
     setResetUser(user)
     setResetPassword("")
     setResetPasswordConfirm("")
@@ -230,7 +454,7 @@ export default function UsersPage() {
     }
     setIsResetting(true)
     try {
-      await usersService.adminResetPassword(resetUser.id, resetPassword)
+      await usersService.adminResetPassword(Number(resetUser.id), resetPassword)
       toast({
         title: "Success",
         description: "Password reset successfully.",
@@ -248,10 +472,18 @@ export default function UsersPage() {
   }
 
   const handleDeactivate = async (user: User) => {
+    if (!canActivateDeactivateUsers) {
+      toast({
+        title: "Permission denied",
+        description: "Only admins can deactivate users.",
+        variant: "destructive",
+      })
+      return
+    }
     if (!confirm(`Are you sure you want to deactivate ${user.firstName} ${user.lastName}?`)) return
 
     try {
-      await usersService.deactivate(user.id)
+      await usersService.deactivate(Number(user.id))
       toast({
         title: "Success",
         description: "User deactivated successfully",
@@ -267,9 +499,17 @@ export default function UsersPage() {
   }
 
   const handleActivate = async (user: User) => {
+    if (!canActivateDeactivateUsers) {
+      toast({
+        title: "Permission denied",
+        description: "Only admins can activate users.",
+        variant: "destructive",
+      })
+      return
+    }
     if (!confirm(`Activate ${user.firstName} ${user.lastName}?`)) return
     try {
-      await usersService.activate(user.id)
+      await usersService.activate(Number(user.id))
       toast({
         title: "Success",
         description: "User activated successfully",
@@ -284,13 +524,42 @@ export default function UsersPage() {
     }
   }
 
-  const actions = (user: User) => [
-    { label: "Edit", onClick: () => router.push(`/users/${user.id}/edit`) },
-    { label: "Reset Password", onClick: () => handleResetPassword(user) },
-    user.is_active
-      ? { label: "Deactivate", onClick: () => handleDeactivate(user), destructive: true }
-      : { label: "Activate", onClick: () => handleActivate(user) },
-  ]
+  const actions = (user: User) => {
+    const items: Array<{ label: string; onClick: () => void; destructive?: boolean }> = [
+      { label: "Edit", onClick: () => router.push(`/users/${user.id}/edit`) },
+    ]
+    if (canResetPasswords) {
+      items.push({ label: "Reset Password", onClick: () => handleResetPassword(user) })
+    }
+    if (canActivateDeactivateUsers) {
+      const isActive =
+        (user as User & { is_active?: boolean; isActive?: boolean }).is_active ??
+        (user as User & { is_active?: boolean; isActive?: boolean }).isActive ??
+        true
+      items.push(
+        isActive
+          ? { label: "Deactivate", onClick: () => handleDeactivate(user), destructive: true }
+          : { label: "Activate", onClick: () => handleActivate(user) },
+      )
+    }
+    return items
+  }
+
+  const handleAddGroup = () => {
+    const next = newGroupName.trim()
+    if (!next) return
+    setGroupCatalog(uniqueGroups([...BASE_GROUP_OPTIONS, ...addGroupToCatalog(next)]))
+    setNewGroupName("")
+  }
+
+  const handleRemoveGroup = (groupName: string) => {
+    if (BASE_GROUP_OPTIONS.includes(groupName)) return
+    setGroupCatalog(uniqueGroups([...BASE_GROUP_OPTIONS, ...removeGroupFromCatalog(groupName)]))
+    setFormData((prev) => ({
+      ...prev,
+      groups: prev.groups.filter((group) => group.toLowerCase() !== groupName.toLowerCase()),
+    }))
+  }
 
   if (isLoading) {
     return (
@@ -309,14 +578,11 @@ export default function UsersPage() {
     )
   }
 
-  const adminCount = users.filter(u => u.role === 'admin').length
-  const meStaffCount = users.filter(
-    (u) => u.role === "officer" || u.role === "manager" || u.role === "collector",
-  ).length
-  const clientCount = users.filter(u => u.role === 'client').length
+  const showingFrom = totalUsers === 0 ? 0 : pageStartIndex + 1
+  const showingTo = Math.min(pageStartIndex + PAGE_SIZE, totalUsers)
 
   return (
-    <div className="space-y-6">
+    <div className="w-full max-w-full space-y-6 overflow-x-hidden">
       <PageHeader
         title="Users"
         description="Manage user accounts and permissions"
@@ -325,45 +591,319 @@ export default function UsersPage() {
           { label: "Users" },
         ]}
         actions={
-          <Button onClick={() => setIsCreateOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Add User
-          </Button>
+          canAdministerUsers ? (
+            <Button onClick={() => setIsCreateOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add User
+            </Button>
+          ) : null
         }
       />
 
-      {/* Stats cards */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-lg border border-border bg-card p-4">
-          <p className="text-sm text-muted-foreground">Total Users</p>
-          <p className="text-2xl font-bold text-foreground">{users.length}</p>
+      <section className="space-y-4 rounded-lg border border-border bg-card p-4">
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-sm font-semibold">User Groups</p>
         </div>
-        <div className="rounded-lg border border-border bg-card p-4">
-          <p className="text-sm text-muted-foreground">Admins</p>
-          <p className="text-2xl font-bold text-foreground">{adminCount}</p>
+        <div className="flex flex-wrap gap-2">
+          {groupCatalog.length === 0 ? (
+            <span className="text-sm text-muted-foreground">No groups created yet.</span>
+          ) : (
+            groupCatalog.map((group) => (
+              <Badge
+                key={group}
+                variant="secondary"
+                className={cn("px-3 py-1 text-xs", !BASE_GROUP_OPTIONS.includes(group) && "cursor-pointer")}
+                onClick={() => handleRemoveGroup(group)}
+                title={BASE_GROUP_OPTIONS.includes(group) ? undefined : "Remove group"}
+              >
+                {group}{!BASE_GROUP_OPTIONS.includes(group) ? " x" : ""}
+              </Badge>
+            ))
+          )}
         </div>
-        <div className="rounded-lg border border-border bg-card p-4">
-          <p className="text-sm text-muted-foreground">M&E Staff</p>
-          <p className="text-2xl font-bold text-foreground">{meStaffCount}</p>
+        <div className="flex items-center gap-2">
+          <Input
+            placeholder="Add group (e.g. Coordinators)"
+            value={newGroupName}
+            onChange={(event) => setNewGroupName(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                event.preventDefault()
+                handleAddGroup()
+              }
+            }}
+            className="min-w-0 flex-1"
+          />
+          <Button type="button" variant="outline" onClick={handleAddGroup} className="shrink-0">
+            Add Group
+          </Button>
         </div>
-        <div className="rounded-lg border border-border bg-card p-4">
-          <p className="text-sm text-muted-foreground">Clients</p>
-          <p className="text-2xl font-bold text-foreground">{clientCount}</p>
-        </div>
-      </div>
+      </section>
 
-      <DataTable
-        data={users}
-        columns={columns}
-        searchPlaceholder="Search users..."
-        searchKey="email"
-        onRowClick={(user) => router.push(`/users/${user.id}`)}
-        actions={actions}
-      />
+      <section className="space-y-4 rounded-lg border border-border bg-card p-4">
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-sm font-semibold">Search + Filters</p>
+          <Button type="button" variant="ghost" size="sm" onClick={clearFilters}>
+            <FilterX className="mr-2 h-4 w-4" />
+            Clear filters
+          </Button>
+        </div>
 
-      {/* Create Dialog */}
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-6">
+          <div className="space-y-2 xl:col-span-2">
+            <Label htmlFor="users-search">Search</Label>
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                id="users-search"
+                placeholder="Search users"
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                className="pl-9"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Search by</Label>
+            <Select value={searchBy} onValueChange={(value) => setSearchBy(value as SearchBy)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Field" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="name">Name</SelectItem>
+                <SelectItem value="email">Email</SelectItem>
+                <SelectItem value="username">Username</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Group</Label>
+            <Select value={groupFilter} onValueChange={setGroupFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="All groups" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All groups</SelectItem>
+                {groupFilterOptions.map((group) => (
+                  <SelectItem key={group} value={group}>
+                    {group}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Organization</Label>
+            <Select value={organizationFilter} onValueChange={setOrganizationFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="All organizations" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All organizations</SelectItem>
+                {organizations.map((organization) => (
+                  <SelectItem key={organization.id} value={String(organization.id)}>
+                    {organization.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Last active</Label>
+            <Select
+              value={lastActiveFilter}
+              onValueChange={(value) => setLastActiveFilter(value as LastActiveFilter)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Any time" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Any time</SelectItem>
+                <SelectItem value="today">Today</SelectItem>
+                <SelectItem value="last_7_days">Last 7 days</SelectItem>
+                <SelectItem value="last_30_days">Last 30 days</SelectItem>
+                <SelectItem value="never">Never logged in</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </section>
+
+      <section className="rounded-lg border border-border bg-card">
+        <div className="w-full overflow-x-auto">
+          <Table className="w-full table-fixed">
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="w-[30%]">
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-1.5 text-left"
+                    onClick={() => handleSort("user")}
+                  >
+                    User
+                    {renderSortIcon("user")}
+                  </button>
+                </TableHead>
+                <TableHead className="w-[22%]">Groups</TableHead>
+                <TableHead className="w-[20%]">Organization</TableHead>
+                <TableHead className="w-[18%]">
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-1.5 text-left"
+                    onClick={() => handleSort("last_active")}
+                  >
+                    Last Active
+                    {renderSortIcon("last_active")}
+                  </button>
+                </TableHead>
+                <TableHead className="w-[10%] text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {pagedUsers.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="h-36 text-center whitespace-normal">
+                    <div className="space-y-1">
+                      <p className="font-medium text-foreground">No users found</p>
+                      <p className="text-sm text-muted-foreground">Try adjusting your filters</p>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                pagedUsers.map((entry) => {
+                  const userActions = actions(entry.user)
+                  const initials = `${(entry.user.firstName?.[0] || "").toUpperCase()}${(entry.user.lastName?.[0] || "").toUpperCase()}` || "U"
+                  return (
+                    <TableRow
+                      key={entry.user.id}
+                      className="cursor-pointer"
+                      onClick={() => router.push(`/users/${entry.user.id}`)}
+                    >
+                      <TableCell className="whitespace-normal">
+                        <div className="flex min-w-0 items-center gap-3">
+                          <Avatar className="h-8 w-8 shrink-0">
+                            <AvatarFallback className="text-xs">{initials}</AvatarFallback>
+                          </Avatar>
+                          <div className="min-w-0 space-y-0.5">
+                            <p className="truncate text-sm font-medium text-foreground">{entry.displayName}</p>
+                            <p className="truncate text-xs text-muted-foreground">{entry.user.email}</p>
+                            {entry.username ? (
+                              <p className="truncate text-xs text-muted-foreground">@{entry.username}</p>
+                            ) : null}
+                          </div>
+                        </div>
+                      </TableCell>
+
+                      <TableCell className="whitespace-normal">
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <Badge variant="secondary" className={cn("text-[10px]", USER_ROLE_COLORS[entry.user.role] || "")}> 
+                            <Shield className="mr-1 h-3 w-3" />
+                            {USER_ROLE_LABELS[entry.user.role] || entry.user.role}
+                          </Badge>
+                          {entry.groups.slice(0, 2).map((group) => (
+                            <Badge key={`${entry.user.id}-${group}`} variant="outline" className="max-w-[110px] truncate text-[10px]">
+                              {group}
+                            </Badge>
+                          ))}
+                          {entry.groups.length > 2 ? (
+                            <Badge variant="outline" className="text-[10px]">+{entry.groups.length - 2}</Badge>
+                          ) : null}
+                        </div>
+                      </TableCell>
+
+                      <TableCell className="whitespace-normal">
+                        <span className="block truncate text-sm text-muted-foreground">{entry.organizationName}</span>
+                      </TableCell>
+
+                      <TableCell className="whitespace-normal">
+                        <div className="inline-flex items-center gap-2 text-sm text-muted-foreground">
+                          <Clock className="h-3.5 w-3.5 shrink-0" />
+                          <span className="truncate">{formatLastActive(entry.user.lastLogin)}</span>
+                        </div>
+                      </TableCell>
+
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={(event) => event.stopPropagation()}
+                            >
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            {userActions.map((action) => (
+                              <DropdownMenuItem
+                                key={`${entry.user.id}-${action.label}`}
+                                className={cn(action.destructive && "text-destructive")}
+                                onClick={(event) => {
+                                  event.stopPropagation()
+                                  action.onClick()
+                                }}
+                              >
+                                {action.label}
+                              </DropdownMenuItem>
+                            ))}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  )
+                })
+              )}
+            </TableBody>
+          </Table>
+        </div>
+
+        <div className="flex flex-col gap-3 border-t border-border px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-muted-foreground">
+            Showing {showingFrom}\u2013{showingTo} of {totalUsers} users
+          </p>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+              disabled={currentPage <= 1}
+            >
+              <ChevronLeft className="mr-1 h-4 w-4" />
+              Prev
+            </Button>
+
+            {visiblePages.map((page) => (
+              <Button
+                key={page}
+                variant={page === currentPage ? "default" : "outline"}
+                size="sm"
+                onClick={() => setCurrentPage(page)}
+                className="min-w-9"
+              >
+                {page}
+              </Button>
+            ))}
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+              disabled={currentPage >= totalPages}
+            >
+              Next
+              <ChevronRight className="ml-1 h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </section>
+
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent className="w-[95vw] sm:max-w-lg max-h-[90vh] overflow-hidden">
+        <DialogContent className="w-[95vw] max-h-[90vh] overflow-y-auto sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Add User</DialogTitle>
             <DialogDescription>
@@ -371,7 +911,7 @@ export default function UsersPage() {
             </DialogDescription>
           </DialogHeader>
           <form
-            className="space-y-4 max-h-[calc(90vh-8rem)] overflow-y-auto pr-1"
+            className="max-h-[calc(90vh-8rem)] space-y-4 overflow-y-auto pr-1"
             onSubmit={(e) => {
               e.preventDefault()
               handleCreate()
@@ -456,6 +996,28 @@ export default function UsersPage() {
                 </SelectContent>
               </Select>
             </div>
+            <div className="space-y-2">
+              <Label>User Groups</Label>
+              <div className="grid gap-2 rounded-md border border-border p-3 sm:grid-cols-2">
+                {groupCatalog.map((group) => (
+                  <label key={group} className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={formData.groups.includes(group)}
+                      onChange={(event) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          groups: event.target.checked
+                            ? [...prev.groups, group]
+                            : prev.groups.filter((entry) => entry !== group),
+                        }))
+                      }
+                    />
+                    <span>{group}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
             <UserPermissionsManager
               availablePermissions={availablePermissions}
               value={formData.permissions}
@@ -473,7 +1035,8 @@ export default function UsersPage() {
                 value={formData.organizationId}
                 onChange={(value) => setFormData({ ...formData, organizationId: value })}
                 placeholder="Select organization"
-              /></div>
+              />
+            </div>
             <DialogFooter>
               <Button
                 type="button"
@@ -492,7 +1055,7 @@ export default function UsersPage() {
       </Dialog>
 
       <Dialog open={isResetOpen} onOpenChange={setIsResetOpen}>
-        <DialogContent className="w-[95vw] sm:max-w-md">
+        <DialogContent className="w-[95vw] max-h-[90vh] overflow-y-auto sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Reset Password</DialogTitle>
             <DialogDescription>
@@ -539,6 +1102,3 @@ export default function UsersPage() {
     </div>
   )
 }
-
-
-

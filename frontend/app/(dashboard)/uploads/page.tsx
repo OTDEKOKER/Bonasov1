@@ -1,7 +1,8 @@
 ﻿"use client";
 
 import { useMemo, useState } from "react";
-import { Plus, Search, Filter, Download, Trash2, FileUp, RefreshCcw } from "lucide-react";
+import { Plus, Search, Download, Trash2, FileUp, RefreshCcw } from "lucide-react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -64,7 +65,7 @@ export default function UploadsPage() {
   const { data: orgsData } = useAllOrganizations();
   const { data: importJobsData, mutate: mutateImports } = useImportJobs();
 
-  const uploads = uploadsData?.results || [];
+  const uploads = useMemo(() => uploadsData?.results ?? [], [uploadsData?.results]);
   const organizations = orgsData?.results || [];
   const importJobs = importJobsData?.results || [];
 
@@ -406,7 +407,12 @@ export default function UploadsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Import Jobs</CardTitle>
+          <div className="flex items-center justify-between gap-2">
+            <CardTitle>Import Jobs</CardTitle>
+            <Button asChild variant="outline" size="sm">
+              <Link href="/uploads/imports">View all imports</Link>
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           {importJobs.length === 0 ? (

@@ -1,10 +1,12 @@
 "use client"
 
-import React, { useEffect } from "react"
+import React, { useState } from "react"
+import Image from "next/image"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useSearchParams } from "next/navigation"
 import { cn } from "@/lib/utils"
+import { useAllOrganizations } from "@/lib/hooks/use-api"
 import {
   LayoutDashboard,
   Building2,
@@ -12,6 +14,7 @@ import {
   FolderKanban,
   Target,
   UserSquare2,
+  Table2,
   CalendarDays,
   Share2,
   FileBarChart,
@@ -26,7 +29,6 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
-import { useState } from "react"
 
 interface NavItemProps {
   title: string
@@ -34,24 +36,102 @@ interface NavItemProps {
   icon: React.ReactNode
   badge?: number
   isActive: boolean
-  children?: { title: string; href: string }[]
+  subItems?: SidebarSubItem[]
 }
 
-function NavItem({ title, href, icon, badge, isActive, children }: NavItemProps) {
+interface SidebarSubItem {
+  title: string
+  href: string
+  subItems?: SidebarSubItem[]
+}
+
+const hasActiveDescendant = (
+  item: SidebarSubItem,
+  isChildActive: (childHref: string) => boolean,
+): boolean => {
+  if (isChildActive(item.href)) return true
+  if (!item.subItems?.length) return false
+  return item.subItems.some((child) => hasActiveDescendant(child, isChildActive))
+}
+
+interface NestedSubItemProps {
+  item: SidebarSubItem
+  isChildActive: (childHref: string) => boolean
+  level?: number
+}
+
+function NestedSubItem({ item, isChildActive, level = 1 }: NestedSubItemProps) {
+  const hasChildren = !!item.subItems?.length
+  const isItemActive = isChildActive(item.href)
+  const hasActiveChild = hasChildren && item.subItems!.some((child) => hasActiveDescendant(child, isChildActive))
+  const [isOpen, setIsOpen] = useState(hasActiveChild)
+
+  if (!hasChildren) {
+    return (
+      <Link
+        href={item.href}
+        className={cn(
+          "block rounded-lg px-3 py-2 text-sm transition-colors",
+          level === 1 ? "ml-0" : "ml-4",
+          isItemActive
+            ? "bg-primary/10 text-primary"
+            : "text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+        )}
+      >
+        {item.title}
+      </Link>
+    )
+  }
+
+  return (
+    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+      <div className={cn("flex items-center gap-1", level > 1 && "ml-4")}>
+        <Link
+          href={item.href}
+          className={cn(
+            "flex-1 rounded-lg px-3 py-2 text-sm transition-colors",
+            isItemActive
+              ? "bg-primary/10 text-primary"
+              : hasActiveChild
+                ? "text-sidebar-accent-foreground"
+                : "text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+          )}
+        >
+          {item.title}
+        </Link>
+        <CollapsibleTrigger className="rounded-md p-1 text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
+          <ChevronDown className={cn("h-4 w-4 transition-transform", isOpen && "rotate-180")} />
+        </CollapsibleTrigger>
+      </div>
+
+      <CollapsibleContent className="space-y-1 pl-4 pt-1">
+        {item.subItems!.map((child) => (
+          <NestedSubItem key={`${child.href}-${child.title}`} item={child} isChildActive={isChildActive} level={level + 1} />
+        ))}
+      </CollapsibleContent>
+    </Collapsible>
+  )
+}
+
+function NavItem({ title, href, icon, badge, isActive, subItems }: NavItemProps) {
   const [isOpen, setIsOpen] = useState(false)
   const pathname = usePathname()
-  const [mounted, setMounted] = useState(false)
+  const searchParams = useSearchParams()
+  const safePathname = pathname || ""
+  const currentQuery = searchParams.toString()
+  const currentFullPath = `${safePathname}${currentQuery ? `?${currentQuery}` : ""}`
+  const isChildActive = (childHref: string) => {
+    if (childHref.includes("?")) {
+      return currentFullPath === childHref
+    }
+    return safePathname === childHref && !currentQuery
+  }
+  const hasActiveChild = !!subItems?.some((child) => isChildActive(child.href))
 
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-  const safePathname = mounted ? pathname : ""
+  if (subItems) {
 
-  if (children) {
-    const hasActiveChild = children.some(child => safePathname === child.href)
-    
     return (
-      <Collapsible open={isOpen || hasActiveChild} onOpenChange={setIsOpen}>
+      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         <CollapsibleTrigger className={cn(
           "flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
           hasActiveChild
@@ -65,19 +145,8 @@ function NavItem({ title, href, icon, badge, isActive, children }: NavItemProps)
           <ChevronDown className={cn("h-4 w-4 transition-transform", isOpen && "rotate-180")} />
         </CollapsibleTrigger>
         <CollapsibleContent className="pl-9 pt-1">
-          {children.map((child) => (
-            <Link
-              key={child.href}
-              href={child.href}
-              className={cn(
-                "block rounded-lg px-3 py-2 text-sm transition-colors",
-                safePathname === child.href
-                  ? "bg-primary/10 text-primary"
-                  : "text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-              )}
-            >
-              {child.title}
-            </Link>
+          {subItems.map((child) => (
+            <NestedSubItem key={`${child.href}-${child.title}`} item={child} isChildActive={isChildActive} />
           ))}
         </CollapsibleContent>
       </Collapsible>
@@ -105,7 +174,7 @@ function NavItem({ title, href, icon, badge, isActive, children }: NavItemProps)
   )
 }
 
-const navigation = [
+const baseNavigation = [
   { title: "Dashboard", href: "/dashboard", icon: <LayoutDashboard className="h-4 w-4" /> },
   { title: "Organizations", href: "/organizations", icon: <Building2 className="h-4 w-4" /> },
   { title: "Users", href: "/users", icon: <Users className="h-4 w-4" /> },
@@ -135,12 +204,25 @@ const navigation = [
     children: [
       { title: "All Respondents", href: "/respondents" },
       { title: "Interactions", href: "/respondents/interactions" },
-      { title: "Aggregates", href: "/aggregates" },
     ],
+  },
+  {
+    title: "Aggregates",
+    href: "/aggregates",
+    icon: <Table2 className="h-4 w-4" />,
+    children: [{ title: "All Aggregates", href: "/aggregates" }],
   },
   { title: "Events", href: "/events", icon: <CalendarDays className="h-4 w-4" /> },
   { title: "Social Media", href: "/social", icon: <Share2 className="h-4 w-4" /> },
-  { title: "Uploads", href: "/uploads", icon: <Upload className="h-4 w-4" /> },
+  {
+    title: "Uploads",
+    href: "/uploads",
+    icon: <Upload className="h-4 w-4" />,
+    children: [
+      { title: "All Uploads", href: "/uploads" },
+      { title: "All Imports", href: "/uploads/imports" },
+    ],
+  },
   {
     title: "Analysis",
     href: "/analysis",
@@ -156,15 +238,41 @@ const navigation = [
 
 export function AppSidebar() {
   const pathname = usePathname()
+  const { data: organizationsData } = useAllOrganizations()
+
+  const organizations = organizationsData?.results ?? []
+  const parentOrganizations = organizations
+    .filter((org) => {
+      const parentId = (org as { parentId?: string | number | null; parent?: string | number | null }).parentId
+        ?? (org as { parent?: string | number | null }).parent
+      return !String(parentId ?? "")
+    })
+    .sort((left, right) => String(left.name || "").localeCompare(String(right.name || "")))
+
+  const aggregateChildren: SidebarSubItem[] = [
+    { title: "All Aggregates", href: "/aggregates" },
+    ...parentOrganizations.map((parent) => ({
+      title: String(parent.name || "Parent"),
+      href: `/aggregates?orgId=${encodeURIComponent(String(parent.id))}`,
+    })),
+  ]
+
+  const navigation = baseNavigation.map((item) =>
+    item.title === "Aggregates"
+      ? { ...item, children: aggregateChildren }
+      : item,
+  )
 
   return (
     <aside className="fixed left-0 top-0 z-40 flex h-screen w-64 flex-col border-r border-sidebar-border bg-sidebar">
       {/* Logo */}
       <div className="flex h-16 items-center gap-2 border-b border-sidebar-border px-4">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white">
-          <img
+          <Image
             src="/favicon.ico"
             alt="BONASO"
+            width={24}
+            height={24}
             className="h-6 w-6"
           />
         </div>
@@ -184,7 +292,7 @@ export function AppSidebar() {
             icon={item.icon}
             badge={item.badge}
             isActive={pathname === item.href}
-            children={item.children}
+            subItems={item.children}
           />
         ))}
       </nav>

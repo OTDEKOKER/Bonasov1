@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { useEffect, useMemo, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
@@ -22,6 +22,7 @@ import { organizationsService } from "@/lib/api"
 import { useOrganization, useAllOrganizations } from "@/lib/hooks/use-api"
 import type { Organization } from "@/lib/types"
 import { useToast } from "@/hooks/use-toast"
+import { isRecognizedParentOrganizationName } from "@/lib/organization-aliases"
 
 export default function OrganizationEditPage() {
   const router = useRouter()
@@ -31,7 +32,11 @@ export default function OrganizationEditPage() {
 
   const { data: org, isLoading, error, mutate } = useOrganization(Number.isFinite(id) ? id : null)
   const { data: orgsData } = useAllOrganizations()
-  const organizations = orgsData?.results || []
+  const organizations = useMemo(() => orgsData?.results ?? [], [orgsData?.results])
+  const recognizedParentOrganizations = useMemo(
+    () => organizations.filter((entry) => isRecognizedParentOrganizationName(entry.name || "")),
+    [organizations],
+  )
 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState({
@@ -45,11 +50,6 @@ export default function OrganizationEditPage() {
     description: "",
     isActive: true,
   })
-
-  const parentOptions = useMemo(
-    () => organizations.filter((item) => item.id !== id),
-    [organizations, id],
-  )
 
   useEffect(() => {
     if (!org) return
@@ -187,7 +187,7 @@ export default function OrganizationEditPage() {
             <div className="space-y-2">
                             <Label htmlFor="parent">Parent Organization</Label>
               <OrganizationSelect
-                organizations={organizations}
+                organizations={recognizedParentOrganizations}
                 value={formData.parentId}
                 onChange={(value) => setFormData({ ...formData, parentId: value === "none" ? "" : value })}
                 includeNone

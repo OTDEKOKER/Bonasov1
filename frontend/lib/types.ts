@@ -64,6 +64,28 @@ export interface Indicator {
   organizations?: string[]
   created_at: string
   updated_at: string
+  project_targets?: ProjectIndicatorTarget[]
+}
+
+export interface ProjectIndicatorTarget {
+  id: string
+  project: string
+  project_name?: string
+  project_code?: string
+  indicator: string
+  indicator_name?: string
+  indicator_code?: string
+  organization: string
+  organization_name?: string
+  organization_code?: string
+  q1_target?: number
+  q2_target?: number
+  q3_target?: number
+  q4_target?: number
+  target_value: number
+  current_value: number
+  baseline_value: number
+  progress: number
 }
 
 export interface IndicatorOption {
@@ -119,17 +141,8 @@ export interface Project {
   progress_percentage?: number
   created_at: string
   updated_at: string
-  project_indicators?: Array<{
-    id: string
-    project: string
-    indicator: string
-    indicator_name?: string
-    indicator_code?: string
-    target_value: number
-    current_value: number
-    baseline_value: number
-    progress: number
-  }>
+  project_indicators?: ProjectIndicatorTarget[]
+  organization_targets?: ProjectIndicatorTarget[]
 }
 
 export interface Task {
@@ -205,6 +218,8 @@ export interface Interaction {
   assessment_name?: string | null
   project?: string | null
   project_name?: string | null
+  event?: string | null
+  event_name?: string | null
   date: string
   notes?: string
   responses?: Response[]

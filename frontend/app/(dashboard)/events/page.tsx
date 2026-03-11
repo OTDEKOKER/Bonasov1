@@ -55,15 +55,20 @@ import { PageHeader } from "@/components/shared/page-header";
 import { eventsService } from "@/lib/api";
 import { useIndicators, useEvents, useAllOrganizations } from "@/lib/hooks/use-api";
 import { OrganizationSelect } from "@/components/shared/organization-select";
-import type { Event, EventParticipant, EventPhase } from "@/lib/types";
-import { useSearchParams } from "next/navigation";
+import { formatDate } from "@/lib/date-utils";
+import type { Event, EventPhase } from "@/lib/types";
+import type { EventParticipant } from "@/lib/api";
 import { Suspense } from "react";
 import { QRCodeCanvas } from "qrcode.react";
 
 const Loading = () => null;
 
+const toResultsArray = <T,>(value: T[] | { results?: T[] } | undefined): T[] => {
+  if (Array.isArray(value)) return value;
+  return value?.results ?? [];
+};
+
 export default function EventsPage() {
-  const searchParams = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -100,7 +105,6 @@ export default function EventsPage() {
 
   const events = eventsData?.results || [];
   const organizations = organizationsData?.results || [];
-  const filteredParticipantOrgs = organizations.filter((org) => org.name.toLowerCase().includes(participantOrgSearch.toLowerCase()));
 
   const totalAttendees = events.reduce(
     (acc, event) => acc + (Number(event.actual_participants) || 0),
@@ -224,13 +228,9 @@ export default function EventsPage() {
           eventsService.getParticipants(Number(viewEvent.id)),
           eventsService.getPhases(Number(viewEvent.id)),
         ]);
-        const participantList = Array.isArray(participantData)
-          ? participantData
-          : (participantData as any)?.results || [];
+        const participantList = toResultsArray(participantData);
         setParticipants(participantList);
-        const phaseList = Array.isArray(phaseData)
-          ? phaseData
-          : (phaseData as any)?.results || [];
+        const phaseList = toResultsArray(phaseData);
         setPhases(phaseList);
       } catch (error) {
         console.error("Failed to load event details", error);
@@ -251,9 +251,7 @@ export default function EventsPage() {
         notes: participantNotes || undefined,
       });
       const participantData = await eventsService.getParticipants(Number(viewEvent.id));
-      const participantList = Array.isArray(participantData)
-        ? participantData
-        : (participantData as any)?.results || [];
+      const participantList = toResultsArray(participantData);
       setParticipants(participantList);
       resetDetailsForm();
     } catch (error) {
@@ -266,9 +264,7 @@ export default function EventsPage() {
     try {
       await eventsService.markAttendance(Number(viewEvent.id), participantId, attended);
       const participantData = await eventsService.getParticipants(Number(viewEvent.id));
-      const participantList = Array.isArray(participantData)
-        ? participantData
-        : (participantData as any)?.results || [];
+      const participantList = toResultsArray(participantData);
       setParticipants(participantList);
       await mutateEvents();
     } catch (error) {
@@ -287,9 +283,7 @@ export default function EventsPage() {
         description: phaseDescription || undefined,
       });
       const phaseData = await eventsService.getPhases(Number(viewEvent.id));
-      const phaseList = Array.isArray(phaseData)
-        ? phaseData
-        : (phaseData as any)?.results || [];
+      const phaseList = toResultsArray(phaseData);
       setPhases(phaseList);
       resetDetailsForm();
     } catch (error) {
@@ -693,7 +687,7 @@ export default function EventsPage() {
               <CardContent className="space-y-3">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Calendar className="h-4 w-4" />
-                  {new Date(event.start_date).toLocaleDateString("en-US", {
+                  {formatDate(event.start_date, "en-US", {
                     weekday: "short",
                     year: "numeric",
                     month: "short",
@@ -743,7 +737,7 @@ export default function EventsPage() {
                     <div className="flex flex-wrap gap-2 pt-1">
                       {eventIndicatorIds.map((id) => (
                         <Badge key={id} variant="outline" className="text-xs">
-                          {indicatorNameById.get(String(id)) || "Indicator"}
+                          {String(indicatorNameById.get(String(id)) || "Indicator")}
                         </Badge>
                       ))}
                     </div>
@@ -779,7 +773,7 @@ export default function EventsPage() {
           }
         }}
       >
-        <DialogContent className="w-[95vw] max-w-4xl">
+        <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Event Details</DialogTitle>
             <DialogDescription>
@@ -807,7 +801,7 @@ export default function EventsPage() {
                     ) : (
                       (viewEvent.indicators || []).map((id) => (
                         <Badge key={id} variant="outline" className="text-xs">
-                          {indicatorNameById.get(String(id)) || "Indicator"}
+                          {String(indicatorNameById.get(String(id)) || "Indicator")}
                         </Badge>
                       ))
                     )}
@@ -911,7 +905,7 @@ export default function EventsPage() {
                         >
                           <div>
                             <div className="font-medium">
-                              {participant.respondent_name || participant.name || "Participant"}
+                              {participant.name || `Respondent #${participant.respondent ?? ""}` || "Participant"}
                             </div>
                             <div className="text-xs text-muted-foreground">
                               {participant.gender || "â€”"} {participant.contact ? `â€¢ ${participant.contact}` : ""}
@@ -999,7 +993,7 @@ export default function EventsPage() {
                           </div>
                           {phase.due_date && (
                             <div className="text-xs text-muted-foreground">
-                              Due: {new Date(phase.due_date).toLocaleDateString()}
+                              Due: {formatDate(phase.due_date)}
                             </div>
                           )}
                         </div>

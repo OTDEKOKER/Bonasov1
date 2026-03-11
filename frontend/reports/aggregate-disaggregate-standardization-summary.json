@@ -1,0 +1,14 @@
+{
+  "generatedAt": "2026-03-03T08:04:07.914Z",
+  "scope": {
+    "project": "2",
+    "period_start": "2026-01-01",
+    "period_end": "2026-03-31"
+  },
+  "totalAggregates": 901,
+  "patched": 403,
+  "unchanged": 498,
+  "unmatchedProfile": 493,
+  "fallbackProfileUsed": 493,
+  "failed": 0
+}

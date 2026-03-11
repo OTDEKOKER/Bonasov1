@@ -41,10 +41,9 @@ const statusColors: Record<string, string> = {
 
 interface ProjectCardProps {
   project: Project
-  organizations: { id: string; name: string; type: string }[]
 }
 
-function ProjectCard({ project, organizations }: ProjectCardProps) {
+function ProjectCard({ project }: ProjectCardProps) {
   const router = useRouter()
   const progress = project.progress_percentage ?? 0
   const startDate = new Date(project.start_date)
@@ -104,7 +103,7 @@ function ProjectCard({ project, organizations }: ProjectCardProps) {
       <div className="space-y-3">
         <div className="space-y-1">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Target Progress</span>
+            <span className="text-muted-foreground">Project Progress</span>
             <span className="font-medium text-foreground">{progress}%</span>
           </div>
           <Progress value={progress} className="h-2" />
@@ -239,7 +238,7 @@ export default function ProjectsPage() {
     <div className="space-y-6">
       <PageHeader
         title="Projects"
-        description="Manage projects, tasks, and targets"
+        description="Manage projects, tasks, timelines, and organization scope"
         breadcrumbs={[
           { label: "Dashboard", href: "/dashboard" },
           { label: "Projects" },
@@ -275,7 +274,6 @@ export default function ProjectsPage() {
               <ProjectCard
                 key={project.id}
                 project={project}
-                organizations={organizations}
               />
             ))}
           </div>
@@ -289,11 +287,11 @@ export default function ProjectsPage() {
 
       {/* Create Dialog */}
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent className="w-[95vw] sm:max-w-lg">
+        <DialogContent className="w-[95vw] sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Create Project</DialogTitle>
             <DialogDescription>
-              Create a new project to track indicators and targets
+              Create a new project to track indicators, timelines, and organizations
             </DialogDescription>
           </DialogHeader>
           <form
@@ -427,6 +425,4 @@ export default function ProjectsPage() {
     </div>
   )
 }
-
-
 

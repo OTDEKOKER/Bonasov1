@@ -8,9 +8,13 @@ import { enqueueMutation, scheduleMutationSync } from '@/lib/offline/mutation-qu
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 
+type ApiMeta = Record<string, unknown>;
+
 export interface ApiResponse<T> {
   data: T;
-  message?: string;
+  meta?: ApiMeta | null;
+  message?: string | null;
+  errors?: unknown | null;
   status: number;
   offlineQueued?: boolean;
   queuedId?: number;
@@ -19,13 +23,60 @@ export interface ApiResponse<T> {
 export type ApiError = Error & {
   status: number;
   errors?: unknown;
+  meta?: ApiMeta | null;
+  response?: ApiResponse<null>;
 };
 
-function makeApiError(message: string, status: number, errors?: unknown): ApiError {
+function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isApiEnvelope(value: unknown): value is ApiResponse<unknown> {
+  if (!isObject(value)) return false;
+  if (!('data' in value)) return false;
+  return 'meta' in value || 'message' in value || 'errors' in value;
+}
+
+export function normalizeApiError(params: {
+  status: number;
+  payload?: unknown;
+  fallbackMessage?: string;
+}): ApiError {
+  const { status, payload, fallbackMessage } = params;
+  const payloadIsEnvelope = isApiEnvelope(payload);
+  let message = fallbackMessage || 'Request failed';
+  let errors: unknown = null;
+  let meta: ApiMeta | null = null;
+
+  if (payloadIsEnvelope) {
+    message = payload.message || message;
+    errors = payload.errors ?? null;
+    meta = payload.meta ?? null;
+  } else if (isObject(payload)) {
+    const detail = typeof payload.detail === 'string' ? payload.detail : undefined;
+    const msg = typeof payload.message === 'string' ? payload.message : undefined;
+    message = detail || msg || message;
+    errors = 'errors' in payload ? payload.errors : payload;
+  } else if (typeof payload === 'string' && payload.trim()) {
+    message = payload;
+    errors = payload;
+  } else if (Array.isArray(payload) && payload.length > 0) {
+    errors = payload;
+  }
+
   const err = new Error(message) as ApiError;
   err.name = 'ApiError';
   err.status = status;
-  err.errors = errors;
+  const resolvedErrors = errors ?? (payloadIsEnvelope ? null : payload ?? null);
+  err.errors = resolvedErrors;
+  err.meta = meta ?? null;
+  err.response = {
+    data: null,
+    meta: meta ?? null,
+    message,
+    errors: resolvedErrors,
+    status,
+  };
   return err;
 }
 
@@ -81,6 +132,68 @@ function parseQueuedData<T>(body: BodyInit | null | undefined): T {
   } catch {
     return {} as T;
   }
+}
+
+function resolveApiUrl(endpoint: string): string {
+  if (endpoint.startsWith('http://') || endpoint.startsWith('https://')) {
+    return endpoint;
+  }
+  if (endpoint.startsWith(API_BASE_URL)) {
+    return endpoint;
+  }
+  const base = API_BASE_URL;
+  if (base.endsWith('/') && endpoint.startsWith('/')) {
+    return `${base}${endpoint.slice(1)}`;
+  }
+  if (!base.endsWith('/') && !endpoint.startsWith('/')) {
+    return `${base}/${endpoint}`;
+  }
+  return `${base}${endpoint}`;
+}
+
+function prepareHeaders(options: RequestInit): Headers {
+  const headers = new Headers(options.headers || {});
+  const hasContentType = headers.has('Content-Type');
+  const body = options.body;
+  const isFormData = typeof FormData !== 'undefined' && body instanceof FormData;
+  const isStringBody = typeof body === 'string';
+  if (!hasContentType && body && !isFormData && isStringBody) {
+    headers.set('Content-Type', 'application/json');
+  }
+  return headers;
+}
+
+function applyAuthHeader(headers: Headers): Headers {
+  const token = getAuthToken();
+  if (token && !headers.has('Authorization')) {
+    headers.set('Authorization', `Bearer ${token}`);
+  }
+  return headers;
+}
+
+function buildRequestConfig(endpoint: string, options: RequestInit) {
+  const requestUrl = resolveApiUrl(endpoint);
+  const headers = applyAuthHeader(prepareHeaders(options));
+  return { requestUrl, headers };
+}
+
+function normalizeApiResponse<T>(payload: unknown, status: number): ApiResponse<T> {
+  if (isApiEnvelope(payload)) {
+    return {
+      data: (payload.data ?? null) as T,
+      meta: (payload.meta ?? null) as ApiMeta | null,
+      message: payload.message ?? null,
+      errors: payload.errors ?? null,
+      status,
+    };
+  }
+  return {
+    data: (payload ?? null) as T,
+    meta: null,
+    message: null,
+    errors: null,
+    status,
+  };
 }
 
 /**
@@ -159,26 +272,14 @@ async function refreshAccessToken(): Promise<string | null> {
 }
 
 /**
- * Base fetch wrapper with authentication and error handling
+ * Base fetch wrapper with authentication and token refresh
  */
-async function apiRequest<T>(
+export async function fetchWithAuth(
   endpoint: string,
   options: RequestInit = {},
   retry: boolean = true
-): Promise<ApiResponse<T>> {
-  const method = (options.method || 'GET').toUpperCase();
-  const token = getAuthToken();
-
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
-    ...options.headers,
-  };
-
-  if (token) {
-    (headers as Record<string, string>)['Authorization'] = `Bearer ${token}`;
-  }
-
-  const requestUrl = `${API_BASE_URL}${endpoint}`;
+): Promise<Response> {
+  const { requestUrl, headers } = buildRequestConfig(endpoint, options);
 
   const doFetch = async (overrideHeaders?: HeadersInit) =>
     fetch(requestUrl, {
@@ -186,9 +287,38 @@ async function apiRequest<T>(
       headers: overrideHeaders ?? headers,
     });
 
+  let response = await doFetch();
+  if (
+    response.status === 401 &&
+    retry &&
+    !endpoint.startsWith('/users/token/refresh/') &&
+    !endpoint.startsWith('/users/request-token/')
+  ) {
+    const newToken = await refreshAccessToken();
+    if (newToken) {
+      const retryHeaders = new Headers(headers);
+      retryHeaders.set('Authorization', `Bearer ${newToken}`);
+      response = await doFetch(retryHeaders);
+    }
+  }
+
+  return response;
+}
+
+/**
+ * Base API request wrapper with auth, offline support, and normalized responses
+ */
+async function apiRequest<T>(
+  endpoint: string,
+  options: RequestInit = {},
+  retry: boolean = true
+): Promise<ApiResponse<T>> {
+  const method = (options.method || 'GET').toUpperCase();
+  const { requestUrl, headers } = buildRequestConfig(endpoint, options);
+
   let response: Response;
   try {
-    response = await doFetch();
+    response = await fetchWithAuth(endpoint, options, retry);
   } catch (err) {
     if (
       typeof window !== 'undefined' &&
@@ -206,41 +336,25 @@ async function apiRequest<T>(
       return {
         data: parseQueuedData<T>(options.body),
         message: 'Request queued for sync when back online.',
+        meta: { queued: true },
+        errors: null,
         status: 202,
         offlineQueued: true,
         queuedId,
       };
     }
 
-    // Browser network errors (DNS, refused, offline) throw TypeError("Failed to fetch").
     const debugUrl =
       typeof window !== 'undefined' && requestUrl.startsWith('/')
         ? `${window.location.origin}${requestUrl}`
         : requestUrl;
-    throw makeApiError(
-      `Failed to fetch ${debugUrl}`,
-      0,
-      err instanceof Error ? { name: err.name, message: err.message } : err,
-    );
-  }
-
-  if (
-    response.status === 401 &&
-    retry &&
-    !endpoint.startsWith('/users/token/refresh/') &&
-    !endpoint.startsWith('/users/request-token/')
-  ) {
-    const newToken = await refreshAccessToken();
-    if (newToken) {
-      const retryHeaders: HeadersInit = {
-        ...headers,
-        Authorization: `Bearer ${newToken}`,
-      };
-      response = await doFetch(retryHeaders);
-    }
+    throw normalizeApiError({
+      status: 0,
+      payload: err instanceof Error ? { name: err.name, message: err.message } : err,
+      fallbackMessage: `Failed to fetch ${debugUrl}`,
+    });
   }
   
-  // Handle non-JSON responses
   const contentType = response.headers.get('content-type');
   if (!contentType?.includes('application/json')) {
     if (!response.ok) {
@@ -248,20 +362,34 @@ async function apiRequest<T>(
       try {
         bodyText = await response.text();
       } catch {}
-      throw makeApiError(bodyText || 'Server error', response.status);
+      throw normalizeApiError({
+        status: response.status,
+        payload: bodyText || undefined,
+        fallbackMessage: 'Server error',
+      });
     }
-    return { data: {} as T, status: response.status };
+    return normalizeApiResponse<T>(null, response.status);
   }
-  
-  const data = await response.json();
-  
+
+  let data: unknown = null;
+  try {
+    data = await response.json();
+  } catch {
+    data = null;
+  }
+
   if (!response.ok) {
     if (response.status === 401) {
-      const detail = data?.detail || data?.message || '';
-      const code = data?.code || data?.errors?.code;
+      const detail = isObject(data)
+        ? (data.detail as string | undefined) || (data.message as string | undefined)
+        : '';
+      const directCode = isObject(data) ? (data.code as string | undefined) : undefined;
+      const nestedErrors = isObject(data) ? data.errors : undefined;
+      const nestedCode = isObject(nestedErrors) ? (nestedErrors.code as string | undefined) : undefined;
+      const code = directCode || nestedCode;
       const tokenInvalid =
         code === 'token_not_valid' ||
-        String(detail).toLowerCase().includes('token not valid');
+        String(detail || '').toLowerCase().includes('token not valid');
       if (tokenInvalid) {
         clearAuthTokens();
         if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
@@ -269,24 +397,33 @@ async function apiRequest<T>(
         }
       }
     }
-    throw makeApiError(
-      data?.detail || data?.message || 'An error occurred',
-      response.status,
-      data?.errors || data,
-    );
+    throw normalizeApiError({
+      status: response.status,
+      payload: data,
+      fallbackMessage: 'An error occurred',
+    });
   }
-  
-  return { data, status: response.status };
+
+  return normalizeApiResponse<T>(data, response.status);
 }
 
 /**
  * API Client with typed methods
  */
 export const api = {
-  get: <T>(endpoint: string, params?: Record<string, string>) => {
-    const url = params 
-      ? `${endpoint}?${new URLSearchParams(params).toString()}`
-      : endpoint;
+  get: <T>(endpoint: string, params?: Record<string, string | number | boolean | null | undefined>) => {
+    const searchParams = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value === null || value === undefined) return;
+        const normalized = String(value);
+        if (!normalized) return;
+        searchParams.append(key, normalized);
+      });
+    }
+
+    const query = searchParams.toString();
+    const url = query ? `${endpoint}?${query}` : endpoint;
     return apiRequest<T>(url, { method: 'GET' });
   },
   

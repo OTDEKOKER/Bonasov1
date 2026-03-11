@@ -2,7 +2,7 @@
 
 import { use, useState } from "react"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, Calendar, Users, Target, CheckCircle2, Clock, Edit, Trash2, Plus, Loader2 } from "lucide-react"
+import { Calendar, Users, Target, CheckCircle2, Clock, Edit, Trash2, Plus, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
@@ -12,7 +12,7 @@ import { PageHeader } from "@/components/shared/page-header"
 import { DataTable } from "@/components/shared/data-table"
 import { useAllIndicators, useAllOrganizations, useDeadlines, useProject, useTasks } from "@/lib/hooks/use-api"
 import { deadlinesService, projectsService, tasksService } from "@/lib/api"
-import type { Task, ProjectDeadline, Organization } from "@/lib/types"
+import type { ProjectDeadline, ProjectIndicatorTarget, Task } from "@/lib/types"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -25,6 +25,19 @@ const statusColors: Record<string, string> = {
   completed: "bg-chart-2/10 text-chart-2",
   draft: "bg-muted text-muted-foreground",
   archived: "bg-muted text-muted-foreground",
+}
+
+const fiscalQuarters = [
+  { key: "q1_target", label: "Q1", range: "1 Apr – 30 Jun" },
+  { key: "q2_target", label: "Q2", range: "1 Jul – 30 Sep" },
+  { key: "q3_target", label: "Q3", range: "1 Oct – 31 Dec" },
+  { key: "q4_target", label: "Q4", range: "1 Jan – 31 Mar (following year)" },
+] as const
+
+function formatNumber(value: unknown): string {
+  const numeric = Number(value)
+  if (!Number.isFinite(numeric)) return "—"
+  return numeric.toLocaleString()
 }
 
 export default function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -61,6 +74,45 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
     due_date: "",
   })
 
+  const groupedTargets = (() => {
+    if (!project) return []
+    const targets = project.organization_targets || []
+    const groups = new Map<
+      string,
+      {
+        organizationId: string
+        organizationName: string
+        organizationCode: string
+        targets: ProjectIndicatorTarget[]
+      }
+    >()
+
+    targets.forEach((target) => {
+      const organizationId = String(target.organization || "")
+      const existing = groups.get(organizationId)
+      if (existing) {
+        existing.targets.push(target)
+        return
+      }
+
+      groups.set(organizationId, {
+        organizationId,
+        organizationName: target.organization_name || "Organization",
+        organizationCode: target.organization_code || "—",
+        targets: [target],
+      })
+    })
+
+    return Array.from(groups.values())
+      .map((group) => ({
+        ...group,
+        targets: [...group.targets].sort((left, right) =>
+          `${left.indicator_name || ""}`.localeCompare(`${right.indicator_name || ""}`),
+        ),
+      }))
+      .sort((left, right) => left.organizationName.localeCompare(right.organizationName))
+  })()
+
   if (isLoading) {
     return (
       <div className="flex h-[50vh] items-center justify-center">
@@ -76,35 +128,6 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
       </div>
     )
   }
-
-  const orgs = organizationsData || []
-  const projectOrgIds = new Set((project.organizations || []).map(String))
-  const projectOrgs = orgs.filter((org) => projectOrgIds.has(String(org.id)))
-  const rawTasks = tasksData?.results || []
-  const orgIndicators = (indicatorsData || []).filter((indicator) => {
-    const orgs = (indicator.organizations || []) as Array<string | number | { id?: string | number }>
-    if (!orgs.length) return true
-    return orgs.some((orgId) => {
-      const value =
-        typeof orgId === "object" && orgId !== null
-          ? (orgId as { id?: string | number }).id
-          : orgId
-      return value !== undefined && projectOrgIds.has(String(value))
-    })
-  })
-  const indicatorTasks = orgIndicators.map((indicator, index) => ({
-    id: `indicator-${indicator.id}-${index}`,
-    project: project.id,
-    project_name: project.name,
-    name: indicator.name,
-    description: indicator.description || "",
-    status: "pending",
-    priority: "medium",
-    due_date: project.end_date,
-  })) as Task[]
-  const projectTasks = indicatorTasks.length ? indicatorTasks : rawTasks
-  const projectDeadlines = deadlinesData?.results || []
-  const progress = project.progress_percentage ?? 0
 
   const taskColumns = [
     {
@@ -358,7 +381,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
 
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Overall Progress</CardDescription>
+            <CardDescription>Project Progress</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
@@ -366,6 +389,9 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
               <span className="text-2xl font-bold">{progress}%</span>
             </div>
             <Progress value={progress} className="mt-2 h-2" />
+            <p className="mt-2 text-xs text-muted-foreground">
+              Indicator targets are managed from indicator pages.
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -374,6 +400,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
       <Tabs defaultValue="tasks">
         <TabsList className="bg-secondary">
           <TabsTrigger value="tasks">Tasks ({projectTasks.length})</TabsTrigger>
+          <TabsTrigger value="targets">Targets ({project.organization_targets?.length || 0})</TabsTrigger>
           <TabsTrigger value="organizations">Organizations ({projectOrgs.length})</TabsTrigger>
           <TabsTrigger value="deadlines">Deadlines ({projectDeadlines.length})</TabsTrigger>
         </TabsList>
@@ -390,6 +417,81 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
             columns={taskColumns}
             searchPlaceholder="Search tasks..."
           />
+        </TabsContent>
+
+        <TabsContent value="targets" className="mt-6 space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Organization Targets</CardTitle>
+              <CardDescription>
+                Shared indicators can have different quarterly targets for each organization in this project.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-4">
+                {fiscalQuarters.map((quarter) => (
+                  <div key={quarter.key} className="rounded-lg border border-border p-3">
+                    <p className="text-sm font-medium">{quarter.label}</p>
+                    <p className="text-xs text-muted-foreground">{quarter.range}</p>
+                  </div>
+                ))}
+              </div>
+
+              {groupedTargets.length === 0 ? (
+                <div className="rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">
+                  No organization targets have been set for this project yet.
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {groupedTargets.map((group) => (
+                    <Card key={group.organizationId}>
+                      <CardHeader>
+                        <CardTitle className="text-base">{group.organizationName}</CardTitle>
+                        <CardDescription>{group.organizationCode}</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="overflow-x-auto rounded-md border">
+                          <table className="min-w-full text-sm">
+                            <thead className="bg-muted/50">
+                              <tr>
+                                <th className="px-4 py-3 text-left font-medium">Indicator</th>
+                                <th className="px-4 py-3 text-left font-medium">Q1</th>
+                                <th className="px-4 py-3 text-left font-medium">Q2</th>
+                                <th className="px-4 py-3 text-left font-medium">Q3</th>
+                                <th className="px-4 py-3 text-left font-medium">Q4</th>
+                                <th className="px-4 py-3 text-left font-medium">Annual Total</th>
+                                <th className="px-4 py-3 text-left font-medium">Progress</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {group.targets.map((target) => (
+                                <tr key={target.id} className="border-t">
+                                  <td className="px-4 py-3">
+                                    <div>
+                                      <p className="font-medium">{target.indicator_name || "Indicator"}</p>
+                                      <p className="text-xs text-muted-foreground">{target.indicator_code || "—"}</p>
+                                    </div>
+                                  </td>
+                                  <td className="px-4 py-3">{formatNumber(target.q1_target)}</td>
+                                  <td className="px-4 py-3">{formatNumber(target.q2_target)}</td>
+                                  <td className="px-4 py-3">{formatNumber(target.q3_target)}</td>
+                                  <td className="px-4 py-3">{formatNumber(target.q4_target)}</td>
+                                  <td className="px-4 py-3 font-medium">{formatNumber(target.target_value)}</td>
+                                  <td className="px-4 py-3">
+                                    <Badge variant="secondary">{`${target.progress || 0}%`}</Badge>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="organizations" className="mt-6">
@@ -481,7 +583,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
       </Tabs>
 
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className="sm:max-w-xl">
+        <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Project</DialogTitle>
             <DialogDescription>Update project details.</DialogDescription>
@@ -544,7 +646,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
       </Dialog>
 
       <Dialog open={isTaskOpen} onOpenChange={setIsTaskOpen}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Add Task</DialogTitle>
             <DialogDescription>Create a task for this project.</DialogDescription>
@@ -600,7 +702,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
       </Dialog>
 
       <Dialog open={isDeadlineOpen} onOpenChange={setIsDeadlineOpen}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Add Deadline</DialogTitle>
             <DialogDescription>Create a deadline for this project.</DialogDescription>

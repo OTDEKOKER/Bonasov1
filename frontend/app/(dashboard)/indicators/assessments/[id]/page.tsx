@@ -36,14 +36,15 @@ export default function AssessmentDetailPage() {
   const router = useRouter()
   const { toast } = useToast()
   const params = useParams()
-  const id = Number(params?.id)
+  const rawId = Array.isArray(params?.id) ? params.id[0] : params?.id
+  const assessmentId = rawId ? String(rawId) : null
 
   const { data: assessment, isLoading, error, mutate } = useAssessment(
-    Number.isFinite(id) ? id : null,
+    assessmentId,
   )
   const { data: indicatorsData } = useIndicators()
 
-  const indicators = indicatorsData?.results || []
+  const indicators = useMemo(() => indicatorsData?.results ?? [], [indicatorsData?.results])
   const indicatorOptions = useMemo(
     () => indicators.filter((indicator) => indicator.is_active),
     [indicators],
@@ -81,7 +82,7 @@ export default function AssessmentDetailPage() {
     }
     setIsSubmitting(true)
     try {
-      await assessmentsService.update(Number(assessment.id), {
+      await assessmentsService.update(String(assessment.id), {
         name: formState.name,
         description: formState.description || undefined,
       })
@@ -104,7 +105,7 @@ export default function AssessmentDetailPage() {
     const order = orderValue ? Number(orderValue) : indicatorsDetail.length + 1
     setIsSubmitting(true)
     try {
-      await assessmentsService.addIndicator(Number(assessment.id), Number(selectedIndicator), order, isRequired)
+      await assessmentsService.addIndicator(String(assessment.id), selectedIndicator, order, isRequired)
       toast({ title: "Added", description: "Indicator added to assessment." })
       setSelectedIndicator("")
       setOrderValue("")
@@ -127,7 +128,7 @@ export default function AssessmentDetailPage() {
     if (!confirm("Remove this indicator from the assessment?")) return
     setIsSubmitting(true)
     try {
-      await assessmentsService.removeIndicator(Number(assessment.id), Number(indicatorId))
+      await assessmentsService.removeIndicator(String(assessment.id), indicatorId)
       toast({ title: "Removed", description: "Indicator removed." })
       mutate()
     } catch (err) {
