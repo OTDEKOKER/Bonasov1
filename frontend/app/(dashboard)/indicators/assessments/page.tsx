@@ -67,10 +67,14 @@ export default function AssessmentsPage() {
   const assessments = data?.results || []
 
   const ensureIndicator = async (request: CreateIndicatorRequest): Promise<number> => {
+    const organizationsFilter = request.organizations?.[0]
+      ? { organizations: String(request.organizations[0]) }
+      : {}
+
     const list = await indicatorsService.list({
       search: request.code,
-      organizations: request.organizations?.[0] ? String(request.organizations[0]) : undefined,
       page_size: "100",
+      ...organizationsFilter,
     })
     const exactMatch = (list.results || []).find((i) => {
       if (i.code !== request.code) return false
@@ -86,8 +90,8 @@ export default function AssessmentsPage() {
     } catch {
       const retry = await indicatorsService.list({
         search: request.code,
-        organizations: request.organizations?.[0] ? String(request.organizations[0]) : undefined,
         page_size: "100",
+        ...organizationsFilter,
       })
       const retryMatch = (retry.results || []).find((i) => {
         if (i.code !== request.code) return false
@@ -97,9 +101,7 @@ export default function AssessmentsPage() {
       })
       if (retryMatch?.id) return Number(retryMatch.id)
 
-      const all = await indicatorsService.listAll({
-        organizations: request.organizations?.[0] ? String(request.organizations[0]) : undefined,
-      })
+      const all = await indicatorsService.listAll(organizationsFilter)
       const allMatch = all.find((i) => i.code === request.code)
       if (allMatch?.id) return Number(allMatch.id)
       throw new Error(`Failed to create indicator: ${request.code}`)
