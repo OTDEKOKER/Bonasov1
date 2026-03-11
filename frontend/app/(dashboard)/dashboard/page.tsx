@@ -24,9 +24,8 @@ export default function DashboardPage() {
   const { data: deadlinesData, isLoading: deadlinesLoading } = useDeadlines({ status: 'pending' })
 
   const isLoading = statsLoading || projectsLoading || deadlinesLoading
-  const [renderTimestamp] = useState(() => Date.now())
-  const activeProjects = useMemo(() => projectsData?.results ?? [], [projectsData?.results])
-  const pendingDeadlines = useMemo(() => deadlinesData?.results ?? [], [deadlinesData?.results])
+  const activeProjects = projectsData?.results || []
+  const pendingDeadlines = deadlinesData?.results || []
   
   // Map API response to expected format
   const stats = rawStats ? {
@@ -75,12 +74,12 @@ export default function DashboardPage() {
 
     const projectStillExists = activeProjects.some((project) => String(project.id) === selectedProjectFilter)
     if (!projectStillExists) {
-      queueMicrotask(() => setSelectedProjectFilter("all"))
+      setSelectedProjectFilter("all")
     }
   }, [activeProjects, selectedProjectFilter])
 
   const filteredDeadlines = useMemo(() => {
-    const now = renderTimestamp
+    const now = Date.now()
     const windowDays = Number(deadlineWindow)
 
     return pendingDeadlines
@@ -96,7 +95,7 @@ export default function DashboardPage() {
         return diffDays >= 0 && diffDays <= windowDays
       })
       .slice(0, 5)
-  }, [deadlineWindow, pendingDeadlines, renderTimestamp, selectedProjectFilter])
+  }, [pendingDeadlines, deadlineWindow, selectedProjectFilter])
 
   if (isLoading) {
     return (
@@ -173,7 +172,7 @@ export default function DashboardPage() {
             onClick={() => {
               setActivityTypeFilter("all")
               setActivitySearch("")
-              queueMicrotask(() => setSelectedProjectFilter("all"))
+              setSelectedProjectFilter("all")
               setProjectSearch("")
               setDeadlineWindow("30")
             }}

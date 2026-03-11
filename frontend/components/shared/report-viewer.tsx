@@ -97,12 +97,9 @@ export function ReportViewerDialog(props: {
   refreshing?: boolean;
 }) {
   const { open, onOpenChange, report, onRefresh, onDownload, refreshing } = props;
-  const cachedRows = useMemo(
-    () => (Array.isArray(report?.cached_data)
-      ? (report.cached_data as Array<Record<string, unknown>>)
-      : []),
-    [report?.cached_data],
-  );
+  const cachedRows = Array.isArray(report?.cached_data)
+    ? (report?.cached_data as Array<Record<string, unknown>>)
+    : [];
 
   const [pivotRowKey, setPivotRowKey] = useState("indicator_name");
   const [pivotColKey, setPivotColKey] = useState("none");

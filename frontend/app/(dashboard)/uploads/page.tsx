@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import { useMemo, useState } from "react";
-import { Plus, Search, Download, Trash2, FileUp, RefreshCcw } from "lucide-react";
+import { Plus, Search, Filter, Download, Trash2, FileUp, RefreshCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -64,9 +64,9 @@ export default function UploadsPage() {
   const { data: orgsData } = useAllOrganizations();
   const { data: importJobsData, mutate: mutateImports } = useImportJobs();
 
-  const uploads = useMemo(() => uploadsData?.results ?? [], [uploadsData?.results]);
-  const organizations = useMemo(() => orgsData?.results ?? [], [orgsData?.results]);
-  const importJobs = useMemo(() => importJobsData?.results ?? [], [importJobsData?.results]);
+  const uploads = uploadsData?.results || [];
+  const organizations = orgsData?.results || [];
+  const importJobs = importJobsData?.results || [];
 
   const filteredUploads = useMemo(() => {
     const query = search.toLowerCase();

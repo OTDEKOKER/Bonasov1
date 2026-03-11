@@ -7,14 +7,13 @@ export default defineConfig([
   ...nextTs,
   {
     rules: {
-      '@typescript-eslint/no-explicit-any': 'off',
-      '@typescript-eslint/no-empty-object-type': 'off',
+      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-empty-object-type': 'warn',
       'react-hooks/purity': 'warn',
       'react-hooks/set-state-in-effect': 'warn',
       'react-hooks/preserve-manual-memoization': 'warn',
-      '@next/next/no-html-link-for-pages': 'off',
-      '@next/next/no-img-element': 'off',
-      'react/no-children-prop': 'off',
+      '@next/next/no-html-link-for-pages': 'warn',
+      'react/no-children-prop': 'warn',
     },
   },
   globalIgnores(['.next/**', 'out/**', 'build/**', 'next-env.d.ts']),

@@ -83,7 +83,7 @@ export default function UserDetailPage() {
           <div>
             <p className="text-sm text-muted-foreground">Created</p>
             <p className="text-sm">
-              {(user as any)?.createdAt || (user as any)?.date_joined ? new Date((user as any)?.createdAt || (user as any)?.date_joined).toLocaleDateString() : "-"}
+              {new Date((user as any)?.createdAt || (user as any)?.date_joined || Date.now()).toLocaleDateString()}
             </p>
           </div>
           <div>

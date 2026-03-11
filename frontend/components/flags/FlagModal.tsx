@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState } from "react"
+import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
@@ -68,7 +69,7 @@ export function FlagModal({
       setDescription("")
       setSeverity("low")
       onClose()
-    } catch {
+    } catch (err) {
       setError("Failed to create flag. Please try again.")
     } finally {
       setIsSubmitting(false)

@@ -154,6 +154,12 @@ export default function OrganizationsPage() {
     }
   }
 
+  const actions = (org: Organization) => [
+    { label: "View Details", onClick: () => router.push(`/organizations/${org.id}`) },
+    { label: "Edit", onClick: () => router.push(`/organizations/${org.id}/edit`) },
+    { label: "Delete", onClick: () => handleDelete(org), destructive: true },
+  ]
+
   if (isLoading) {
     return (
       <div className="flex h-[60vh] items-center justify-center">

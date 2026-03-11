@@ -1,5 +1,6 @@
 "use client"
 
+import { useMemo } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { ArrowLeft, Calendar, Mail, MapPin, Phone, User, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -18,9 +19,10 @@ export default function RespondentDetailPage() {
     Number.isFinite(id) ? id : null,
   )
 
-  const demographicsEntries = respondent?.demographics
-    ? Object.entries(respondent.demographics)
-    : []
+  const demographicsEntries = useMemo(() => {
+    if (!respondent?.demographics) return []
+    return Object.entries(respondent.demographics)
+  }, [respondent?.demographics])
 
   if (isLoading) {
     return (

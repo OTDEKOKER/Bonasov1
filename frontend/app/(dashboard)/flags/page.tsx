@@ -71,7 +71,7 @@ export default function FlagsPage() {
   const [filterPriority, setFilterPriority] = useState<string>("all");
   const [isUpdating, setIsUpdating] = useState(false);
 
-  const flags = useMemo(() => flagsData?.results ?? [], [flagsData?.results]);
+  const flags = flagsData?.results || [];
 
   const filteredFlags = useMemo(() => {
     return flags.filter((flag) => {

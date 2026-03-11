@@ -56,12 +56,14 @@ import { eventsService } from "@/lib/api";
 import { useIndicators, useEvents, useAllOrganizations } from "@/lib/hooks/use-api";
 import { OrganizationSelect } from "@/components/shared/organization-select";
 import type { Event, EventParticipant, EventPhase } from "@/lib/types";
+import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { QRCodeCanvas } from "qrcode.react";
 
 const Loading = () => null;
 
 export default function EventsPage() {
+  const searchParams = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -462,12 +464,12 @@ export default function EventsPage() {
                     placeholder="Search organizations..."
                   />
 <div className="max-h-40 space-y-2 overflow-auto rounded-lg border border-border p-3">
-                    {filteredParticipantOrgs.length === 0 ? (
+                    {organizations.length === 0 ? (
                       <p className="text-xs text-muted-foreground">
                         No organizations found.
                       </p>
                     ) : (
-                      filteredParticipantOrgs.map((org) => {
+                      organizations.map((org) => {
                         const id = String(org.id);
                         const checked = participatingOrgIds.includes(id);
                         return (

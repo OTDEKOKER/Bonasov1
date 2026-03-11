@@ -86,10 +86,10 @@ export default function ReportsPage() {
   const { data: indicatorsData } = useAllIndicators();
   const { data: organizationsData } = useAllOrganizations();
 
-  const reports = useMemo(() => reportsData?.results ?? [], [reportsData?.results]);
-  const projects = useMemo(() => projectsData?.results ?? [], [projectsData?.results]);
-  const indicators = useMemo(() => indicatorsData ?? [], [indicatorsData]);
-  const organizations = useMemo(() => organizationsData?.results ?? [], [organizationsData?.results]);
+  const reports = reportsData?.results || [];
+  const projects = projectsData?.results || [];
+  const indicators = indicatorsData || [];
+  const organizations = organizationsData?.results || [];
 
   const filteredReports = useMemo(() => {
     const query = searchQuery.toLowerCase();
@@ -146,7 +146,7 @@ export default function ReportsPage() {
       resetForm();
       setIsDialogOpen(false);
       mutate();
-    } catch {
+    } catch (err) {
       toast({
         title: "Error",
         description: "Failed to generate report.",
@@ -189,7 +189,7 @@ export default function ReportsPage() {
       const updated = await reportsService.generate(activeReport.id);
       setActiveReport(updated);
       mutate();
-    } catch {
+    } catch (err) {
       console.error("Failed to generate report", err);
       toast({
         title: "Error",

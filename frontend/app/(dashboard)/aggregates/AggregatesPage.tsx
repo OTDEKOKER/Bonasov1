@@ -241,11 +241,11 @@ export default function AggregatesPage() {
     organization: formOrganization || undefined,
   });
 
-  const aggregates = useMemo(() => aggregatesData?.results ?? [], [aggregatesData?.results]);
-  const projects = useMemo(() => projectsData?.results ?? [], [projectsData?.results]);
-  const indicators = useMemo(() => indicatorsData?.results ?? [], [indicatorsData?.results]);
-  const organizations = useMemo(() => organizationsData?.results ?? [], [organizationsData?.results]);
-  const templates = useMemo(() => templatesData ?? [], [templatesData]);
+  const aggregates = aggregatesData?.results || [];
+  const projects = projectsData?.results || [];
+  const indicators = indicatorsData?.results || [];
+  const organizations = organizationsData?.results || [];
+  const templates = templatesData || [];
 
   const resetAutoCalcForm = () => {
     setAutoOutputIndicator("");

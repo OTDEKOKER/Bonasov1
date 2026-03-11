@@ -43,7 +43,7 @@ export default function AssessmentDetailPage() {
   )
   const { data: indicatorsData } = useIndicators()
 
-  const indicators = useMemo(() => indicatorsData?.results ?? [], [indicatorsData?.results])
+  const indicators = indicatorsData?.results || []
   const indicatorOptions = useMemo(
     () => indicators.filter((indicator) => indicator.is_active),
     [indicators],
