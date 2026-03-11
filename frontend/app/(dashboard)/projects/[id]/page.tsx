@@ -129,6 +129,17 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
     )
   }
 
+  const projectTasks = (tasksData?.results || []).filter((task) => String(task.project) === String(project.id))
+  const projectDeadlines = (deadlinesData?.results || []).filter((deadline) => String(deadline.project) === String(project.id))
+  const projectOrgs = (organizationsData?.results || []).filter((org) =>
+    (project.organizations || []).some((projectOrgId) => String(projectOrgId) === String(org.id)),
+  )
+  const progress = project.progress_percentage ?? (
+    projectTasks.length > 0
+      ? Math.round((projectTasks.filter((task) => task.status === "completed").length / projectTasks.length) * 100)
+      : 0
+  )
+
   const taskColumns = [
     {
       key: "name",
