@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { PageHeader } from "@/components/shared/page-header"
 import { DataTable } from "@/components/shared/data-table"
-import { useAllIndicators, useAllOrganizations, useDeadlines, useProject, useTasks } from "@/lib/hooks/use-api"
+import { useAllOrganizations, useDeadlines, useProject, useTasks } from "@/lib/hooks/use-api"
 import { deadlinesService, projectsService, tasksService } from "@/lib/api"
 import type { ProjectDeadline, ProjectIndicatorTarget, Task } from "@/lib/types"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -49,7 +49,6 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
   const { data: tasksData, mutate: mutateTasks } = useTasks(Number.isFinite(projectId) ? { project: String(projectId) } : undefined)
   const { data: deadlinesData, mutate: mutateDeadlines } = useDeadlines(Number.isFinite(projectId) ? { project: String(projectId) } : undefined)
   const { data: organizationsData } = useAllOrganizations()
-  const { data: indicatorsData } = useAllIndicators()
   const [isEditOpen, setIsEditOpen] = useState(false)
   const [isTaskOpen, setIsTaskOpen] = useState(false)
   const [isDeadlineOpen, setIsDeadlineOpen] = useState(false)
@@ -128,6 +127,17 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
       </div>
     )
   }
+
+  const projectTasks = (tasksData?.results || []).filter((task) => String(task.project) === String(project.id))
+  const projectDeadlines = (deadlinesData?.results || []).filter((deadline) => String(deadline.project) === String(project.id))
+  const projectOrgs = (organizationsData?.results || []).filter((org) =>
+    (project.organizations || []).some((projectOrgId) => String(projectOrgId) === String(org.id)),
+  )
+  const progress = project.progress_percentage ?? (
+    projectTasks.length > 0
+      ? Math.round((projectTasks.filter((task) => task.status === "completed").length / projectTasks.length) * 100)
+      : 0
+  )
 
   const taskColumns = [
     {
