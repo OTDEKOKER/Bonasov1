@@ -1,7 +1,10 @@
 "use client"
 
+import { useEffect, useMemo, useState } from "react"
 import { Users, Activity, FolderKanban, AlertTriangle, ArrowRight, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { StatsCard } from "@/components/dashboard/stats-card"
 import { ProgressChart } from "@/components/dashboard/progress-chart"
 import { IndicatorProgress } from "@/components/dashboard/indicator-progress"
@@ -10,13 +13,19 @@ import { useDashboardStats, useProjects, useDeadlines } from "@/lib/hooks/use-ap
 import Link from "next/link"
 
 export default function DashboardPage() {
+  const [activityTypeFilter, setActivityTypeFilter] = useState("all")
+  const [activitySearch, setActivitySearch] = useState("")
+  const [selectedProjectFilter, setSelectedProjectFilter] = useState("all")
+  const [projectSearch, setProjectSearch] = useState("")
+  const [deadlineWindow, setDeadlineWindow] = useState("30")
+
   const { data: rawStats, isLoading: statsLoading, error: statsError } = useDashboardStats()
   const { data: projectsData, isLoading: projectsLoading } = useProjects({ status: 'active' })
   const { data: deadlinesData, isLoading: deadlinesLoading } = useDeadlines({ status: 'pending' })
 
   const isLoading = statsLoading || projectsLoading || deadlinesLoading
   const activeProjects = projectsData?.results || []
-  const upcomingDeadlines = (deadlinesData?.results || []).slice(0, 3)
+  const pendingDeadlines = deadlinesData?.results || []
   
   // Map API response to expected format
   const stats = rawStats ? {
@@ -26,14 +35,67 @@ export default function DashboardPage() {
     pendingFlags: (rawStats.indicators_behind || 0),
     monthlyTrend: [],
     indicatorProgress: [],
-    recentActivity: (rawStats.recent_activity || []).map((a: { type: string; description: string; timestamp: string }) => ({
-      id: Math.random().toString(),
+    recentActivity: (rawStats.recent_activity || []).map((a: { type: string; description: string; timestamp: string }, index: number) => ({
+      id: `${a.timestamp}-${index}`,
       type: a.type,
       description: a.description,
       user: "System",
       timestamp: a.timestamp,
     })),
   } : null
+
+  const activityTypeOptions = useMemo(() => {
+    const values = new Set((stats?.recentActivity || []).map((item) => item.type).filter(Boolean))
+    return ["all", ...Array.from(values)]
+  }, [stats?.recentActivity])
+
+  const filteredRecentActivity = useMemo(() => {
+    return (stats?.recentActivity || []).filter((item) => {
+      const typeMatch = activityTypeFilter === "all" || item.type === activityTypeFilter
+      const searchMatch = !activitySearch.trim()
+        || item.description.toLowerCase().includes(activitySearch.toLowerCase())
+        || item.user.toLowerCase().includes(activitySearch.toLowerCase())
+      return typeMatch && searchMatch
+    })
+  }, [stats?.recentActivity, activityTypeFilter, activitySearch])
+
+  const filteredProjects = useMemo(() => {
+    return activeProjects.filter((project) => {
+      const projectMatch = selectedProjectFilter === "all" || String(project.id) === selectedProjectFilter
+      const searchMatch = !projectSearch.trim()
+        || project.name.toLowerCase().includes(projectSearch.toLowerCase())
+        || (project.code || "").toLowerCase().includes(projectSearch.toLowerCase())
+      return projectMatch && searchMatch
+    })
+  }, [activeProjects, selectedProjectFilter, projectSearch])
+
+  useEffect(() => {
+    if (selectedProjectFilter === "all") return
+
+    const projectStillExists = activeProjects.some((project) => String(project.id) === selectedProjectFilter)
+    if (!projectStillExists) {
+      setSelectedProjectFilter("all")
+    }
+  }, [activeProjects, selectedProjectFilter])
+
+  const filteredDeadlines = useMemo(() => {
+    const now = Date.now()
+    const windowDays = Number(deadlineWindow)
+
+    return pendingDeadlines
+      .filter((deadline) => {
+        const projectId = String(deadline.project ?? deadline.project_id ?? "")
+        if (selectedProjectFilter !== "all" && projectId !== selectedProjectFilter) return false
+
+        if (!Number.isFinite(windowDays) || windowDays <= 0) return true
+        const dueDateValue = deadline.due_date ?? deadline.dueDate
+        const dueMs = new Date(dueDateValue).getTime()
+        if (!Number.isFinite(dueMs)) return false
+        const diffDays = Math.ceil((dueMs - now) / (1000 * 60 * 60 * 24))
+        return diffDays >= 0 && diffDays <= windowDays
+      })
+      .slice(0, 5)
+  }, [pendingDeadlines, deadlineWindow, selectedProjectFilter])
 
   if (isLoading) {
     return (
@@ -100,6 +162,79 @@ export default function DashboardPage() {
         />
       </div>
 
+      <div className="rounded-xl border border-border bg-card p-4 sm:p-6">
+        <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+          <h2 className="text-sm font-medium text-muted-foreground">Quick filters</h2>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setActivityTypeFilter("all")
+              setActivitySearch("")
+              setSelectedProjectFilter("all")
+              setProjectSearch("")
+              setDeadlineWindow("30")
+            }}
+          >
+            Reset filters
+          </Button>
+          <p className="w-full text-xs text-muted-foreground">Refine dashboard lists by project, activity type, keyword, and deadline window.</p>
+        </div>
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+          <Select value={selectedProjectFilter} onValueChange={setSelectedProjectFilter}>
+            <SelectTrigger>
+              <SelectValue placeholder="All projects" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All projects</SelectItem>
+              {activeProjects.map((project) => (
+                <SelectItem key={project.id} value={String(project.id)}>
+                  {project.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={activityTypeFilter} onValueChange={setActivityTypeFilter}>
+            <SelectTrigger>
+              <SelectValue placeholder="All activity types" />
+            </SelectTrigger>
+            <SelectContent>
+              {activityTypeOptions.map((type) => (
+                <SelectItem key={type} value={type}>
+                  {type === "all" ? "All activity types" : type}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Input
+            placeholder="Search activity..."
+            value={activitySearch}
+            onChange={(event) => setActivitySearch(event.target.value)}
+          />
+
+          <Input
+            placeholder="Search project name/code..."
+            value={projectSearch}
+            onChange={(event) => setProjectSearch(event.target.value)}
+          />
+
+          <Select value={deadlineWindow} onValueChange={setDeadlineWindow}>
+            <SelectTrigger>
+              <SelectValue placeholder="Deadline window" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="7">Deadlines in 7 days</SelectItem>
+              <SelectItem value="30">Deadlines in 30 days</SelectItem>
+              <SelectItem value="90">Deadlines in 90 days</SelectItem>
+              <SelectItem value="0">Any deadline</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
       {/* Charts row */}
       <div className="grid gap-6 lg:grid-cols-2">
         <ProgressChart
@@ -113,7 +248,7 @@ export default function DashboardPage() {
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Activity feed */}
         <div className="lg:col-span-2">
-          <ActivityFeed activities={stats?.recentActivity || []} />
+          <ActivityFeed activities={filteredRecentActivity} />
         </div>
 
         {/* Upcoming deadlines & Projects */}
@@ -127,10 +262,10 @@ export default function DashboardPage() {
               </Link>
             </div>
             <div className="space-y-3">
-              {upcomingDeadlines.length === 0 ? (
+              {filteredDeadlines.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No upcoming deadlines</p>
               ) : (
-                upcomingDeadlines.map((deadline) => {
+                filteredDeadlines.map((deadline) => {
                   const dueDateValue = deadline.due_date ?? deadline.dueDate
                   const dueDate = new Date(dueDateValue)
                   const dueTime = dueDate.getTime()
@@ -169,10 +304,10 @@ export default function DashboardPage() {
               </Link>
             </div>
             <div className="space-y-3">
-              {activeProjects.length === 0 ? (
+              {filteredProjects.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No active projects</p>
               ) : (
-                activeProjects.slice(0, 5).map((project) => (
+                filteredProjects.slice(0, 5).map((project) => (
                   <Link
                     key={project.id}
                     href={`/projects/${project.id}`}

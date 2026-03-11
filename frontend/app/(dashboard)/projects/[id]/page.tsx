@@ -104,7 +104,10 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
   })) as Task[]
   const projectTasks = indicatorTasks.length ? indicatorTasks : rawTasks
   const projectDeadlines = deadlinesData?.results || []
-  const progress = project.progress_percentage ?? 0
+  const overallProgress = Math.max(
+    0,
+    Math.min(100, Number(project.progress_percentage ?? 0) || 0)
+  )
 
   const taskColumns = [
     {
@@ -363,9 +366,9 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
           <CardContent>
             <div className="flex items-center gap-2">
               <Target className="h-4 w-4 text-muted-foreground" />
-              <span className="text-2xl font-bold">{progress}%</span>
+              <span className="text-2xl font-bold">{overallProgress}%</span>
             </div>
-            <Progress value={progress} className="mt-2 h-2" />
+            <Progress value={overallProgress} className="mt-2 h-2" />
           </CardContent>
         </Card>
       </div>
