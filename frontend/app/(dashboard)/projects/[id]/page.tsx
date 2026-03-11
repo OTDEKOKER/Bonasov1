@@ -113,6 +113,15 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
       .sort((left, right) => left.organizationName.localeCompare(right.organizationName))
   })()
 
+  const projectTasks = tasksData?.results || []
+  const projectDeadlines = deadlinesData?.results || []
+  const allOrganizations = organizationsData?.results || []
+  const projectOrgs = allOrganizations.filter((org) => project?.organizations?.includes(org.id))
+  const completedTasks = projectTasks.filter((task) => task.status === "completed").length
+  const progress = projectTasks.length > 0
+    ? Math.round((completedTasks / projectTasks.length) * 100)
+    : project.progress_percentage || 0
+
   if (isLoading) {
     return (
       <div className="flex h-[50vh] items-center justify-center">
