@@ -18,6 +18,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { useToast } from "@/hooks/use-toast"
 import { indicatorsService, interactionsService, responsesService } from "@/lib/api"
 import { useAssessment, useAssessments, useEvents, useProjects, useRespondentProfile } from "@/lib/hooks/use-api"
+import { useSmartBack } from "@/lib/hooks/use-smart-back"
 import type { Indicator, IndicatorType, Interaction, Response as InteractionResponse } from "@/lib/types"
 
 type IndicatorOption = { label: string; value: string }
@@ -169,6 +170,7 @@ function formatDateValue(value: unknown): string {
 
 export default function RespondentDetailPage() {
   const router = useRouter()
+  const handleBack = useSmartBack("/respondents")
   const { toast } = useToast()
   const params = useParams()
   const id = Number(params?.id)
@@ -179,9 +181,9 @@ export default function RespondentDetailPage() {
   const { data: assessmentsData } = useAssessments()
   const { data: projectsData } = useProjects()
   const { data: eventsData } = useEvents({ page_size: "200" })
-  const assessments = assessmentsData?.results || []
-  const projects = projectsData?.results || []
-  const events = eventsData?.results || []
+  const assessments = useMemo(() => assessmentsData?.results || [], [assessmentsData?.results])
+  const projects = useMemo(() => projectsData?.results || [], [projectsData?.results])
+  const events = useMemo(() => eventsData?.results || [], [eventsData?.results])
   const [isEditOpen, setIsEditOpen] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [isResponsesOpen, setIsResponsesOpen] = useState(false)
@@ -718,7 +720,7 @@ export default function RespondentDetailPage() {
             <Button variant="outline" onClick={() => router.push(`/flags?respondentId=${respondent.id}`)}>
               Flag Record
             </Button>
-            <Button variant="outline" onClick={() => router.push("/respondents")}>
+            <Button variant="outline" onClick={handleBack}>
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back
             </Button>

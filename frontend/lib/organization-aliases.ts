@@ -10,7 +10,7 @@ const ORG_CANONICAL_ALIASES: Array<{ canonical: string; aliases: string[] }> = [
     aliases: ["bonela"],
   },
   {
-    canonical: "MEN & BOYS FOR GENDER EQUALITY (MBGE)",
+    canonical: "MBGE",
     aliases: [
       "mbge",
       "men boys",
@@ -43,7 +43,7 @@ const ORG_ALIAS_LOOKUP = new Map<string, string>(
 
 export const RECOGNIZED_PARENT_ORGANIZATIONS = [
   "BONELA",
-  "MEN & BOYS FOR GENDER EQUALITY (MBGE)",
+  "MBGE",
   "TEBELOPELE",
   "BONEPWA",
   "MAKGABANENG",

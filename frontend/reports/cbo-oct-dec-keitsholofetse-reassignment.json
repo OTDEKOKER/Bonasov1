@@ -1,0 +1,289 @@
+{
+  "project": {
+    "id": 2,
+    "code": "NAHPA2025/26",
+    "name": "NAHPA Social Contracting"
+  },
+  "source_organization": {
+    "id": 5,
+    "name": "MAKGABANENG"
+  },
+  "target_organization": {
+    "id": 95,
+    "name": "Keitsholofetse"
+  },
+  "period_start": "2025-10-01",
+  "period_end": "2025-12-31",
+  "notes_token": "MAKGABANENG-KEITSHOLOFETSE OCT-DEC MATRIX.xlsx",
+  "moved_aggregates": [
+    {
+      "aggregate_id": 10467,
+      "indicator_id": 317,
+      "indicator_code": "AUTO_NUMBER_OF_SERVICE_PROVIDERS_RECEIV",
+      "indicator_name": "Number of service providers receiving training"
+    },
+    {
+      "aggregate_id": 10468,
+      "indicator_id": 318,
+      "indicator_code": "AUTO_NUMBER_OF_SUB_RECIPIENTS_MENTORED_",
+      "indicator_name": "Number of sub recipients mentored per month."
+    },
+    {
+      "aggregate_id": 10469,
+      "indicator_id": 319,
+      "indicator_code": "AUTO_NUMBER_OF_CSOS_TRAINED_AND_EQUIPPE",
+      "indicator_name": "Number of CSOs trained and equipped to provide comprehensive psychosocial and practical support, including HIV-related support."
+    },
+    {
+      "aggregate_id": 10470,
+      "indicator_id": 371,
+      "indicator_code": "AUTO_NUMBER_OF_SUB_RECIPIENTS_SUBMITTIN_1",
+      "indicator_name": "Number OF Sub-recipients Submitting Quality Reports PER Month."
+    },
+    {
+      "aggregate_id": 10471,
+      "indicator_id": 372,
+      "indicator_code": "AUTO_NUMBER_OF_PEOPLE_REACHED_WITH_NCD_",
+      "indicator_name": "Number OF People Reached With NCD Prevention AND Control Messages."
+    },
+    {
+      "aggregate_id": 10472,
+      "indicator_id": 373,
+      "indicator_code": "AUTO_NUMBER_OF_PEOPLE_ENGAGED_WITH_NCD_",
+      "indicator_name": "Number of people engaged with NCD prevention and control messages through social media."
+    },
+    {
+      "aggregate_id": 10473,
+      "indicator_id": 365,
+      "indicator_code": "AUTO_NUMBER_OF_ADVOCACY_ACTIVITIES_COND",
+      "indicator_name": "Number of advocacy activities conducted per quarter."
+    },
+    {
+      "aggregate_id": 10474,
+      "indicator_id": 363,
+      "indicator_code": "AUTO_NUMBER_OF_MEDIA_PLATFORMS_USED_PER",
+      "indicator_name": "Number of media platforms used per quarter"
+    },
+    {
+      "aggregate_id": 10475,
+      "indicator_id": 366,
+      "indicator_code": "AUTO_NUMBER_OF_TARGET_SPECIFIC_DEMAND_C",
+      "indicator_name": "Number of target specific demand creation activities conducted"
+    },
+    {
+      "aggregate_id": 10476,
+      "indicator_id": 367,
+      "indicator_code": "AUTO_NUMBER_OF_MEDIA_ENGAGEMENTS_CONDUC",
+      "indicator_name": "Number of media engagements conducted"
+    },
+    {
+      "aggregate_id": 10477,
+      "indicator_id": 374,
+      "indicator_code": "AUTO_NUMBER_OF_PEOPLE_REACHED_WITH_SELF",
+      "indicator_name": "Number OF People Reached With Self-breast Cancer Examination Education"
+    },
+    {
+      "aggregate_id": 10478,
+      "indicator_id": 409,
+      "indicator_code": "12",
+      "indicator_name": "Number of people eligible for breast cancer screening"
+    },
+    {
+      "aggregate_id": 10479,
+      "indicator_id": 380,
+      "indicator_code": "AUTO_NUMBER_OF_PEOPLE_SCREENED_FOR_BREA",
+      "indicator_name": "Number OF People Screened FOR Breast Cancer."
+    },
+    {
+      "aggregate_id": 10480,
+      "indicator_id": 375,
+      "indicator_code": "AUTO_NUMBER_OF_PEOPLE_REACHED_WITH_PROS",
+      "indicator_name": "Number OF People Reached With Prostate Cancer Education."
+    },
+    {
+      "aggregate_id": 10481,
+      "indicator_id": 376,
+      "indicator_code": "AUTO_NUMBER_OF_PEOPLE_REACHED_WITH_CERV",
+      "indicator_name": "Number OF People Reached With Cervical Cancer Education."
+    },
+    {
+      "aggregate_id": 10482,
+      "indicator_id": 420,
+      "indicator_code": "16",
+      "indicator_name": "Number of people screened for NCDs behavioural risk factors( Tobacco Use)"
+    },
+    {
+      "aggregate_id": 10483,
+      "indicator_id": 421,
+      "indicator_code": "17",
+      "indicator_name": "Number of people eligible for tobacco cessation program"
+    },
+    {
+      "aggregate_id": 10484,
+      "indicator_id": 424,
+      "indicator_code": "18",
+      "indicator_name": "Number of people referred for tobacco cessation program"
+    },
+    {
+      "aggregate_id": 10485,
+      "indicator_id": 487,
+      "indicator_code": "SC_NUMBER_OF_PEOPLE_ON_TOBACCO_CESSATION_PROGRAM",
+      "indicator_name": "Number of people on tobacco cessation program"
+    },
+    {
+      "aggregate_id": 10486,
+      "indicator_id": 425,
+      "indicator_code": "19",
+      "indicator_name": "Number of people screened for NCDs behavioural risk factors (Alcohol Use)"
+    },
+    {
+      "aggregate_id": 10487,
+      "indicator_id": 410,
+      "indicator_code": "20",
+      "indicator_name": "Number of people eligible for alcohol abuse cessation program"
+    },
+    {
+      "aggregate_id": 10488,
+      "indicator_id": 411,
+      "indicator_code": "21",
+      "indicator_name": "Number of people referred for alcohol abuse cessation program"
+    },
+    {
+      "aggregate_id": 10489,
+      "indicator_id": 422,
+      "indicator_code": "22",
+      "indicator_name": "Number of people on alcohol abuse cessation program"
+    },
+    {
+      "aggregate_id": 10490,
+      "indicator_id": 412,
+      "indicator_code": "23",
+      "indicator_name": "Number of people screened for NCDs risk factors"
+    },
+    {
+      "aggregate_id": 10491,
+      "indicator_id": 383,
+      "indicator_code": "AUTO_NUMBER_OF_PEOPLE_SUSPECTED_OF_HAVI",
+      "indicator_name": "Number OF People Suspected OF Having NCDs Risk Factors (blood Glucose, Blood Pressure, BMI) Referred FOR Further Health Services"
+    },
+    {
+      "aggregate_id": 10492,
+      "indicator_id": 520,
+      "indicator_code": "AUTO_NUMBER_OF_PEOPLES_REFERRED_FOR_DIA_1",
+      "indicator_name": "Number of peoples referred for diabetes treatment/management services"
+    },
+    {
+      "aggregate_id": 10493,
+      "indicator_id": 423,
+      "indicator_code": "26",
+      "indicator_name": "Number of people reached with psychoeducation"
+    },
+    {
+      "aggregate_id": 10494,
+      "indicator_id": 387,
+      "indicator_code": "AUTO_NUMBER_OF_COUNSELLING_SESSIONS_CON",
+      "indicator_name": "Number OF Counselling Sessions Conducted"
+    },
+    {
+      "aggregate_id": 10495,
+      "indicator_id": 390,
+      "indicator_code": "AUTO_NUMBER_OF_PEOPLE_UTILIZING_COMMUNI",
+      "indicator_name": "Number OF People Utilizing Community Based Physical Activity Clubs."
+    },
+    {
+      "aggregate_id": 10496,
+      "indicator_id": 391,
+      "indicator_code": "AUTO_NUMBER_OF_FUNCTIONAL_CANCER_SUPPOR",
+      "indicator_name": "Number OF Functional Cancer Support Groups."
+    },
+    {
+      "aggregate_id": 10497,
+      "indicator_id": 413,
+      "indicator_code": "36b",
+      "indicator_name": "Number of support group meetings held"
+    },
+    {
+      "aggregate_id": 10498,
+      "indicator_id": 414,
+      "indicator_code": "36c",
+      "indicator_name": "Total number of established cancer groups within the same area"
+    },
+    {
+      "aggregate_id": 10499,
+      "indicator_id": 415,
+      "indicator_code": "36d",
+      "indicator_name": "Number of new members/continuing"
+    },
+    {
+      "aggregate_id": 10500,
+      "indicator_id": 521,
+      "indicator_code": "AUTO_NUMBER_OF_FUNCTIONAL_TOBACCO_CESSA",
+      "indicator_name": "Number of functional tobacco cessation and alcohol abuse support group"
+    },
+    {
+      "aggregate_id": 10501,
+      "indicator_id": 418,
+      "indicator_code": "37c",
+      "indicator_name": "Number of established tobacco cessation and alcohol abuse groups within the same area"
+    },
+    {
+      "aggregate_id": 10502,
+      "indicator_id": 392,
+      "indicator_code": "AUTO_NUMBER_OF_PEOPLE_WHO_ATTENDED_SADC",
+      "indicator_name": "Number OF People WHO Attended SADC Healthy Lifestyle Commemoration Activities."
+    },
+    {
+      "aggregate_id": 10503,
+      "indicator_id": 393,
+      "indicator_code": "AUTO_NUMBER_OF_PEOPLE_WHO_ATTENDED_WORL",
+      "indicator_name": "Number OF People WHO Attended World Diabetes DAY Activites."
+    },
+    {
+      "aggregate_id": 10504,
+      "indicator_id": 394,
+      "indicator_code": "AUTO_NUMBER_OF_PEOPLE_WHO_ATTENDED_THE_",
+      "indicator_name": "Number OF People WHO Attended THE Breast Cancer Month Activities."
+    },
+    {
+      "aggregate_id": 10505,
+      "indicator_id": 395,
+      "indicator_code": "AUTO_NUMBER_OF_PEOPLE_WHO_ATTENDED_CERV",
+      "indicator_name": "Number OF People WHO Attended Cervical Cancer Awareness Activities."
+    },
+    {
+      "aggregate_id": 10506,
+      "indicator_id": 396,
+      "indicator_code": "AUTO_NUMBER_OF_PEOPLE_WHO_ATTENDED_MENT",
+      "indicator_name": "Number OF People WHO Attended Mental Health DAY Activities."
+    },
+    {
+      "aggregate_id": 10507,
+      "indicator_id": 397,
+      "indicator_code": "AUTO_NUMBER_OF_PEOPLE_WHO_ATTENDED_WORL_1",
+      "indicator_name": "Number OF People WHO Attended World Cancer DAY Activites."
+    },
+    {
+      "aggregate_id": 10508,
+      "indicator_id": 398,
+      "indicator_code": "AUTO_NUMBER_OF_PEOPLE_WHO_ATTENDED_MO_V",
+      "indicator_name": "Number OF People WHO Attended Mo-Vember DAY Activities."
+    },
+    {
+      "aggregate_id": 10783,
+      "indicator_id": 417,
+      "indicator_code": "37b",
+      "indicator_name": "Number of support group meetings held (tobacco/alcohol)"
+    },
+    {
+      "aggregate_id": 10784,
+      "indicator_id": 419,
+      "indicator_code": "37d",
+      "indicator_name": "Number of new members/continuing (tobacco/alcohol)"
+    }
+  ],
+  "summary": {
+    "moved_count": 44,
+    "source_remaining": 0,
+    "target_count": 44
+  }
+}

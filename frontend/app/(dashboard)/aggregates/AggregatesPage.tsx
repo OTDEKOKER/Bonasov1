@@ -17,7 +17,6 @@ import {
 } from "recharts";
 import * as XLSX from "xlsx-js-style";
 import {
-  Activity,
   ArrowDownToLine,
   ArrowUpRight,
   Building2,
@@ -32,7 +31,6 @@ import {
   Calendar,
   Calculator,
   Target,
-  TrendingUp,
   Users2,
   Loader2,
 } from "lucide-react";
@@ -68,13 +66,13 @@ import { PageHeader } from "@/components/shared/page-header";
 import { OrganizationSelect } from "@/components/shared/organization-select";
 import { aggregatesService } from "@/lib/api";
 import {
-  useAggregates,
+  useAllAggregates,
   useAggregateTemplates,
   useIndicators,
   useAllOrganizations,
   useProjects,
 } from "@/lib/hooks/use-api";
-import type { Aggregate } from "@/lib/types";
+import type { Aggregate, Indicator } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/contexts/auth-context";
 import { getUserOrganizationId } from "@/lib/utils/organization";
@@ -86,6 +84,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import { normalizeAggregateValueToDisaggregateMap } from "@/lib/aggregates/disaggregate-normalization";
 
 type AggregateValue = {
   male?: number;
@@ -102,6 +101,30 @@ type MatrixDisaggregates = Record<
   string,
   Record<string, Record<string, number | undefined>>
 >;
+type AggregateGroupEntry = {
+  key: string;
+  indicatorId: string;
+  indicatorName: string;
+  items: Aggregate[];
+  code: string;
+};
+type DashboardGroup = AggregateGroupEntry & {
+  indicator?: Indicator;
+  disaggregates: MatrixDisaggregates | null;
+  totalValue: number;
+  organizations: string[];
+  projects: string[];
+  periods: string[];
+};
+type WorkbookTopicDefinition = {
+  id: string;
+  label: string;
+  description: string;
+};
+type DashboardTopicSection = WorkbookTopicDefinition & {
+  groups: DashboardGroup[];
+  totalValue: number;
+};
 
 const ageRanges = [
   "10-14",
@@ -152,6 +175,58 @@ const matrixColumnWidths = {
   ageSex: 96,
   metric: 56,
 };
+const workbookTopicDefinitions: WorkbookTopicDefinition[] = [
+  {
+    id: "capacity",
+    label: "Program Management & Capacity Building",
+    description: "Training, mentoring, reporting quality, advocacy, and media planning indicators.",
+  },
+  {
+    id: "hiv-prevention",
+    label: "HIV Prevention Messages",
+    description: "HIV testing, PrEP, PEP, treatment, linkage, family planning, and prevention messaging.",
+  },
+  {
+    id: "commodity",
+    label: "Commodity Distribution",
+    description: "Condoms, lubricants, braille-labelled commodities, and repeat collection indicators.",
+  },
+  {
+    id: "psychosocial",
+    label: "Psychosocial Support & Counselling",
+    description: "Psychoeducation, counselling, disclosure, and mental health support indicators.",
+  },
+  {
+    id: "human-rights",
+    label: "Human Rights",
+    description: "Rights, redress, stigma, legal aid, justice, and community-led monitoring indicators.",
+  },
+  {
+    id: "gbv",
+    label: "Gender Based Violence",
+    description: "GBV screening, eligibility, referrals, and psychosocial or justice support indicators.",
+  },
+  {
+    id: "sti",
+    label: "STIs",
+    description: "STI screening, STI referrals, linkage, and related TB referral indicators.",
+  },
+  {
+    id: "ncd",
+    label: "NCDs",
+    description: "NCD screening, prevention messages, cessation programs, cancer, and support-group indicators.",
+  },
+  {
+    id: "events",
+    label: "Events & Campaigns",
+    description: "Commemorative days, outreach events, and campaign participation indicators.",
+  },
+  {
+    id: "other",
+    label: "Other Indicators",
+    description: "Indicators that do not map cleanly to a workbook topic yet.",
+  },
+];
 
 const formatDate = (value?: string) => {
   if (!value) return "-";
@@ -173,9 +248,51 @@ const parseAggregateValue = (value: unknown): AggregateValue => {
   return {};
 };
 
+const coerceMatrixDisaggregates = (source: unknown): MatrixDisaggregates | null => {
+  if (!source || typeof source !== "object" || Array.isArray(source)) return null;
+
+  const matrix: MatrixDisaggregates = {};
+
+  Object.entries(source as Record<string, unknown>).forEach(([firstLevel, rawSecondLevel]) => {
+    if (!rawSecondLevel || typeof rawSecondLevel !== "object" || Array.isArray(rawSecondLevel)) {
+      return;
+    }
+
+    const secondLevelEntries: Record<string, Record<string, number | undefined>> = {};
+
+    Object.entries(rawSecondLevel as Record<string, unknown>).forEach(([secondLevel, rawThirdLevel]) => {
+      if (rawThirdLevel && typeof rawThirdLevel === "object" && !Array.isArray(rawThirdLevel)) {
+        const thirdLevelEntries: Record<string, number | undefined> = {};
+
+        Object.entries(rawThirdLevel as Record<string, unknown>).forEach(([thirdLevel, rawValue]) => {
+          thirdLevelEntries[thirdLevel] = toSafeNumber(rawValue);
+        });
+
+        if (Object.keys(thirdLevelEntries).length > 0) {
+          secondLevelEntries[secondLevel] = thirdLevelEntries;
+        }
+        return;
+      }
+
+      secondLevelEntries[secondLevel] = {
+        Value: toSafeNumber(rawThirdLevel),
+      };
+    });
+
+    if (Object.keys(secondLevelEntries).length > 0) {
+      matrix[firstLevel] = secondLevelEntries;
+    }
+  });
+
+  return Object.keys(matrix).length > 0 ? matrix : null;
+};
+
 const getDisaggregates = (value: unknown) => {
   const parsed = parseAggregateValue(value);
-  return parsed.disaggregates || null;
+  const directDisaggregates = coerceMatrixDisaggregates(parsed.disaggregates);
+  if (directDisaggregates) return directDisaggregates;
+
+  return coerceMatrixDisaggregates(normalizeAggregateValueToDisaggregateMap(value));
 };
 
 const toSafeNumber = (value: unknown) => {
@@ -476,6 +593,166 @@ const normalizeText = (value?: string | null) =>
     .replace(/[^a-z0-9]+/g, " ")
     .trim();
 
+const includesAnyToken = (value: string, tokens: string[]) =>
+  tokens.some((token) => value.includes(token));
+
+const resolveWorkbookTopicId = (group: DashboardGroup): string => {
+  const normalizedName = normalizeText(group.indicatorName);
+  const indicatorCategory = group.indicator?.category || "";
+
+  if (
+    indicatorCategory === "trainings" ||
+    includesAnyToken(normalizedName, [
+      "service providers receiving training",
+      "sub recipients mentored",
+      "sub recipient mentored",
+      "csos trained and equipped",
+      "sub recipients submitting quality reports",
+      "sub recipients submitting quality report",
+      "support groups mentored for sustainability",
+      "advocacy activities conducted",
+      "media platforms used per quarter",
+      "target specific demand creation activities conducted",
+      "media engagements conducted",
+    ])
+  ) {
+    return "capacity";
+  }
+
+  if (
+    includesAnyToken(normalizedName, [
+      "condoms distributed",
+      "condom distributed",
+      "lubricants distributed",
+      "braille labelled condom",
+      "brailed condom",
+      "reported collecting condoms",
+      "repeated collecting condoms",
+      "collecting condoms for a repeated time",
+      "non traditional sites",
+    ])
+  ) {
+    return "commodity";
+  }
+
+  if (
+    indicatorCategory === "mental_health" ||
+    includesAnyToken(normalizedName, [
+      "mental health",
+      "psychoeducation",
+      "counselling",
+      "counseling",
+      "psychosocial support",
+      "disclosure and mental health",
+      "trauma informed",
+    ])
+  ) {
+    return "psychosocial";
+  }
+
+  if (
+    includesAnyToken(normalizedName, [
+      "human rights",
+      "rights were violated",
+      "sought redress",
+      "redress",
+      "legal aid",
+      "justice services",
+      "equality and human rights",
+      "community led monitoring",
+      "stigma",
+    ])
+  ) {
+    return "human-rights";
+  }
+
+  if (
+    indicatorCategory === "gbv" ||
+    includesAnyToken(normalizedName, ["gbv", "violence"])
+  ) {
+    return "gbv";
+  }
+
+  if (
+    indicatorCategory === "sti" ||
+    includesAnyToken(normalizedName, [
+      " sti ",
+      "stis",
+      "screened for stis",
+      "screened positive for stis",
+      "sti cases linked to care",
+      "sti cases referrals completed",
+      "symptomatic for tb referred",
+    ])
+  ) {
+    return "sti";
+  }
+
+  if (
+    indicatorCategory === "ncd" ||
+    includesAnyToken(normalizedName, [
+      " ncd ",
+      "ncds",
+      "cancer",
+      "tobacco",
+      "alcohol",
+      "blood pressure",
+      "blood glucose",
+      "bmi",
+      "waist circumference",
+      "breast cancer",
+      "prostate cancer",
+      "cervical cancer",
+      "diabetes",
+      "healthy lifestyle",
+    ])
+  ) {
+    return "ncd";
+  }
+
+  if (
+    indicatorCategory === "events" ||
+    includesAnyToken(normalizedName, [
+      "attended",
+      "commemoration activities",
+      "day activities",
+      "campaigns conducted",
+    ])
+  ) {
+    return "events";
+  }
+
+  if (
+    indicatorCategory === "media" ||
+    indicatorCategory === "hiv_prevention" ||
+    includesAnyToken(normalizedName, [
+      "hiv testing",
+      "prep",
+      "pep",
+      "hiv treatment",
+      "family planning",
+      "linked to care",
+      "initiated on art",
+      "tested for hiv",
+      "condom use messages",
+      "plwh reached",
+      "ayp",
+    ])
+  ) {
+    return "hiv-prevention";
+  }
+
+  return "other";
+};
+
+const getLogicalIndicatorKey = (aggregate: Aggregate, fallbackName?: string) => {
+  const code = normalizeText(aggregate.indicator_code);
+  if (code) return `code:${code}`;
+  const name = normalizeText(aggregate.indicator_name || fallbackName || "");
+  if (name) return `name:${name}`;
+  return `id:${String(aggregate.indicator || "")}`;
+};
+
 const sumValueBucket = (values: Record<string, number | undefined>) => {
   const keys = Object.keys(values || {});
   const hasCoreAges = keys.some((key) => matrixAgeBandCore.includes(key));
@@ -512,12 +789,6 @@ const deriveSexTotals = (value: unknown) => {
 
   return { male, female, total };
 };
-
-const formatCompactNumber = (value: number) =>
-  new Intl.NumberFormat(undefined, {
-    notation: "compact",
-    maximumFractionDigits: value >= 100 ? 0 : 1,
-  }).format(value);
 
 const getHeatColor = (value: number, maxValue: number) => {
   if (value <= 0 || maxValue <= 0) return undefined;
@@ -872,7 +1143,7 @@ export default function AggregatesPage() {
     status: "submitted" | "late" | "missing";
   } | null>(null);
 
-  const { data: aggregatesData, isLoading, error, mutate } = useAggregates();
+  const { data: aggregatesData, isLoading, error, mutate } = useAllAggregates();
   const { data: projectsData } = useProjects();
   const { data: indicatorsData } = useIndicators();
   const { data: organizationsData } = useAllOrganizations();
@@ -881,11 +1152,11 @@ export default function AggregatesPage() {
     organization: formOrganization || undefined,
   });
 
-  const aggregates = aggregatesData?.results || [];
-  const projects = projectsData?.results || [];
-  const indicators = indicatorsData?.results || [];
-  const organizations = organizationsData?.results || [];
-  const templates = templatesData || [];
+  const aggregates = useMemo(() => aggregatesData || [], [aggregatesData]);
+  const projects = useMemo(() => projectsData?.results || [], [projectsData?.results]);
+  const indicators = useMemo(() => indicatorsData?.results || [], [indicatorsData?.results]);
+  const organizations = useMemo(() => organizationsData?.results || [], [organizationsData?.results]);
+  const templates = useMemo(() => templatesData || [], [templatesData]);
   const userOrganizationId = useMemo(() => getUserOrganizationId(user), [user]);
   const canReportAcrossOrganizations = useMemo(() => isPlatformAdmin(user), [user]);
 
@@ -904,23 +1175,23 @@ export default function AggregatesPage() {
     setAutoComputed(null);
   };
 
-  const indicatorNameById = useMemo(
+  const indicatorNameById = useMemo<Map<string, string>>(
     () =>
-      new Map(indicators.map((indicator) => [String(indicator.id), indicator.name])),
+      new Map<string, string>(indicators.map((indicator) => [String(indicator.id), indicator.name])),
     [indicators],
   );
-  const indicatorCodeById = useMemo(
+  const indicatorCodeById = useMemo<Map<string, string>>(
     () =>
-      new Map(indicators.map((indicator) => [String(indicator.id), indicator.code])),
+      new Map<string, string>(indicators.map((indicator) => [String(indicator.id), indicator.code])),
     [indicators],
   );
-  const indicatorById = useMemo(
-    () => new Map(indicators.map((indicator) => [String(indicator.id), indicator])),
+  const indicatorById = useMemo<Map<string, Indicator>>(
+    () => new Map<string, Indicator>(indicators.map((indicator) => [String(indicator.id), indicator])),
     [indicators],
   );
-  const projectNameById = useMemo(
+  const projectNameById = useMemo<Map<string, string>>(
     () =>
-      new Map(projects.map((project) => [String(project.id), project.name])),
+      new Map<string, string>(projects.map((project) => [String(project.id), project.name])),
     [projects],
   );
   const parentOrganizations = useMemo(
@@ -936,11 +1207,77 @@ export default function AggregatesPage() {
         ),
     [organizations],
   );
+  const accessibleOrganizations = useMemo(() => {
+    if (canReportAcrossOrganizations) return organizations;
+    const ownOrganizationId = userOrganizationId ? String(userOrganizationId) : "";
+    if (!ownOrganizationId) return [];
+    const ownOrganization = organizations.find((org) => String(org.id) === ownOrganizationId);
+    if (!ownOrganization) return [];
+    const ownParentId = resolveParentOrganizationId(
+      ownOrganization as unknown as OrganizationWithParent,
+    );
+    if (!ownParentId) {
+      return organizations.filter((org) => {
+        const orgId = String(org.id);
+        return (
+          orgId === ownOrganizationId ||
+          resolveParentOrganizationId(org as unknown as OrganizationWithParent) === ownOrganizationId
+        );
+      });
+    }
+    return organizations.filter((org) => String(org.id) === ownOrganizationId);
+  }, [canReportAcrossOrganizations, organizations, userOrganizationId]);
+  const availableCoordinatorOrganizations = useMemo(() => {
+    const accessibleIds = new Set(accessibleOrganizations.map((org) => String(org.id)));
+    const ownOrganizationId = userOrganizationId ? String(userOrganizationId) : "";
+    const ownOrganization = organizations.find((org) => String(org.id) === ownOrganizationId);
+    const ownParentId = ownOrganization
+      ? resolveParentOrganizationId(ownOrganization as unknown as OrganizationWithParent)
+      : "";
+    return parentOrganizations.filter((coordinator) => {
+      const coordinatorId = String(coordinator.id);
+      return (
+        accessibleIds.has(coordinatorId) ||
+        coordinatorId === ownParentId ||
+        accessibleOrganizations.some(
+          (organization) =>
+            resolveParentOrganizationId(organization as unknown as OrganizationWithParent) ===
+            coordinatorId,
+        )
+      );
+    });
+  }, [accessibleOrganizations, organizations, parentOrganizations, userOrganizationId]);
+  const accessibleOrganizationIds = useMemo<Set<string>>(
+    () => new Set<string>(accessibleOrganizations.map((org) => String(org.id))),
+    [accessibleOrganizations],
+  );
+  const organizationNameById = useMemo<Map<string, string>>(
+    () => new Map<string, string>(organizations.map((organization) => [String(organization.id), organization.name])),
+    [organizations],
+  );
+  const coordinatorByOrgId = useMemo(() => {
+    const map = new Map<string, string>();
+    organizations.forEach((organization) => {
+      const organizationId = String(organization.id);
+      const parentId = resolveParentOrganizationId(
+        organization as unknown as OrganizationWithParent,
+      );
+      map.set(organizationId, parentId || organizationId);
+    });
+    return map;
+  }, [organizations]);
+  const coordinatorNameById = useMemo(
+    () =>
+      new Map<string, string>(
+        parentOrganizations.map((organization) => [String(organization.id), organization.name]),
+      ),
+    [parentOrganizations],
+  );
   const scopedOrganizations = useMemo(() => {
     const scoped =
       parentOrgFilter === "all"
-        ? organizations
-        : organizations.filter((org) => {
+        ? accessibleOrganizations
+        : accessibleOrganizations.filter((org) => {
             const orgId = String(org.id);
             const parentId = resolveParentOrganizationId(
               org as unknown as OrganizationWithParent,
@@ -952,16 +1289,16 @@ export default function AggregatesPage() {
       .sort((left, right) =>
         String(left.name || "").localeCompare(String(right.name || "")),
       );
-  }, [organizations, parentOrgFilter]);
-  const scopedOrganizationIds = useMemo(
-    () => new Set(scopedOrganizations.map((org) => String(org.id))),
+  }, [accessibleOrganizations, parentOrgFilter]);
+  const scopedOrganizationIds = useMemo<Set<string>>(
+    () => new Set<string>(scopedOrganizations.map((org) => String(org.id))),
     [scopedOrganizations],
   );
   const selectedOrganizationIds = useMemo(() => {
     if (orgFilter === "all") {
       return scopedOrganizationIds;
     }
-    return new Set(
+    return new Set<string>(
       orgFilter
         .split(",")
         .map((value) => value.trim())
@@ -974,8 +1311,8 @@ export default function AggregatesPage() {
     if (!ownOrganizationId) return [];
     return organizations.filter((org) => String(org.id) === ownOrganizationId);
   }, [canReportAcrossOrganizations, organizations, userOrganizationId]);
-  const writableOrganizationIds = useMemo(
-    () => new Set(writableOrganizations.map((org) => String(org.id))),
+  const writableOrganizationIds = useMemo<Set<string>>(
+    () => new Set<string>(writableOrganizations.map((org) => String(org.id))),
     [writableOrganizations],
   );
   const isOrganizationSelectionLocked = !canReportAcrossOrganizations;
@@ -1011,7 +1348,7 @@ export default function AggregatesPage() {
   useEffect(() => {
     if (!sidebarOrgId) return;
 
-    const matchedCoordinator = parentOrganizations.find(
+    const matchedCoordinator = availableCoordinatorOrganizations.find(
       (org) => String(org.id) === sidebarOrgId,
     );
     if (matchedCoordinator) {
@@ -1022,12 +1359,34 @@ export default function AggregatesPage() {
 
     const matchedOrg = organizations.find((org) => String(org.id) === sidebarOrgId);
     if (!matchedOrg) return;
+    if (!accessibleOrganizationIds.has(String(matchedOrg.id))) return;
     const parentId = resolveParentOrganizationId(
       matchedOrg as unknown as OrganizationWithParent,
     );
     setParentOrgFilter(parentId || String(matchedOrg.id));
     setOrgFilter("all");
-  }, [organizations, parentOrganizations, sidebarOrgId]);
+  }, [
+    accessibleOrganizationIds,
+    availableCoordinatorOrganizations,
+    organizations,
+    sidebarOrgId,
+  ]);
+
+  useEffect(() => {
+    if (
+      parentOrgFilter !== "all" &&
+      !availableCoordinatorOrganizations.some((org) => String(org.id) === parentOrgFilter)
+    ) {
+      setParentOrgFilter("all");
+    }
+  }, [availableCoordinatorOrganizations, parentOrgFilter]);
+
+  useEffect(() => {
+    if (orgFilter === "all") return;
+    if (!selectedOrganizationIds.size) {
+      setOrgFilter("all");
+    }
+  }, [orgFilter, selectedOrganizationIds]);
 
   useEffect(() => {
     if (!isDialogOpen || !isOrganizationSelectionLocked) return;
@@ -1041,8 +1400,8 @@ export default function AggregatesPage() {
     setAutoOrganization(String(userOrganizationId));
   }, [isAutoCalcOpen, isOrganizationSelectionLocked, userOrganizationId]);
 
-  const periods = useMemo(
-    () => Array.from(new Set(aggregates.map(getPeriodLabel))),
+  const periods = useMemo<string[]>(
+    () => Array.from(new Set<string>(aggregates.map(getPeriodLabel))),
     [aggregates],
   );
 
@@ -1077,12 +1436,13 @@ export default function AggregatesPage() {
     selectedOrganizationIds,
   ]);
 
-  const aggregateGroups = useMemo(() => {
+  const aggregateGroups = useMemo<AggregateGroupEntry[]>(() => {
     const groups = new Map<string, Aggregate[]>();
     for (const agg of filteredAggregates) {
       const indicatorId = String(agg.indicator || "");
-      const indicatorName = agg.indicator_name || indicatorNameById.get(indicatorId) || "Indicator";
-      const key = indicatorId || indicatorName;
+      const indicatorName =
+        agg.indicator_name || indicatorNameById.get(indicatorId) || "Indicator";
+      const key = getLogicalIndicatorKey(agg, indicatorName);
       if (!groups.has(key)) {
         groups.set(key, []);
       }
@@ -1094,9 +1454,9 @@ export default function AggregatesPage() {
       if (!match) return { num: Number.POSITIVE_INFINITY, suffix: code };
       return { num: Number(match[1]), suffix: (match[2] || "").toLowerCase() };
     };
-    const entries = Array.from(groups.entries()).map(([key, items]) => {
+    const entries: AggregateGroupEntry[] = Array.from(groups.entries()).map(([key, items]) => {
       const first = items[0];
-      const indicatorId = String(first?.indicator || key);
+      const indicatorId = String(first?.indicator || "");
       const indicatorName =
         first?.indicator_name ||
         indicatorNameById.get(indicatorId) ||
@@ -1116,16 +1476,164 @@ export default function AggregatesPage() {
     });
   }, [filteredAggregates, indicatorCodeById, indicatorNameById]);
 
+  const dashboardGroups = useMemo<DashboardGroup[]>(
+    () =>
+      aggregateGroups.map((group) => {
+        const indicator = indicatorById.get(group.indicatorId);
+        const disaggregates = mergeDisaggregatesForGroup(group.items);
+        return {
+          ...group,
+          indicator,
+          disaggregates,
+          totalValue: group.items.reduce((sum, item) => sum + getAggregateTotal(item), 0),
+          organizations: Array.from(
+            new Set(group.items.map((item) => String(item.organization))),
+          ),
+          projects: Array.from(new Set(group.items.map((item) => String(item.project)))),
+          periods: Array.from(new Set(group.items.map((item) => getPeriodLabel(item)))),
+        };
+      }),
+    [aggregateGroups, indicatorById],
+  );
+
+  const dashboardTopicSections = useMemo<DashboardTopicSection[]>(() => {
+    const grouped = new Map<string, DashboardGroup[]>();
+
+    dashboardGroups.forEach((group) => {
+      const topicId = resolveWorkbookTopicId(group);
+      if (!grouped.has(topicId)) {
+        grouped.set(topicId, []);
+      }
+      grouped.get(topicId)!.push(group);
+    });
+
+    return workbookTopicDefinitions
+      .filter((topic) => (grouped.get(topic.id)?.length || 0) > 0)
+      .map((topic) => {
+        const groups = grouped.get(topic.id) || [];
+        return {
+          ...topic,
+          groups,
+          totalValue: groups.reduce((sum, group) => sum + group.totalValue, 0),
+        };
+      });
+  }, [dashboardGroups]);
+
+  useEffect(() => {
+    if (!dashboardGroups.length) {
+      if (detailIndicatorId) setDetailIndicatorId("");
+      return;
+    }
+    if (
+      !detailIndicatorId ||
+      !dashboardGroups.some((group) => group.indicatorId === detailIndicatorId)
+    ) {
+      setDetailIndicatorId(dashboardGroups[0].indicatorId);
+    }
+  }, [dashboardGroups, detailIndicatorId]);
+
+  const selectedDetailGroup = useMemo(
+    () =>
+      dashboardGroups.find((group) => group.indicatorId === detailIndicatorId) ||
+      dashboardGroups[0] ||
+      null,
+    [dashboardGroups, detailIndicatorId],
+  );
+
+  const comparisonMode = parentOrgFilter === "all" ? "coordinator" : "organization";
+  const comparisonBucketNames = useMemo<Map<string, string>>(() => {
+    if (comparisonMode === "coordinator") return coordinatorNameById;
+    return organizationNameById;
+  }, [comparisonMode, coordinatorNameById, organizationNameById]);
+  const comparisonBucketByOrg = useMemo<Map<string, string>>(() => {
+    const map = new Map<string, string>();
+    scopedOrganizations.forEach((organization) => {
+      const organizationId = String(organization.id);
+      map.set(
+        organizationId,
+        comparisonMode === "coordinator"
+          ? coordinatorByOrgId.get(organizationId) || organizationId
+          : organizationId,
+      );
+    });
+    return map;
+  }, [comparisonMode, coordinatorByOrgId, scopedOrganizations]);
+
+  const targetByComparisonBucket = useMemo<Map<string, number>>(() => {
+    const targetMap = new Map<string, number>();
+    const includedProjects =
+      projectFilter === "all"
+        ? new Set<string>(filteredAggregates.map((aggregate) => String(aggregate.project)))
+        : new Set<string>([projectFilter]);
+    const includedIndicators = new Set<string>(
+      filteredAggregates.map((aggregate) => String(aggregate.indicator)),
+    );
+
+    indicators.forEach((indicator) => {
+      if (includedIndicators.size > 0 && !includedIndicators.has(String(indicator.id))) return;
+      (indicator.project_targets || []).forEach((target) => {
+        const organizationId = String(target.organization);
+        if (!selectedOrganizationIds.has(organizationId)) return;
+        if (includedProjects.size && !includedProjects.has(String(target.project))) return;
+        const bucketId =
+          comparisonMode === "coordinator"
+            ? coordinatorByOrgId.get(organizationId) || organizationId
+            : organizationId;
+        targetMap.set(bucketId, (targetMap.get(bucketId) || 0) + toSafeNumber(target.target_value));
+      });
+    });
+
+    return targetMap;
+  }, [
+    comparisonMode,
+    coordinatorByOrgId,
+    filteredAggregates,
+    indicators,
+    projectFilter,
+    selectedOrganizationIds,
+  ]);
+
+  const dashboardRollupData = useMemo(
+    () =>
+      buildRollupData({
+        aggregates: filteredAggregates,
+        bucketForOrganization: comparisonBucketByOrg,
+        bucketNames: comparisonBucketNames,
+        targetByBucketId: targetByComparisonBucket,
+      }),
+    [
+      comparisonBucketByOrg,
+      comparisonBucketNames,
+      filteredAggregates,
+      targetByComparisonBucket,
+    ],
+  );
+
+  const scopeOrganizationLabel = useMemo(() => {
+    if (orgFilter !== "all") {
+      const selectedOrgName =
+        organizationNameById.get(orgFilter) || scopedOrganizations.find((org) => String(org.id) === orgFilter)?.name;
+      return selectedOrgName || "Selected organization";
+    }
+    if (parentOrgFilter !== "all") {
+      return `${coordinatorNameById.get(parentOrgFilter) || "Coordinator"} portfolio`;
+    }
+    return "All reporting organizations";
+  }, [
+    coordinatorNameById,
+    orgFilter,
+    organizationNameById,
+    parentOrgFilter,
+    scopedOrganizations,
+  ]);
+
   const totals = useMemo(() => {
     return filteredAggregates.reduce(
-      (acc, agg) => {
-        const value = parseAggregateValue(agg.value);
-        const male = Number(value.male) || 0;
-        const female = Number(value.female) || 0;
-        const total = getAggregateTotal(agg);
-        acc.male += male;
-        acc.female += female;
-        acc.total += total;
+      (acc, aggregate) => {
+        const sexTotals = deriveSexTotals(aggregate.value);
+        acc.male += sexTotals.male;
+        acc.female += sexTotals.female;
+        acc.total += sexTotals.total;
         return acc;
       },
       { male: 0, female: 0, total: 0 },
@@ -1406,6 +1914,159 @@ export default function AggregatesPage() {
     }));
   }, [filteredAggregates, indicatorNameById]);
 
+  const activeCompliancePeriod = useMemo(() => {
+    if (periodFilter !== "all") return periodFilter;
+    const available = sortPeriods(
+      Array.from(new Set(filteredAggregates.map((aggregate) => getPeriodLabel(aggregate)))),
+    );
+    return available[available.length - 1] || null;
+  }, [filteredAggregates, periodFilter]);
+
+  const complianceData = useMemo(
+    () =>
+      buildComplianceData({
+        organizations: scopedOrganizations,
+        aggregates: filteredAggregates,
+        organizationNames: organizationNameById,
+        coordinatorNames: coordinatorNameById,
+        coordinatorByOrgId,
+        activePeriod: activeCompliancePeriod,
+      }),
+    [
+      activeCompliancePeriod,
+      coordinatorByOrgId,
+      coordinatorNameById,
+      filteredAggregates,
+      organizationNameById,
+      scopedOrganizations,
+    ],
+  );
+
+  const complianceSummary = useMemo(() => {
+    const summary = complianceData.reduce(
+      (acc, item) => {
+        acc.submitted += item.submitted;
+        acc.late += item.late;
+        acc.missing += item.missing;
+        return acc;
+      },
+      { submitted: 0, late: 0, missing: 0 },
+    );
+    const expected = summary.submitted + summary.late + summary.missing;
+    return {
+      ...summary,
+      expected,
+      complianceRate:
+        expected > 0 ? ((summary.submitted + summary.late) / expected) * 100 : 0,
+    };
+  }, [complianceData]);
+
+  const contributionData = useMemo(
+    () =>
+      buildContributionData(
+        filteredAggregates,
+        organizationNameById,
+        parentOrgFilter === "all" ? 10 : scopedOrganizations.length,
+      ),
+    [filteredAggregates, organizationNameById, parentOrgFilter, scopedOrganizations.length],
+  );
+
+  const trendData = useMemo(() => {
+    if (!selectedDetailGroup) return { data: [], seriesKeys: [] as string[], seriesNames: new Map<string, string>() };
+    return buildTrendData({
+      aggregates: filteredAggregates,
+      indicatorId: selectedDetailGroup.indicatorId,
+      mode: trendMode,
+      bucketForOrganization:
+        trendMode === "compare" ? comparisonBucketByOrg : new Map<string, string>(),
+      bucketNames: comparisonBucketNames,
+      limit: comparisonMode === "coordinator" ? 5 : 8,
+    });
+  }, [
+    comparisonBucketByOrg,
+    comparisonBucketNames,
+    comparisonMode,
+    filteredAggregates,
+    selectedDetailGroup,
+    trendMode,
+  ]);
+
+  const disaggregateBreakdownData = useMemo(() => {
+    if (!selectedDetailGroup) return [];
+    return buildDisaggregateBreakdownData({
+      disaggregates: selectedDetailGroup.disaggregates,
+      indicatorGroups: getIndicatorDisaggregateGroups(selectedDetailGroup.indicator?.sub_labels),
+      mode: breakdownMode,
+    });
+  }, [breakdownMode, selectedDetailGroup]);
+
+  const cascadeData = useMemo(
+    () =>
+      buildCascadeData(
+        dashboardGroups.map((group) => ({
+          indicatorName: group.indicatorName,
+          totalValue: group.totalValue,
+        })),
+        selectedCascadeId,
+      ),
+    [dashboardGroups, selectedCascadeId],
+  );
+
+  const messageBreakdownData = useMemo(
+    () =>
+      dashboardGroups
+        .filter((group) => {
+          const normalized = normalizeText(group.indicatorName);
+          return (
+            normalized.includes("message") ||
+            normalized.includes("screening") ||
+            normalized.includes("screened")
+          );
+        })
+        .map((group) => ({
+          name: group.indicatorName,
+          total: group.totalValue,
+        }))
+        .sort((left, right) => right.total - left.total)
+        .slice(0, 8),
+    [dashboardGroups],
+  );
+
+  const selectedComplianceDetails = useMemo(() => {
+    if (!complianceSelection) return [];
+    const matched = complianceData.find((item) => item.id === complianceSelection.coordinatorId);
+    return matched?.details[complianceSelection.status] || [];
+  }, [complianceData, complianceSelection]);
+
+  const selectedDetailMatrix = useMemo(() => {
+    if (!selectedDetailGroup?.disaggregates) return null;
+    const indicatorGroups = getIndicatorDisaggregateGroups(
+      selectedDetailGroup.indicator?.sub_labels,
+    );
+    return {
+      ...buildDisplayMatrix(selectedDetailGroup.disaggregates, indicatorGroups),
+      primaryDisaggregateLabel: getPrimaryDisaggregateLabel(
+        selectedDetailGroup.indicator?.sub_labels,
+      ),
+    };
+  }, [selectedDetailGroup]);
+
+  const selectedDetailMatrixMax = useMemo(() => {
+    if (!selectedDetailMatrix) return 0;
+    let maxValue = 0;
+    selectedDetailMatrix.keyPops.forEach((kp) => {
+      selectedDetailMatrix.secondDimensionValues.forEach((dimension) => {
+        selectedDetailMatrix.ageBands.forEach((band) => {
+          maxValue = Math.max(
+            maxValue,
+            toSafeNumber(selectedDetailMatrix.matrix[kp]?.[dimension]?.[band]),
+          );
+        });
+      });
+    });
+    return maxValue;
+  }, [selectedDetailMatrix]);
+
   const resetForm = () => {
     setFormProject("");
     setFormIndicator("");
@@ -1421,27 +2082,57 @@ export default function AggregatesPage() {
     setMatrixValues(buildEmptyMatrix());
   };
 
-  const downloadChartSvg = () => {
-    const container = chartRef.current;
-    if (!container) return;
+  const serializeChartSvg = (container: HTMLDivElement | null) => {
+    if (!container) return null;
     const svg = container.querySelector("svg");
-    if (!svg) return;
-
+    if (!svg) return null;
     const cloned = svg.cloneNode(true) as SVGSVGElement;
     if (!cloned.getAttribute("xmlns")) {
       cloned.setAttribute("xmlns", "http://www.w3.org/2000/svg");
     }
-    const serializer = new XMLSerializer();
-    const svgText = serializer.serializeToString(cloned);
+    return new XMLSerializer().serializeToString(cloned);
+  };
+
+  const downloadChartSvg = (container: HTMLDivElement | null, filename: string) => {
+    const svgText = serializeChartSvg(container);
+    if (!svgText) return;
     const blob = new Blob([svgText], { type: "image/svg+xml;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `aggregates_chart_${new Date().toISOString().slice(0, 10)}.svg`;
+    link.download = `${filename}_${new Date().toISOString().slice(0, 10)}.svg`;
     document.body.appendChild(link);
     link.click();
     link.remove();
     URL.revokeObjectURL(url);
+  };
+
+  const downloadChartPng = async (container: HTMLDivElement | null, filename: string) => {
+    const svgText = serializeChartSvg(container);
+    if (!svgText) return;
+    const svgBlob = new Blob([svgText], { type: "image/svg+xml;charset=utf-8" });
+    const url = URL.createObjectURL(svgBlob);
+    const image = new Image();
+    image.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = image.width || 1200;
+      canvas.height = image.height || 720;
+      const context = canvas.getContext("2d");
+      if (context) {
+        context.fillStyle = "#ffffff";
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        context.drawImage(image, 0, 0);
+        const pngUrl = canvas.toDataURL("image/png");
+        const link = document.createElement("a");
+        link.href = pngUrl;
+        link.download = `${filename}_${new Date().toISOString().slice(0, 10)}.png`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+      }
+      URL.revokeObjectURL(url);
+    };
+    image.src = url;
   };
 
   const templateIndicatorOptions = useMemo(() => {
@@ -1712,7 +2403,7 @@ export default function AggregatesPage() {
                     Auto-calculate
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-2xl">
+                <DialogContent className="w-[95vw] max-h-[90vh] overflow-y-auto sm:max-w-2xl">
                   <DialogHeader>
                     <DialogTitle>Auto-calculate Aggregate</DialogTitle>
                     <DialogDescription>
@@ -2199,7 +2890,7 @@ export default function AggregatesPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Coordinators</SelectItem>
-                {parentOrganizations.map((org) => (
+                {availableCoordinatorOrganizations.map((org) => (
                   <SelectItem key={org.id} value={String(org.id)}>
                     {org.name}
                   </SelectItem>
@@ -2238,37 +2929,649 @@ export default function AggregatesPage() {
           </div>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>Total Entries</CardDescription>
-              <CardTitle className="text-2xl">{filteredAggregates.length}</CardTitle>
-            </CardHeader>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>Male Total</CardDescription>
-              <CardTitle className="text-2xl text-chart-2">
-                {totals.male.toLocaleString()}
-              </CardTitle>
-            </CardHeader>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>Female Total</CardDescription>
-              <CardTitle className="text-2xl text-chart-5">
-                {totals.female.toLocaleString()}
-              </CardTitle>
-            </CardHeader>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>Grand Total</CardDescription>
-              <CardTitle className="text-2xl text-primary">
-                {totals.total.toLocaleString()}
-              </CardTitle>
-            </CardHeader>
-          </Card>
+        <div className="space-y-6">
+          <div className="space-y-1">
+            <h2 className="text-xl font-semibold tracking-tight">Performance Overview</h2>
+            <p className="text-sm text-muted-foreground">
+              Consolidated dashboard for the filtered coordinator and organization scope.
+            </p>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
+            <Card className="border-primary/15 bg-gradient-to-br from-primary/10 via-background to-background">
+              <CardHeader className="pb-2">
+                <CardDescription>Total Indicators Reported</CardDescription>
+                <CardTitle className="flex items-center justify-between text-2xl">
+                  {dashboardGroups.length}
+                  <Target className="h-5 w-5 text-primary" />
+                </CardTitle>
+              </CardHeader>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardDescription>Total Organizations Reporting</CardDescription>
+                <CardTitle className="flex items-center justify-between text-2xl">
+                  {new Set(filteredAggregates.map((aggregate) => String(aggregate.organization))).size}
+                  <Building2 className="h-5 w-5 text-chart-1" />
+                </CardTitle>
+              </CardHeader>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardDescription>Grand Total Beneficiaries</CardDescription>
+                <CardTitle className="flex items-center justify-between text-2xl">
+                  {totals.total.toLocaleString()}
+                  <Users2 className="h-5 w-5 text-chart-2" />
+                </CardTitle>
+              </CardHeader>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardDescription>Total Male</CardDescription>
+                <CardTitle className="flex items-center justify-between text-2xl text-chart-2">
+                  {totals.male.toLocaleString()}
+                  <ArrowUpRight className="h-5 w-5" />
+                </CardTitle>
+              </CardHeader>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardDescription>Total Female</CardDescription>
+                <CardTitle className="flex items-center justify-between text-2xl text-chart-5">
+                  {totals.female.toLocaleString()}
+                  <ArrowUpRight className="h-5 w-5" />
+                </CardTitle>
+              </CardHeader>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardDescription>Reporting Compliance</CardDescription>
+                <CardTitle className="flex items-center justify-between text-2xl">
+                  {Math.round(complianceSummary.complianceRate)}%
+                  <CheckCircle2 className="h-5 w-5 text-primary" />
+                </CardTitle>
+                <p className="text-xs text-muted-foreground">
+                  {complianceSummary.submitted + complianceSummary.late} of{" "}
+                  {complianceSummary.expected || 0} org scopes submitted
+                </p>
+              </CardHeader>
+            </Card>
+          </div>
+
+          <div className="grid gap-6 xl:grid-cols-2">
+            <Card>
+              <CardHeader className="flex flex-row items-start justify-between gap-4">
+                <div>
+                  <CardTitle>Coordinator Comparison</CardTitle>
+                  <CardDescription>
+                    {comparisonMode === "coordinator"
+                      ? "Portfolio totals by coordinator. Click a bar to drill down."
+                      : "Organization comparison inside the selected coordinator."}
+                  </CardDescription>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => downloadChartSvg(comparisonChartRef.current, "aggregates_comparison")}
+                  >
+                    <Download className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => void downloadChartPng(comparisonChartRef.current, "aggregates_comparison")}
+                  >
+                    <ArrowDownToLine className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div ref={comparisonChartRef}>
+                  <ChartContainer
+                    config={{
+                      total: { label: "Total", color: "hsl(var(--primary))" },
+                    }}
+                    className="h-[300px]"
+                  >
+                    <BarChart data={dashboardRollupData.slice(0, comparisonMode === "coordinator" ? 8 : 10)}>
+                      <CartesianGrid vertical={false} />
+                      <XAxis dataKey="name" tickLine={false} axisLine={false} interval={0} angle={-18} textAnchor="end" height={64} />
+                      <YAxis tickLine={false} axisLine={false} />
+                      <ChartTooltip
+                        cursor={false}
+                        content={
+                          <ChartTooltipContent
+                            formatter={(value, name, item) => (
+                              <div className="flex flex-col">
+                                <span className="font-medium">{item?.payload?.name}</span>
+                                <span>Total: {Number(value).toLocaleString()}</span>
+                                <span>Organizations: {item?.payload?.organizations ?? 0}</span>
+                              </div>
+                            )}
+                          />
+                        }
+                      />
+                      <Bar
+                        dataKey="total"
+                        radius={[8, 8, 0, 0]}
+                        fill="var(--color-total)"
+                        onClick={(payload) => {
+                          const id = payload?.id ? String(payload.id) : "";
+                          if (!id) return;
+                          if (comparisonMode === "coordinator") {
+                            setParentOrgFilter(id);
+                            setOrgFilter("all");
+                            setComplianceSelection(null);
+                          } else {
+                            setOrgFilter(id);
+                          }
+                        }}
+                      />
+                    </BarChart>
+                  </ChartContainer>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-start justify-between gap-4">
+                <div>
+                  <CardTitle>Achieved vs Target</CardTitle>
+                  <CardDescription>
+                    Achieved totals compared with configured targets for the current scope.
+                  </CardDescription>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => downloadChartSvg(targetsChartRef.current, "aggregates_targets")}
+                  >
+                    <Download className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => void downloadChartPng(targetsChartRef.current, "aggregates_targets")}
+                  >
+                    <ArrowDownToLine className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div ref={targetsChartRef}>
+                  <ChartContainer
+                    config={{
+                      total: { label: "Achieved", color: "hsl(var(--chart-2))" },
+                      target: { label: "Target", color: "hsl(var(--chart-4))" },
+                    }}
+                    className="h-[300px]"
+                  >
+                    <BarChart data={dashboardRollupData.slice(0, comparisonMode === "coordinator" ? 8 : 10)}>
+                      <CartesianGrid vertical={false} />
+                      <XAxis dataKey="name" tickLine={false} axisLine={false} interval={0} angle={-18} textAnchor="end" height={64} />
+                      <YAxis tickLine={false} axisLine={false} />
+                      <ChartTooltip
+                        cursor={false}
+                        content={
+                          <ChartTooltipContent
+                            formatter={(value, name, item) => (
+                              <div className="flex flex-col">
+                                <span className="font-medium">{item?.payload?.name}</span>
+                                <span>{String(name)}: {Number(value).toLocaleString()}</span>
+                                <span>Achievement: {Math.round(item?.payload?.percentAchieved ?? 0)}%</span>
+                              </div>
+                            )}
+                          />
+                        }
+                      />
+                      <ChartLegend content={<ChartLegendContent />} />
+                      <Bar dataKey="total" fill="var(--color-total)" radius={[6, 6, 0, 0]} />
+                      <Bar dataKey="target" fill="var(--color-target)" radius={[6, 6, 0, 0]}>
+                        <LabelList
+                          dataKey="percentAchieved"
+                          position="top"
+                          formatter={(value: number) => `${Math.round(value)}%`}
+                        />
+                      </Bar>
+                    </BarChart>
+                  </ChartContainer>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid gap-6 xl:grid-cols-2">
+            <Card>
+              <CardHeader className="flex flex-row items-start justify-between gap-4">
+                <div>
+                  <CardTitle>Trend Over Time</CardTitle>
+                  <CardDescription>
+                    Quarter-to-quarter trend for the selected indicator.
+                  </CardDescription>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Select value={detailIndicatorId} onValueChange={setDetailIndicatorId}>
+                    <SelectTrigger className="w-[220px]">
+                      <SelectValue placeholder="Select indicator" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {dashboardGroups.map((group) => (
+                        <SelectItem key={group.indicatorId} value={group.indicatorId}>
+                          {group.indicatorName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select value={trendMode} onValueChange={(value) => setTrendMode(value as "consolidated" | "compare")}>
+                    <SelectTrigger className="w-[160px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="consolidated">Consolidated</SelectItem>
+                      <SelectItem value="compare">Compare Scope</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div ref={trendChartRef}>
+                  <ChartContainer
+                    config={trendData.seriesKeys.reduce<Record<string, { label: string; color: string }>>(
+                      (acc, key, index) => {
+                        acc[key] = {
+                          label:
+                            key === "total"
+                              ? "Total"
+                              : trendData.seriesNames?.get?.(key) || comparisonBucketNames.get(key) || key,
+                          color: dashboardSeriesColors[index % dashboardSeriesColors.length],
+                        };
+                        return acc;
+                      },
+                      {},
+                    )}
+                    className="h-[300px]"
+                  >
+                    <LineChart data={trendData.data}>
+                      <CartesianGrid vertical={false} />
+                      <XAxis dataKey="period" tickLine={false} axisLine={false} />
+                      <YAxis tickLine={false} axisLine={false} />
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <ChartLegend content={<ChartLegendContent />} />
+                      {trendData.seriesKeys.map((key) => (
+                        <Line
+                          key={key}
+                          type="monotone"
+                          dataKey={key}
+                          stroke={`var(--color-${key})`}
+                          strokeWidth={2.5}
+                          dot={{ r: 3 }}
+                          activeDot={{ r: 5 }}
+                        />
+                      ))}
+                    </LineChart>
+                  </ChartContainer>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-start justify-between gap-4">
+                <div>
+                  <CardTitle>Organization Contribution</CardTitle>
+                  <CardDescription>
+                    Contribution by CSO / organization in the current scope. Click a bar to drill down.
+                  </CardDescription>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => downloadChartSvg(contributionChartRef.current, "aggregates_contribution")}
+                  >
+                    <Download className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => void downloadChartPng(contributionChartRef.current, "aggregates_contribution")}
+                  >
+                    <ArrowDownToLine className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div ref={contributionChartRef}>
+                  <ChartContainer
+                    config={{
+                      total: { label: "Contribution", color: "hsl(var(--chart-3))" },
+                    }}
+                    className="h-[300px]"
+                  >
+                    <BarChart data={contributionData} layout="vertical" margin={{ left: 24 }}>
+                      <CartesianGrid horizontal={false} />
+                      <XAxis type="number" tickLine={false} axisLine={false} />
+                      <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} width={140} />
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <Bar
+                        dataKey="total"
+                        fill="var(--color-total)"
+                        radius={[0, 8, 8, 0]}
+                        onClick={(payload) => {
+                          const id = payload?.id ? String(payload.id) : "";
+                          if (!id) return;
+                          const coordinatorId = coordinatorByOrgId.get(id) || id;
+                          setParentOrgFilter(coordinatorId);
+                          setOrgFilter(id);
+                        }}
+                      />
+                    </BarChart>
+                  </ChartContainer>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid gap-6 xl:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Reporting Compliance</CardTitle>
+                <CardDescription>
+                  Compliance summary for {activeCompliancePeriod || "the current scope"}, based on reporting period end dates.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div ref={complianceChartRef}>
+                  <ChartContainer
+                    config={{
+                      submitted: { label: "Submitted on time", color: "hsl(var(--chart-2))" },
+                      late: { label: "Late", color: "hsl(var(--chart-4))" },
+                      missing: { label: "Missing", color: "hsl(var(--destructive))" },
+                    }}
+                    className="h-[300px]"
+                  >
+                    <BarChart data={complianceData}>
+                      <CartesianGrid vertical={false} />
+                      <XAxis dataKey="name" tickLine={false} axisLine={false} interval={0} angle={-16} textAnchor="end" height={62} />
+                      <YAxis tickLine={false} axisLine={false} />
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <ChartLegend content={<ChartLegendContent />} />
+                      <Bar
+                        dataKey="submitted"
+                        stackId="compliance"
+                        fill="var(--color-submitted)"
+                        onClick={(payload) =>
+                          payload?.id &&
+                          setComplianceSelection({
+                            coordinatorId: String(payload.id),
+                            status: "submitted",
+                          })
+                        }
+                      />
+                      <Bar
+                        dataKey="late"
+                        stackId="compliance"
+                        fill="var(--color-late)"
+                        onClick={(payload) =>
+                          payload?.id &&
+                          setComplianceSelection({
+                            coordinatorId: String(payload.id),
+                            status: "late",
+                          })
+                        }
+                      />
+                      <Bar
+                        dataKey="missing"
+                        stackId="compliance"
+                        fill="var(--color-missing)"
+                        onClick={(payload) =>
+                          payload?.id &&
+                          setComplianceSelection({
+                            coordinatorId: String(payload.id),
+                            status: "missing",
+                          })
+                        }
+                      />
+                    </BarChart>
+                  </ChartContainer>
+                </div>
+                <div className="rounded-lg border border-dashed border-border p-3">
+                  <p className="text-sm font-medium">
+                    {complianceSelection
+                      ? `${comparisonBucketNames.get(complianceSelection.coordinatorId) || coordinatorNameById.get(complianceSelection.coordinatorId) || "Scope"} ${complianceSelection.status}`
+                      : "Click a compliance segment to inspect organizations"}
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {selectedComplianceDetails.length > 0
+                      ? selectedComplianceDetails.join(", ")
+                      : "No selected compliance detail yet."}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-start justify-between gap-4">
+                <div>
+                  <CardTitle>Disaggregate Analysis</CardTitle>
+                  <CardDescription>
+                    Sex, age, and primary disaggregate breakdown for the selected indicator.
+                  </CardDescription>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Select value={breakdownMode} onValueChange={(value) => setBreakdownMode(value as "sex" | "age" | "primary")}>
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="age">Age View</SelectItem>
+                      <SelectItem value="sex">Sex View</SelectItem>
+                      <SelectItem value="primary">Disaggregate View</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => downloadChartSvg(breakdownChartRef.current, "aggregates_breakdown")}
+                  >
+                    <Download className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div ref={breakdownChartRef}>
+                  <ChartContainer
+                    config={{
+                      Male: { label: "Male", color: "hsl(var(--chart-1))" },
+                      Female: { label: "Female", color: "hsl(var(--chart-5))" },
+                      Other: { label: "Other", color: "hsl(var(--chart-4))" },
+                      Total: { label: "Total", color: "hsl(var(--primary))" },
+                    }}
+                    className="h-[300px]"
+                  >
+                    <BarChart data={disaggregateBreakdownData}>
+                      <CartesianGrid vertical={false} />
+                      <XAxis dataKey="name" tickLine={false} axisLine={false} interval={0} angle={-16} textAnchor="end" height={62} />
+                      <YAxis tickLine={false} axisLine={false} />
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <ChartLegend content={<ChartLegendContent />} />
+                      {breakdownMode === "sex" ? (
+                        <Bar dataKey="Total" fill="var(--color-Total)" radius={[8, 8, 0, 0]} />
+                      ) : (
+                        <>
+                          <Bar dataKey="Male" stackId="demo" fill="var(--color-Male)" radius={[6, 6, 0, 0]} />
+                          <Bar dataKey="Female" stackId="demo" fill="var(--color-Female)" radius={[6, 6, 0, 0]} />
+                          <Bar dataKey="Other" stackId="demo" fill="var(--color-Other)" radius={[6, 6, 0, 0]} />
+                        </>
+                      )}
+                    </BarChart>
+                  </ChartContainer>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid gap-6 xl:grid-cols-[1.6fr_1fr]">
+            <Card>
+              <CardHeader>
+                <CardTitle>Matrix Detail</CardTitle>
+                <CardDescription>
+                  Heatmap view for {selectedDetailGroup?.indicatorName || "the selected indicator"}.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {!selectedDetailMatrix ? (
+                  <div className="rounded-lg border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
+                    No matrix disaggregation is available for the selected indicator.
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto rounded-lg border border-border">
+                    <table className="min-w-full border-separate border-spacing-0 text-xs">
+                      <thead>
+                        <tr>
+                          <th className="border-b border-r border-border bg-muted/80 px-3 py-2 text-left font-semibold">
+                            {selectedDetailMatrix.primaryDisaggregateLabel}
+                          </th>
+                          <th className="border-b border-r border-border bg-muted/80 px-3 py-2 text-left font-semibold">
+                            Age/Sex
+                          </th>
+                          {selectedDetailMatrix.ageBands.map((band) => (
+                            <th
+                              key={band}
+                              className="border-b border-r border-border bg-muted/80 px-3 py-2 text-center font-semibold"
+                            >
+                              {band}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {selectedDetailMatrix.keyPops.map((kp) => (
+                          <React.Fragment key={kp}>
+                            {selectedDetailMatrix.secondDimensionValues.map((dimension, index) => (
+                              <tr key={`${kp}-${dimension}`}>
+                                {index === 0 ? (
+                                  <td
+                                    rowSpan={selectedDetailMatrix.secondDimensionValues.length}
+                                    className="border-b border-r border-border px-3 py-2 align-top font-medium"
+                                  >
+                                    {kp}
+                                  </td>
+                                ) : null}
+                                <td className="border-b border-r border-border px-3 py-2">
+                                  {dimension}
+                                </td>
+                                {selectedDetailMatrix.ageBands.map((band) => {
+                                  const value = toSafeNumber(
+                                    selectedDetailMatrix.matrix[kp]?.[dimension]?.[band],
+                                  );
+                                  return (
+                                    <td
+                                      key={`${kp}-${dimension}-${band}`}
+                                      className="border-b border-r border-border px-3 py-2 text-center font-medium"
+                                      style={{
+                                        backgroundColor: getHeatColor(
+                                          value,
+                                          selectedDetailMatrixMax,
+                                        ),
+                                      }}
+                                    >
+                                      {value.toLocaleString()}
+                                    </td>
+                                  );
+                                })}
+                              </tr>
+                            ))}
+                          </React.Fragment>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <div className="space-y-6">
+              <Card>
+                <CardHeader className="flex flex-row items-start justify-between gap-4">
+                  <div>
+                    <CardTitle>Service Cascade</CardTitle>
+                    <CardDescription>Predefined cascade stages built from filtered indicator totals.</CardDescription>
+                  </div>
+                  <Select value={selectedCascadeId} onValueChange={setSelectedCascadeId}>
+                    <SelectTrigger className="w-[210px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {cascadePresets.map((preset) => (
+                        <SelectItem key={preset.id} value={preset.id}>
+                          {preset.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </CardHeader>
+                <CardContent>
+                  <div ref={cascadeChartRef}>
+                    <ChartContainer
+                      config={{
+                        total: { label: "Total", color: "hsl(var(--primary))" },
+                      }}
+                      className="h-[260px]"
+                    >
+                      <FunnelChart>
+                        <ChartTooltip
+                          content={
+                            <ChartTooltipContent
+                              formatter={(value, _name, item) => (
+                                <div className="flex flex-col">
+                                  <span className="font-medium">{item?.payload?.stage}</span>
+                                  <span>Total: {Number(value).toLocaleString()}</span>
+                                  <span>{item?.payload?.indicatorName}</span>
+                                </div>
+                              )}
+                            />
+                          }
+                        />
+                        <Funnel dataKey="total" data={cascadeData} isAnimationActive>
+                          <LabelList position="right" dataKey="stage" fill="hsl(var(--foreground))" stroke="none" />
+                          {cascadeData.map((entry, index) => (
+                            <Cell key={entry.stage} fill={dashboardSeriesColors[index % dashboardSeriesColors.length]} />
+                          ))}
+                        </Funnel>
+                      </FunnelChart>
+                    </ChartContainer>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Message / Category Breakdown</CardTitle>
+                  <CardDescription>
+                    Category-style outputs such as message types and screening-related indicators.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ChartContainer
+                    config={{
+                      total: { label: "Total", color: "hsl(var(--chart-4))" },
+                    }}
+                    className="h-[260px]"
+                  >
+                    <BarChart data={messageBreakdownData} layout="vertical" margin={{ left: 20 }}>
+                      <CartesianGrid horizontal={false} />
+                      <XAxis type="number" tickLine={false} axisLine={false} />
+                      <YAxis dataKey="name" type="category" width={170} tickLine={false} axisLine={false} />
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <Bar dataKey="total" fill="var(--color-total)" radius={[0, 8, 8, 0]} />
+                    </BarChart>
+                  </ChartContainer>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         </div>
 
         <Card>
@@ -2278,7 +3581,9 @@ export default function AggregatesPage() {
                 <CardTitle className="flex items-center gap-2">
                   <Table2 className="h-5 w-5" /> Aggregate Data
                 </CardTitle>
-                <CardDescription>Tabular view of all aggregate entries</CardDescription>
+                <CardDescription>
+                  Consolidated matrix view arranged by workbook topic across all reporting organizations in the current scope
+                </CardDescription>
               </div>
               <Button variant="outline" size="sm" onClick={() => setIsChartOpen(true)}>
                 <BarChart3 className="mr-2 h-4 w-4" /> View Chart
@@ -2287,7 +3592,7 @@ export default function AggregatesPage() {
           </CardHeader>
 
           <CardContent>
-            {aggregateGroups.length === 0 && (
+            {dashboardGroups.length === 0 && (
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <Table2 className="h-12 w-12 text-muted-foreground/50 mb-4" />
                 <h3 className="text-lg font-semibold">No data found</h3>
@@ -2297,9 +3602,34 @@ export default function AggregatesPage() {
               </div>
             )}
 
-            <div className="space-y-6">
-              {aggregateGroups.map((group) => {
-                const disaggregates = mergeDisaggregatesForGroup(group.items);
+            <div className="space-y-8">
+              {dashboardTopicSections.map((section) => (
+                <section key={section.id} className="space-y-4">
+                  <div className="rounded-xl border border-border bg-muted/20 px-4 py-4">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="space-y-1">
+                        <p className="text-sm font-semibold tracking-wide text-foreground">
+                          {section.label}
+                        </p>
+                        <p className="max-w-3xl text-sm text-muted-foreground">
+                          {section.description}
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge variant="secondary">
+                          {section.groups.length} indicator
+                          {section.groups.length === 1 ? "" : "s"}
+                        </Badge>
+                        <Badge variant="outline">
+                          Topic total {section.totalValue.toLocaleString()}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-6">
+                    {section.groups.map((group) => {
+                const disaggregates = group.disaggregates;
                 const projectNames = Array.from(
                   new Set(
                     group.items.map((item) =>
@@ -2323,10 +3653,10 @@ export default function AggregatesPage() {
                   (sum, item) => sum + getAggregateTotal(item),
                   0,
                 );
-                const organizationLabel =
+                const contributingOrganizationLabel =
                   organizationNames.length === 1
                     ? organizationNames[0]
-                    : `${organizationNames.length} organizations`;
+                    : `${organizationNames.length} reporting organizations`;
                 const projectLabel =
                   projectNames.length === 1
                     ? projectNames[0]
@@ -2344,10 +3674,13 @@ export default function AggregatesPage() {
                           <p className="text-sm text-muted-foreground">Indicator</p>
                           <p className="text-base font-semibold">{group.indicatorName}</p>
                           <p className="text-sm text-muted-foreground">
-                            {organizationLabel} | {projectLabel} | {periodLabel}
+                            {scopeOrganizationLabel} | {projectLabel} | {periodLabel}
                           </p>
                         </div>
                         <div className="text-right">
+                          <p className="text-xs text-muted-foreground">
+                            {group.items.length} submissions merged from {contributingOrganizationLabel}
+                          </p>
                           <p className="text-sm text-muted-foreground">Total</p>
                           <p className="text-xl font-semibold text-primary">
                             {Number(totalValue).toLocaleString()}
@@ -2413,6 +3746,16 @@ export default function AggregatesPage() {
                 }
                 const combinedSubTotal = sumBands(combinedTotals, safeAgeBands);
                 const combinedTotal = combinedSubTotal;
+                const maxCellValue = Math.max(
+                  0,
+                  ...displayKeyPops.flatMap((kp) =>
+                    safeDimensions.flatMap((dimension) =>
+                      safeAgeBands.map((band) =>
+                        toSafeNumber(displayMatrix[kp]?.[dimension]?.[band]),
+                      ),
+                    ),
+                  ),
+                );
 
                 return (
                   <div key={group.key} className="rounded-lg border border-border p-4">
@@ -2421,10 +3764,17 @@ export default function AggregatesPage() {
                         <p className="text-sm text-muted-foreground">Indicator</p>
                         <p className="text-base font-semibold">{group.indicatorName}</p>
                         <p className="text-sm text-muted-foreground">
-                          {organizationLabel} | {projectLabel} | {periodLabel}
+                          {scopeOrganizationLabel} | {projectLabel} | {periodLabel}
                         </p>
                       </div>
-                      <Badge variant="outline">Total {Number(totalValue).toLocaleString()}</Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="secondary">{group.items.length} submissions merged</Badge>
+                        <Badge variant="secondary">
+                          {organizationNames.length} contributing org
+                          {organizationNames.length === 1 ? "" : "s"}
+                        </Badge>
+                        <Badge variant="outline">Total {Number(totalValue).toLocaleString()}</Badge>
+                      </div>
                     </div>
 
                     <div className="w-full overflow-x-auto overflow-y-auto rounded-lg border border-border max-h-[68vh]">
@@ -2542,6 +3892,12 @@ export default function AggregatesPage() {
                                         <td
                                           key={`${kp}-${dimension}-${band}`}
                                           className={`border-b border-r border-border px-2 py-2 text-center ${rowBaseClass}`}
+                                          style={{
+                                            backgroundColor: getHeatColor(
+                                              toSafeNumber(values[band]),
+                                              maxCellValue,
+                                            ),
+                                          }}
                                         >
                                           {toSafeNumber(values[band]).toLocaleString()}
                                         </td>
@@ -2658,7 +4014,10 @@ export default function AggregatesPage() {
                     </div>
                   </div>
                 );
-              })}
+                    })}
+                  </div>
+                </section>
+              ))}
             </div>
           </CardContent>
         </Card>
@@ -2672,7 +4031,11 @@ export default function AggregatesPage() {
               </DialogDescription>
             </DialogHeader>
             <div className="flex justify-end">
-              <Button variant="outline" size="sm" onClick={downloadChartSvg}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => downloadChartSvg(chartRef.current, "aggregates_indicator_totals")}
+              >
                 <Download className="mr-2 h-4 w-4" />
                 Download Chart
               </Button>

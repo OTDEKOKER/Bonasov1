@@ -7,6 +7,7 @@
 
 import { api, type PaginatedResponse } from '../client';
 import type { Indicator, Assessment, IndicatorType } from '@/lib/types';
+import type { AggregateDisaggregationConfig } from "@/lib/indicators/disaggregation-presets";
 
 // ============================================================================
 // Types
@@ -24,6 +25,7 @@ export interface IndicatorFilters {
 
 export interface CreateIndicatorRequest {
   name: string;
+  short_name?: string;
   code: string;
   description?: string;
   type: IndicatorType;
@@ -31,6 +33,7 @@ export interface CreateIndicatorRequest {
   unit?: string;
   options?: Array<string | { label: string; value: string }>;
   sub_labels?: string[];
+  aggregate_disaggregation_config?: AggregateDisaggregationConfig;
   aggregation_method?: 'sum' | 'average' | 'count' | 'latest';
   is_active?: boolean;
   organizations?: number[];
@@ -65,6 +68,8 @@ export interface BulkAssessmentRequest {
 // Indicators Service
 // ============================================================================
 
+const LIST_ALL_PAGE_SIZE = '500';
+
 export const indicatorsService = {
   /**
    * List all indicators with optional filters
@@ -83,6 +88,9 @@ export const indicatorsService = {
     let page = filters?.page ? String(filters.page) : "1";
     const baseFilters = { ...(filters || {}) } as Record<string, string>;
     delete baseFilters.page;
+    if (!baseFilters.page_size) {
+      baseFilters.page_size = LIST_ALL_PAGE_SIZE;
+    }
 
     while (true) {
       const { data } = await api.get<PaginatedResponse<Indicator>>('/indicators/', {

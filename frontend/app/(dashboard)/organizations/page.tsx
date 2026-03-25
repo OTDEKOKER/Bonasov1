@@ -1,6 +1,6 @@
 ﻿"use client"
 
-import { useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Plus, Building2, Loader2, ChevronDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -35,22 +35,21 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
 import { useToast } from "@/hooks/use-toast"
+import { useAuth } from "@/lib/contexts/auth-context"
+import { canManageOrganizations } from "@/lib/permissions"
+import {
+  canOrganizationBeParentForType,
+  getEffectiveOrganizationType,
+  getOrganizationTypeColorClass,
+  getOrganizationTypeLabel,
+  isBonasoOrganizationName,
+  isSeedCoordinatorOrganizationName,
+  ORGANIZATION_TYPE_OPTIONS,
+  organizationCanBeParent,
+  organizationCanHaveParent,
+} from "@/lib/organization-hierarchy"
 
-const orgTypeColors: Record<string, string> = {
-  headquarters: "bg-chart-1/10 text-chart-1",
-  regional: "bg-chart-2/10 text-chart-2",
-  district: "bg-chart-3/10 text-chart-3",
-  partner: "bg-chart-4/10 text-chart-4",
-  ngo: "bg-chart-5/10 text-chart-5",
-}
-
-const orgTypeLabels: Record<string, string> = {
-  headquarters: "Headquarters",
-  regional: "Regional Office",
-  district: "District Office",
-  partner: "Partner Organization",
-  ngo: "NGO",
-}
+const EMPTY_ORGANIZATIONS: never[] = []
 
 const resolveParentId = (org: Organization & { parent?: string | number | null }) => {
   const rawParent = (org as { parentId?: string | number | null }).parentId ?? org.parent ?? null
@@ -71,6 +70,7 @@ const resolveParentId = (org: Organization & { parent?: string | number | null }
 export default function OrganizationsPage() {
   const router = useRouter()
   const { toast } = useToast()
+  const { user } = useAuth()
   const { data, isLoading, error, mutate } = useAllOrganizations()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -86,23 +86,84 @@ export default function OrganizationsPage() {
     isActive: true,
   })
 
-  const organizations = data?.results || []
-  const parentOrganizations = organizations
-    .filter((org) => !resolveParentId(org as Organization & { parent?: string | number | null }))
-    .slice()
-    .sort((a, b) => (a.name || "").localeCompare(b.name || ""))
+  const organizations = data?.results || EMPTY_ORGANIZATIONS
+  const canManageOrgRecords = canManageOrganizations(user)
+  const bonasoOrganization = useMemo(
+    () => organizations.find((org) => isBonasoOrganizationName(org.name)),
+    [organizations],
+  )
+  const organizationsByParentId = useMemo(() => {
+    const map = new Map<string, Organization[]>()
+    organizations.forEach((org) => {
+      const actualParentId = resolveParentId(org as Organization & { parent?: string | number | null })
+      const parentId =
+        bonasoOrganization &&
+        isSeedCoordinatorOrganizationName(org.name) &&
+        String(org.id) !== String(bonasoOrganization.id)
+          ? String(bonasoOrganization.id)
+          : actualParentId
+      const key = parentId || "__root__"
+      const existing = map.get(key) || []
+      existing.push(org)
+      map.set(key, existing)
+    })
+    map.forEach((items) => items.sort((left, right) => (left.name || "").localeCompare(right.name || "")))
+    return map
+  }, [bonasoOrganization, organizations])
+  const rootOrganizations = useMemo(() => organizationsByParentId.get("__root__") || EMPTY_ORGANIZATIONS, [organizationsByParentId])
+  const parentOptions = useMemo(
+    () =>
+      organizations
+        .filter((org) => organizationCanBeParent(getEffectiveOrganizationType(org)))
+        .filter((org) => canOrganizationBeParentForType(getEffectiveOrganizationType(org), formData.type))
+        .sort((left, right) => (left.name || "").localeCompare(right.name || "")),
+    [formData.type, organizations],
+  )
 
-  const filteredParents = parentOrganizations.filter((parent) => {
+  useEffect(() => {
+    if (!formData.parentId) return
+    if (parentOptions.some((org) => String(org.id) === formData.parentId)) return
+    setFormData((current) => ({ ...current, parentId: "" }))
+  }, [formData.parentId, parentOptions])
+
+  const matchesSearch = useCallback((org: Organization): boolean => {
     const query = searchQuery.trim().toLowerCase()
     if (!query) return true
-    if ((parent.name || "").toLowerCase().includes(query)) return true
-    const children = organizations.filter((org) =>
-      resolveParentId(org as Organization & { parent?: string | number | null }) === String(parent.id),
-    )
-    return children.some((child) => (child.name || "").toLowerCase().includes(query))
-  })
+    if ((org.name || "").toLowerCase().includes(query)) return true
+    const children = organizationsByParentId.get(String(org.id)) || EMPTY_ORGANIZATIONS
+    return children.some((child) => matchesSearch(child))
+  }, [organizationsByParentId, searchQuery])
+
+  const visibleRootOrganizations = useMemo(
+    () => rootOrganizations.filter((org) => matchesSearch(org)),
+    [matchesSearch, rootOrganizations],
+  )
+  const protectedOrganizationIds = useMemo(() => {
+    const ids = new Set<string>()
+
+    organizations.forEach((org) => {
+      if (isBonasoOrganizationName(org.name)) {
+        ids.add(String(org.id))
+      }
+      const childOrganizations = organizationsByParentId.get(String(org.id)) || EMPTY_ORGANIZATIONS
+      if (childOrganizations.length > 0) {
+        ids.add(String(org.id))
+      }
+    })
+
+    return ids
+  }, [organizations, organizationsByParentId])
 
   const handleCreate = async () => {
+    if (!canManageOrgRecords) {
+      toast({
+        title: "Read-only access",
+        description: "Only platform admins can create organizations.",
+        variant: "destructive",
+      })
+      return
+    }
+
     if (!formData.name || !formData.type) {
       toast({
         title: "Validation Error",
@@ -152,6 +213,24 @@ export default function OrganizationsPage() {
   }
 
   const handleDelete = async (org: Organization) => {
+    if (!canManageOrgRecords) {
+      toast({
+        title: "Read-only access",
+        description: "Only platform admins can delete organizations.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (protectedOrganizationIds.has(String(org.id))) {
+      toast({
+        title: "Delete blocked",
+        description: "This organization is protected because it is BONASO or it still has child organizations.",
+        variant: "destructive",
+      })
+      return
+    }
+
     if (!confirm(`Are you sure you want to delete "${org.name}"?`)) return
 
     try {
@@ -170,6 +249,76 @@ export default function OrganizationsPage() {
     }
   }
 
+  const renderOrganizationNode = (org: Organization, level = 0) => {
+    const children = (organizationsByParentId.get(String(org.id)) || []).filter((child) => matchesSearch(child))
+    const displayType = getEffectiveOrganizationType(org)
+    const isBonaso = isBonasoOrganizationName(org.name)
+    const canDelete = canManageOrgRecords && !protectedOrganizationIds.has(String(org.id))
+
+    return (
+      <Collapsible
+        key={org.id}
+        defaultOpen={searchQuery.trim().length > 0}
+        className={`rounded-lg border ${isBonaso ? "border-primary/40 bg-primary/5 shadow-sm" : "border-border"}`}
+      >
+        <div className="flex flex-wrap items-center justify-between gap-4 p-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary">
+              <Building2 className="h-5 w-5 text-muted-foreground" />
+            </div>
+            <div>
+              <p className="font-medium text-foreground">{org.name}</p>
+              <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                <Badge variant="secondary" className={getOrganizationTypeColorClass(displayType)}>
+                  {getOrganizationTypeLabel(displayType)}
+                </Badge>
+                {isBonaso ? <Badge variant="outline">Seeded BONASO admin view</Badge> : null}
+                <span>Level {level + 1}</span>
+                <span>{children.length} direct child{children.length === 1 ? "" : "ren"}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
+            <Button variant="outline" size="sm" onClick={() => router.push(`/organizations/${org.id}`)}>
+              View
+            </Button>
+            {canManageOrgRecords ? (
+              <Button variant="outline" size="sm" onClick={() => router.push(`/organizations/${org.id}/edit`)}>
+                Edit
+              </Button>
+            ) : null}
+            {canManageOrgRecords ? (
+              <Button variant="outline" size="sm" onClick={() => handleDelete(org)} disabled={!canDelete}>
+                Delete
+              </Button>
+            ) : null}
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" size="sm" className="gap-2">
+                Hierarchy
+                <ChevronDown className="h-4 w-4" />
+              </Button>
+            </CollapsibleTrigger>
+          </div>
+        </div>
+
+        <CollapsibleContent className="border-t border-border bg-muted/20">
+          <div className="space-y-3 p-4">
+            {children.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No child organizations.</p>
+            ) : (
+              children.map((child) => (
+                <div key={child.id} className="pl-4 sm:pl-6">
+                  {renderOrganizationNode(child, level + 1)}
+                </div>
+              ))
+            )}
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
+    )
+  }
+
   if (isLoading) {
     return (
       <div className="flex h-[60vh] items-center justify-center">
@@ -179,7 +328,6 @@ export default function OrganizationsPage() {
   }
 
   if (error) {
-    console.log("[v0] Organizations error:", error)
     return (
       <div className="flex h-[60vh] flex-col items-center justify-center gap-4">
         <p className="text-muted-foreground">Failed to load organizations</p>
@@ -198,18 +346,29 @@ export default function OrganizationsPage() {
     <div className="space-y-6">
       <PageHeader
         title="Organizations"
-        description="Manage organizations and their hierarchies"
+        description="Manage the hierarchy from funders down to sub-grantees"
         breadcrumbs={[
           { label: "Dashboard", href: "/dashboard" },
           { label: "Organizations" },
         ]}
         actions={
-          <Button onClick={() => setIsCreateOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Organization
-          </Button>
+          canManageOrgRecords ? (
+            <Button onClick={() => setIsCreateOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Organization
+            </Button>
+          ) : null
         }
       />
+
+      {!canManageOrgRecords ? (
+        <div className="rounded-lg border border-border bg-muted/20 p-4">
+          <p className="text-sm font-medium text-foreground">Read-only organization access</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            You can review the organization hierarchy, but only platform admins can create, edit, or delete organizations.
+          </p>
+        </div>
+      ) : null}
 
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
         <Input
@@ -220,92 +379,25 @@ export default function OrganizationsPage() {
         />
       </div>
 
+      <div className="rounded-lg border border-border bg-muted/20 p-4">
+        <p className="text-sm font-medium text-foreground">Hierarchy order</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Funder {"->"} Project Senior Coordinator / Admin {"->"} Coordinator {"->"} Sub-grantee
+        </p>
+      </div>
+
       <div className="space-y-3">
-        {filteredParents.length === 0 ? (
+        {visibleRootOrganizations.length === 0 ? (
           <div className="rounded-lg border border-dashed border-border p-8 text-center text-muted-foreground">
             No organizations found.
           </div>
         ) : (
-          filteredParents.map((org) => {
-            const children = organizations.filter((child) =>
-              resolveParentId(child as Organization & { parent?: string | number | null }) === String(org.id),
-            ).slice().sort((a, b) =>
-              (a.name || "").localeCompare(b.name || ""),
-            )
-            return (
-              <Collapsible key={org.id} defaultOpen={false} className="rounded-lg border border-border">
-                <div className="flex flex-wrap items-center justify-between gap-4 p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary">
-                      <Building2 className="h-5 w-5 text-muted-foreground" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-foreground">{org.name}</p>
-                      <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                        {org.type && (
-                          <Badge variant="secondary" className={orgTypeColors[org.type] || ""}>
-                            {orgTypeLabels[org.type] || org.type}
-                          </Badge>
-                        )}
-                        <span>{children.length} sub-grantees</span>
-                      </div>
-                    </div>
-                  </div>
-
-                <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
-                  <Button variant="outline" size="sm" onClick={() => router.push(`/organizations/${org.id}`)}>
-                    View
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => router.push(`/organizations/${org.id}/edit`)}>
-                    Edit
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => handleDelete(org)}>
-                    Delete
-                  </Button>
-                  <CollapsibleTrigger asChild>
-                    <Button variant="ghost" size="sm" className="gap-2">
-                      Sub-grantees
-                      <ChevronDown className="h-4 w-4" />
-                    </Button>
-                  </CollapsibleTrigger>
-                </div>
-                </div>
-
-                <CollapsibleContent className="border-t border-border bg-muted/20">
-                  <div className="p-4 space-y-2">
-                    {children.length === 0 ? (
-                      <p className="text-sm text-muted-foreground">No sub-grantees.</p>
-                    ) : (
-                      children.map((child) => (
-                        <div key={child.id} className="flex flex-col gap-2 rounded-md bg-background p-3 sm:flex-row sm:items-center sm:justify-between">
-                          <div className="flex items-center gap-2">
-                            <Building2 className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-sm font-medium">{child.name}</span>
-                          </div>
-                          <div className="flex flex-wrap items-center gap-2">
-                            <Button variant="ghost" size="sm" onClick={() => router.push(`/organizations/${child.id}`)}>
-                              View
-                            </Button>
-                            <Button variant="ghost" size="sm" onClick={() => router.push(`/organizations/${child.id}/edit`)}>
-                              Edit
-                            </Button>
-                            <Button variant="ghost" size="sm" onClick={() => handleDelete(child)}>
-                              Delete
-                            </Button>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </CollapsibleContent>
-              </Collapsible>
-            )
-          })
+          visibleRootOrganizations.map((org) => renderOrganizationNode(org))
         )}
       </div>
 
       {/* Create Dialog */}
-      <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+      <Dialog open={canManageOrgRecords && isCreateOpen} onOpenChange={setIsCreateOpen}>
         <DialogContent className="w-[95vw] sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Add Organization</DialogTitle>
@@ -339,22 +431,24 @@ export default function OrganizationsPage() {
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="headquarters">Headquarters</SelectItem>
-                  <SelectItem value="regional">Regional Office</SelectItem>
-                  <SelectItem value="district">District Office</SelectItem>
-                  <SelectItem value="partner">Partner Organization</SelectItem>
+                  {ORGANIZATION_TYPE_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-                            <Label htmlFor="parent">Parent Organization (Optional)</Label>
+              <Label htmlFor="parent">Parent Organization (Optional)</Label>
               <OrganizationSelect
-                organizations={parentOrganizations}
+                organizations={parentOptions}
                 value={formData.parentId}
                 onChange={(value) => setFormData({ ...formData, parentId: value === "none" ? "" : value })}
                 includeNone
                 noneLabel="No parent"
                 placeholder="Select parent"
+                disabled={!organizationCanHaveParent(formData.type)}
               /></div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">

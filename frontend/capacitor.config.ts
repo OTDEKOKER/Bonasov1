@@ -7,7 +7,6 @@ const config: CapacitorConfig = {
   appId: "org.bonaso.dataportal",
   appName: "BONASO Data Portal",
   webDir: "mobile-shell",
-  bundledWebRuntime: false,
   server: serverUrl
     ? {
         url: serverUrl,

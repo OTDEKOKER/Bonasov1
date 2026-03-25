@@ -2,11 +2,10 @@
 
 import React, { useState } from "react"
 import Image from "next/image"
-
-import Link from "next/link"
 import { usePathname, useSearchParams } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { useAllOrganizations } from "@/lib/hooks/use-api"
+import { useOrganizationTree } from "@/lib/hooks/use-api"
+import { useAuth } from "@/lib/contexts/auth-context"
 import {
   LayoutDashboard,
   Building2,
@@ -23,6 +22,7 @@ import {
   LogOut,
   ChevronDown,
   Upload,
+  Loader2,
 } from "lucide-react"
 import {
   Collapsible,
@@ -68,7 +68,7 @@ function NestedSubItem({ item, isChildActive, level = 1 }: NestedSubItemProps) {
 
   if (!hasChildren) {
     return (
-      <Link
+      <a
         href={item.href}
         className={cn(
           "block rounded-lg px-3 py-2 text-sm transition-colors",
@@ -79,14 +79,14 @@ function NestedSubItem({ item, isChildActive, level = 1 }: NestedSubItemProps) {
         )}
       >
         {item.title}
-      </Link>
+      </a>
     )
   }
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
       <div className={cn("flex items-center gap-1", level > 1 && "ml-4")}>
-        <Link
+        <a
           href={item.href}
           className={cn(
             "flex-1 rounded-lg px-3 py-2 text-sm transition-colors",
@@ -98,7 +98,7 @@ function NestedSubItem({ item, isChildActive, level = 1 }: NestedSubItemProps) {
           )}
         >
           {item.title}
-        </Link>
+        </a>
         <CollapsibleTrigger className="rounded-md p-1 text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
           <ChevronDown className={cn("h-4 w-4 transition-transform", isOpen && "rotate-180")} />
         </CollapsibleTrigger>
@@ -154,7 +154,7 @@ function NavItem({ title, href, icon, badge, isActive, subItems }: NavItemProps)
   }
 
   return (
-    <Link
+    <a
       href={href}
       className={cn(
         "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
@@ -170,7 +170,7 @@ function NavItem({ title, href, icon, badge, isActive, subItems }: NavItemProps)
           {badge}
         </span>
       )}
-    </Link>
+    </a>
   )
 }
 
@@ -196,6 +196,12 @@ const baseNavigation = [
       { title: "All Indicators", href: "/indicators" },
       { title: "Assessments", href: "/indicators/assessments" },
     ],
+  },
+  {
+    title: "Targets",
+    href: "/targets/coordinators",
+    icon: <Target className="h-4 w-4" />,
+    children: [{ title: "Coordinator Targets", href: "/targets/coordinators" }],
   },
   {
     title: "Respondents",
@@ -230,6 +236,8 @@ const baseNavigation = [
     children: [
       { title: "Reports", href: "/analysis/reports" },
       { title: "Dashboards", href: "/analysis/dashboards" },
+      { title: "Pivot Tables", href: "/analysis/pivot-tables" },
+      { title: "Line Lists", href: "/analysis/line-lists" },
       { title: "Export", href: "/analysis/export" },
     ],
   },
@@ -238,15 +246,11 @@ const baseNavigation = [
 
 export function AppSidebar() {
   const pathname = usePathname()
-  const { data: organizationsData } = useAllOrganizations()
+  const { data: organizationTree } = useOrganizationTree()
+  const { logout } = useAuth()
+  const [isSigningOut, setIsSigningOut] = useState(false)
 
-  const organizations = organizationsData?.results ?? []
-  const parentOrganizations = organizations
-    .filter((org) => {
-      const parentId = (org as { parentId?: string | number | null; parent?: string | number | null }).parentId
-        ?? (org as { parent?: string | number | null }).parent
-      return !String(parentId ?? "")
-    })
+  const parentOrganizations = (organizationTree ?? [])
     .sort((left, right) => String(left.name || "").localeCompare(String(right.name || "")))
 
   const aggregateChildren: SidebarSubItem[] = [
@@ -263,11 +267,21 @@ export function AppSidebar() {
       : item,
   )
 
+  const handleSignOut = async () => {
+    if (isSigningOut) return
+    setIsSigningOut(true)
+    try {
+      await logout()
+    } finally {
+      setIsSigningOut(false)
+    }
+  }
+
   return (
     <aside className="fixed left-0 top-0 z-40 flex h-screen w-64 flex-col border-r border-sidebar-border bg-sidebar">
       {/* Logo */}
       <div className="flex h-16 items-center gap-2 border-b border-sidebar-border px-4">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-card">
           <Image
             src="/favicon.ico"
             alt="BONASO"
@@ -305,11 +319,17 @@ export function AppSidebar() {
           icon={<Settings className="h-4 w-4" />}
           isActive={pathname === "/settings"}
         />
-        <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
-          <LogOut className="h-4 w-4" />
-          <span>Sign Out</span>
+        <button
+          type="button"
+          onClick={handleSignOut}
+          disabled={isSigningOut}
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {isSigningOut ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogOut className="h-4 w-4" />}
+          <span>{isSigningOut ? "Signing Out..." : "Sign Out"}</span>
         </button>
       </div>
     </aside>
   )
 }
+

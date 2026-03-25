@@ -25,13 +25,15 @@ export type AggregateChartPoint = {
 };
 
 type AggregateChartDialogProps = {
+  description?: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   data: AggregateChartPoint[];
+  title?: string;
 };
 
 export function AggregateChartDialog(props: AggregateChartDialogProps) {
-  const { open, onOpenChange, data } = props;
+  const { description, open, onOpenChange, data, title } = props;
   const chartRef = useRef<HTMLDivElement | null>(null);
 
   const downloadChartSvg = () => {
@@ -62,9 +64,9 @@ export function AggregateChartDialog(props: AggregateChartDialogProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[95vw] sm:max-w-5xl">
         <DialogHeader>
-          <DialogTitle>Aggregate Totals</DialogTitle>
+          <DialogTitle>{title || "Aggregate Totals"}</DialogTitle>
           <DialogDescription>
-            Totals by indicator for the selected filters.
+            {description || "Totals by indicator for the selected filters."}
           </DialogDescription>
         </DialogHeader>
 

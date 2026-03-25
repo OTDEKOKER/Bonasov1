@@ -1,15 +1,14 @@
 "use client"
 
-import { useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Plus, Target, FileText, Hash, ToggleLeft, List, Type, Loader2, Calendar } from "lucide-react"
+import { Plus, Target, FileText, Hash, ToggleLeft, List, Type, Loader2, Calendar, Filter } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { PageHeader } from "@/components/shared/page-header"
 import { DataTable } from "@/components/shared/data-table"
-import { useAllIndicators, useAssessments } from "@/lib/hooks/use-api"
+import { useAllIndicators, useAllProjectDetails, useAssessments } from "@/lib/hooks/use-api"
 import { indicatorsService } from "@/lib/api"
-import { useAuth } from "@/lib/contexts/auth-context"
 import type { Indicator } from "@/lib/types"
 import {
   Dialog,
@@ -22,7 +21,6 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Checkbox } from "@/components/ui/checkbox"
 import {
   Select,
   SelectContent,
@@ -30,20 +28,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useToast } from "@/hooks/use-toast"
-
-const categoryColors: Record<string, string> = {
-  hiv_prevention: "bg-primary/10 text-primary",
-  ncd: "bg-chart-3/10 text-chart-3",
-  events: "bg-chart-4/10 text-chart-4",
-}
-
-const categoryLabels: Record<string, string> = {
-  hiv_prevention: "HIV Prevention",
-  ncd: "Non-Communicable Diseases",
-  events: "Events",
-}
+import DisaggregationBuilder from "@/components/indicators/disaggregation-builder"
+import {
+  buildDisaggregationConfigFromPresetKeys,
+  getLegacySubLabelsFromPresetKeys,
+  type DisaggregationPresetKey,
+} from "@/lib/indicators/disaggregation-presets"
+import {
+  canIndicatorBeActive,
+  getIndicatorOrganizationIds,
+  isIndicatorEffectivelyActive,
+} from "@/lib/indicators/activation"
+import {
+  INDICATOR_CATEGORY_BADGE_CLASSES,
+  INDICATOR_CATEGORY_OPTIONS,
+  getIndicatorCategoryLabel,
+} from "@/lib/indicators/categories"
 
 const typeIcons: Record<string, typeof Target> = {
   yes_no: ToggleLeft,
@@ -56,55 +57,137 @@ const typeIcons: Record<string, typeof Target> = {
   multi_int: FileText,
 }
 
-const disaggregateGroupOptions = [
-  "Sex",
-  "Age Range",
-  "KP",
-  "Family Planning",
-  "Community Leaders",
-  "Non Traditional Sites",
-  "Social Media Platform",
-  "NCD Screening",
-]
+const INDICATOR_LIST_STATE_KEY = "indicators:list-state"
 
 export default function IndicatorsPage() {
   const router = useRouter()
   const { toast } = useToast()
   const { data: indicatorsData, isLoading, error, mutate } = useAllIndicators()
+  const { data: projectsData } = useAllProjectDetails()
   const { data: assessmentsData } = useAssessments()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [activeTab, setActiveTab] = useState("all")
+  const [statusFilter, setStatusFilter] = useState("all")
+  const [searchQuery, setSearchQuery] = useState("")
   const [formData, setFormData] = useState({
     name: "",
+    short_name: "",
     code: "",
     description: "",
     category: "",
     type: "",
     unit: "",
     options: "",
-    sub_labels: [] as string[],
+    disaggregation_preset_keys: [] as DisaggregationPresetKey[],
   })
 
-  const toggleDisaggregate = (value: string, checked: boolean) => {
-    setFormData((prev) => {
-      const next = checked
-        ? Array.from(new Set([...prev.sub_labels, value]))
-        : prev.sub_labels.filter((item) => item !== value)
+  useEffect(() => {
+    if (typeof window === "undefined") return
 
-      return {
-        ...prev,
-        sub_labels: next,
+    try {
+      const rawState = window.sessionStorage.getItem(INDICATOR_LIST_STATE_KEY)
+      if (!rawState) return
+
+      const parsed = JSON.parse(rawState) as {
+        activeTab?: string
+        statusFilter?: string
+        searchQuery?: string
       }
+
+      if (parsed.activeTab) setActiveTab(parsed.activeTab)
+      if (parsed.statusFilter) setStatusFilter(parsed.statusFilter)
+      if (typeof parsed.searchQuery === "string") setSearchQuery(parsed.searchQuery)
+    } catch {
+      // Ignore invalid persisted state and fall back to defaults.
+    }
+  }, [])
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+
+    window.sessionStorage.setItem(
+      INDICATOR_LIST_STATE_KEY,
+      JSON.stringify({
+        activeTab,
+        statusFilter,
+        searchQuery,
+      }),
+    )
+  }, [activeTab, searchQuery, statusFilter])
+
+  const indicators = useMemo(() => indicatorsData || [], [indicatorsData])
+  const projects = useMemo(() => projectsData?.results || [], [projectsData?.results])
+  const assessments = useMemo(() => assessmentsData?.results || [], [assessmentsData?.results])
+  const assignedIndicatorIds = useMemo(() => {
+    const ids = new Set<string>()
+
+    projects.forEach((project) => {
+      ;(project.project_indicators || []).forEach((entry) => {
+        if (entry.indicator) ids.add(String(entry.indicator))
+      })
+      ;(project.organization_targets || []).forEach((entry) => {
+        if (entry.indicator) ids.add(String(entry.indicator))
+      })
     })
-  }
 
-  const indicators = indicatorsData || []
-  const assessments = assessmentsData?.results || []
+    return ids
+  }, [projects])
+  const assignedIndicatorOrganizationIds = useMemo(() => {
+    const idsByIndicatorId = new Map<string, Set<string>>()
 
-  const filteredIndicators = activeTab === "all"
-    ? indicators
-    : indicators.filter(i => i.category === activeTab)
+    projects.forEach((project) => {
+      ;(project.organization_targets || []).forEach((entry) => {
+        const indicatorId = String(entry.indicator || "").trim()
+        const organizationId = String(entry.organization || "").trim()
+        if (!indicatorId || !organizationId) return
+
+        if (!idsByIndicatorId.has(indicatorId)) {
+          idsByIndicatorId.set(indicatorId, new Set<string>())
+        }
+        idsByIndicatorId.get(indicatorId)!.add(organizationId)
+      })
+    })
+
+    return idsByIndicatorId
+  }, [projects])
+  const hasProjectAssignmentData = useMemo(
+    () => projects.some((project) => Array.isArray(project.project_indicators) || Array.isArray(project.organization_targets)),
+    [projects],
+  )
+
+  const isIndicatorActiveForList = useCallback(
+    (indicator: Indicator) => {
+      if (!indicator.is_active) return false
+
+      const organizationIds = new Set(getIndicatorOrganizationIds(indicator))
+      assignedIndicatorOrganizationIds.get(String(indicator.id))?.forEach((organizationId) => {
+        organizationIds.add(organizationId)
+      })
+      const hasOrganizations = organizationIds.size > 0
+      if (!hasOrganizations) return false
+
+      if (hasProjectAssignmentData) {
+        return assignedIndicatorIds.has(String(indicator.id))
+      }
+
+      if (indicator.project_targets !== undefined) {
+        return canIndicatorBeActive(indicator)
+      }
+
+      return isIndicatorEffectivelyActive(indicator)
+    },
+    [assignedIndicatorIds, assignedIndicatorOrganizationIds, hasProjectAssignmentData],
+  )
+
+  const filteredIndicators = useMemo(() => {
+    return indicators.filter((indicator) => {
+      const matchesCategory = activeTab === "all" || indicator.category === activeTab
+      const effectiveStatus = isIndicatorActiveForList(indicator) ? "active" : "inactive"
+      const matchesStatus = statusFilter === "all" || effectiveStatus === statusFilter
+      return matchesCategory && matchesStatus
+    })
+  }, [activeTab, indicators, isIndicatorActiveForList, statusFilter])
 
   const columns = [
     {
@@ -113,14 +196,18 @@ export default function IndicatorsPage() {
       sortable: true,
       render: (indicator: Indicator) => {
         const TypeIcon = typeIcons[indicator.type] || Target
+        const displayName = indicator.short_name?.trim() || indicator.name
         return (
           <div className="flex items-center gap-3">
             <div className="rounded-lg bg-secondary p-2">
               <TypeIcon className="h-4 w-4 text-muted-foreground" />
             </div>
             <div>
-              <p className="font-medium text-foreground">{indicator.name}</p>
-              <p className="text-xs text-muted-foreground">{indicator.code}</p>
+              <p className="font-medium text-foreground">{displayName}</p>
+              <p className="text-xs text-muted-foreground">
+                {indicator.code}
+                {indicator.short_name?.trim() ? ` • ${indicator.name}` : ""}
+              </p>
             </div>
           </div>
         )
@@ -131,8 +218,8 @@ export default function IndicatorsPage() {
       label: "Category",
       sortable: true,
       render: (indicator: Indicator) => (
-        <Badge variant="secondary" className={categoryColors[indicator.category] || ""}>
-          {categoryLabels[indicator.category] || indicator.category}
+        <Badge variant="secondary" className={INDICATOR_CATEGORY_BADGE_CLASSES[indicator.category] || ""}>
+          {getIndicatorCategoryLabel(indicator.category)}
         </Badge>
       )
     },
@@ -160,9 +247,13 @@ export default function IndicatorsPage() {
       render: (indicator: Indicator) => (
         <Badge
           variant="secondary"
-          className={indicator.is_active ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"}
+          className={
+            isIndicatorActiveForList(indicator)
+              ? "bg-success/10 text-success"
+              : "bg-muted text-muted-foreground"
+          }
         >
-          {indicator.is_active ? "Active" : "Inactive"}
+          {isIndicatorActiveForList(indicator) ? "Active" : "Inactive"}
         </Badge>
       )
     }
@@ -182,6 +273,7 @@ export default function IndicatorsPage() {
     try {
       await indicatorsService.create({
         name: formData.name,
+        short_name: formData.short_name.trim() || undefined,
         code: formData.code,
         description: formData.description || undefined,
         category: formData.category as Indicator["category"],
@@ -190,7 +282,13 @@ export default function IndicatorsPage() {
         options: formData.options
           ? formData.options.split(",").map((opt) => opt.trim()).filter(Boolean)
           : undefined,
-        sub_labels: formData.sub_labels.length ? formData.sub_labels : undefined,
+        sub_labels: formData.disaggregation_preset_keys.length
+          ? getLegacySubLabelsFromPresetKeys(formData.disaggregation_preset_keys)
+          : undefined,
+        aggregate_disaggregation_config: buildDisaggregationConfigFromPresetKeys(
+          formData.disaggregation_preset_keys,
+        ),
+        is_active: false,
       })
       toast({
         title: "Success",
@@ -199,13 +297,14 @@ export default function IndicatorsPage() {
       setIsCreateOpen(false)
       setFormData({
         name: "",
+        short_name: "",
         code: "",
         description: "",
         category: "",
         type: "",
         unit: "",
         options: "",
-        sub_labels: [],
+        disaggregation_preset_keys: [],
       })
       mutate()
     } catch {
@@ -279,54 +378,66 @@ export default function IndicatorsPage() {
       />
 
       {/* Summary stats */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        <div className="rounded-lg border border-border bg-card p-4">
-          <p className="text-sm text-muted-foreground">Total</p>
-          <p className="text-2xl font-bold text-foreground">{indicators.length}</p>
-        </div>
-        <div className="rounded-lg border border-border bg-card p-4">
-          <p className="text-sm text-muted-foreground">HIV Prevention</p>
-          <p className="text-2xl font-bold text-primary">
-            {indicators.filter(i => i.category === 'hiv_prevention').length}
-          </p>
-        </div>
-        <div className="rounded-lg border border-border bg-card p-4">
-          <p className="text-sm text-muted-foreground">Non-Communicable Diseases</p>
-          <p className="text-2xl font-bold text-chart-3">
-            {indicators.filter(i => i.category === 'ncd').length}
-          </p>
-        </div>
-        <div className="rounded-lg border border-border bg-card p-4">
-          <p className="text-sm text-muted-foreground">Events</p>
-          <p className="text-2xl font-bold text-chart-4">
-            {indicators.filter(i => i.category === 'events').length}
-          </p>
-        </div>
-        <div className="rounded-lg border border-border bg-card p-4">
-          <p className="text-sm text-muted-foreground">Assessments</p>
-          <p className="text-2xl font-bold text-muted-foreground">{assessments.length}</p>
+      <div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7">
+        <button
+          type="button"
+          onClick={() => setActiveTab("all")}
+          className={`rounded-md border px-2.5 py-1.5 text-left transition-colors hover:bg-muted/40 ${
+            activeTab === "all" ? "border-primary bg-primary/5" : "border-border bg-card"
+          }`}
+        >
+          <p className="text-[10px] leading-tight text-muted-foreground">All Indicators</p>
+          <p className="text-base font-bold leading-tight text-foreground sm:text-lg">{indicators.length}</p>
+        </button>
+        {INDICATOR_CATEGORY_OPTIONS.map((category) => (
+          <button
+            key={category.value}
+            type="button"
+            onClick={() => setActiveTab(category.value)}
+            className={`rounded-md border px-2.5 py-1.5 text-left transition-colors hover:bg-muted/40 ${
+              activeTab === category.value ? "border-primary bg-primary/5" : "border-border bg-card"
+            }`}
+          >
+            <p className="text-[10px] leading-tight text-muted-foreground">{category.label}</p>
+            <p className="text-base font-bold leading-tight text-foreground sm:text-lg">
+              {indicators.filter((indicator) => indicator.category === category.value).length}
+            </p>
+          </button>
+        ))}
+        <div className="rounded-md border border-border bg-card px-2.5 py-1.5">
+          <p className="text-[10px] leading-tight text-muted-foreground">Assessments</p>
+          <p className="text-base font-bold leading-tight text-muted-foreground sm:text-lg">{assessments.length}</p>
         </div>
       </div>
 
-      {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="bg-secondary">
-          <TabsTrigger value="all">All</TabsTrigger>
-          <TabsTrigger value="hiv_prevention">HIV Prevention</TabsTrigger>
-          <TabsTrigger value="ncd">Non-Communicable Diseases</TabsTrigger>
-          <TabsTrigger value="events">Events</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value={activeTab} className="mt-6">
-          <DataTable
-            data={filteredIndicators}
-            columns={columns}
-            searchPlaceholder="Search indicators..."
-            searchKey="name"
-            actions={actions}
-          />
-        </TabsContent>
-      </Tabs>
+      <DataTable
+        key={`${activeTab}-${statusFilter}`}
+        data={filteredIndicators}
+        columns={columns}
+        searchPlaceholder="Search name, code, category..."
+        searchKey="name"
+        searchKeys={["name", "short_name", "code", "category", "type"]}
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        actions={actions}
+        toolbarActions={
+          <div className="ml-auto w-full sm:w-[220px]">
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger>
+                <div className="flex items-center gap-2">
+                  <Filter className="h-4 w-4 text-muted-foreground" />
+                  <SelectValue placeholder="Filter by status" />
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All statuses</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        }
+      />
 
       {/* Create Dialog */}
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
@@ -334,7 +445,7 @@ export default function IndicatorsPage() {
           <DialogHeader>
             <DialogTitle>Create Indicator</DialogTitle>
             <DialogDescription>
-              Define a new indicator for data collection
+              Define a new indicator for data collection. New indicators start inactive until they are assigned to at least one project and one organization.
             </DialogDescription>
           </DialogHeader>
           <form
@@ -344,7 +455,7 @@ export default function IndicatorsPage() {
               handleCreate()
             }}
           >
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-4 sm:grid-cols-3">
               <div className="space-y-2">
                 <Label htmlFor="name">Indicator Name *</Label>
                 <Input
@@ -352,6 +463,15 @@ export default function IndicatorsPage() {
                   placeholder="Enter indicator name"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="short_name">Short Name</Label>
+                <Input
+                  id="short_name"
+                  placeholder="e.g., HIV Messages"
+                  value={formData.short_name}
+                  onChange={(e) => setFormData({ ...formData, short_name: e.target.value })}
                 />
               </div>
               <div className="space-y-2">
@@ -385,9 +505,11 @@ export default function IndicatorsPage() {
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                 <SelectContent>
-                    <SelectItem value="hiv_prevention">HIV Prevention</SelectItem>
-                    <SelectItem value="ncd">Non-Communicable Diseases</SelectItem>
-                    <SelectItem value="events">Events</SelectItem>
+                    {INDICATOR_CATEGORY_OPTIONS.map((category) => (
+                      <SelectItem key={category.value} value={category.value}>
+                        {category.label}
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
             </div>
@@ -433,27 +555,12 @@ export default function IndicatorsPage() {
                 />
               </div>
             </div>
-            <div className="space-y-3">
-              <Label>Disaggregate groups for aggregate data</Label>
-              <div className="grid max-h-44 gap-2 overflow-y-auto rounded-md border border-border p-3 sm:grid-cols-2">
-                {disaggregateGroupOptions.map((group) => {
-                  const id = `disaggregate-group-${group.replace(/[^a-zA-Z0-9]+/g, "-").toLowerCase()}`
-                  const checked = formData.sub_labels.includes(group)
-                  return (
-                    <div key={group} className="flex items-center gap-2">
-                      <Checkbox
-                        id={id}
-                        checked={checked}
-                        onCheckedChange={(value) => toggleDisaggregate(group, Boolean(value))}
-                      />
-                      <Label htmlFor={id} className="text-sm font-normal">
-                        {group}
-                      </Label>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
+            <DisaggregationBuilder
+              value={formData.disaggregation_preset_keys}
+              onChange={(next) =>
+                setFormData((prev) => ({ ...prev, disaggregation_preset_keys: next }))
+              }
+            />
             <DialogFooter>
               <Button
                 type="button"

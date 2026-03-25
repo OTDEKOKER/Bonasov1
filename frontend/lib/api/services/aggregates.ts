@@ -20,6 +20,7 @@ export interface AggregateFilters {
   date_from?: string;
   date_to?: string;
   organization?: string;
+  status?: string;
   page?: string;
   page_size?: string;
 }
@@ -44,6 +45,7 @@ export interface BulkAggregateRequest {
   data: Array<{
     indicator: number;
     value: unknown;
+    notes?: string;
   }>;
 }
 
@@ -79,6 +81,16 @@ export interface GenerateFromInteractionsResponse {
   aggregate?: Aggregate | null;
 }
 
+export interface AggregateReviewRequest {
+  notes?: string;
+}
+
+export interface AggregateFlagRequest {
+  reason: 'duplicate' | 'incorrect_data' | 'suspicious' | 'incomplete' | 'other';
+  description?: string;
+  severity?: 'low' | 'medium' | 'high';
+}
+
 export interface DerivationRule {
   id: number;
   output_indicator: number;
@@ -110,6 +122,8 @@ const cleanParams = (filters?: Record<string, string | undefined | null>) => {
 // Aggregates Service
 // ============================================================================
 
+const LIST_ALL_PAGE_SIZE = '500';
+
 export const aggregatesService = {
   /**
    * List all aggregates with optional filters
@@ -128,6 +142,9 @@ export const aggregatesService = {
     const startPage = Math.max(1, Number(filters?.page || 1));
     const baseFilters = cleanParams({ ...(filters || {}) } as Record<string, string | undefined>) || {};
     delete baseFilters.page;
+    if (!baseFilters.page_size) {
+      baseFilters.page_size = LIST_ALL_PAGE_SIZE;
+    }
 
     const { data: firstPage } = await api.get<PaginatedResponse<Aggregate>>('/aggregates/', {
       ...baseFilters,
@@ -208,6 +225,26 @@ export const aggregatesService = {
   async bulkCreate(request: BulkAggregateRequest): Promise<Aggregate[]> {
     const { data } = await api.post<{ results: Aggregate[] }>('/aggregates/bulk_create/', request);
     return data.results || [];
+  },
+
+  async review(id: number, request?: AggregateReviewRequest): Promise<Aggregate> {
+    const { data } = await api.post<Aggregate>(`/aggregates/${id}/review/`, request || {});
+    return data;
+  },
+
+  async approve(id: number, request?: AggregateReviewRequest): Promise<Aggregate> {
+    const { data } = await api.post<Aggregate>(`/aggregates/${id}/approve/`, request || {});
+    return data;
+  },
+
+  async flag(id: number, request: AggregateFlagRequest): Promise<Aggregate> {
+    const { data } = await api.post<Aggregate>(`/aggregates/${id}/flag/`, request);
+    return data;
+  },
+
+  async reject(id: number, request?: AggregateFlagRequest): Promise<Aggregate> {
+    const { data } = await api.post<Aggregate>(`/aggregates/${id}/reject/`, request || {});
+    return data;
   },
 
   /**
@@ -304,6 +341,3 @@ export const aggregatesService = {
 };
 
 export default aggregatesService;
-
-
-

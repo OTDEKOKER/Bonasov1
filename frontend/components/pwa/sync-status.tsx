@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react"
 import {
+  clearQueuedMutations,
   clearSyncHistory,
   getQueuedMutationCount,
   listSyncHistory,
@@ -101,6 +102,11 @@ export function SyncStatus() {
     await refreshHistory()
   }
 
+  const clearQueued = async () => {
+    await clearQueuedMutations()
+    await refreshPendingCount()
+  }
+
   const hasHistory = history.length > 0
   if (pendingCount <= 0 && !hasHistory) return null
 
@@ -114,6 +120,13 @@ export function SyncStatus() {
           disabled={!isOnline || isSyncing || pendingCount <= 0}
         >
           {isSyncing ? "Syncing..." : "Sync now"}
+        </button>
+        <button
+          className="rounded border border-border px-2 py-1 text-card-foreground disabled:cursor-not-allowed disabled:opacity-50"
+          onClick={clearQueued}
+          disabled={pendingCount <= 0 || isSyncing}
+        >
+          Clear queued
         </button>
         <button
           className="rounded border border-border px-2 py-1 text-card-foreground"

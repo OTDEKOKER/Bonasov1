@@ -13,6 +13,14 @@ export function isPlatformAdmin(user?: UserLike | null): boolean {
   )
 }
 
+export function isReadOnlyClient(user?: UserLike | null): boolean {
+  return Boolean(user && user.role === "client")
+}
+
+export function canManageOrganizations(user?: UserLike | null): boolean {
+  return isPlatformAdmin(user)
+}
+
 export function canManageUsers(user?: UserLike | null): boolean {
   return isPlatformAdmin(user)
 }
@@ -33,4 +41,11 @@ export function canEditUserRecord(
   if (isPlatformAdmin(actor)) return true
   if (targetUserId === null || targetUserId === undefined) return false
   return String(actor.id) === String(targetUserId)
+}
+
+export function canManageCoordinatorTargets(user?: UserLike | null): boolean {
+  if (!user) return false
+  if (isPlatformAdmin(user)) return true
+  const normalizedRole = String(user.role || "").toLowerCase()
+  return normalizedRole === "manager" || normalizedRole === "dashboard_manager"
 }

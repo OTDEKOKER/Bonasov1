@@ -35,6 +35,11 @@ import { useIndicators, useAllOrganizations, useSocialPosts } from "@/lib/hooks/
 import type { SocialPost } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 
+const getErrorMessage = (error: unknown, fallback: string) => {
+  if (error instanceof Error && error.message) return error.message;
+  return fallback;
+};
+
 export default function SocialPage() {
   const { toast } = useToast();
   const [postSearch, setPostSearch] = useState("");
@@ -121,10 +126,10 @@ export default function SocialPage() {
   };
 
   const handleCreatePost = async () => {
-    if (!postForm.title || !postForm.indicator || !postForm.url) {
+    if (!postForm.title || !postForm.indicator || !postForm.organization || !postForm.post_date || !postForm.url) {
       toast({
         title: "Missing required fields",
-        description: "Title, indicator, and link are required.",
+        description: "Title, organization, post date, indicator, and link are required.",
         variant: "destructive",
       });
       return;
@@ -155,7 +160,7 @@ export default function SocialPage() {
       console.error("Failed to create post", err);
       toast({
         title: "Error",
-        description: "Failed to create social post.",
+        description: getErrorMessage(err, "Failed to create social post."),
         variant: "destructive",
       });
     } finally {
@@ -165,10 +170,10 @@ export default function SocialPage() {
 
   const handleUpdatePost = async () => {
     if (!editingPost) return;
-    if (!postForm.title || !postForm.indicator || !postForm.url) {
+    if (!postForm.title || !postForm.indicator || !postForm.organization || !postForm.post_date || !postForm.url) {
       toast({
         title: "Missing required fields",
-        description: "Title, indicator, and link are required.",
+        description: "Title, organization, post date, indicator, and link are required.",
         variant: "destructive",
       });
       return;
@@ -200,7 +205,7 @@ export default function SocialPage() {
       console.error("Failed to update post", err);
       toast({
         title: "Error",
-        description: "Failed to update social post.",
+        description: getErrorMessage(err, "Failed to update social post."),
         variant: "destructive",
       });
     } finally {
@@ -209,10 +214,10 @@ export default function SocialPage() {
   };
 
   const handleCreatePostAndContinue = async () => {
-    if (!postForm.title || !postForm.indicator || !postForm.url) {
+    if (!postForm.title || !postForm.indicator || !postForm.organization || !postForm.post_date || !postForm.url) {
       toast({
         title: "Missing required fields",
-        description: "Title, indicator, and link are required.",
+        description: "Title, organization, post date, indicator, and link are required.",
         variant: "destructive",
       });
       return;
@@ -242,7 +247,7 @@ export default function SocialPage() {
       console.error("Failed to create post", err);
       toast({
         title: "Error",
-        description: "Failed to create social post.",
+        description: getErrorMessage(err, "Failed to create social post."),
         variant: "destructive",
       });
     } finally {
@@ -668,5 +673,3 @@ export default function SocialPage() {
     </Dialog>
   );
 }
-
-

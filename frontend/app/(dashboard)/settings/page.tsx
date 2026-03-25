@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { PageHeader } from "@/components/shared/page-header";
 import { OrganizationSelect } from "@/components/shared/organization-select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,9 +28,13 @@ import {
   Mail,
   Save,
   Upload,
+  Loader2,
 } from "lucide-react";
 import { useAuth } from "@/lib/contexts/auth-context";
-import { useAllOrganizations } from "@/lib/hooks/use-api";
+import { notificationsService } from "@/lib/api";
+import { useAllOrganizations, useNotifications } from "@/lib/hooks/use-api";
+import { useToast } from "@/hooks/use-toast";
+import { getUserRoleLabel } from "@/lib/roles";
 
 type UserProfileSource = {
   firstName?: string;
@@ -44,9 +49,15 @@ type UserProfileSource = {
 };
 
 export default function SettingsPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { toast } = useToast();
   const { user } = useAuth();
   const { data: orgsData } = useAllOrganizations();
+  const { data: notificationsData, isLoading: notificationsLoading, mutate: mutateNotifications } = useNotifications();
   const organizations = orgsData?.results || [];
+  const notifications = notificationsData?.results || [];
+  const defaultTab = searchParams.get("tab") || "profile";
   const userProfile = useMemo(() => {
     const source = (user ?? {}) as UserProfileSource;
     return {
@@ -79,6 +90,23 @@ export default function SettingsPage() {
     }));
   };
 
+  const handleMarkAllNotificationsRead = async () => {
+    try {
+      await notificationsService.markAllRead();
+      await mutateNotifications();
+      toast({
+        title: "Notifications updated",
+        description: "All notifications have been marked as read.",
+      });
+    } catch {
+      toast({
+        title: "Unable to update notifications",
+        description: "Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -86,7 +114,7 @@ export default function SettingsPage() {
         description="Manage your account settings and preferences"
       />
 
-      <Tabs defaultValue="profile" className="space-y-6">
+      <Tabs defaultValue={defaultTab} className="space-y-6">
         <TabsList className="bg-secondary border border-border">
           <TabsTrigger value="profile" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             <User className="h-4 w-4 mr-2" />
@@ -263,6 +291,69 @@ export default function SettingsPage() {
           </Card>
         </TabsContent>
 
+        <TabsContent value="notifications" className="space-y-6">
+          <Card className="bg-card border-border">
+            <CardHeader className="flex flex-row items-center justify-between gap-4">
+              <div>
+                <CardTitle className="text-foreground">Notifications</CardTitle>
+                <CardDescription>
+                  Review aggregate approvals, flagged corrections, and coordinator follow-up requests.
+                </CardDescription>
+              </div>
+              <Button variant="outline" onClick={() => void handleMarkAllNotificationsRead()}>
+                <Mail className="h-4 w-4 mr-2" />
+                Mark all read
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {notificationsLoading ? (
+                <div className="flex items-center gap-2 py-8 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Loading notifications...
+                </div>
+              ) : notifications.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-border px-4 py-8 text-sm text-muted-foreground">
+                  No notifications yet.
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {notifications.map((notification) => (
+                    <button
+                      key={notification.id}
+                      type="button"
+                      className="w-full rounded-xl border border-border bg-background px-4 py-3 text-left transition hover:border-primary/40 hover:bg-muted/30"
+                      onClick={async () => {
+                        if (!notification.is_read) {
+                          await notificationsService.markRead(Number(notification.id));
+                          await mutateNotifications();
+                        }
+                        router.push(notification.link || "/settings?tab=notifications");
+                      }}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="space-y-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="font-medium text-foreground">{notification.title}</p>
+                            {!notification.is_read ? (
+                              <Badge variant="outline" className="border-primary/30 text-primary">
+                                New
+                              </Badge>
+                            ) : null}
+                          </div>
+                          <p className="text-sm text-muted-foreground">{notification.content}</p>
+                        </div>
+                        <p className="shrink-0 text-xs text-muted-foreground">
+                          {new Date(notification.created_at).toLocaleString()}
+                        </p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="data" className="space-y-6">
           <Card className="bg-card border-border">
             <CardHeader>
@@ -343,6 +434,3 @@ export default function SettingsPage() {
     </div>
   );
 }
-
-
-

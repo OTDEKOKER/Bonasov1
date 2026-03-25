@@ -9,6 +9,7 @@ import { OrganizationSelect } from "@/components/shared/organization-select";
 import { useAllOrganizations, useRespondent } from "@/lib/hooks/use-api";
 import { respondentsService } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
+import { useSmartBack } from "@/lib/hooks/use-smart-back";
 import {
   Card,
   CardContent,
@@ -81,6 +82,7 @@ export default function EditRespondentPage() {
   const { toast } = useToast();
   const params = useParams();
   const id = Number(params?.id);
+  const handleBack = useSmartBack(Number.isFinite(id) ? `/respondents/${id}` : "/respondents");
 
   const { data: respondent, isLoading, error } = useRespondent(Number.isFinite(id) ? id : null);
   const { data: organizationsData } = useAllOrganizations();
@@ -291,7 +293,7 @@ export default function EditRespondentPage() {
           { label: "Edit" },
         ]}
         actions={
-          <Button variant="outline" onClick={() => router.push(`/respondents/${respondent.id}`)}>
+          <Button variant="outline" onClick={handleBack}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back
           </Button>
