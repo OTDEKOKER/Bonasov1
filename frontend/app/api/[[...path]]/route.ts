@@ -11,7 +11,7 @@ const backendApiBase =
   process.env.BACKEND_API_URL ||
   process.env.NEXT_PUBLIC_API_BASE_URL ||
   process.env.NEXT_PUBLIC_API_URL ||
-  'http://127.0.0.1:8000/api'
+  'https://sesigo.org.bw/api'
 
 const normalizedBackendApiBase = backendApiBase.replace(/\/+$/, '')
 const backendApiUrl = new URL(normalizedBackendApiBase)

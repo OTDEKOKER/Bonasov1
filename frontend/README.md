@@ -213,7 +213,7 @@ npm run mobile:open:android
 ```
 
 To point the Android app at a deployed frontend, set `CAP_SERVER_URL` before syncing.
-If unset, the Android app defaults to `https://bonasov1.onrender.com`.
+If unset, the Android app defaults to `https://sesigo.org.bw`.
 
 Bash:
 ```bash

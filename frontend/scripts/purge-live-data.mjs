@@ -4,7 +4,7 @@ const API_BASE = (
   process.env.BONASO_API_BASE ||
   process.env.NEXT_PUBLIC_API_URL ||
   process.env.BACKEND_API_URL ||
-  "http://127.0.0.1:8000/api"
+  "https://sesigo.org.bw/api"
 ).replace(/\/$/, "");
 const TOKEN = process.env.BONASO_ACCESS_TOKEN || "";
 const PAGE_SIZE = Math.max(1, Number(process.env.BONASO_PAGE_SIZE || 500));
