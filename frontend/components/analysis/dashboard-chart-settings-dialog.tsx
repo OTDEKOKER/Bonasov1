@@ -49,30 +49,7 @@ type FieldOption = {
   label: string;
 };
 
-type LegacyIndicatorReference = { id?: string | number | null } | string | number | null | undefined;
-type IndicatorDimension = { key?: string | null; label?: string | null };
-type IndicatorLike = {
-  id?: string | number | null;
-  name?: string | null;
-  type?: string | null;
-  aggregate_disaggregation_config?: { dimensions?: IndicatorDimension[] | null } | null;
-};
-type SelectOption = { value: string; label: string };
-type EntityWithId = { id?: string | number | null };
-type LegacyExistingChart = IndicatorChartSetting & {
-  template_mode?: AnalysisTemplateMode;
-  indicator_ids?: Array<string | number> | null;
-  indicators?: LegacyIndicatorReference[];
-  target?: boolean;
-  trendline?: boolean;
-  date_from?: string | null;
-  date_to?: string | null;
-  filters?: unknown[];
-};
-type DashboardWithBreakdowns = DashboardSetting & { breakdowns?: unknown[] };
-
-const EMPTY_ITEMS: IndicatorLike[] = [];
-const EMPTY_ENTITIES: EntityWithId[] = [];
+const EMPTY_ITEMS: Array<any> = [];
 const DEFAULT_CHART_TYPES: Array<{ value: LegacyChartType; label: string }> = [
   { value: "bar", label: "Bar" },
   { value: "line", label: "Line" },
@@ -94,7 +71,7 @@ function inferExistingMode(
   initialCustomAnalysis?: Partial<CustomAnalysisState> | null,
 ): AnalysisTemplateMode {
   if (initialCustomAnalysis) return "custom";
-  const explicitMode = (existing as LegacyExistingChart | null | undefined)?.template_mode;
+  const explicitMode = (existing as any)?.template_mode;
   if (explicitMode === "custom" || explicitMode === "standard") return explicitMode;
   return "standard";
 }
@@ -111,26 +88,8 @@ function buildExistingCustomState(
     return {};
   }
 
-  const existingChart = existing as LegacyExistingChart;
-
   return {
     indicatorIds: normalizeArray(
-      existingChart.indicator_ids ??
-        existingChart.indicators?.map((indicator) =>
-          typeof indicator === "object" && indicator !== null ? indicator.id ?? indicator : indicator,
-        ),
-    ).map((value) => String(value)),
-    chartType: existingChart.chart_type ?? "bar",
-    legend: existingChart.legend ?? undefined,
-    stack: existingChart.stack ?? undefined,
-    average: Boolean(existingChart.average),
-    useTarget: Boolean(existingChart.target),
-    tabular: Boolean(existingChart.tabular),
-    useTrendLine: Boolean(existingChart.trendline),
-    dateFrom: existingChart.date_from ?? "",
-    dateTo: existingChart.date_to ?? "",
-    selectedFilters: existingChart.filters ?? [],
-=======
       (existing as any).indicator_ids ??
         (existing as any).indicators?.map((indicator: any) => indicator?.id ?? indicator),
     ).map((value) => String(value)),
@@ -152,11 +111,10 @@ function buildExistingCustomState(
     trendLine: Boolean((existing as any).trendline),
     dateFrom: (existing as any).date_from ?? "",
     dateTo: (existing as any).date_to ?? "",
->
   };
 }
 
-function buildFieldOptions(selectedIndicators: IndicatorLike[]): FieldOption[] {
+function buildFieldOptions(selectedIndicators: any[]): FieldOption[] {
   const seen = new Map<string, string>();
 
   for (const indicator of selectedIndicators) {
@@ -184,15 +142,14 @@ export function DashboardChartSettingsDialog(
   const { data: dashboardMeta } = useDashboardMeta();
 
   const indicators = indicatorsData ?? EMPTY_ITEMS;
-  const projects: EntityWithId[] = (projectsData?.results as EntityWithId[] | undefined) ?? EMPTY_ENTITIES;
-  const organizations: EntityWithId[] =
-    (organizationsData?.results as EntityWithId[] | undefined) ?? EMPTY_ENTITIES;
-  const chartTypes: SelectOption[] = (dashboardMeta?.chart_types as SelectOption[] | undefined) ?? DEFAULT_CHART_TYPES;
-  const axes: SelectOption[] = (dashboardMeta?.axes as SelectOption[] | undefined) ?? DEFAULT_AXES;
+  const projects = projectsData?.results ?? EMPTY_ITEMS;
+  const organizations = organizationsData?.results ?? EMPTY_ITEMS;
+  const chartTypes = dashboardMeta?.chart_types ?? DEFAULT_CHART_TYPES;
+  const axes = dashboardMeta?.axes ?? DEFAULT_AXES;
   const dashboardBreakdowns =
     dashboardMeta?.dashboard_breakdowns ??
     dashboardMeta?.breakdowns ??
-    (dashboard as DashboardWithBreakdowns | null)?.breakdowns ??
+    (dashboard as any)?.breakdowns ??
     [];
 
   const [saving, setSaving] = useState(false);
@@ -218,28 +175,25 @@ export function DashboardChartSettingsDialog(
 
     const mode = inferExistingMode(existing, initialCustomAnalysis);
     const customState = buildExistingCustomState(existing, initialCustomAnalysis);
-    const existingChart = existing as LegacyExistingChart | null | undefined;
 
     setAnalysisTemplate(mode);
-    setName(existingChart?.name ?? "");
+    setName((existing as any)?.name ?? "");
     setSelectedIndicatorIds(
       normalizeArray(
-        existingChart?.indicator_ids ??
-          existingChart?.indicators?.map((indicator) =>
-            typeof indicator === "object" && indicator !== null ? indicator.id ?? indicator : indicator,
-          ),
+        (existing as any)?.indicator_ids ??
+          (existing as any)?.indicators?.map((indicator: any) => indicator?.id ?? indicator),
       ),
     );
-    setChartType(existingChart?.chart_type ?? "bar");
-    setAxis((existingChart?.axis as "quarter" | "month" | undefined) ?? "quarter");
-    setLegend(existingChart?.legend ?? "none");
-    setStack(existingChart?.stack ?? "none");
-    setUseTarget(Boolean(existingChart?.target));
-    setAverage(Boolean(existingChart?.average));
-    setTabular(Boolean(existingChart?.tabular));
-    setUseTrendLine(Boolean(existingChart?.trendline));
-    setStart(existingChart?.date_from ?? "");
-    setEnd(existingChart?.date_to ?? "");
+    setChartType(((existing as any)?.chart_type as LegacyChartType) ?? "bar");
+    setAxis(((existing as any)?.axis as "quarter" | "month") ?? "quarter");
+    setLegend((existing as any)?.legend ?? "none");
+    setStack((existing as any)?.stack ?? "none");
+    setUseTarget(Boolean((existing as any)?.target));
+    setAverage(Boolean((existing as any)?.average));
+    setTabular(Boolean((existing as any)?.tabular));
+    setUseTrendLine(Boolean((existing as any)?.trendline));
+    setStart((existing as any)?.date_from ?? "");
+    setEnd((existing as any)?.date_to ?? "");
     setIndicatorSearch("");
     setCustomJson(JSON.stringify(customState, null, 2));
   }, [existing, initialCustomAnalysis, open]);
@@ -247,14 +201,14 @@ export function DashboardChartSettingsDialog(
   const filteredIndicators = useMemo(() => {
     const query = indicatorSearch.trim().toLowerCase();
     if (!query) return indicators;
-    return indicators.filter((indicator) =>
+    return indicators.filter((indicator: any) =>
       String(indicator?.name ?? "").toLowerCase().includes(query),
     );
   }, [indicatorSearch, indicators]);
 
   const selectedIndicators = useMemo(
     () =>
-      indicators.filter((indicator) =>
+      indicators.filter((indicator: any) =>
         selectedIndicatorIds.includes(Number(indicator?.id)),
       ),
     [indicators, selectedIndicatorIds],
@@ -360,11 +314,6 @@ export function DashboardChartSettingsDialog(
 
     setSaving(true);
     try {
-      const chartService = dashboardSettingsService as unknown as {
-        updateChart: (dashboardId: number, chartId: number, request: Record<string, unknown>) => Promise<unknown>;
-        saveChart: (dashboardId: number, request: Record<string, unknown>) => Promise<unknown>;
-      };
-
       if (analysisTemplate === "custom") {
         let parsedCustomState: Record<string, unknown>;
         try {
@@ -381,15 +330,15 @@ export function DashboardChartSettingsDialog(
 
         const payload = {
           ...(existing ?? {}),
-          name: name.trim() || (existing as LegacyExistingChart | null | undefined)?.name || "Custom analysis",
+          name: name.trim() || (existing as any)?.name || "Custom analysis",
           template_mode: "custom",
           custom_analysis: parsedCustomState,
         };
 
         if (existing?.id) {
-          await chartService.updateChart(dashboard.id, existing.id, payload);
+          await (dashboardSettingsService as any).updateChart(dashboard.id, existing.id, payload);
         } else {
-          await chartService.saveChart(dashboard.id, payload);
+          await (dashboardSettingsService as any).saveChart(dashboard.id, payload);
         }
       } else {
         const payload = {
@@ -406,16 +355,16 @@ export function DashboardChartSettingsDialog(
           date_from: start || null,
           date_to: end || null,
           indicator_ids: selectedIndicatorIds,
-          project_ids: projects.map((project) => Number(project.id)),
-          organization_ids: organizations.map((organization) => Number(organization.id)),
+          project_ids: projects.map((project: any) => project.id),
+          organization_ids: organizations.map((organization: any) => organization.id),
           dashboard_breakdowns: dashboardBreakdowns,
           template_mode: "standard",
         };
 
         if (existing?.id) {
-          await chartService.updateChart(dashboard.id, existing.id, payload);
+          await (dashboardSettingsService as any).updateChart(dashboard.id, existing.id, payload);
         } else {
-          await chartService.saveChart(dashboard.id, payload);
+          await (dashboardSettingsService as any).saveChart(dashboard.id, payload);
         }
       }
 
@@ -482,7 +431,7 @@ export function DashboardChartSettingsDialog(
                 />
                 <div className="max-h-56 overflow-auto rounded-xl border p-2">
                   <div className="grid gap-2">
-                    {filteredIndicators.map((indicator) => (
+                    {filteredIndicators.map((indicator: any) => (
                       <label
                         key={indicator.id}
                         className="flex items-center justify-between rounded-lg border px-3 py-2 text-sm"
@@ -510,7 +459,7 @@ export function DashboardChartSettingsDialog(
                       <SelectValue placeholder="Select chart type" />
                     </SelectTrigger>
                     <SelectContent>
-                      {chartTypes.map((option) => (
+                      {chartTypes.map((option: any) => (
                         <SelectItem key={option.value} value={option.value}>
                           {option.label}
                         </SelectItem>
@@ -530,7 +479,7 @@ export function DashboardChartSettingsDialog(
                       <SelectValue placeholder="Select axis" />
                     </SelectTrigger>
                     <SelectContent>
-                      {axes.map((option) => (
+                      {axes.map((option: any) => (
                         <SelectItem key={option.value} value={option.value}>
                           {option.label}
                         </SelectItem>
