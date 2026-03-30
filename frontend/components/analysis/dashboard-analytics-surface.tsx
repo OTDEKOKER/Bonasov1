@@ -671,17 +671,17 @@ export function DashboardAnalyticsSurface(props: DashboardAnalyticsSurfaceProps)
       resolveOrgScope({
         organizations,
         scopeMode: filters.scopeMode,
-        currentOrgId: userOrgId || null,
+        currentUserOrgId: userOrgId || null,
+        currentUserRole: user?.role || null,
         parentOrgId: filters.parentOrgId || null,
         selectedOrgIds: filters.selectedOrgIds,
-        cascadeOrganization: filters.cascadeOrganization,
       }),
     [
-      filters.cascadeOrganization,
       filters.parentOrgId,
       filters.scopeMode,
       filters.selectedOrgIds,
       organizations,
+      user?.role,
       userOrgId,
     ],
   );
