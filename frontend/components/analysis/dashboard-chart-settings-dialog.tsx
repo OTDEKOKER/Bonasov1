@@ -92,7 +92,7 @@ function buildExistingCustomState(
     indicatorIds: normalizeArray(
       (existing as any).indicator_ids ??
         (existing as any).indicators?.map((indicator: any) => indicator?.id ?? indicator),
-    ),
+    ).map((value) => String(value)),
     chartType: (existing as any).chart_type ?? "bar",
     legend: (existing as any).legend ?? undefined,
     stack: (existing as any).stack ?? undefined,
