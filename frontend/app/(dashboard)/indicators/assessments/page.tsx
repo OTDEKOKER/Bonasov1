@@ -67,15 +67,17 @@ export default function AssessmentsPage() {
   const assessments = data?.results || []
 
   const ensureIndicator = async (request: CreateIndicatorRequest): Promise<number> => {
-    const organizationsFilter = request.organizations?.[0]
-      ? { organizations: String(request.organizations[0]) }
-      : {}
-
-    const list = await indicatorsService.list({
+    const organizationFilterValue = request.organizations?.[0]
+    const organizationsFilter = organizationFilterValue
+      ? { organizations: String(organizationFilterValue) }
+      : undefined
+    const listParams = {
       search: request.code,
       page_size: "100",
-      ...organizationsFilter,
-    })
+      ...(organizationsFilter ?? {}),
+    }
+
+    const list = await indicatorsService.list(listParams)
     const exactMatch = (list.results || []).find((i) => {
       if (i.code !== request.code) return false
       if (!request.organizations?.length) return true
@@ -88,11 +90,7 @@ export default function AssessmentsPage() {
       const created = await indicatorsService.create(request)
       return Number(created.id)
     } catch {
-      const retry = await indicatorsService.list({
-        search: request.code,
-        page_size: "100",
-        ...organizationsFilter,
-      })
+      const retry = await indicatorsService.list(listParams)
       const retryMatch = (retry.results || []).find((i) => {
         if (i.code !== request.code) return false
         if (!request.organizations?.length) return true
