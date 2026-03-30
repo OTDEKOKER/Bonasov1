@@ -386,6 +386,9 @@ function DashboardVisualizationPanels(props: {
 
   const buildDraft = (): Partial<CustomAnalysisState> => ({
     indicatorIds: selectedIndicators.map((indicator) => String(indicator.id)),
+
+    indicatorIds: selectedIndicators.map((indicator) => string(indicator.id)),
+
     selectedPeriods: [...selectedPeriods],
     selectedOrgIds: [...filters.selectedOrgIds],
     dateFrom: filters.dateFrom,
