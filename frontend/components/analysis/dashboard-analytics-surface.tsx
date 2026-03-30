@@ -384,15 +384,22 @@ function DashboardVisualizationPanels(props: {
   const handleDrilldown = (sourceChartId: string, target: DrilldownTarget) =>
     applyInteraction(sourceChartId, target);
 
+  const draftCompareBy: CustomAnalysisState["compareBy"] =
+    filters.comparisonMode === "disaggregate" || filters.comparisonMode === "disaggregation"
+      ? "none"
+      : filters.comparisonMode;
+
   const buildDraft = (): Partial<CustomAnalysisState> => ({
     indicatorIds: selectedIndicators.map((indicator) => String(indicator.id)),
     selectedPeriods: [...selectedPeriods],
     selectedOrgIds: [...filters.selectedOrgIds],
     dateFrom: filters.dateFrom,
     dateTo: filters.dateTo,
-    comparisonMode: filters.comparisonMode,
-    disaggregationKeys: [...filters.disaggregationKeys],
+    compareBy: draftCompareBy,
+    breakDownBy: filters.disaggregationKeys[0] || "none",
+    secondaryBreakdown: filters.disaggregationKeys[1] || "none",
     scopeMode: filters.scopeMode,
+    parentOrgId: filters.parentOrgId,
   });
 
   const cards: DashboardChartCardConfig[] = [
