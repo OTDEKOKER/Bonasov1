@@ -274,7 +274,7 @@ function DashboardChartCard(props: {
             compact
           />
         )}
-        {config.footerText ? <ChartInsightFooter text={config.footerText} /> : null}
+        {config.footerText ? <ChartInsightFooter>{config.footerText}</ChartInsightFooter> : null}
       </CardContent>
     </Card>
   );
