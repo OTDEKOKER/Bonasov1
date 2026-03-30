@@ -1616,7 +1616,7 @@ function getRowDimensionValue(row: Record<string, unknown>, fieldName: string | 
 
 function splitLegacyChartData(
   chart: IndicatorChartSetting,
-  breakdowns: Record<string, unknown> | undefined,
+  breakdowns: Record<string, Array<{ value: unknown; label?: string }>> | undefined,
   axisOverride?: "month" | "quarter" | null,
 ): { dataArray: Array<Record<string, string | number>>; keys: LegacyChartKey[] } {
   const rows = normalizeLegacyRows(chart.chart_data);
