@@ -93,16 +93,24 @@ function buildExistingCustomState(
       (existing as any).indicator_ids ??
         (existing as any).indicators?.map((indicator: any) => indicator?.id ?? indicator),
     ).map((value) => String(value)),
-    chartType: (existing as any).chart_type ?? "bar",
-    legend: (existing as any).legend ?? undefined,
-    stack: (existing as any).stack ?? undefined,
-    average: Boolean((existing as any).average),
-    useTarget: Boolean((existing as any).target),
-    tabular: Boolean((existing as any).tabular),
-    useTrendLine: Boolean((existing as any).trendline),
+    showAs:
+      (existing as any).chart_type === "line"
+        ? "line"
+        : (existing as any).chart_type === "pie"
+          ? "donut"
+          : (existing as any).stack
+            ? "stacked-bar"
+            : "bar",
+    calculateUsing: (existing as any).average ? "average" : "sum",
+    compareBy: "none",
+    breakDownBy: (existing as any).legend ?? "none",
+    secondaryBreakdown: (existing as any).stack ?? "none",
+    compareWith: Boolean((existing as any).target) ? "target" : "none",
+    includeDataTable: Boolean((existing as any).tabular),
+    targetLine: Boolean((existing as any).target),
+    trendLine: Boolean((existing as any).trendline),
     dateFrom: (existing as any).date_from ?? "",
     dateTo: (existing as any).date_to ?? "",
-    selectedFilters: (existing as any).filters ?? [],
   };
 }
 

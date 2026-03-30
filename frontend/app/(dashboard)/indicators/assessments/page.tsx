@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/badge"
 import { PageHeader } from "@/components/shared/page-header"
 import { useAssessments } from "@/lib/hooks/use-api"
 import { assessmentsService, indicatorsService } from "@/lib/api"
-import { useAuth } from "@/lib/contexts/auth-context"
 import {
   Dialog,
   DialogContent,
@@ -35,6 +34,7 @@ import {
 } from "@/components/ui/accordion"
 import { useToast } from "@/hooks/use-toast"
 import type { CreateIndicatorRequest } from "@/lib/api"
+import { useAuth } from "@/lib/contexts/auth-context"
 import { getUserOrganizationId } from "@/lib/utils/organization"
 
 const typeLabels: Record<string, string> = {
@@ -71,29 +71,38 @@ export default function AssessmentsPage() {
       ? String(request.organizations[0])
       : undefined
 
-    const listFilters: { search: string; page_size: string; organizations?: string } = {
+    const listParams: { search: string; page_size: string; organizations?: string } = {
       search: request.code,
       page_size: "100",
     }
     if (organizationFilter) {
-      listFilters.organizations = organizationFilter
+      listParams.organizations = organizationFilter
     }
 
-    const findExactMatchId = (results: Array<{ code?: string; id?: number | string; organizations?: unknown }>) => {
-      const exactMatch = (results || []).find((i) => {
-        if (i.code !== request.code) return false
+    const findExactMatchId = (
+      results: Array<{ code?: string; id?: number | string; organizations?: unknown }>,
+    ) => {
+      const exactMatch = (results || []).find((indicator) => {
+        if (indicator.code !== request.code) return false
         if (!request.organizations?.length) return true
+
         const orgId = String(request.organizations[0])
-        return Array.isArray(i.organizations) && i.organizations.some((org) => {
-          const orgValue = typeof org === 'object' && org !== null ? (org as { id?: string | number }).id : org
+        if (!Array.isArray(indicator.organizations) || indicator.organizations.length === 0) {
+          return true
+        }
+
+        return indicator.organizations.some((org) => {
+          const orgValue =
+            typeof org === "object" && org !== null ? (org as { id?: string | number }).id : org
           return String(orgValue) === orgId
         })
       })
+
       return exactMatch?.id ? Number(exactMatch.id) : null
     }
 
     try {
-      const list = await indicatorsService.list(listFilters)
+      const list = await indicatorsService.list(listParams)
       const existingId = findExactMatchId(list.results || [])
       if (existingId) return existingId
     } catch (listError) {
@@ -105,12 +114,19 @@ export default function AssessmentsPage() {
       return Number(created.id)
     } catch {
       try {
-        const retry = await indicatorsService.list(listFilters)
+        const retry = await indicatorsService.list(listParams)
         const retryMatchId = findExactMatchId(retry.results || [])
         if (retryMatchId) return retryMatchId
       } catch (retryError) {
         console.warn("Indicator retry lookup failed", retryError)
       }
+
+      const all = await indicatorsService.listAll(
+        organizationFilter ? { organizations: organizationFilter } : undefined,
+      )
+      const allMatch = findExactMatchId(all)
+      if (allMatch) return allMatch
+
       throw new Error(`Failed to create indicator: ${request.code}`)
     }
   }
@@ -126,7 +142,7 @@ export default function AssessmentsPage() {
       })
 
       const category = "hiv_prevention"
-      const orgArray = organizationId ? [organizationId] : []
+      const orgArray = organizationId ? [organizationId] : undefined
       const indicators: Array<{
         request: CreateIndicatorRequest
         order: number
@@ -288,10 +304,9 @@ export default function AssessmentsPage() {
       router.push(`/indicators/assessments/${assessment.id}`)
     } catch (err) {
       console.error("Failed to create template assessment", err)
-      const description = err instanceof Error && err.message ? err.message : "Failed to create template assessment."
       toast({
         title: "Error",
-        description,
+        description: "Failed to create template assessment.",
         variant: "destructive",
       })
     } finally {
@@ -475,7 +490,7 @@ export default function AssessmentsPage() {
           <DialogHeader>
             <DialogTitle>Create Assessment</DialogTitle>
             <DialogDescription>
-              Create a new assessment form to group indicators
+              Create a new assessment form to group questions
             </DialogDescription>
           </DialogHeader>
           <form className="space-y-4">

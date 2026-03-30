@@ -84,6 +84,11 @@ type PivotTableDialogProps = {
 };
 
 type PivotMatrixCell = string | number | null;
+type PivotBreakdownOption = {
+  value: unknown;
+  label?: string;
+};
+type PivotBreakdownMap = Record<string, PivotBreakdownOption[]>;
 
 type PivotTableFormState = {
   name: string;
@@ -245,7 +250,7 @@ function formatPivotDisplayValue(
   value: PivotMatrixCell,
   options?: {
     field?: string | null;
-    breakdowns?: Record<string, unknown>;
+    breakdowns?: PivotBreakdownMap;
     numeric?: boolean;
   },
 ) {
@@ -295,7 +300,7 @@ function buildPivotPreviewChart(input: {
   bodyRows: Array<Array<PivotMatrixCell>>;
   numericColumns: boolean[];
   pivotParamNames: string[];
-  dashboardBreakdowns?: Record<string, unknown>;
+  dashboardBreakdowns?: PivotBreakdownMap;
 }): BarLikeChart | null {
   const { headerRow, bodyRows, numericColumns, pivotParamNames, dashboardBreakdowns } = input;
   if (headerRow.length < 2 || bodyRows.length === 0) return null;
