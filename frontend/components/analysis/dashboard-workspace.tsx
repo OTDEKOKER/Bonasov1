@@ -488,4 +488,4 @@ export function DashboardWorkspace() {
       />
     </>
   );
-}2
+}
