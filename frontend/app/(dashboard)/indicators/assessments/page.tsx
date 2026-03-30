@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { PageHeader } from "@/components/shared/page-header"
 import { useAssessments } from "@/lib/hooks/use-api"
 import { assessmentsService, indicatorsService } from "@/lib/api"
+import { useAuth } from "@/lib/contexts/auth-context"
 import {
   Dialog,
   DialogContent,
@@ -34,7 +35,6 @@ import {
 } from "@/components/ui/accordion"
 import { useToast } from "@/hooks/use-toast"
 import type { CreateIndicatorRequest } from "@/lib/api"
-import { useAuth } from "@/lib/contexts/auth-context"
 import { getUserOrganizationId } from "@/lib/utils/organization"
 
 const typeLabels: Record<string, string> = {
@@ -67,41 +67,50 @@ export default function AssessmentsPage() {
   const assessments = data?.results || []
 
   const ensureIndicator = async (request: CreateIndicatorRequest): Promise<number> => {
-    const list = await indicatorsService.list({
+    const organizationFilter = request.organizations?.[0]
+      ? String(request.organizations[0])
+      : undefined
+
+    const listFilters: { search: string; page_size: string; organizations?: string } = {
       search: request.code,
-      organizations: request.organizations?.[0] ? String(request.organizations[0]) : undefined,
       page_size: "100",
-    })
-    const exactMatch = (list.results || []).find((i) => {
-      if (i.code !== request.code) return false
-      if (!request.organizations?.length) return true
-      const orgId = String(request.organizations[0])
-      return Array.isArray(i.organizations) && i.organizations.some((org) => String(org) === orgId)
-    })
-    if (exactMatch?.id) return Number(exactMatch.id)
+    }
+    if (organizationFilter) {
+      listFilters.organizations = organizationFilter
+    }
+
+    const findExactMatchId = (results: Array<{ code?: string; id?: number | string; organizations?: unknown }>) => {
+      const exactMatch = (results || []).find((i) => {
+        if (i.code !== request.code) return false
+        if (!request.organizations?.length) return true
+        const orgId = String(request.organizations[0])
+        return Array.isArray(i.organizations) && i.organizations.some((org) => {
+          const orgValue = typeof org === 'object' && org !== null ? (org as { id?: string | number }).id : org
+          return String(orgValue) === orgId
+        })
+      })
+      return exactMatch?.id ? Number(exactMatch.id) : null
+    }
+
+    try {
+      const list = await indicatorsService.list(listFilters)
+      const existingId = findExactMatchId(list.results || [])
+      if (existingId) return existingId
+    } catch (listError) {
+      console.warn("Indicator lookup failed; continuing with create attempt", listError)
+    }
 
     try {
       const created = await indicatorsService.create(request)
       return Number(created.id)
     } catch {
-      const retry = await indicatorsService.list({
-        search: request.code,
-        organizations: request.organizations?.[0] ? String(request.organizations[0]) : undefined,
-        page_size: "100",
-      })
-      const retryMatch = (retry.results || []).find((i) => {
-        if (i.code !== request.code) return false
-        if (!request.organizations?.length) return true
-        const orgId = String(request.organizations[0])
-        return Array.isArray(i.organizations) && i.organizations.some((org) => String(org) === orgId)
-      })
-      if (retryMatch?.id) return Number(retryMatch.id)
-
-      const all = await indicatorsService.listAll({
-        organizations: request.organizations?.[0] ? String(request.organizations[0]) : undefined,
-      })
-      const allMatch = all.find((i) => i.code === request.code)
-      if (allMatch?.id) return Number(allMatch.id)
+      try {
+        const retry = await indicatorsService.list(listFilters)
+        const retryMatchId = findExactMatchId(retry.results || [])
+        if (retryMatchId) return retryMatchId
+      } catch (retryError) {
+        console.warn("Indicator retry lookup failed", retryError)
+      }
       throw new Error(`Failed to create indicator: ${request.code}`)
     }
   }
@@ -117,6 +126,7 @@ export default function AssessmentsPage() {
       })
 
       const category = "hiv_prevention"
+      const orgArray = organizationId ? [organizationId] : []
       const indicators: Array<{
         request: CreateIndicatorRequest
         order: number
@@ -132,7 +142,7 @@ export default function AssessmentsPage() {
             type: "text",
             category,
             is_active: true,
-            organizations: organizationId ? [organizationId] : undefined,
+            organizations: orgArray,
           },
         },
         {
@@ -144,7 +154,7 @@ export default function AssessmentsPage() {
             type: "date",
             category,
             is_active: true,
-            organizations: organizationId ? [organizationId] : undefined,
+            organizations: orgArray,
           },
         },
         {
@@ -157,7 +167,7 @@ export default function AssessmentsPage() {
             type: "text",
             category,
             is_active: true,
-            organizations: organizationId ? [organizationId] : undefined,
+            organizations: orgArray,
           },
         },
         {
@@ -170,7 +180,7 @@ export default function AssessmentsPage() {
             type: "multiselect",
             category,
             is_active: true,
-            organizations: organizationId ? [organizationId] : undefined,
+            organizations: orgArray,
             options: [
               { label: "HIV testing messages", value: "hiv_testing" },
               { label: "PEP messages", value: "pep" },
@@ -194,7 +204,7 @@ export default function AssessmentsPage() {
             type: "yes_no",
             category,
             is_active: true,
-            organizations: organizationId ? [organizationId] : undefined,
+            organizations: orgArray,
           },
         },
         {
@@ -206,7 +216,7 @@ export default function AssessmentsPage() {
             type: "select",
             category,
             is_active: true,
-            organizations: organizationId ? [organizationId] : undefined,
+            organizations: orgArray,
             options: [
               { label: "Yes", value: "yes" },
               { label: "No", value: "no" },
@@ -223,7 +233,7 @@ export default function AssessmentsPage() {
             type: "yes_no",
             category,
             is_active: true,
-            organizations: organizationId ? [organizationId] : undefined,
+            organizations: orgArray,
           },
         },
         {
@@ -235,7 +245,7 @@ export default function AssessmentsPage() {
             type: "yes_no",
             category,
             is_active: true,
-            organizations: organizationId ? [organizationId] : undefined,
+            organizations: orgArray,
           },
         },
         {
@@ -247,7 +257,7 @@ export default function AssessmentsPage() {
             type: "yes_no",
             category,
             is_active: true,
-            organizations: organizationId ? [organizationId] : undefined,
+            organizations: orgArray,
           },
         },
         {
@@ -259,7 +269,7 @@ export default function AssessmentsPage() {
             type: "yes_no",
             category,
             is_active: true,
-            organizations: organizationId ? [organizationId] : undefined,
+            organizations: orgArray,
           },
         },
       ]
@@ -278,9 +288,10 @@ export default function AssessmentsPage() {
       router.push(`/indicators/assessments/${assessment.id}`)
     } catch (err) {
       console.error("Failed to create template assessment", err)
+      const description = err instanceof Error && err.message ? err.message : "Failed to create template assessment."
       toast({
         title: "Error",
-        description: "Failed to create template assessment.",
+        description,
         variant: "destructive",
       })
     } finally {
@@ -300,7 +311,7 @@ export default function AssessmentsPage() {
 
     setIsSubmitting(true)
     try {
-      await assessmentsService.create({
+      const created = await assessmentsService.create({
         name: formData.name,
         description: formData.description || undefined,
         organizations: organizationId ? [organizationId] : undefined,
@@ -309,6 +320,7 @@ export default function AssessmentsPage() {
       setIsCreateOpen(false)
       setFormData({ name: "", description: "" })
       mutate()
+      router.push(`/indicators/assessments/${created.id}`)
     } catch {
       toast({ title: "Error", description: "Failed to create assessment", variant: "destructive" })
     } finally {
@@ -463,7 +475,7 @@ export default function AssessmentsPage() {
           <DialogHeader>
             <DialogTitle>Create Assessment</DialogTitle>
             <DialogDescription>
-              Create a new assessment form to group questions
+              Create a new assessment form to group indicators
             </DialogDescription>
           </DialogHeader>
           <form className="space-y-4">

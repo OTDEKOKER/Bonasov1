@@ -12,9 +12,10 @@ interface PageHeaderProps {
   description?: string
   breadcrumbs?: Breadcrumb[]
   actions?: React.ReactNode
+  children?: React.ReactNode
 }
 
-export function PageHeader({ title, description, breadcrumbs, actions }: PageHeaderProps) {
+export function PageHeader({ title, description, breadcrumbs, actions, children }: PageHeaderProps) {
   return (
     <div className="space-y-4">
       {/* Breadcrumbs */}
@@ -41,14 +42,14 @@ export function PageHeader({ title, description, breadcrumbs, actions }: PageHea
       )}
 
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">{title}</h1>
           {description && (
             <p className="mt-1 text-sm text-muted-foreground">{description}</p>
           )}
         </div>
-        {actions && <div className="flex gap-2">{actions}</div>}
+        {(actions || children) && <div className="flex w-full flex-wrap justify-end gap-2 sm:w-auto">{actions || children}</div>}
       </div>
     </div>
   )

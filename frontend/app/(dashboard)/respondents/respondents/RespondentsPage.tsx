@@ -1,7 +1,7 @@
 "use client";
 
-import RespondentsPage from "@/components/respondents/RespondentsPage";
+import MainRespondentsPage from "../page";
 
 export default function Page() {
-  return <RespondentsPage />;
+  return <MainRespondentsPage />;
 }

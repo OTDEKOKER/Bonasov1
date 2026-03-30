@@ -1,0 +1,3082 @@
+{
+  "workbook": "C:\\Users\\dekok\\Downloads\\CSOs Reports\\CSOs Reports\\TEBELOPELE\\TEBELOPELE- NAHPA REPORTING TEMPLATE 2025_26 Q3.xlsm",
+  "project": {
+    "id": 2,
+    "code": "NAHPA2025/26",
+    "name": "NAHPA Social Contracting"
+  },
+  "period_start": "2025-10-01",
+  "period_end": "2025-12-31",
+  "summary": {
+    "matched_rows": 50,
+    "exact_matches": 6,
+    "unmatched_indicator_rows": 0,
+    "missing_aggregate_rows": 0,
+    "mismatched_rows": 44
+  },
+  "findings": [
+    {
+      "severity": "high",
+      "issue": "Workbook/data mismatches",
+      "detail": "44 matched workbook rows differ from the saved aggregate values."
+    }
+  ],
+  "sheets": {
+    "TEBELOPELE": {
+      "organization_id": 1,
+      "parsed_rows": 50,
+      "matched_rows": 50,
+      "exact_matches": 6,
+      "missing_aggregates": [],
+      "unmatched_indicators": [],
+      "mismatches": [
+        {
+          "indicator_id": 330,
+          "indicator_name": "Number of people reached with stigma reduction messages.",
+          "workbook_title": "Number of people reached with stigma reduction messages",
+          "difference_count": 35,
+          "differences_preview": [
+            {
+              "type": "summary",
+              "field": "total",
+              "expected": 4102.0,
+              "actual": 34133.0
+            },
+            {
+              "type": "summary",
+              "field": "male",
+              "expected": 1905.0,
+              "actual": 16296.0
+            },
+            {
+              "type": "summary",
+              "field": "female",
+              "expected": 2197.0,
+              "actual": 17837.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "10-14",
+              "expected": 11.0,
+              "actual": 5703.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "15-19",
+              "expected": 509.0,
+              "actual": 4787.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "20-24",
+              "expected": 810.0,
+              "actual": 4318.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "25-29",
+              "expected": 222.0,
+              "actual": 753.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "30-34",
+              "expected": 193.0,
+              "actual": 570.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "35-39",
+              "expected": 174.0,
+              "actual": 498.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "40-44",
+              "expected": 131.0,
+              "actual": 397.0
+            }
+          ]
+        },
+        {
+          "indicator_id": 321,
+          "indicator_name": "Number of Total Number of people Reached with HIV TESTING Messages",
+          "workbook_title": "Total Number of people Reached with HIV TESTING Messages",
+          "difference_count": 33,
+          "differences_preview": [
+            {
+              "type": "summary",
+              "field": "total",
+              "expected": 4083.0,
+              "actual": 28098.0
+            },
+            {
+              "type": "summary",
+              "field": "male",
+              "expected": 1900.0,
+              "actual": 13223.0
+            },
+            {
+              "type": "summary",
+              "field": "female",
+              "expected": 2183.0,
+              "actual": 14875.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "10-14",
+              "expected": 11.0,
+              "actual": 4211.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "15-19",
+              "expected": 509.0,
+              "actual": 4020.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "20-24",
+              "expected": 810.0,
+              "actual": 3872.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "25-29",
+              "expected": 219.0,
+              "actual": 734.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "30-34",
+              "expected": 190.0,
+              "actual": 530.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "35-39",
+              "expected": 171.0,
+              "actual": 458.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "40-44",
+              "expected": 130.0,
+              "actual": 343.0
+            }
+          ]
+        },
+        {
+          "indicator_id": 322,
+          "indicator_name": "Number of Total Number of People Reached with PEP Messages",
+          "workbook_title": "Total Number of People Reached with PEP Messages",
+          "difference_count": 27,
+          "differences_preview": [
+            {
+              "type": "summary",
+              "field": "total",
+              "expected": 4100.0,
+              "actual": 26972.0
+            },
+            {
+              "type": "summary",
+              "field": "male",
+              "expected": 1902.0,
+              "actual": 12802.0
+            },
+            {
+              "type": "summary",
+              "field": "female",
+              "expected": 2198.0,
+              "actual": 14170.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "10-14",
+              "expected": 11.0,
+              "actual": 3852.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "15-19",
+              "expected": 509.0,
+              "actual": 4014.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "20-24",
+              "expected": 810.0,
+              "actual": 3782.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "25-29",
+              "expected": 222.0,
+              "actual": 725.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "30-34",
+              "expected": 193.0,
+              "actual": 504.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "35-39",
+              "expected": 174.0,
+              "actual": 432.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "40-44",
+              "expected": 131.0,
+              "actual": 333.0
+            }
+          ]
+        },
+        {
+          "indicator_id": 323,
+          "indicator_name": "Number of Total Number of people Reached with PREP Messages",
+          "workbook_title": "Total Number of people Reached with PREP Messages",
+          "difference_count": 35,
+          "differences_preview": [
+            {
+              "type": "summary",
+              "field": "total",
+              "expected": 4100.0,
+              "actual": 28328.0
+            },
+            {
+              "type": "summary",
+              "field": "male",
+              "expected": 1902.0,
+              "actual": 13622.0
+            },
+            {
+              "type": "summary",
+              "field": "female",
+              "expected": 2198.0,
+              "actual": 14706.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "10-14",
+              "expected": 11.0,
+              "actual": 4069.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "15-19",
+              "expected": 509.0,
+              "actual": 4186.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "20-24",
+              "expected": 810.0,
+              "actual": 3841.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "25-29",
+              "expected": 222.0,
+              "actual": 738.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "30-34",
+              "expected": 193.0,
+              "actual": 515.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "35-39",
+              "expected": 174.0,
+              "actual": 453.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "40-44",
+              "expected": 131.0,
+              "actual": 340.0
+            }
+          ]
+        },
+        {
+          "indicator_id": 324,
+          "indicator_name": "Number of Total Number of People Reached with GBV Messages",
+          "workbook_title": "Total Number of People Reached with GBV Messages",
+          "difference_count": 35,
+          "differences_preview": [
+            {
+              "type": "summary",
+              "field": "total",
+              "expected": 1507.0,
+              "actual": 28180.0
+            },
+            {
+              "type": "summary",
+              "field": "male",
+              "expected": 685.0,
+              "actual": 13505.0
+            },
+            {
+              "type": "summary",
+              "field": "female",
+              "expected": 822.0,
+              "actual": 14675.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "10-14",
+              "expected": 2.0,
+              "actual": 5100.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "15-19",
+              "expected": 108.0,
+              "actual": 4004.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "20-24",
+              "expected": 362.0,
+              "actual": 3415.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "25-29",
+              "expected": 98.0,
+              "actual": 657.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "30-34",
+              "expected": 82.0,
+              "actual": 414.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "35-39",
+              "expected": 75.0,
+              "actual": 347.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "40-44",
+              "expected": 50.0,
+              "actual": 263.0
+            }
+          ]
+        },
+        {
+          "indicator_id": 325,
+          "indicator_name": "Number of Total Number of People Reached with Condom Use Messages",
+          "workbook_title": "Total Number of People Reached with Condom Use Messages",
+          "difference_count": 27,
+          "differences_preview": [
+            {
+              "type": "summary",
+              "field": "total",
+              "expected": 2490.0,
+              "actual": 18347.0
+            },
+            {
+              "type": "summary",
+              "field": "male",
+              "expected": 1179.0,
+              "actual": 8942.0
+            },
+            {
+              "type": "summary",
+              "field": "female",
+              "expected": 1311.0,
+              "actual": 9405.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "10-14",
+              "expected": 9.0,
+              "actual": 2489.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "15-19",
+              "expected": 372.0,
+              "actual": 2798.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "20-24",
+              "expected": 413.0,
+              "actual": 2271.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "25-29",
+              "expected": 124.0,
+              "actual": 511.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "30-34",
+              "expected": 111.0,
+              "actual": 357.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "35-39",
+              "expected": 99.0,
+              "actual": 316.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "40-44",
+              "expected": 81.0,
+              "actual": 265.0
+            }
+          ]
+        },
+        {
+          "indicator_id": 326,
+          "indicator_name": "Number of Total Number of People Reached with HIV Treatment Messages",
+          "workbook_title": "Total Number of People Reached with HIV Treatment Messages",
+          "difference_count": 33,
+          "differences_preview": [
+            {
+              "type": "summary",
+              "field": "total",
+              "expected": 1986.0,
+              "actual": 19749.0
+            },
+            {
+              "type": "summary",
+              "field": "male",
+              "expected": 935.0,
+              "actual": 9821.0
+            },
+            {
+              "type": "summary",
+              "field": "female",
+              "expected": 1051.0,
+              "actual": 9928.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "10-14",
+              "expected": 9.0,
+              "actual": 3245.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "15-19",
+              "expected": 142.0,
+              "actual": 2581.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "20-24",
+              "expected": 397.0,
+              "actual": 2231.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "25-29",
+              "expected": 121.0,
+              "actual": 501.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "30-34",
+              "expected": 108.0,
+              "actual": 353.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "35-39",
+              "expected": 96.0,
+              "actual": 318.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "40-44",
+              "expected": 80.0,
+              "actual": 255.0
+            }
+          ]
+        },
+        {
+          "indicator_id": 327,
+          "indicator_name": "Number of Total Number of People Reached with ARV Based Prevention Messages",
+          "workbook_title": "Total Number of People Reached with ARV Based Prevention Messages",
+          "difference_count": 27,
+          "differences_preview": [
+            {
+              "type": "summary",
+              "field": "total",
+              "expected": 1831.0,
+              "actual": 17274.0
+            },
+            {
+              "type": "summary",
+              "field": "male",
+              "expected": 851.0,
+              "actual": 8374.0
+            },
+            {
+              "type": "summary",
+              "field": "female",
+              "expected": 980.0,
+              "actual": 8900.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "10-14",
+              "expected": 9.0,
+              "actual": 2625.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "15-19",
+              "expected": 136.0,
+              "actual": 2368.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "20-24",
+              "expected": 379.0,
+              "actual": 2191.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "25-29",
+              "expected": 105.0,
+              "actual": 467.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "30-34",
+              "expected": 97.0,
+              "actual": 336.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "35-39",
+              "expected": 93.0,
+              "actual": 305.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "40-44",
+              "expected": 75.0,
+              "actual": 245.0
+            }
+          ]
+        },
+        {
+          "indicator_id": 328,
+          "indicator_name": "Number of Total Number of People Reached with EMTCT Messages",
+          "workbook_title": "Total Number of People Reached with EMTCT Messages",
+          "difference_count": 27,
+          "differences_preview": [
+            {
+              "type": "summary",
+              "field": "total",
+              "expected": 1831.0,
+              "actual": 9437.0
+            },
+            {
+              "type": "summary",
+              "field": "male",
+              "expected": 851.0,
+              "actual": 4524.0
+            },
+            {
+              "type": "summary",
+              "field": "female",
+              "expected": 980.0,
+              "actual": 4913.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "10-14",
+              "expected": 9.0,
+              "actual": 939.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "15-19",
+              "expected": 136.0,
+              "actual": 1186.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "20-24",
+              "expected": 379.0,
+              "actual": 1538.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "25-29",
+              "expected": 105.0,
+              "actual": 319.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "30-34",
+              "expected": 97.0,
+              "actual": 247.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "35-39",
+              "expected": 93.0,
+              "actual": 233.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "40-44",
+              "expected": 75.0,
+              "actual": 186.0
+            }
+          ]
+        },
+        {
+          "indicator_id": 329,
+          "indicator_name": "Number of Total Number of People Reached with HIV Messages",
+          "workbook_title": "Total Number of People Reached with HIV Messages",
+          "difference_count": 27,
+          "differences_preview": [
+            {
+              "type": "summary",
+              "field": "total",
+              "expected": 2595.0,
+              "actual": 25278.0
+            },
+            {
+              "type": "summary",
+              "field": "male",
+              "expected": 1220.0,
+              "actual": 12397.0
+            },
+            {
+              "type": "summary",
+              "field": "female",
+              "expected": 1375.0,
+              "actual": 12881.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "10-14",
+              "expected": 9.0,
+              "actual": 3952.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "15-19",
+              "expected": 401.0,
+              "actual": 3510.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "20-24",
+              "expected": 448.0,
+              "actual": 2675.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "25-29",
+              "expected": 124.0,
+              "actual": 654.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "30-34",
+              "expected": 111.0,
+              "actual": 496.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "35-39",
+              "expected": 99.0,
+              "actual": 429.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "40-44",
+              "expected": 81.0,
+              "actual": 373.0
+            }
+          ]
+        },
+        {
+          "indicator_id": 445,
+          "indicator_name": "Number  of people referred for HIV testing.",
+          "workbook_title": "Number of people referred for HIV Testing",
+          "difference_count": 14,
+          "differences_preview": [
+            {
+              "type": "summary",
+              "field": "total",
+              "expected": 0.0,
+              "actual": 773.0
+            },
+            {
+              "type": "summary",
+              "field": "male",
+              "expected": 0.0,
+              "actual": 363.0
+            },
+            {
+              "type": "summary",
+              "field": "female",
+              "expected": 0.0,
+              "actual": 410.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "10-14",
+              "expected": 0.0,
+              "actual": 10.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "15-19",
+              "expected": 0.0,
+              "actual": 131.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "20-24",
+              "expected": 0.0,
+              "actual": 224.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "25-29",
+              "expected": 0.0,
+              "actual": 33.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "30-34",
+              "expected": 0.0,
+              "actual": 11.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "40-44",
+              "expected": 0.0,
+              "actual": 1.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Male",
+              "band": "10-14",
+              "expected": 0.0,
+              "actual": 90.0
+            }
+          ]
+        },
+        {
+          "indicator_id": 332,
+          "indicator_name": "Number of Number of people tested for HIV.",
+          "workbook_title": "Number of people tested for HIV",
+          "difference_count": 12,
+          "differences_preview": [
+            {
+              "type": "summary",
+              "field": "total",
+              "expected": 3336.0,
+              "actual": 3934.0
+            },
+            {
+              "type": "summary",
+              "field": "male",
+              "expected": 1477.0,
+              "actual": 1702.0
+            },
+            {
+              "type": "summary",
+              "field": "female",
+              "expected": 1859.0,
+              "actual": 2232.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "10-14",
+              "expected": 8.0,
+              "actual": 9.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "15-19",
+              "expected": 277.0,
+              "actual": 377.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "20-24",
+              "expected": 808.0,
+              "actual": 1077.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Male",
+              "band": "10-14",
+              "expected": 11.0,
+              "actual": 13.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Male",
+              "band": "15-19",
+              "expected": 181.0,
+              "actual": 230.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Male",
+              "band": "20-24",
+              "expected": 449.0,
+              "actual": 618.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "PWD",
+              "secondary": "Female",
+              "band": "20-24",
+              "expected": 0.0,
+              "actual": 3.0
+            }
+          ]
+        },
+        {
+          "indicator_id": 452,
+          "indicator_name": "Number  of people who tested positive for HIV.",
+          "workbook_title": "Number of people who tested positive for HIV",
+          "difference_count": 6,
+          "differences_preview": [
+            {
+              "type": "summary",
+              "field": "total",
+              "expected": 38.0,
+              "actual": 43.0
+            },
+            {
+              "type": "summary",
+              "field": "male",
+              "expected": 13.0,
+              "actual": 15.0
+            },
+            {
+              "type": "summary",
+              "field": "female",
+              "expected": 25.0,
+              "actual": 28.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "20-24",
+              "expected": 11.0,
+              "actual": 14.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Male",
+              "band": "20-24",
+              "expected": 3.0,
+              "actual": 4.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "PWD",
+              "secondary": "Male",
+              "band": "20-24",
+              "expected": 0.0,
+              "actual": 1.0
+            }
+          ]
+        },
+        {
+          "indicator_id": 334,
+          "indicator_name": "Number of AYP linked to care.",
+          "workbook_title": "Number of AYP linked to care",
+          "difference_count": 6,
+          "differences_preview": [
+            {
+              "type": "summary",
+              "field": "total",
+              "expected": 26.0,
+              "actual": 31.0
+            },
+            {
+              "type": "summary",
+              "field": "male",
+              "expected": 9.0,
+              "actual": 11.0
+            },
+            {
+              "type": "summary",
+              "field": "female",
+              "expected": 17.0,
+              "actual": 20.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "20-24",
+              "expected": 10.0,
+              "actual": 13.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Male",
+              "band": "20-24",
+              "expected": 3.0,
+              "actual": 4.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "PWD",
+              "secondary": "Male",
+              "band": "20-24",
+              "expected": 0.0,
+              "actual": 1.0
+            }
+          ]
+        },
+        {
+          "indicator_id": 335,
+          "indicator_name": "Number of AYP initiated on ART",
+          "workbook_title": "Number of AYP initiated on ART",
+          "difference_count": 6,
+          "differences_preview": [
+            {
+              "type": "summary",
+              "field": "total",
+              "expected": 23.0,
+              "actual": 28.0
+            },
+            {
+              "type": "summary",
+              "field": "male",
+              "expected": 8.0,
+              "actual": 10.0
+            },
+            {
+              "type": "summary",
+              "field": "female",
+              "expected": 15.0,
+              "actual": 18.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "20-24",
+              "expected": 8.0,
+              "actual": 11.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Male",
+              "band": "20-24",
+              "expected": 2.0,
+              "actual": 3.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "PWD",
+              "secondary": "Male",
+              "band": "20-24",
+              "expected": 0.0,
+              "actual": 1.0
+            }
+          ]
+        },
+        {
+          "indicator_id": 336,
+          "indicator_name": "Number of people eligible for PrEP",
+          "workbook_title": "Number of people eligible for PrEP",
+          "difference_count": 27,
+          "differences_preview": [
+            {
+              "type": "summary",
+              "field": "total",
+              "expected": 812.0,
+              "actual": 1552.0
+            },
+            {
+              "type": "summary",
+              "field": "male",
+              "expected": 330.0,
+              "actual": 676.0
+            },
+            {
+              "type": "summary",
+              "field": "female",
+              "expected": 482.0,
+              "actual": 876.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "10-14",
+              "expected": 1.0,
+              "actual": 13.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "15-19",
+              "expected": 93.0,
+              "actual": 152.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "20-24",
+              "expected": 273.0,
+              "actual": 461.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "25-29",
+              "expected": 24.0,
+              "actual": 65.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "30-34",
+              "expected": 25.0,
+              "actual": 60.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "35-39",
+              "expected": 30.0,
+              "actual": 59.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "40-44",
+              "expected": 19.0,
+              "actual": 32.0
+            }
+          ]
+        },
+        {
+          "indicator_id": 337,
+          "indicator_name": "Number of people referred for PrEP.",
+          "workbook_title": "Number of people referred for PrEP",
+          "difference_count": 25,
+          "differences_preview": [
+            {
+              "type": "summary",
+              "field": "total",
+              "expected": 71.0,
+              "actual": 835.0
+            },
+            {
+              "type": "summary",
+              "field": "male",
+              "expected": 22.0,
+              "actual": 359.0
+            },
+            {
+              "type": "summary",
+              "field": "female",
+              "expected": 49.0,
+              "actual": 476.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "10-14",
+              "expected": 0.0,
+              "actual": 12.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "15-19",
+              "expected": 7.0,
+              "actual": 65.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "20-24",
+              "expected": 36.0,
+              "actual": 223.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "25-29",
+              "expected": 1.0,
+              "actual": 53.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "30-34",
+              "expected": 1.0,
+              "actual": 41.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "35-39",
+              "expected": 2.0,
+              "actual": 41.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "40-44",
+              "expected": 1.0,
+              "actual": 20.0
+            }
+          ]
+        },
+        {
+          "indicator_id": 338,
+          "indicator_name": "Number of people eligible for PEP",
+          "workbook_title": "Number of people eligible for PEP",
+          "difference_count": 15,
+          "differences_preview": [
+            {
+              "type": "summary",
+              "field": "total",
+              "expected": 22.0,
+              "actual": 91.0
+            },
+            {
+              "type": "summary",
+              "field": "male",
+              "expected": 7.0,
+              "actual": 31.0
+            },
+            {
+              "type": "summary",
+              "field": "female",
+              "expected": 15.0,
+              "actual": 60.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "10-14",
+              "expected": 1.0,
+              "actual": 7.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "15-19",
+              "expected": 2.0,
+              "actual": 7.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "20-24",
+              "expected": 10.0,
+              "actual": 34.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "25-29",
+              "expected": 1.0,
+              "actual": 6.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "30-34",
+              "expected": 0.0,
+              "actual": 2.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "35-39",
+              "expected": 0.0,
+              "actual": 3.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Male",
+              "band": "10-14",
+              "expected": 0.0,
+              "actual": 4.0
+            }
+          ]
+        },
+        {
+          "indicator_id": 339,
+          "indicator_name": "Number of people referred for PEP",
+          "workbook_title": "Number of people referred for PEP",
+          "difference_count": 7,
+          "differences_preview": [
+            {
+              "type": "summary",
+              "field": "total",
+              "expected": 22.0,
+              "actual": 33.0
+            },
+            {
+              "type": "summary",
+              "field": "male",
+              "expected": 7.0,
+              "actual": 12.0
+            },
+            {
+              "type": "summary",
+              "field": "female",
+              "expected": 15.0,
+              "actual": 21.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "20-24",
+              "expected": 10.0,
+              "actual": 14.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "25-29",
+              "expected": 1.0,
+              "actual": 2.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "30-34",
+              "expected": 0.0,
+              "actual": 1.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Male",
+              "band": "20-24",
+              "expected": 6.0,
+              "actual": 11.0
+            }
+          ]
+        },
+        {
+          "indicator_id": 341,
+          "indicator_name": "Number of Number of people linked to justice services",
+          "workbook_title": "Number of people linked to justice services",
+          "difference_count": 10,
+          "differences_preview": [
+            {
+              "type": "summary",
+              "field": "total",
+              "expected": 1.0,
+              "actual": 30.0
+            },
+            {
+              "type": "summary",
+              "field": "male",
+              "expected": 0.0,
+              "actual": 12.0
+            },
+            {
+              "type": "summary",
+              "field": "female",
+              "expected": 1.0,
+              "actual": 18.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "15-19",
+              "expected": 0.0,
+              "actual": 2.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "20-24",
+              "expected": 0.0,
+              "actual": 9.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "25-29",
+              "expected": 0.0,
+              "actual": 6.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Male",
+              "band": "10-14",
+              "expected": 0.0,
+              "actual": 2.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Male",
+              "band": "15-19",
+              "expected": 0.0,
+              "actual": 6.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Male",
+              "band": "20-24",
+              "expected": 0.0,
+              "actual": 2.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Male",
+              "band": "25-29",
+              "expected": 0.0,
+              "actual": 2.0
+            }
+          ]
+        },
+        {
+          "indicator_id": 342,
+          "indicator_name": "Number of AYP provided with family planning services",
+          "workbook_title": "Number of AYP provided with family planning services",
+          "difference_count": 9,
+          "differences_preview": [
+            {
+              "type": "summary",
+              "field": "total",
+              "expected": 0.0,
+              "actual": 75.0
+            },
+            {
+              "type": "summary",
+              "field": "female",
+              "expected": 0.0,
+              "actual": 75.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "Contraceptive pills",
+              "secondary": "Female",
+              "band": "15-19",
+              "expected": 0.0,
+              "actual": 4.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "Contraceptive pills",
+              "secondary": "Female",
+              "band": "20-24",
+              "expected": 0.0,
+              "actual": 16.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "IMPLANT 3 YEARS",
+              "secondary": "Female",
+              "band": "15-19",
+              "expected": 0.0,
+              "actual": 14.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "IMPLANT 3 YEARS",
+              "secondary": "Female",
+              "band": "20-24",
+              "expected": 0.0,
+              "actual": 37.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "IMPLANT 5 YEARS",
+              "secondary": "Female",
+              "band": "15-19",
+              "expected": 0.0,
+              "actual": 1.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "IMPLANT 5 YEARS",
+              "secondary": "Female",
+              "band": "20-24",
+              "expected": 0.0,
+              "actual": 2.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "Injectables",
+              "secondary": "Female",
+              "band": "20-24",
+              "expected": 0.0,
+              "actual": 1.0
+            }
+          ]
+        },
+        {
+          "indicator_id": 343,
+          "indicator_name": "Number of individuals screened for GBV.",
+          "workbook_title": "Number of individuals screened for GBV",
+          "difference_count": 32,
+          "differences_preview": [
+            {
+              "type": "summary",
+              "field": "total",
+              "expected": 3178.0,
+              "actual": 23879.0
+            },
+            {
+              "type": "summary",
+              "field": "male",
+              "expected": 1363.0,
+              "actual": 9084.0
+            },
+            {
+              "type": "summary",
+              "field": "female",
+              "expected": 1815.0,
+              "actual": 14795.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "10-14",
+              "expected": 9.0,
+              "actual": 6908.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "15-19",
+              "expected": 285.0,
+              "actual": 3125.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "20-24",
+              "expected": 840.0,
+              "actual": 3064.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "25-29",
+              "expected": 179.0,
+              "actual": 411.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "30-34",
+              "expected": 161.0,
+              "actual": 325.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "35-39",
+              "expected": 148.0,
+              "actual": 267.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "40-44",
+              "expected": 106.0,
+              "actual": 186.0
+            }
+          ]
+        },
+        {
+          "indicator_id": 344,
+          "indicator_name": "Number of Number eligible for clinical services for GBV",
+          "workbook_title": "Number eligible for clinical services for GBV",
+          "difference_count": 15,
+          "differences_preview": [
+            {
+              "type": "summary",
+              "field": "total",
+              "expected": 24.0,
+              "actual": 211.0
+            },
+            {
+              "type": "summary",
+              "field": "male",
+              "expected": 3.0,
+              "actual": 83.0
+            },
+            {
+              "type": "summary",
+              "field": "female",
+              "expected": 21.0,
+              "actual": 128.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "10-14",
+              "expected": 1.0,
+              "actual": 49.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "15-19",
+              "expected": 12.0,
+              "actual": 31.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "20-24",
+              "expected": 7.0,
+              "actual": 34.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "25-29",
+              "expected": 0.0,
+              "actual": 6.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "30-34",
+              "expected": 0.0,
+              "actual": 3.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "35-39",
+              "expected": 0.0,
+              "actual": 4.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Male",
+              "band": "10-14",
+              "expected": 0.0,
+              "actual": 47.0
+            }
+          ]
+        },
+        {
+          "indicator_id": 345,
+          "indicator_name": "Number of Number referred for clinical services for GBV",
+          "workbook_title": "Number referred for clinical services for GBV",
+          "difference_count": 15,
+          "differences_preview": [
+            {
+              "type": "summary",
+              "field": "total",
+              "expected": 0.0,
+              "actual": 46.0
+            },
+            {
+              "type": "summary",
+              "field": "male",
+              "expected": 0.0,
+              "actual": 20.0
+            },
+            {
+              "type": "summary",
+              "field": "female",
+              "expected": 0.0,
+              "actual": 26.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "10-14",
+              "expected": 0.0,
+              "actual": 2.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "15-19",
+              "expected": 0.0,
+              "actual": 6.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "20-24",
+              "expected": 0.0,
+              "actual": 11.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "25-29",
+              "expected": 0.0,
+              "actual": 4.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "30-34",
+              "expected": 0.0,
+              "actual": 1.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "35-39",
+              "expected": 0.0,
+              "actual": 1.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "40-44",
+              "expected": 0.0,
+              "actual": 1.0
+            }
+          ]
+        },
+        {
+          "indicator_id": 346,
+          "indicator_name": "Number of Number eligible for justice services for GBV",
+          "workbook_title": "Number eligible for justice services for GBV",
+          "difference_count": 14,
+          "differences_preview": [
+            {
+              "type": "summary",
+              "field": "total",
+              "expected": 1.0,
+              "actual": 33.0
+            },
+            {
+              "type": "summary",
+              "field": "male",
+              "expected": 0.0,
+              "actual": 12.0
+            },
+            {
+              "type": "summary",
+              "field": "female",
+              "expected": 1.0,
+              "actual": 21.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "10-14",
+              "expected": 0.0,
+              "actual": 1.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "15-19",
+              "expected": 0.0,
+              "actual": 5.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "20-24",
+              "expected": 0.0,
+              "actual": 9.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "25-29",
+              "expected": 0.0,
+              "actual": 3.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "30-34",
+              "expected": 0.0,
+              "actual": 1.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "35-39",
+              "expected": 0.0,
+              "actual": 1.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Male",
+              "band": "10-14",
+              "expected": 0.0,
+              "actual": 3.0
+            }
+          ]
+        },
+        {
+          "indicator_id": 348,
+          "indicator_name": "Number of Number eligible for pyschosocial services for GBV",
+          "workbook_title": "Number eligible for pyschosocial services for GBV",
+          "difference_count": 13,
+          "differences_preview": [
+            {
+              "type": "summary",
+              "field": "total",
+              "expected": 5.0,
+              "actual": 215.0
+            },
+            {
+              "type": "summary",
+              "field": "male",
+              "expected": 2.0,
+              "actual": 73.0
+            },
+            {
+              "type": "summary",
+              "field": "female",
+              "expected": 3.0,
+              "actual": 142.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "10-14",
+              "expected": 0.0,
+              "actual": 10.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "15-19",
+              "expected": 0.0,
+              "actual": 39.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "20-24",
+              "expected": 3.0,
+              "actual": 89.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "35-39",
+              "expected": 0.0,
+              "actual": 1.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "40-44",
+              "expected": 0.0,
+              "actual": 2.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "45-49",
+              "expected": 0.0,
+              "actual": 1.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Male",
+              "band": "10-14",
+              "expected": 0.0,
+              "actual": 10.0
+            }
+          ]
+        },
+        {
+          "indicator_id": 349,
+          "indicator_name": "Number of Number referred for pyschosocial services for GBV",
+          "workbook_title": "Number referred for pyschosocial services for GBV",
+          "difference_count": 11,
+          "differences_preview": [
+            {
+              "type": "summary",
+              "field": "total",
+              "expected": 1.0,
+              "actual": 32.0
+            },
+            {
+              "type": "summary",
+              "field": "male",
+              "expected": 0.0,
+              "actual": 14.0
+            },
+            {
+              "type": "summary",
+              "field": "female",
+              "expected": 1.0,
+              "actual": 18.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "10-14",
+              "expected": 0.0,
+              "actual": 3.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "15-19",
+              "expected": 0.0,
+              "actual": 9.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "20-24",
+              "expected": 0.0,
+              "actual": 4.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "40-44",
+              "expected": 0.0,
+              "actual": 1.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Male",
+              "band": "10-14",
+              "expected": 0.0,
+              "actual": 2.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Male",
+              "band": "15-19",
+              "expected": 0.0,
+              "actual": 7.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Male",
+              "band": "20-24",
+              "expected": 0.0,
+              "actual": 4.0
+            }
+          ]
+        },
+        {
+          "indicator_id": 350,
+          "indicator_name": "Number of people who received psychosocial support on GBV",
+          "workbook_title": "Number of people who received psychosocial support on GBV",
+          "difference_count": 13,
+          "differences_preview": [
+            {
+              "type": "summary",
+              "field": "total",
+              "expected": 1.0,
+              "actual": 192.0
+            },
+            {
+              "type": "summary",
+              "field": "male",
+              "expected": 0.0,
+              "actual": 63.0
+            },
+            {
+              "type": "summary",
+              "field": "female",
+              "expected": 1.0,
+              "actual": 129.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "10-14",
+              "expected": 0.0,
+              "actual": 7.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "15-19",
+              "expected": 0.0,
+              "actual": 35.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "20-24",
+              "expected": 1.0,
+              "actual": 84.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "35-39",
+              "expected": 0.0,
+              "actual": 1.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "40-44",
+              "expected": 0.0,
+              "actual": 1.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "45-49",
+              "expected": 0.0,
+              "actual": 1.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Male",
+              "band": "10-14",
+              "expected": 0.0,
+              "actual": 9.0
+            }
+          ]
+        },
+        {
+          "indicator_id": 351,
+          "indicator_name": "Number of people screened for STIs",
+          "workbook_title": "Number of people screened for STIs",
+          "difference_count": 30,
+          "differences_preview": [
+            {
+              "type": "summary",
+              "field": "total",
+              "expected": 3416.0,
+              "actual": 15000.0
+            },
+            {
+              "type": "summary",
+              "field": "male",
+              "expected": 1509.0,
+              "actual": 6656.0
+            },
+            {
+              "type": "summary",
+              "field": "female",
+              "expected": 1907.0,
+              "actual": 8344.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "10-14",
+              "expected": 9.0,
+              "actual": 1532.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "15-19",
+              "expected": 297.0,
+              "actual": 2324.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "20-24",
+              "expected": 835.0,
+              "actual": 2734.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "25-29",
+              "expected": 198.0,
+              "actual": 396.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "30-34",
+              "expected": 186.0,
+              "actual": 317.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "35-39",
+              "expected": 161.0,
+              "actual": 255.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "40-44",
+              "expected": 116.0,
+              "actual": 225.0
+            }
+          ]
+        },
+        {
+          "indicator_id": 468,
+          "indicator_name": "Number of  people screened positive for STIs referred for services",
+          "workbook_title": "Number of people screened positive for STIs referred for services",
+          "difference_count": 11,
+          "differences_preview": [
+            {
+              "type": "summary",
+              "field": "total",
+              "expected": 14.0,
+              "actual": 54.0
+            },
+            {
+              "type": "summary",
+              "field": "male",
+              "expected": 9.0,
+              "actual": 23.0
+            },
+            {
+              "type": "summary",
+              "field": "female",
+              "expected": 5.0,
+              "actual": 31.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "10-14",
+              "expected": 0.0,
+              "actual": 4.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "15-19",
+              "expected": 1.0,
+              "actual": 11.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "20-24",
+              "expected": 2.0,
+              "actual": 14.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Male",
+              "band": "10-14",
+              "expected": 0.0,
+              "actual": 1.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Male",
+              "band": "15-19",
+              "expected": 2.0,
+              "actual": 4.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Male",
+              "band": "20-24",
+              "expected": 5.0,
+              "actual": 13.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Male",
+              "band": "25-29",
+              "expected": 0.0,
+              "actual": 2.0
+            }
+          ]
+        },
+        {
+          "indicator_id": 469,
+          "indicator_name": "Number of  STI cases linked to care",
+          "workbook_title": "Number of STI cases linked to care",
+          "difference_count": 6,
+          "differences_preview": [
+            {
+              "type": "summary",
+              "field": "total",
+              "expected": 14.0,
+              "actual": 29.0
+            },
+            {
+              "type": "summary",
+              "field": "male",
+              "expected": 9.0,
+              "actual": 15.0
+            },
+            {
+              "type": "summary",
+              "field": "female",
+              "expected": 5.0,
+              "actual": 14.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "15-19",
+              "expected": 1.0,
+              "actual": 6.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "20-24",
+              "expected": 2.0,
+              "actual": 6.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Male",
+              "band": "20-24",
+              "expected": 5.0,
+              "actual": 11.0
+            }
+          ]
+        },
+        {
+          "indicator_id": 470,
+          "indicator_name": "Number of  STI cases referrals completed",
+          "workbook_title": "Number of STI cases referrals completed",
+          "difference_count": 6,
+          "differences_preview": [
+            {
+              "type": "summary",
+              "field": "total",
+              "expected": 14.0,
+              "actual": 29.0
+            },
+            {
+              "type": "summary",
+              "field": "male",
+              "expected": 9.0,
+              "actual": 15.0
+            },
+            {
+              "type": "summary",
+              "field": "female",
+              "expected": 5.0,
+              "actual": 14.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "15-19",
+              "expected": 1.0,
+              "actual": 6.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "20-24",
+              "expected": 2.0,
+              "actual": 6.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Male",
+              "band": "20-24",
+              "expected": 5.0,
+              "actual": 11.0
+            }
+          ]
+        },
+        {
+          "indicator_id": 355,
+          "indicator_name": "Number of condoms distributed to AYPs",
+          "workbook_title": "Number of condoms distributed to AYPs",
+          "difference_count": 27,
+          "differences_preview": [
+            {
+              "type": "summary",
+              "field": "total",
+              "expected": 40188.0,
+              "actual": 200464.0
+            },
+            {
+              "type": "summary",
+              "field": "male",
+              "expected": 31609.0,
+              "actual": 126082.0
+            },
+            {
+              "type": "summary",
+              "field": "female",
+              "expected": 8579.0,
+              "actual": 74382.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "10-14",
+              "expected": 60.0,
+              "actual": 677.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "15-19",
+              "expected": 2682.0,
+              "actual": 16384.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "20-24",
+              "expected": 5471.0,
+              "actual": 42074.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "25-29",
+              "expected": 0.0,
+              "actual": 3954.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "30-34",
+              "expected": 24.0,
+              "actual": 3036.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "35-39",
+              "expected": 0.0,
+              "actual": 2441.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "40-44",
+              "expected": 142.0,
+              "actual": 1886.0
+            }
+          ]
+        },
+        {
+          "indicator_id": 356,
+          "indicator_name": "Number of people who repeated collecting condoms for the repeated time",
+          "workbook_title": "Number of people who repeated collecting condoms for the repeated time",
+          "difference_count": 14,
+          "differences_preview": [
+            {
+              "type": "summary",
+              "field": "total",
+              "expected": 1823.0,
+              "actual": 7459.0
+            },
+            {
+              "type": "summary",
+              "field": "male",
+              "expected": 812.0,
+              "actual": 3394.0
+            },
+            {
+              "type": "summary",
+              "field": "female",
+              "expected": 1011.0,
+              "actual": 4065.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "15-19",
+              "expected": 40.0,
+              "actual": 686.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "20-24",
+              "expected": 671.0,
+              "actual": 3073.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "30-34",
+              "expected": 60.0,
+              "actual": 61.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "40-44",
+              "expected": 10.0,
+              "actual": 13.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "45-49",
+              "expected": 0.0,
+              "actual": 2.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Male",
+              "band": "15-19",
+              "expected": 208.0,
+              "actual": 753.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Male",
+              "band": "20-24",
+              "expected": 510.0,
+              "actual": 2541.0
+            }
+          ]
+        },
+        {
+          "indicator_id": 357,
+          "indicator_name": "Number of lubricants distributed",
+          "workbook_title": "Number of lubricants distributed",
+          "difference_count": 27,
+          "differences_preview": [
+            {
+              "type": "summary",
+              "field": "total",
+              "expected": 3967.0,
+              "actual": 24217.0
+            },
+            {
+              "type": "summary",
+              "field": "male",
+              "expected": 1628.0,
+              "actual": 11716.0
+            },
+            {
+              "type": "summary",
+              "field": "female",
+              "expected": 2339.0,
+              "actual": 12501.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "10-14",
+              "expected": 1.0,
+              "actual": 228.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "15-19",
+              "expected": 687.0,
+              "actual": 3051.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "20-24",
+              "expected": 1354.0,
+              "actual": 7069.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "25-29",
+              "expected": 73.0,
+              "actual": 549.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "30-34",
+              "expected": 60.0,
+              "actual": 425.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "35-39",
+              "expected": 62.0,
+              "actual": 256.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "40-44",
+              "expected": 58.0,
+              "actual": 211.0
+            }
+          ]
+        },
+        {
+          "indicator_id": 358,
+          "indicator_name": "Number of people sensitised on basic human rights and HIV.",
+          "workbook_title": "Number of people sensitised on basic human rights and HIV",
+          "difference_count": 27,
+          "differences_preview": [
+            {
+              "type": "summary",
+              "field": "total",
+              "expected": 2060.0,
+              "actual": 24950.0
+            },
+            {
+              "type": "summary",
+              "field": "male",
+              "expected": 939.0,
+              "actual": 11848.0
+            },
+            {
+              "type": "summary",
+              "field": "female",
+              "expected": 1121.0,
+              "actual": 13102.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "10-14",
+              "expected": 6.0,
+              "actual": 4655.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "15-19",
+              "expected": 350.0,
+              "actual": 3932.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "20-24",
+              "expected": 356.0,
+              "actual": 2399.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "25-29",
+              "expected": 94.0,
+              "actual": 537.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "30-34",
+              "expected": 96.0,
+              "actual": 449.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "35-39",
+              "expected": 72.0,
+              "actual": 335.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "40-44",
+              "expected": 51.0,
+              "actual": 266.0
+            }
+          ]
+        },
+        {
+          "indicator_id": 360,
+          "indicator_name": "Number of people who report that their rights were violated",
+          "workbook_title": "Number of people who report that their rights were violated",
+          "difference_count": 8,
+          "differences_preview": [
+            {
+              "type": "summary",
+              "field": "total",
+              "expected": 0.0,
+              "actual": 60.0
+            },
+            {
+              "type": "summary",
+              "field": "male",
+              "expected": 0.0,
+              "actual": 37.0
+            },
+            {
+              "type": "summary",
+              "field": "female",
+              "expected": 0.0,
+              "actual": 23.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "10-14",
+              "expected": 0.0,
+              "actual": 1.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "15-19",
+              "expected": 0.0,
+              "actual": 6.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "20-24",
+              "expected": 0.0,
+              "actual": 16.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Male",
+              "band": "15-19",
+              "expected": 0.0,
+              "actual": 2.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Male",
+              "band": "20-24",
+              "expected": 0.0,
+              "actual": 35.0
+            }
+          ]
+        },
+        {
+          "indicator_id": 361,
+          "indicator_name": "Number of people who sought redress.",
+          "workbook_title": "Number of people who sought redress",
+          "difference_count": 8,
+          "differences_preview": [
+            {
+              "type": "summary",
+              "field": "total",
+              "expected": 0.0,
+              "actual": 24.0
+            },
+            {
+              "type": "summary",
+              "field": "male",
+              "expected": 0.0,
+              "actual": 16.0
+            },
+            {
+              "type": "summary",
+              "field": "female",
+              "expected": 0.0,
+              "actual": 8.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "10-14",
+              "expected": 0.0,
+              "actual": 6.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Female",
+              "band": "15-19",
+              "expected": 0.0,
+              "actual": 2.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Male",
+              "band": "10-14",
+              "expected": 0.0,
+              "actual": 7.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Male",
+              "band": "15-19",
+              "expected": 0.0,
+              "actual": 3.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "GENERAL POP.",
+              "secondary": "Male",
+              "band": "20-24",
+              "expected": 0.0,
+              "actual": 6.0
+            }
+          ]
+        },
+        {
+          "indicator_id": 362,
+          "indicator_name": "Number of community leaders sensitised on human rights, stigma and descrimination.",
+          "workbook_title": "Number of community leaders sensitised on human rights, stigma and descrimination",
+          "difference_count": 33,
+          "differences_preview": [
+            {
+              "type": "summary",
+              "field": "total",
+              "expected": 1.0,
+              "actual": 134.0
+            },
+            {
+              "type": "summary",
+              "field": "male",
+              "expected": 1.0,
+              "actual": 84.0
+            },
+            {
+              "type": "summary",
+              "field": "female",
+              "expected": 0.0,
+              "actual": 50.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "Community-based organization (CBO/CSO) leaders",
+              "secondary": "Female",
+              "band": "15-19",
+              "expected": 0.0,
+              "actual": 5.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "Community-based organization (CBO/CSO) leaders",
+              "secondary": "Female",
+              "band": "20-24",
+              "expected": 0.0,
+              "actual": 15.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "Community-based organization (CBO/CSO) leaders",
+              "secondary": "Female",
+              "band": "25-29",
+              "expected": 0.0,
+              "actual": 5.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "Community-based organization (CBO/CSO) leaders",
+              "secondary": "Female",
+              "band": "30-34",
+              "expected": 0.0,
+              "actual": 2.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "Community-based organization (CBO/CSO) leaders",
+              "secondary": "Female",
+              "band": "35-39",
+              "expected": 0.0,
+              "actual": 3.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "Community-based organization (CBO/CSO) leaders",
+              "secondary": "Female",
+              "band": "40-44",
+              "expected": 0.0,
+              "actual": 3.0
+            },
+            {
+              "type": "disaggregate",
+              "primary": "Community-based organization (CBO/CSO) leaders",
+              "secondary": "Female",
+              "band": "45-49",
+              "expected": 0.0,
+              "actual": 2.0
+            }
+          ]
+        },
+        {
+          "indicator_id": 364,
+          "indicator_name": "Number of community led monitoring conducted for quality of service and human rights.",
+          "workbook_title": "Number of community led monitoring conducted for quality of service and human rights",
+          "difference_count": 1,
+          "differences_preview": [
+            {
+              "type": "summary",
+              "field": "total",
+              "expected": 0.0,
+              "actual": 9.0
+            }
+          ]
+        },
+        {
+          "indicator_id": 365,
+          "indicator_name": "Number of advocacy activities conducted per quarter.",
+          "workbook_title": "Number of advocacy activities conducted per quarter",
+          "difference_count": 1,
+          "differences_preview": [
+            {
+              "type": "summary",
+              "field": "total",
+              "expected": 0.0,
+              "actual": 38.0
+            }
+          ]
+        },
+        {
+          "indicator_id": 366,
+          "indicator_name": "Number of target specific demand creation activities conducted",
+          "workbook_title": "Number of target specific demand creation activities conducted",
+          "difference_count": 1,
+          "differences_preview": [
+            {
+              "type": "summary",
+              "field": "total",
+              "expected": 12.0,
+              "actual": 155.0
+            }
+          ]
+        },
+        {
+          "indicator_id": 367,
+          "indicator_name": "Number of media engagements conducted",
+          "workbook_title": "Number of media engagements conducted",
+          "difference_count": 1,
+          "differences_preview": [
+            {
+              "type": "summary",
+              "field": "total",
+              "expected": 0.0,
+              "actual": 66.0
+            }
+          ]
+        },
+        {
+          "indicator_id": 368,
+          "indicator_name": "Number of stigma reduction campaigns conducted during the project.",
+          "workbook_title": "Number of stigma reduction campaigns conducted during the project",
+          "difference_count": 1,
+          "differences_preview": [
+            {
+              "type": "summary",
+              "field": "total",
+              "expected": 0.0,
+              "actual": 83.0
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

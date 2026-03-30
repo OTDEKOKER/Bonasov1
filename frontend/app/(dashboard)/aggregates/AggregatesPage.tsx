@@ -1,16 +1,26 @@
-﻿"use client";
+"use client";
 
-import React, { useMemo, useRef, useState, Suspense } from "react";
-
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip as RechartsTooltip, XAxis, YAxis } from "recharts";
-import * as XLSX from "xlsx";
-﻿"use client";
-
-import React, { useMemo, useRef, useState, Suspense } from "react";
-in
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
-import * as XLSX from "xlsx";
+import React, { useEffect, useMemo, useRef, useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Funnel,
+  FunnelChart,
+  LabelList,
+  Line,
+  LineChart,
+  XAxis,
+  YAxis,
+} from "recharts";
+import * as XLSX from "xlsx-js-style";
+import {
+  ArrowDownToLine,
+  ArrowUpRight,
+  Building2,
+  CheckCircle2,
   Plus,
   Search,
   Filter,
@@ -20,9 +30,10 @@ import {
   BarChart3,
   Calendar,
   Calculator,
+  Target,
+  Users2,
   Loader2,
 } from "lucide-react";
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -55,15 +66,17 @@ import { PageHeader } from "@/components/shared/page-header";
 import { OrganizationSelect } from "@/components/shared/organization-select";
 import { aggregatesService } from "@/lib/api";
 import {
-  useAggregates,
+  useAllAggregates,
   useAggregateTemplates,
   useIndicators,
   useAllOrganizations,
   useProjects,
 } from "@/lib/hooks/use-api";
-import type { Aggregate } from "@/lib/types";
+import type { Aggregate, Indicator } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
-import Loading from "./loading";
+import { useAuth } from "@/lib/contexts/auth-context";
+import { getUserOrganizationId } from "@/lib/utils/organization";
+import { isPlatformAdmin } from "@/lib/permissions";
 import {
   ChartContainer,
   ChartLegend,
@@ -71,6 +84,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import { normalizeAggregateValueToDisaggregateMap } from "@/lib/aggregates/disaggregate-normalization";
 
 type AggregateValue = {
   male?: number;
@@ -83,170 +97,33 @@ type AggregateValue = {
     Record<string, Record<string, number | undefined>>
   >;
 };
-
-const ageRanges = [
-  "10-14",
-  "15-19",
-  "20-24",
-  "25-29",
-  "30-34",
-  "35-39",
-  "40-44",
-  "45-49",
-  "50-54",
-  "55-59",
-  "60-64",
-  "65+",
-];
-
-const familyPlanningKeyPopulations = [
-  "IUD",
-  "Emergency contraceptive",
-  "Implant 3 years",
-  "Implant 5 years",
-  "Contraceptive pill",
-  "Injectables",
-  "Non traditional site",
-];
-
-const communityLeadersKeyPopulations = [
-  "Traditional leaders (chiefs, headmen/women)",
-  "Political leaders (councillors, MPs, local authorities)",
-  "Youth leaders (student representatives, youth movement leaders)",
-  "Women leaders (from women's groups, associations)",
-  "Community-based organization (CBO/CSO) leaders",
-];
-
-const keyPopulations = [
-  "MSM",
-  "FSW",
-  "PWD",
-  "PWID",
-  "LGBTQI+",
-  "GENERAL POP.",
-  ...familyPlanningKeyPopulations,
-  ...communityLeadersKeyPopulations,
-];
-const matrixAgeBands = [...ageRanges, "AYP (10-24)"];
-const matrixAgeBandCore = ageRanges;
-
-const chartColors = [
-  "#2563eb",
-  "#16a34a",
-  "#f59e0b",
-  "#ef4444",
-  "#9333ea",
-  "#0891b2",
-  "#f97316",
-  "#14b8a6",
-  "#e11d48",
-  "#84cc16",
-  "#6366f1",
-  "#d946ef",
-];
-
-const formatDate = (value?: string) => {
-  if (!value) return "â€”";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "â€”";
-  return date.toLocaleDateString();
+type MatrixDisaggregates = Record<
+  string,
+  Record<string, Record<string, number | undefined>>
+>;
+type AggregateGroupEntry = {
+  key: string;
+  indicatorId: string;
+  indicatorName: string;
+  items: Aggregate[];
+  code: string;
 };
-
-const getPeriodLabel = (aggregate: Aggregate) =>
-  `${formatDate(aggregate.period_start)} - ${formatDate(aggregate.period_end)}`;
-
-const parseAggregateValue = (value: unknown): AggregateValue => {
-  if (typeof value === "number") {
-    return { total: value };
-  }
-  if (value && typeof value === "object") {
-    return value as AggregateValue;
-  }
-  return {};
+type DashboardGroup = AggregateGroupEntry & {
+  indicator?: Indicator;
+  disaggregates: MatrixDisaggregates | null;
+  totalValue: number;
+  organizations: string[];
+  projects: string[];
+  periods: string[];
 };
-
-const getDisaggregates = (value: unknown) => {
-  const parsed = parseAggregateValue(value);
-  return parsed.disaggregates || null;
+type WorkbookTopicDefinition = {
+  id: string;
+  label: string;
+  description: string;
 };
-
-const getAllKeyPopulations = (
-  disaggregates: Record<string, Record<string, Record<string, number | undefined>>> | null,
-) => {
-  const extras: string[] = [];
-  if (disaggregates) {
-    Object.keys(disaggregates).forEach((kp) => {
-      if (!keyPopulations.includes(kp)) extras.push(kp);
-    });
-  }
-  return [...keyPopulations, ...extras];
-};
-
-const sumBands = (values: Record<string, number | undefined>) =>
-  matrixAgeBandCore.reduce((acc, band) => acc + (values[band] || 0), 0);
-
-const computeAYP = (values: Record<string, number | undefined>) =>
-  (values["AYP (10-24)"] || 0) ||
-  (values["10-14"] || 0) + (values["15-19"] || 0) + (values["20-24"] || 0);
-
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { PageHeader } from "@/components/shared/page-header";
-import { OrganizationSelect } from "@/components/shared/organization-select";
-import { aggregatesService } from "@/lib/api";
-import {
-  useAggregates,
-  useAggregateTemplates,
-  useIndicators,
-  useAllOrganizations,
-  useProjects,
-} from "@/lib/hooks/use-api";
-import type { Aggregate } from "@/lib/types";
-import { useToast } from "@/hooks/use-toast";
-import {
-  ChartContainer,
-  ChartLegend,
-  ChartLegendContent,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
-
-type AggregateValue = {
-  male?: number;
-  female?: number;
-  total?: number;
-  age_range?: string;
-  key_population?: string;
-  disaggregates?: Record<
-    string,
-    Record<string, Record<string, number | undefined>>
-  >;
+type DashboardTopicSection = WorkbookTopicDefinition & {
+  groups: DashboardGroup[];
+  totalValue: number;
 };
 
 const ageRanges = [
@@ -274,11 +151,87 @@ const keyPopulations = [
 ];
 const matrixAgeBands = [...ageRanges, "AYP (10-24)"];
 const matrixAgeBandCore = ageRanges;
+const aypBandLabel = "AYP (10-24)";
+const preferredSecondDimensionOrder = ["Male", "Female", "Other", "Unknown", "All"];
+const primaryDisaggregateLabelMap: Record<string, string> = {
+  kp: "Key Population",
+  "community leaders": "Community Leaders",
+  "family planning": "Family Planning",
+  "non traditional sites": "Non Traditional Sites",
+  "social media platform": "Social Media Platform",
+  "ncd screening": "NCD Screening",
+};
+const primaryDisaggregateOrder = [
+  "kp",
+  "community leaders",
+  "family planning",
+  "non traditional sites",
+  "social media platform",
+  "ncd screening",
+];
+const matrixColumnWidths = {
+  indicator: 210,
+  keyPopulation: 140,
+  ageSex: 96,
+  metric: 56,
+};
+const workbookTopicDefinitions: WorkbookTopicDefinition[] = [
+  {
+    id: "capacity",
+    label: "Program Management & Capacity Building",
+    description: "Training, mentoring, reporting quality, advocacy, and media planning indicators.",
+  },
+  {
+    id: "hiv-prevention",
+    label: "HIV Prevention Messages",
+    description: "HIV testing, PrEP, PEP, treatment, linkage, family planning, and prevention messaging.",
+  },
+  {
+    id: "commodity",
+    label: "Commodity Distribution",
+    description: "Condoms, lubricants, braille-labelled commodities, and repeat collection indicators.",
+  },
+  {
+    id: "psychosocial",
+    label: "Psychosocial Support & Counselling",
+    description: "Psychoeducation, counselling, disclosure, and mental health support indicators.",
+  },
+  {
+    id: "human-rights",
+    label: "Human Rights",
+    description: "Rights, redress, stigma, legal aid, justice, and community-led monitoring indicators.",
+  },
+  {
+    id: "gbv",
+    label: "Gender Based Violence",
+    description: "GBV screening, eligibility, referrals, and psychosocial or justice support indicators.",
+  },
+  {
+    id: "sti",
+    label: "STIs",
+    description: "STI screening, STI referrals, linkage, and related TB referral indicators.",
+  },
+  {
+    id: "ncd",
+    label: "NCDs",
+    description: "NCD screening, prevention messages, cessation programs, cancer, and support-group indicators.",
+  },
+  {
+    id: "events",
+    label: "Events & Campaigns",
+    description: "Commemorative days, outreach events, and campaign participation indicators.",
+  },
+  {
+    id: "other",
+    label: "Other Indicators",
+    description: "Indicators that do not map cleanly to a workbook topic yet.",
+  },
+];
 
 const formatDate = (value?: string) => {
-  if (!value) return "â€”";
+  if (!value) return "-";
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "â€”";
+  if (Number.isNaN(date.getTime())) return "-";
   return date.toLocaleDateString();
 };
 
@@ -295,29 +248,229 @@ const parseAggregateValue = (value: unknown): AggregateValue => {
   return {};
 };
 
+const coerceMatrixDisaggregates = (source: unknown): MatrixDisaggregates | null => {
+  if (!source || typeof source !== "object" || Array.isArray(source)) return null;
+
+  const matrix: MatrixDisaggregates = {};
+
+  Object.entries(source as Record<string, unknown>).forEach(([firstLevel, rawSecondLevel]) => {
+    if (!rawSecondLevel || typeof rawSecondLevel !== "object" || Array.isArray(rawSecondLevel)) {
+      return;
+    }
+
+    const secondLevelEntries: Record<string, Record<string, number | undefined>> = {};
+
+    Object.entries(rawSecondLevel as Record<string, unknown>).forEach(([secondLevel, rawThirdLevel]) => {
+      if (rawThirdLevel && typeof rawThirdLevel === "object" && !Array.isArray(rawThirdLevel)) {
+        const thirdLevelEntries: Record<string, number | undefined> = {};
+
+        Object.entries(rawThirdLevel as Record<string, unknown>).forEach(([thirdLevel, rawValue]) => {
+          thirdLevelEntries[thirdLevel] = toSafeNumber(rawValue);
+        });
+
+        if (Object.keys(thirdLevelEntries).length > 0) {
+          secondLevelEntries[secondLevel] = thirdLevelEntries;
+        }
+        return;
+      }
+
+      secondLevelEntries[secondLevel] = {
+        Value: toSafeNumber(rawThirdLevel),
+      };
+    });
+
+    if (Object.keys(secondLevelEntries).length > 0) {
+      matrix[firstLevel] = secondLevelEntries;
+    }
+  });
+
+  return Object.keys(matrix).length > 0 ? matrix : null;
+};
+
 const getDisaggregates = (value: unknown) => {
   const parsed = parseAggregateValue(value);
-  return parsed.disaggregates || null;
+  const directDisaggregates = coerceMatrixDisaggregates(parsed.disaggregates);
+  if (directDisaggregates) return directDisaggregates;
+
+  return coerceMatrixDisaggregates(normalizeAggregateValueToDisaggregateMap(value));
 };
 
-const getAllKeyPopulations = (
-  disaggregates: Record<string, Record<string, Record<string, number | undefined>>> | null,
-) => {
-  const extras: string[] = [];
-  if (disaggregates) {
-    Object.keys(disaggregates).forEach((kp) => {
-      if (!keyPopulations.includes(kp)) extras.push(kp);
-    });
-  }
-  return [...keyPopulations, ...extras];
+const toSafeNumber = (value: unknown) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
 };
 
-const sumBands = (values: Record<string, number | undefined>) =>
-  matrixAgeBandCore.reduce((acc, band) => acc + (values[band] || 0), 0);
+const sumBands = (
+  values: Record<string, number | undefined>,
+  bands: string[] = matrixAgeBandCore,
+) => bands.reduce((acc, band) => acc + toSafeNumber(values[band]), 0);
 
 const computeAYP = (values: Record<string, number | undefined>) =>
-  (values["AYP (10-24)"] || 0) ||
-  (values["10-14"] || 0) + (values["15-19"] || 0) + (values["20-24"] || 0);
+  toSafeNumber(values[aypBandLabel]) ||
+  toSafeNumber(values["10-14"]) +
+    toSafeNumber(values["15-19"]) +
+    toSafeNumber(values["20-24"]);
+
+const sortWithPreferred = (values: string[], preferred: string[]) => {
+  const preferredMap = new Map(preferred.map((value, index) => [value.toLowerCase(), index]));
+  return [...values].sort((a, b) => {
+    const aRank = preferredMap.get(a.toLowerCase()) ?? Number.POSITIVE_INFINITY;
+    const bRank = preferredMap.get(b.toLowerCase()) ?? Number.POSITIVE_INFINITY;
+    if (aRank !== bRank) return aRank - bRank;
+    return a.localeCompare(b);
+  });
+};
+
+const getIndicatorDisaggregateGroups = (labels?: string[]) =>
+  new Set((labels || []).map((value) => value.toLowerCase().trim()));
+
+const indicatorUsesMatrixEntry = (labels?: string[]) => {
+  const groups = getIndicatorDisaggregateGroups(labels);
+  if (groups.size === 0) return true;
+  const hasPrimaryGroup = Array.from(groups).some(
+    (group) => group !== "sex" && group !== "age range",
+  );
+  return hasPrimaryGroup || groups.has("sex") || groups.has("age range");
+};
+
+const buildDisplayMatrix = (
+  source: MatrixDisaggregates,
+  groups: Set<string>,
+) => {
+  const hasPrimaryGroup = Array.from(groups).some(
+    (group) => group !== "sex" && group !== "age range",
+  );
+  const includeKeyPopulation = groups.size === 0 || hasPrimaryGroup;
+  const includeSecondDimension = groups.size === 0 || groups.has("sex");
+  const includeAge = groups.size === 0 || groups.has("age range");
+  const matrix: MatrixDisaggregates = {};
+
+  const ensureBucket = (kp: string, dimension: string) => {
+    if (!matrix[kp]) matrix[kp] = {};
+    if (!matrix[kp][dimension]) matrix[kp][dimension] = {};
+    return matrix[kp][dimension];
+  };
+
+  Object.entries(source).forEach(([rawKp, rawDimensions]) => {
+    const targetKp = includeKeyPopulation ? rawKp : "All";
+    const dimensionEntries = Object.entries(rawDimensions || {});
+    if (dimensionEntries.length === 0) {
+      const bucket = ensureBucket(targetKp, "All");
+      if (!includeAge) {
+        bucket.Value = toSafeNumber(bucket.Value);
+      }
+      return;
+    }
+
+    dimensionEntries.forEach(([rawDimension, rawBands]) => {
+      const targetDimension = includeSecondDimension ? rawDimension : "All";
+      const bucket = ensureBucket(targetKp, targetDimension);
+      if (includeAge) {
+        Object.entries(rawBands || {}).forEach(([band, value]) => {
+          bucket[band] = toSafeNumber(bucket[band]) + toSafeNumber(value);
+        });
+        return;
+      }
+
+      bucket.Value =
+        toSafeNumber(bucket.Value) +
+        Object.values(rawBands || {}).reduce((sum, value) => sum + toSafeNumber(value), 0);
+    });
+  });
+
+  if (Object.keys(matrix).length === 0) {
+    matrix.All = { All: includeAge ? {} : { Value: 0 } };
+  }
+
+  const keyPops = includeKeyPopulation
+    ? sortWithPreferred(Object.keys(matrix), keyPopulations)
+    : ["All"];
+  const secondDimension = new Set<string>();
+  const ageBandSet = new Set<string>();
+  let hasAypFromData = false;
+
+  keyPops.forEach((kp) => {
+    const row = matrix[kp] || {};
+    Object.keys(row).forEach((dimension) => {
+      secondDimension.add(dimension);
+      Object.keys(row[dimension] || {}).forEach((band) => {
+        if (band === aypBandLabel) {
+          hasAypFromData = true;
+          return;
+        }
+        ageBandSet.add(band);
+      });
+    });
+  });
+
+  if (secondDimension.size === 0) {
+    secondDimension.add("All");
+  }
+
+  const secondDimensionValues = includeSecondDimension
+    ? sortWithPreferred(Array.from(secondDimension), preferredSecondDimensionOrder)
+    : ["All"];
+
+  const hasAgeDefaults = groups.has("age range") && ageBandSet.size === 0;
+  const ageBands = includeAge
+    ? sortWithPreferred(
+        hasAgeDefaults ? matrixAgeBandCore : Array.from(ageBandSet),
+        matrixAgeBandCore,
+      )
+    : ["Value"];
+  const showAypColumn =
+    includeAge &&
+    (hasAypFromData ||
+      ageBands.some((band) => band === "10-14" || band === "15-19" || band === "20-24"));
+
+  return {
+    matrix,
+    keyPops,
+    secondDimensionValues,
+    ageBands,
+    showAypColumn,
+  };
+};
+
+const getPrimaryDisaggregateLabel = (labels?: string[]) => {
+  const groups = getIndicatorDisaggregateGroups(labels);
+  for (const key of primaryDisaggregateOrder) {
+    if (groups.has(key)) return primaryDisaggregateLabelMap[key];
+  }
+  return "Disaggregate";
+};
+
+const getAggregateTotal = (aggregate: Aggregate) => {
+  const value = parseAggregateValue(aggregate.value);
+  const male = Number(value.male) || 0;
+  const female = Number(value.female) || 0;
+  return value.total !== undefined
+    ? Number(value.total) || 0
+    : male + female;
+};
+
+const mergeDisaggregatesForGroup = (items: Aggregate[]) => {
+  const merged: MatrixDisaggregates = {};
+  let hasDisaggregates = false;
+
+  items.forEach((item) => {
+    const disaggregates = getDisaggregates(item.value);
+    if (!disaggregates) return;
+    hasDisaggregates = true;
+    Object.entries(disaggregates).forEach(([kp, dimensions]) => {
+      if (!merged[kp]) merged[kp] = {};
+      Object.entries(dimensions || {}).forEach(([dimension, bands]) => {
+        if (!merged[kp][dimension]) merged[kp][dimension] = {};
+        Object.entries(bands || {}).forEach(([band, value]) => {
+          merged[kp][dimension][band] =
+            toSafeNumber(merged[kp][dimension][band]) + toSafeNumber(value);
+        });
+      });
+    });
+  });
+
+  return hasDisaggregates ? merged : null;
+};
 
 const parseNumber = (value: string) => {
   if (value === "") return undefined;
@@ -325,96 +478,27 @@ const parseNumber = (value: string) => {
   return Number.isNaN(parsed) ? undefined : parsed;
 };
 
-const normalizeImportHeader = (value: string) =>
-  value
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "_")
-    .replace(/^_+|_+$/g, "");
-
-const importColumnAliases = {
-  indicator: ["indicator_id", "indicator_name", "indicator", "output_indicator"],
-  project: ["project_id", "project_name", "project", "grant", "subgrant"],
-  organization: [
-    "organization_id",
-    "organization_name",
-    "organisation_name",
-    "organization",
-    "organisation",
-    "implementing_partner",
-    "subgrantee",
-  ],
-  period_start: ["period_start", "start_date", "reporting_period_start", "period_from", "from"],
-  period_end: ["period_end", "end_date", "reporting_period_end", "period_to", "to"],
-  male: ["male"],
-  female: ["female"],
-  total: ["total", "grand_total"],
-  value_json: ["value_json", "value"],
-  notes: ["notes", "comment", "comments", "remark", "remarks"],
-} as const;
-
-type ImportAliasKey = keyof typeof importColumnAliases;
-
-const formatImportDate = (year: number, month: number, day: number) => {
-  const normalized = new Date(Date.UTC(year, month - 1, day));
-  if (Number.isNaN(normalized.getTime())) return "";
-  const mm = String(normalized.getUTCMonth() + 1).padStart(2, "0");
-  const dd = String(normalized.getUTCDate()).padStart(2, "0");
-  return `${normalized.getUTCFullYear()}-${mm}-${dd}`;
+type OrganizationWithParent = {
+  id: string | number;
+  name?: string;
+  parentId?: string | number | null;
+  parent?: string | number | null;
 };
 
-const parseImportDate = (value: string) => {
-  const trimmed = value.trim();
-  if (!trimmed) return "";
-
-  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed;
-
-  const dmyMatch = trimmed.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})$/);
-  if (dmyMatch) {
-    const [, first, second, year] = dmyMatch;
-    const day = Number(first);
-    const month = Number(second);
-    if (day > 12) return formatImportDate(Number(year), month, day);
-    return formatImportDate(Number(year), day, month);
+const resolveParentOrganizationId = (org: OrganizationWithParent): string => {
+  const rawParent = org.parentId ?? org.parent ?? null;
+  if (rawParent === null || rawParent === undefined) return "";
+  const normalized = String(rawParent).trim().toLowerCase();
+  if (
+    normalized === "" ||
+    normalized === "null" ||
+    normalized === "none" ||
+    normalized === "undefined" ||
+    normalized === "0"
+  ) {
+    return "";
   }
-
-  const maybeSerial = Number(trimmed);
-  if (!Number.isNaN(maybeSerial) && maybeSerial > 20000 && maybeSerial < 60000) {
-    const parsed = XLSX.SSF.parse_date_code(maybeSerial);
-    if (parsed) {
-      return formatImportDate(parsed.y, parsed.m, parsed.d);
-    }
-  }
-
-  const parsedDate = new Date(trimmed);
-  if (Number.isNaN(parsedDate.getTime())) return "";
-  return formatImportDate(parsedDate.getUTCFullYear(), parsedDate.getUTCMonth() + 1, parsedDate.getUTCDate());
-
-      const month = String(parsed.m).padStart(2, "0");
-      const day = String(parsed.d).padStart(2, "0");
-      return `${parsed.y}-${month}-${day}`;
-    }
-  }
-
-const sanitizeSheetName = (value: string) =>
-  value.replace(/[\\/?*\[\]:]/g, " ").slice(0, 31) || "Sheet";
-
-export default function AggregatesPage() {
-  const { toast } = useToast();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [projectFilter, setProjectFilter] = useState("all");
-  const [periodFilter, setPeriodFilter] = useState("all");
-  const [parentOrgFilter, setParentOrgFilter] = useState("all");
-  const [orgFilter, setOrgFilter] = useState("all");
-  const [keyPopulationFilter, setKeyPopulationFilter] = useState("all");
-  const [ageFilter, setAgeFilter] = useState<"all" | "ayp" | "older">("all");
-  const [ageRangeFilter, setAgeRangeFilter] = useState("all");
-
-  const parsedDate = new Date(trimmed);
-  if (Number.isNaN(parsedDate.getTime())) return "";
-  return parsedDate.toISOString().slice(0, 10);
- 
-
+  return String(rawParent);
 };
 
 const buildEmptyMatrix = () => {
@@ -429,14 +513,587 @@ const buildEmptyMatrix = () => {
   return matrix;
 };
 
+type DashboardRollupDatum = {
+  id: string;
+  name: string;
+  total: number;
+  target: number;
+  percentAchieved: number;
+  organizations: number;
+  indicators: number;
+};
+
+type ComplianceDatum = {
+  id: string;
+  name: string;
+  submitted: number;
+  late: number;
+  missing: number;
+  details: Record<"submitted" | "late" | "missing", string[]>;
+};
+
+type BreakdownDatum = {
+  name: string;
+  Male?: number;
+  Female?: number;
+  Other?: number;
+  Total: number;
+};
+
+type CascadePreset = {
+  id: string;
+  label: string;
+  stages: Array<{ label: string; patterns: string[] }>;
+};
+
+const cascadePresets: CascadePreset[] = [
+  {
+    id: "art",
+    label: "HIV Testing to ART",
+    stages: [
+      { label: "Tested", patterns: ["tested", "hiv testing"] },
+      { label: "Positive", patterns: ["positive"] },
+      { label: "Initiated on ART", patterns: ["initiated on art", "art initiated"] },
+    ],
+  },
+  {
+    id: "screening",
+    label: "Screening to Linkage",
+    stages: [
+      { label: "Screened", patterns: ["screened", "screening"] },
+      { label: "Eligible", patterns: ["eligible"] },
+      { label: "Referred", patterns: ["referred", "referral"] },
+      { label: "Linked", patterns: ["linked", "linkage"] },
+    ],
+  },
+  {
+    id: "wellness",
+    label: "Psychoeducation to Counselling",
+    stages: [
+      { label: "Psychoeducation", patterns: ["psychoeducation"] },
+      { label: "Screened", patterns: ["screened", "screening"] },
+      { label: "Referred", patterns: ["referred", "referral"] },
+      { label: "Counselling", patterns: ["counselling", "counseling"] },
+    ],
+  },
+];
+
+const dashboardSeriesColors = [
+  "hsl(var(--primary))",
+  "hsl(var(--chart-1))",
+  "hsl(var(--chart-2))",
+  "hsl(var(--chart-3))",
+  "hsl(var(--chart-4))",
+  "hsl(var(--chart-5))",
+];
+
+const normalizeText = (value?: string | null) =>
+  String(value || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+
+const includesAnyToken = (value: string, tokens: string[]) =>
+  tokens.some((token) => value.includes(token));
+
+const resolveWorkbookTopicId = (group: DashboardGroup): string => {
+  const normalizedName = normalizeText(group.indicatorName);
+  const indicatorCategory = group.indicator?.category || "";
+
+  if (
+    indicatorCategory === "trainings" ||
+    includesAnyToken(normalizedName, [
+      "service providers receiving training",
+      "sub recipients mentored",
+      "sub recipient mentored",
+      "csos trained and equipped",
+      "sub recipients submitting quality reports",
+      "sub recipients submitting quality report",
+      "support groups mentored for sustainability",
+      "advocacy activities conducted",
+      "media platforms used per quarter",
+      "target specific demand creation activities conducted",
+      "media engagements conducted",
+    ])
+  ) {
+    return "capacity";
+  }
+
+  if (
+    includesAnyToken(normalizedName, [
+      "condoms distributed",
+      "condom distributed",
+      "lubricants distributed",
+      "braille labelled condom",
+      "brailed condom",
+      "reported collecting condoms",
+      "repeated collecting condoms",
+      "collecting condoms for a repeated time",
+      "non traditional sites",
+    ])
+  ) {
+    return "commodity";
+  }
+
+  if (
+    indicatorCategory === "mental_health" ||
+    includesAnyToken(normalizedName, [
+      "mental health",
+      "psychoeducation",
+      "counselling",
+      "counseling",
+      "psychosocial support",
+      "disclosure and mental health",
+      "trauma informed",
+    ])
+  ) {
+    return "psychosocial";
+  }
+
+  if (
+    includesAnyToken(normalizedName, [
+      "human rights",
+      "rights were violated",
+      "sought redress",
+      "redress",
+      "legal aid",
+      "justice services",
+      "equality and human rights",
+      "community led monitoring",
+      "stigma",
+    ])
+  ) {
+    return "human-rights";
+  }
+
+  if (
+    indicatorCategory === "gbv" ||
+    includesAnyToken(normalizedName, ["gbv", "violence"])
+  ) {
+    return "gbv";
+  }
+
+  if (
+    indicatorCategory === "sti" ||
+    includesAnyToken(normalizedName, [
+      " sti ",
+      "stis",
+      "screened for stis",
+      "screened positive for stis",
+      "sti cases linked to care",
+      "sti cases referrals completed",
+      "symptomatic for tb referred",
+    ])
+  ) {
+    return "sti";
+  }
+
+  if (
+    indicatorCategory === "ncd" ||
+    includesAnyToken(normalizedName, [
+      " ncd ",
+      "ncds",
+      "cancer",
+      "tobacco",
+      "alcohol",
+      "blood pressure",
+      "blood glucose",
+      "bmi",
+      "waist circumference",
+      "breast cancer",
+      "prostate cancer",
+      "cervical cancer",
+      "diabetes",
+      "healthy lifestyle",
+    ])
+  ) {
+    return "ncd";
+  }
+
+  if (
+    indicatorCategory === "events" ||
+    includesAnyToken(normalizedName, [
+      "attended",
+      "commemoration activities",
+      "day activities",
+      "campaigns conducted",
+    ])
+  ) {
+    return "events";
+  }
+
+  if (
+    indicatorCategory === "media" ||
+    indicatorCategory === "hiv_prevention" ||
+    includesAnyToken(normalizedName, [
+      "hiv testing",
+      "prep",
+      "pep",
+      "hiv treatment",
+      "family planning",
+      "linked to care",
+      "initiated on art",
+      "tested for hiv",
+      "condom use messages",
+      "plwh reached",
+      "ayp",
+    ])
+  ) {
+    return "hiv-prevention";
+  }
+
+  return "other";
+};
+
+const getLogicalIndicatorKey = (aggregate: Aggregate, fallbackName?: string) => {
+  const code = normalizeText(aggregate.indicator_code);
+  if (code) return `code:${code}`;
+  const name = normalizeText(aggregate.indicator_name || fallbackName || "");
+  if (name) return `name:${name}`;
+  return `id:${String(aggregate.indicator || "")}`;
+};
+
+const sumValueBucket = (values: Record<string, number | undefined>) => {
+  const keys = Object.keys(values || {});
+  const hasCoreAges = keys.some((key) => matrixAgeBandCore.includes(key));
+  const keysToSum = hasCoreAges ? matrixAgeBandCore : keys.filter((key) => key !== aypBandLabel);
+  return keysToSum.reduce((sum, key) => sum + toSafeNumber(values[key]), 0);
+};
+
+const deriveSexTotals = (value: unknown) => {
+  const disaggregates = getDisaggregates(value);
+  if (!disaggregates) {
+    const parsed = parseAggregateValue(value);
+    return {
+      male: toSafeNumber(parsed.male),
+      female: toSafeNumber(parsed.female),
+      total:
+        parsed.total !== undefined
+          ? toSafeNumber(parsed.total)
+          : toSafeNumber(parsed.male) + toSafeNumber(parsed.female),
+    };
+  }
+
+  let male = 0;
+  let female = 0;
+  let total = 0;
+  Object.values(disaggregates).forEach((dimensions) => {
+    Object.entries(dimensions || {}).forEach(([dimension, bands]) => {
+      const bucketTotal = sumValueBucket(bands || {});
+      total += bucketTotal;
+      const normalized = normalizeText(dimension);
+      if (normalized === "male") male += bucketTotal;
+      if (normalized === "female") female += bucketTotal;
+    });
+  });
+
+  return { male, female, total };
+};
+
+const getHeatColor = (value: number, maxValue: number) => {
+  if (value <= 0 || maxValue <= 0) return undefined;
+  const intensity = Math.max(0.12, Math.min(0.72, value / maxValue));
+  return `rgba(22, 163, 74, ${intensity})`;
+};
+
+const sortPeriods = (values: string[]) =>
+  [...values].sort((left, right) => {
+    const leftDate = new Date(left.split(" - ")[0]).getTime();
+    const rightDate = new Date(right.split(" - ")[0]).getTime();
+    if (Number.isNaN(leftDate) || Number.isNaN(rightDate)) {
+      return left.localeCompare(right);
+    }
+    return leftDate - rightDate;
+  });
+
+const buildRollupData = ({
+  aggregates,
+  bucketForOrganization,
+  bucketNames,
+  targetByBucketId,
+}: {
+  aggregates: Aggregate[];
+  bucketForOrganization: Map<string, string>;
+  bucketNames: Map<string, string>;
+  targetByBucketId: Map<string, number>;
+}): DashboardRollupDatum[] => {
+  const buckets = new Map<
+    string,
+    { total: number; organizations: Set<string>; indicators: Set<string> }
+  >();
+
+  aggregates.forEach((aggregate) => {
+    const bucketId =
+      bucketForOrganization.get(String(aggregate.organization)) || String(aggregate.organization);
+    if (!buckets.has(bucketId)) {
+      buckets.set(bucketId, {
+        total: 0,
+        organizations: new Set<string>(),
+        indicators: new Set<string>(),
+      });
+    }
+    const bucket = buckets.get(bucketId)!;
+    bucket.total += getAggregateTotal(aggregate);
+    bucket.organizations.add(String(aggregate.organization));
+    bucket.indicators.add(String(aggregate.indicator));
+  });
+
+  return Array.from(buckets.entries())
+    .map(([id, value]) => {
+      const target = toSafeNumber(targetByBucketId.get(id));
+      return {
+        id,
+        name: bucketNames.get(id) || id,
+        total: value.total,
+        target,
+        percentAchieved: target > 0 ? (value.total / target) * 100 : 0,
+        organizations: value.organizations.size,
+        indicators: value.indicators.size,
+      };
+    })
+    .sort((left, right) => right.total - left.total);
+};
+
+const buildContributionData = (
+  aggregates: Aggregate[],
+  organizationNames: Map<string, string>,
+  limit = 10,
+) => {
+  const totals = new Map<string, number>();
+  aggregates.forEach((aggregate) => {
+    const id = String(aggregate.organization);
+    totals.set(id, (totals.get(id) || 0) + getAggregateTotal(aggregate));
+  });
+  return Array.from(totals.entries())
+    .map(([id, total]) => ({
+      id,
+      name: organizationNames.get(id) || id,
+      total,
+    }))
+    .sort((left, right) => right.total - left.total)
+    .slice(0, limit);
+};
+
+const buildTrendData = ({
+  aggregates,
+  indicatorId,
+  mode,
+  bucketForOrganization,
+  bucketNames,
+  limit = 5,
+}: {
+  aggregates: Aggregate[];
+  indicatorId: string;
+  mode: "consolidated" | "compare";
+  bucketForOrganization: Map<string, string>;
+  bucketNames: Map<string, string>;
+  limit?: number;
+}) => {
+  const scoped = aggregates.filter((aggregate) => String(aggregate.indicator) === indicatorId);
+  const periods = sortPeriods(Array.from(new Set(scoped.map((aggregate) => getPeriodLabel(aggregate)))));
+  if (mode === "consolidated") {
+    return {
+      seriesKeys: ["total"],
+      data: periods.map((period) => ({
+        period,
+        total: scoped
+          .filter((aggregate) => getPeriodLabel(aggregate) === period)
+          .reduce((sum, aggregate) => sum + getAggregateTotal(aggregate), 0),
+      })),
+    };
+  }
+
+  const bucketTotals = new Map<string, number>();
+  scoped.forEach((aggregate) => {
+    const bucketId =
+      bucketForOrganization.get(String(aggregate.organization)) || String(aggregate.organization);
+    bucketTotals.set(bucketId, (bucketTotals.get(bucketId) || 0) + getAggregateTotal(aggregate));
+  });
+  const seriesKeys = Array.from(bucketTotals.entries())
+    .sort((left, right) => right[1] - left[1])
+    .slice(0, limit)
+    .map(([id]) => id);
+
+  return {
+    seriesKeys,
+    data: periods.map((period) => {
+      const row: Record<string, string | number> = { period };
+      seriesKeys.forEach((bucketId) => {
+        row[bucketId] = scoped
+          .filter(
+            (aggregate) =>
+              getPeriodLabel(aggregate) === period &&
+              (bucketForOrganization.get(String(aggregate.organization)) ||
+                String(aggregate.organization)) === bucketId,
+          )
+          .reduce((sum, aggregate) => sum + getAggregateTotal(aggregate), 0);
+      });
+      row.total = seriesKeys.reduce((sum, key) => sum + toSafeNumber(row[key]), 0);
+      return row;
+    }),
+    seriesNames: bucketNames,
+  };
+};
+
+const buildComplianceData = ({
+  organizations,
+  aggregates,
+  organizationNames,
+  coordinatorNames,
+  coordinatorByOrgId,
+  activePeriod,
+}: {
+  organizations: Array<{ id: string | number; name?: string }>;
+  aggregates: Aggregate[];
+  organizationNames: Map<string, string>;
+  coordinatorNames: Map<string, string>;
+  coordinatorByOrgId: Map<string, string>;
+  activePeriod: string | null;
+}): ComplianceDatum[] => {
+  if (!activePeriod) return [];
+  const recordsByOrg = new Map<string, Aggregate[]>();
+  aggregates
+    .filter((aggregate) => getPeriodLabel(aggregate) === activePeriod)
+    .forEach((aggregate) => {
+      const orgId = String(aggregate.organization);
+      if (!recordsByOrg.has(orgId)) recordsByOrg.set(orgId, []);
+      recordsByOrg.get(orgId)!.push(aggregate);
+    });
+
+  const coordinatorBuckets = new Map<string, ComplianceDatum>();
+  organizations.forEach((organization) => {
+    const orgId = String(organization.id);
+    const coordinatorId = coordinatorByOrgId.get(orgId) || orgId;
+    if (!coordinatorBuckets.has(coordinatorId)) {
+      coordinatorBuckets.set(coordinatorId, {
+        id: coordinatorId,
+        name: coordinatorNames.get(coordinatorId) || coordinatorId,
+        submitted: 0,
+        late: 0,
+        missing: 0,
+        details: { submitted: [], late: [], missing: [] },
+      });
+    }
+    const bucket = coordinatorBuckets.get(coordinatorId)!;
+    const orgRecords = recordsByOrg.get(orgId) || [];
+    if (orgRecords.length === 0) {
+      bucket.missing += 1;
+      bucket.details.missing.push(organizationNames.get(orgId) || orgId);
+      return;
+    }
+
+    const latestUpdatedAt = orgRecords
+      .map((record) => new Date(record.updated_at || record.created_at).getTime())
+      .filter((value) => Number.isFinite(value))
+      .sort((left, right) => right - left)[0];
+    const periodEnd = orgRecords
+      .map((record) => new Date(record.period_end).getTime())
+      .filter((value) => Number.isFinite(value))
+      .sort((left, right) => right - left)[0];
+
+    if (Number.isFinite(latestUpdatedAt) && Number.isFinite(periodEnd) && latestUpdatedAt > periodEnd) {
+      bucket.late += 1;
+      bucket.details.late.push(organizationNames.get(orgId) || orgId);
+      return;
+    }
+
+    bucket.submitted += 1;
+    bucket.details.submitted.push(organizationNames.get(orgId) || orgId);
+  });
+
+  return Array.from(coordinatorBuckets.values()).sort((left, right) =>
+    left.name.localeCompare(right.name),
+  );
+};
+
+const buildDisaggregateBreakdownData = ({
+  disaggregates,
+  indicatorGroups,
+  mode,
+}: {
+  disaggregates: MatrixDisaggregates | null;
+  indicatorGroups: Set<string>;
+  mode: "sex" | "age" | "primary";
+}): BreakdownDatum[] => {
+  if (!disaggregates) return [];
+  const {
+    matrix,
+    keyPops,
+    secondDimensionValues,
+    ageBands,
+  } = buildDisplayMatrix(disaggregates, indicatorGroups);
+
+  if (mode === "sex") {
+    return secondDimensionValues.map((dimension) => {
+      const total = keyPops.reduce(
+        (sum, kp) => sum + sumValueBucket(matrix[kp]?.[dimension] || {}),
+        0,
+      );
+      return { name: dimension, Total: total };
+    });
+  }
+
+  if (mode === "age") {
+    const baseBands = ageBands.filter((band) => band !== aypBandLabel);
+    return baseBands.map((band) => {
+      let male = 0;
+      let female = 0;
+      let other = 0;
+      keyPops.forEach((kp) => {
+        secondDimensionValues.forEach((dimension) => {
+          const value = toSafeNumber(matrix[kp]?.[dimension]?.[band]);
+          const normalized = normalizeText(dimension);
+          if (normalized === "male") male += value;
+          else if (normalized === "female") female += value;
+          else other += value;
+        });
+      });
+      return { name: band, Male: male, Female: female, Other: other, Total: male + female + other };
+    });
+  }
+
+  return keyPops.map((kp) => {
+    let male = 0;
+    let female = 0;
+    let other = 0;
+    secondDimensionValues.forEach((dimension) => {
+      const total = sumValueBucket(matrix[kp]?.[dimension] || {});
+      const normalized = normalizeText(dimension);
+      if (normalized === "male") male += total;
+      else if (normalized === "female") female += total;
+      else other += total;
+    });
+    return { name: kp, Male: male, Female: female, Other: other, Total: male + female + other };
+  });
+};
+
+const buildCascadeData = (
+  groups: Array<{ indicatorName: string; totalValue: number }>,
+  presetId: string,
+) => {
+  const preset = cascadePresets.find((item) => item.id === presetId) || cascadePresets[0];
+  return preset.stages.map((stage) => {
+    const match = groups.find((group) => {
+      const normalized = normalizeText(group.indicatorName);
+      return stage.patterns.some((pattern) => normalized.includes(normalizeText(pattern)));
+    });
+    return {
+      stage: stage.label,
+      total: match?.totalValue || 0,
+      indicatorName: match?.indicatorName || "No matching indicator",
+    };
+  });
+};
+
 export default function AggregatesPage() {
   const { toast } = useToast();
+  const { user } = useAuth();
+  const searchParams = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [projectFilter, setProjectFilter] = useState("all");
   const [periodFilter, setPeriodFilter] = useState("all");
   const [parentOrgFilter, setParentOrgFilter] = useState("all");
   const [orgFilter, setOrgFilter] = useState("all");
-
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isChartOpen, setIsChartOpen] = useState(false);
   const [isAutoCalcOpen, setIsAutoCalcOpen] = useState(false);
@@ -456,8 +1113,14 @@ export default function AggregatesPage() {
   const [formNotes, setFormNotes] = useState("");
   const [formDataSource, setFormDataSource] = useState("");
   const [matrixValues, setMatrixValues] = useState(buildEmptyMatrix);
-  const [selectedDisaggregates, setSelectedDisaggregates] = useState<string[]>(() => [...keyPopulations]);
   const chartRef = useRef<HTMLDivElement | null>(null);
+  const comparisonChartRef = useRef<HTMLDivElement | null>(null);
+  const targetsChartRef = useRef<HTMLDivElement | null>(null);
+  const trendChartRef = useRef<HTMLDivElement | null>(null);
+  const contributionChartRef = useRef<HTMLDivElement | null>(null);
+  const complianceChartRef = useRef<HTMLDivElement | null>(null);
+  const breakdownChartRef = useRef<HTMLDivElement | null>(null);
+  const cascadeChartRef = useRef<HTMLDivElement | null>(null);
 
   const [autoOutputIndicator, setAutoOutputIndicator] = useState("");
   const [autoSourceIndicator, setAutoSourceIndicator] = useState("");
@@ -471,9 +1134,16 @@ export default function AggregatesPage() {
   const [autoSaveRule, setAutoSaveRule] = useState(true);
   const [autoSaveAggregate, setAutoSaveAggregate] = useState(true);
   const [autoComputed, setAutoComputed] = useState<number | null>(null);
-  const [groupChartsOpen, setGroupChartsOpen] = useState<Record<string, boolean>>({});
+  const [detailIndicatorId, setDetailIndicatorId] = useState("");
+  const [trendMode, setTrendMode] = useState<"consolidated" | "compare">("consolidated");
+  const [breakdownMode, setBreakdownMode] = useState<"sex" | "age" | "primary">("age");
+  const [selectedCascadeId, setSelectedCascadeId] = useState(cascadePresets[0].id);
+  const [complianceSelection, setComplianceSelection] = useState<{
+    coordinatorId: string;
+    status: "submitted" | "late" | "missing";
+  } | null>(null);
 
-  const { data: aggregatesData, isLoading, error, mutate } = useAggregates();
+  const { data: aggregatesData, isLoading, error, mutate } = useAllAggregates();
   const { data: projectsData } = useProjects();
   const { data: indicatorsData } = useIndicators();
   const { data: organizationsData } = useAllOrganizations();
@@ -482,11 +1152,13 @@ export default function AggregatesPage() {
     organization: formOrganization || undefined,
   });
 
-  const aggregates = aggregatesData?.results || [];
-  const projects = projectsData?.results || [];
-  const indicators = indicatorsData?.results || [];
-  const organizations = organizationsData?.results || [];
-  const templates = templatesData || [];
+  const aggregates = useMemo(() => aggregatesData || [], [aggregatesData]);
+  const projects = useMemo(() => projectsData?.results || [], [projectsData?.results]);
+  const indicators = useMemo(() => indicatorsData?.results || [], [indicatorsData?.results]);
+  const organizations = useMemo(() => organizationsData?.results || [], [organizationsData?.results]);
+  const templates = useMemo(() => templatesData || [], [templatesData]);
+  const userOrganizationId = useMemo(() => getUserOrganizationId(user), [user]);
+  const canReportAcrossOrganizations = useMemo(() => isPlatformAdmin(user), [user]);
 
   const resetAutoCalcForm = () => {
     setAutoOutputIndicator("");
@@ -503,137 +1175,274 @@ export default function AggregatesPage() {
     setAutoComputed(null);
   };
 
-  const indicatorNameById = useMemo(
+  const indicatorNameById = useMemo<Map<string, string>>(
     () =>
-      new Map(indicators.map((indicator) => [String(indicator.id), indicator.name])),
+      new Map<string, string>(indicators.map((indicator) => [String(indicator.id), indicator.name])),
     [indicators],
   );
-  const indicatorCodeById = useMemo(
+  const indicatorCodeById = useMemo<Map<string, string>>(
     () =>
-      new Map(indicators.map((indicator) => [String(indicator.id), indicator.code])),
+      new Map<string, string>(indicators.map((indicator) => [String(indicator.id), indicator.code])),
     [indicators],
   );
-  const projectNameById = useMemo(
+  const indicatorById = useMemo<Map<string, Indicator>>(
+    () => new Map<string, Indicator>(indicators.map((indicator) => [String(indicator.id), indicator])),
+    [indicators],
+  );
+  const projectNameById = useMemo<Map<string, string>>(
     () =>
-      new Map(projects.map((project) => [String(project.id), project.name])),
+      new Map<string, string>(projects.map((project) => [String(project.id), project.name])),
     [projects],
   );
-  const orgParentById = useMemo(
-    () =>
-      new Map(organizations.map((org: { id: number; parent?: number | null }) => [String(org.id), org.parent ?? null])),
-    [organizations],
-  );
   const parentOrganizations = useMemo(
-    () => organizations.filter((org: { parent?: number | null }) => !org.parent),
+    () =>
+      organizations
+        .filter(
+          (org) =>
+            !resolveParentOrganizationId(org as unknown as OrganizationWithParent),
+        )
+        .slice()
+        .sort((left, right) =>
+          String(left.name || "").localeCompare(String(right.name || "")),
+        ),
     [organizations],
   );
-  const childOrganizations = useMemo(() => {
-    if (parentOrgFilter === "all") return organizations;
-    return organizations.filter((org: { parent?: number | null }) =>
-      String(org.parent ?? "") === parentOrgFilter || String(org.id) === parentOrgFilter
+  const accessibleOrganizations = useMemo(() => {
+    if (canReportAcrossOrganizations) return organizations;
+    const ownOrganizationId = userOrganizationId ? String(userOrganizationId) : "";
+    if (!ownOrganizationId) return [];
+    const ownOrganization = organizations.find((org) => String(org.id) === ownOrganizationId);
+    if (!ownOrganization) return [];
+    const ownParentId = resolveParentOrganizationId(
+      ownOrganization as unknown as OrganizationWithParent,
     );
-  }, [organizations, parentOrgFilter]);
+    if (!ownParentId) {
+      return organizations.filter((org) => {
+        const orgId = String(org.id);
+        return (
+          orgId === ownOrganizationId ||
+          resolveParentOrganizationId(org as unknown as OrganizationWithParent) === ownOrganizationId
+        );
+      });
+    }
+    return organizations.filter((org) => String(org.id) === ownOrganizationId);
+  }, [canReportAcrossOrganizations, organizations, userOrganizationId]);
+  const availableCoordinatorOrganizations = useMemo(() => {
+    const accessibleIds = new Set(accessibleOrganizations.map((org) => String(org.id)));
+    const ownOrganizationId = userOrganizationId ? String(userOrganizationId) : "";
+    const ownOrganization = organizations.find((org) => String(org.id) === ownOrganizationId);
+    const ownParentId = ownOrganization
+      ? resolveParentOrganizationId(ownOrganization as unknown as OrganizationWithParent)
+      : "";
+    return parentOrganizations.filter((coordinator) => {
+      const coordinatorId = String(coordinator.id);
+      return (
+        accessibleIds.has(coordinatorId) ||
+        coordinatorId === ownParentId ||
+        accessibleOrganizations.some(
+          (organization) =>
+            resolveParentOrganizationId(organization as unknown as OrganizationWithParent) ===
+            coordinatorId,
+        )
+      );
+    });
+  }, [accessibleOrganizations, organizations, parentOrganizations, userOrganizationId]);
+  const accessibleOrganizationIds = useMemo<Set<string>>(
+    () => new Set<string>(accessibleOrganizations.map((org) => String(org.id))),
+    [accessibleOrganizations],
+  );
+  const organizationNameById = useMemo<Map<string, string>>(
+    () => new Map<string, string>(organizations.map((organization) => [String(organization.id), organization.name])),
+    [organizations],
+  );
+  const coordinatorByOrgId = useMemo(() => {
+    const map = new Map<string, string>();
+    organizations.forEach((organization) => {
+      const organizationId = String(organization.id);
+      const parentId = resolveParentOrganizationId(
+        organization as unknown as OrganizationWithParent,
+      );
+      map.set(organizationId, parentId || organizationId);
+    });
+    return map;
+  }, [organizations]);
+  const coordinatorNameById = useMemo(
+    () =>
+      new Map<string, string>(
+        parentOrganizations.map((organization) => [String(organization.id), organization.name]),
+      ),
+    [parentOrganizations],
+  );
+  const scopedOrganizations = useMemo(() => {
+    const scoped =
+      parentOrgFilter === "all"
+        ? accessibleOrganizations
+        : accessibleOrganizations.filter((org) => {
+            const orgId = String(org.id);
+            const parentId = resolveParentOrganizationId(
+              org as unknown as OrganizationWithParent,
+            );
+            return orgId === parentOrgFilter || parentId === parentOrgFilter;
+          });
+    return scoped
+      .slice()
+      .sort((left, right) =>
+        String(left.name || "").localeCompare(String(right.name || "")),
+      );
+  }, [accessibleOrganizations, parentOrgFilter]);
+  const scopedOrganizationIds = useMemo<Set<string>>(
+    () => new Set<string>(scopedOrganizations.map((org) => String(org.id))),
+    [scopedOrganizations],
+  );
+  const selectedOrganizationIds = useMemo(() => {
+    if (orgFilter === "all") {
+      return scopedOrganizationIds;
+    }
+    return new Set<string>(
+      orgFilter
+        .split(",")
+        .map((value) => value.trim())
+        .filter((value) => value.length > 0 && scopedOrganizationIds.has(value)),
+    );
+  }, [orgFilter, scopedOrganizationIds]);
+  const writableOrganizations = useMemo(() => {
+    if (canReportAcrossOrganizations) return organizations;
+    const ownOrganizationId = userOrganizationId ? String(userOrganizationId) : "";
+    if (!ownOrganizationId) return [];
+    return organizations.filter((org) => String(org.id) === ownOrganizationId);
+  }, [canReportAcrossOrganizations, organizations, userOrganizationId]);
+  const writableOrganizationIds = useMemo<Set<string>>(
+    () => new Set<string>(writableOrganizations.map((org) => String(org.id))),
+    [writableOrganizations],
+  );
+  const isOrganizationSelectionLocked = !canReportAcrossOrganizations;
+  const defaultOwnOrganizationValue = userOrganizationId
+    ? String(userOrganizationId)
+    : "";
+  const selectedFormIndicator = useMemo(
+    () => indicatorById.get(formIndicator),
+    [formIndicator, indicatorById],
+  );
+  const selectedFormIndicatorUsesMatrix = useMemo(
+    () => indicatorUsesMatrixEntry(selectedFormIndicator?.sub_labels),
+    [selectedFormIndicator],
+  );
+  const formPrimaryDisaggregateLabel = useMemo(
+    () => getPrimaryDisaggregateLabel(selectedFormIndicator?.sub_labels),
+    [selectedFormIndicator],
+  );
+  const matrixToggleDisabled = Boolean(formIndicator) && !selectedFormIndicatorUsesMatrix;
+  const sidebarOrgId = searchParams.get("orgId");
 
-  const periods = useMemo(
-    () => Array.from(new Set(aggregates.map(getPeriodLabel))),
+  useEffect(() => {
+    if (!formIndicator) return;
+    if (selectedFormIndicatorUsesMatrix && !useMatrixEntry) {
+      setUseMatrixEntry(true);
+      return;
+    }
+    if (!selectedFormIndicatorUsesMatrix && useMatrixEntry) {
+      setUseMatrixEntry(false);
+    }
+  }, [formIndicator, selectedFormIndicatorUsesMatrix, useMatrixEntry]);
+
+  useEffect(() => {
+    if (!sidebarOrgId) return;
+
+    const matchedCoordinator = availableCoordinatorOrganizations.find(
+      (org) => String(org.id) === sidebarOrgId,
+    );
+    if (matchedCoordinator) {
+      setParentOrgFilter(sidebarOrgId);
+      setOrgFilter("all");
+      return;
+    }
+
+    const matchedOrg = organizations.find((org) => String(org.id) === sidebarOrgId);
+    if (!matchedOrg) return;
+    if (!accessibleOrganizationIds.has(String(matchedOrg.id))) return;
+    const parentId = resolveParentOrganizationId(
+      matchedOrg as unknown as OrganizationWithParent,
+    );
+    setParentOrgFilter(parentId || String(matchedOrg.id));
+    setOrgFilter("all");
+  }, [
+    accessibleOrganizationIds,
+    availableCoordinatorOrganizations,
+    organizations,
+    sidebarOrgId,
+  ]);
+
+  useEffect(() => {
+    if (
+      parentOrgFilter !== "all" &&
+      !availableCoordinatorOrganizations.some((org) => String(org.id) === parentOrgFilter)
+    ) {
+      setParentOrgFilter("all");
+    }
+  }, [availableCoordinatorOrganizations, parentOrgFilter]);
+
+  useEffect(() => {
+    if (orgFilter === "all") return;
+    if (!selectedOrganizationIds.size) {
+      setOrgFilter("all");
+    }
+  }, [orgFilter, selectedOrganizationIds]);
+
+  useEffect(() => {
+    if (!isDialogOpen || !isOrganizationSelectionLocked) return;
+    if (!userOrganizationId) return;
+    setFormOrganization(String(userOrganizationId));
+  }, [isDialogOpen, isOrganizationSelectionLocked, userOrganizationId]);
+
+  useEffect(() => {
+    if (!isAutoCalcOpen || !isOrganizationSelectionLocked) return;
+    if (!userOrganizationId) return;
+    setAutoOrganization(String(userOrganizationId));
+  }, [isAutoCalcOpen, isOrganizationSelectionLocked, userOrganizationId]);
+
+  const periods = useMemo<string[]>(
+    () => Array.from(new Set<string>(aggregates.map(getPeriodLabel))),
     [aggregates],
   );
 
   const filteredAggregates = useMemo(() => {
-    const query = searchQuery.trim().toLowerCase();
-
-  const availableKeyPopulations = useMemo(() => {
-    const set = new Set<string>(keyPopulations);
-    aggregates.forEach((agg) => {
-      const disaggregates = getDisaggregates(agg.value);
-      if (!disaggregates) return;
-      Object.keys(disaggregates).forEach((kp) => set.add(kp));
-    });
-    return Array.from(set);
-  }, [aggregates]);
-
-  const ageBandsForFilter = useMemo(() => {
-    if (ageFilter === "all") return [...matrixAgeBands];
-    if (ageFilter === "ayp") return ["10-14", "15-19", "20-24", "AYP (10-24)"];
-    return ["25-29", "30-34", "35-39", "40-44", "45-49", "50-54", "55-59", "60-64", "65+"];
-  }, [ageFilter]);
-
-  const filteredAggregates = useMemo(() => {
     const query = searchQuery.toLowerCase();
-
     return aggregates.filter((agg) => {
+      const aggregateOrganizationId = String(agg.organization);
+      if (!selectedOrganizationIds.has(aggregateOrganizationId)) return false;
+
+      const matchesProject =
+        projectFilter === "all" || String(agg.project) === projectFilter;
+      if (!matchesProject) return false;
+
+      const matchesPeriod =
+        periodFilter === "all" || getPeriodLabel(agg) === periodFilter;
+      if (!matchesPeriod) return false;
+
       const indicatorName =
         agg.indicator_name ||
         indicatorNameById.get(String(agg.indicator)) ||
         "";
-      const projectName = agg.project_name || projectNameById.get(String(agg.project)) || "";
-      const organizationName = agg.organization_name || "";
-      const searchableText = `${indicatorName} ${projectName} ${organizationName}`.toLowerCase();
-      const matchesSearch =
-        query.length === 0 || searchableText.includes(query);
-
-
       const matchesSearch =
         query.length === 0 || indicatorName.toLowerCase().includes(query);
-      const matchesProject =
-        projectFilter === "all" || String(agg.project) === projectFilter;
-      const matchesPeriod =
-        periodFilter === "all" || getPeriodLabel(agg) === periodFilter;
-      const matchesOrg =
-        orgFilter === "all" || String(agg.organization) === orgFilter;
-      const matchesParent =
-        parentOrgFilter === "all" ||
-        String(orgParentById.get(String(agg.organization)) ?? "") === parentOrgFilter ||
-        String(agg.organization) === parentOrgFilter;
-
-      const hasDisaggregateFilter =
-        keyPopulationFilter !== "all" || ageFilter !== "all" || ageRangeFilter !== "all";
-      let matchesDisaggregate = true;
-      if (hasDisaggregateFilter) {
-        const disaggregates = getDisaggregates(agg.value);
-        matchesDisaggregate = false;
-        if (disaggregates) {
-          const kpKeys = keyPopulationFilter === "all" ? Object.keys(disaggregates) : [keyPopulationFilter];
-          for (const kp of kpKeys) {
-            const kpData = disaggregates[kp];
-            if (!kpData) continue;
-            for (const sex of ["Male", "Female"] as const) {
-              const values = kpData[sex] || {};
-              if (ageRangeFilter !== "all") {
-                const value = Number(values[ageRangeFilter] || 0);
-                if (value > 0 && ageBandsForFilter.includes(ageRangeFilter)) {
-                  matchesDisaggregate = true;
-                  break;
-                }
-                continue;
-              }
-              const totalForAgeBands = ageBandsForFilter.reduce(
-                (sum, band) => sum + (Number(values[band]) || 0),
-                0,
-              );
-              if (totalForAgeBands > 0) {
-                matchesDisaggregate = true;
-                break;
-              }
-            }
-            if (matchesDisaggregate) break;
-          }
-        }
-      }
-
-      return matchesSearch && matchesProject && matchesPeriod && matchesParent && matchesOrg && matchesDisaggregate;
+      return matchesSearch;
     });
-  }, [ageBandsForFilter, ageFilter, ageRangeFilter, aggregates, indicatorNameById, keyPopulationFilter, orgFilter, orgParentById, parentOrgFilter, periodFilter, projectFilter, searchQuery]);
+  }, [
+    aggregates,
+    indicatorNameById,
+    periodFilter,
+    projectFilter,
+    searchQuery,
+    selectedOrganizationIds,
+  ]);
 
-  const aggregateGroups = useMemo(() => {
+  const aggregateGroups = useMemo<AggregateGroupEntry[]>(() => {
     const groups = new Map<string, Aggregate[]>();
     for (const agg of filteredAggregates) {
+      const indicatorId = String(agg.indicator || "");
       const indicatorName =
-        agg.indicator_name ||
-        indicatorNameById.get(String(agg.indicator)) ||
-        "Indicator";
-      const orgName = agg.organization_name || "";
-      const key = `${indicatorName}||${orgName}`;
+        agg.indicator_name || indicatorNameById.get(indicatorId) || "Indicator";
+      const key = getLogicalIndicatorKey(agg, indicatorName);
       if (!groups.has(key)) {
         groups.set(key, []);
       }
@@ -641,42 +1450,190 @@ export default function AggregatesPage() {
     }
     const parseCode = (code?: string | null) => {
       if (!code) return { num: Number.POSITIVE_INFINITY, suffix: "" };
-      const match = code.match(/(\\d+)([a-zA-Z])?/);
+      const match = code.match(/(\d+)([a-zA-Z])?/);
       if (!match) return { num: Number.POSITIVE_INFINITY, suffix: code };
       return { num: Number(match[1]), suffix: (match[2] || "").toLowerCase() };
     };
-    const entries = Array.from(groups.entries()).map(([key, items]) => {
-      const indicatorName = key.split("||")[0];
-      const organizationName = key.split("||")[1];
+    const entries: AggregateGroupEntry[] = Array.from(groups.entries()).map(([key, items]) => {
       const first = items[0];
+      const indicatorId = String(first?.indicator || "");
+      const indicatorName =
+        first?.indicator_name ||
+        indicatorNameById.get(indicatorId) ||
+        "Indicator";
       const code =
         first?.indicator_code ||
-        indicatorCodeById.get(String(first?.indicator)) ||
+        indicatorCodeById.get(indicatorId) ||
         "";
-      return { key, indicatorName, organizationName, items, code };
+      return { key, indicatorId, indicatorName, items, code };
     });
     return entries.sort((a, b) => {
       const ac = parseCode(a.code);
       const bc = parseCode(b.code);
       if (ac.num !== bc.num) return ac.num - bc.num;
       if (ac.suffix !== bc.suffix) return ac.suffix.localeCompare(bc.suffix);
-      return a.organizationName.localeCompare(b.organizationName);
+      return a.indicatorName.localeCompare(b.indicatorName);
     });
   }, [filteredAggregates, indicatorCodeById, indicatorNameById]);
 
+  const dashboardGroups = useMemo<DashboardGroup[]>(
+    () =>
+      aggregateGroups.map((group) => {
+        const indicator = indicatorById.get(group.indicatorId);
+        const disaggregates = mergeDisaggregatesForGroup(group.items);
+        return {
+          ...group,
+          indicator,
+          disaggregates,
+          totalValue: group.items.reduce((sum, item) => sum + getAggregateTotal(item), 0),
+          organizations: Array.from(
+            new Set(group.items.map((item) => String(item.organization))),
+          ),
+          projects: Array.from(new Set(group.items.map((item) => String(item.project)))),
+          periods: Array.from(new Set(group.items.map((item) => getPeriodLabel(item)))),
+        };
+      }),
+    [aggregateGroups, indicatorById],
+  );
+
+  const dashboardTopicSections = useMemo<DashboardTopicSection[]>(() => {
+    const grouped = new Map<string, DashboardGroup[]>();
+
+    dashboardGroups.forEach((group) => {
+      const topicId = resolveWorkbookTopicId(group);
+      if (!grouped.has(topicId)) {
+        grouped.set(topicId, []);
+      }
+      grouped.get(topicId)!.push(group);
+    });
+
+    return workbookTopicDefinitions
+      .filter((topic) => (grouped.get(topic.id)?.length || 0) > 0)
+      .map((topic) => {
+        const groups = grouped.get(topic.id) || [];
+        return {
+          ...topic,
+          groups,
+          totalValue: groups.reduce((sum, group) => sum + group.totalValue, 0),
+        };
+      });
+  }, [dashboardGroups]);
+
+  useEffect(() => {
+    if (!dashboardGroups.length) {
+      if (detailIndicatorId) setDetailIndicatorId("");
+      return;
+    }
+    if (
+      !detailIndicatorId ||
+      !dashboardGroups.some((group) => group.indicatorId === detailIndicatorId)
+    ) {
+      setDetailIndicatorId(dashboardGroups[0].indicatorId);
+    }
+  }, [dashboardGroups, detailIndicatorId]);
+
+  const selectedDetailGroup = useMemo(
+    () =>
+      dashboardGroups.find((group) => group.indicatorId === detailIndicatorId) ||
+      dashboardGroups[0] ||
+      null,
+    [dashboardGroups, detailIndicatorId],
+  );
+
+  const comparisonMode = parentOrgFilter === "all" ? "coordinator" : "organization";
+  const comparisonBucketNames = useMemo<Map<string, string>>(() => {
+    if (comparisonMode === "coordinator") return coordinatorNameById;
+    return organizationNameById;
+  }, [comparisonMode, coordinatorNameById, organizationNameById]);
+  const comparisonBucketByOrg = useMemo<Map<string, string>>(() => {
+    const map = new Map<string, string>();
+    scopedOrganizations.forEach((organization) => {
+      const organizationId = String(organization.id);
+      map.set(
+        organizationId,
+        comparisonMode === "coordinator"
+          ? coordinatorByOrgId.get(organizationId) || organizationId
+          : organizationId,
+      );
+    });
+    return map;
+  }, [comparisonMode, coordinatorByOrgId, scopedOrganizations]);
+
+  const targetByComparisonBucket = useMemo<Map<string, number>>(() => {
+    const targetMap = new Map<string, number>();
+    const includedProjects =
+      projectFilter === "all"
+        ? new Set<string>(filteredAggregates.map((aggregate) => String(aggregate.project)))
+        : new Set<string>([projectFilter]);
+    const includedIndicators = new Set<string>(
+      filteredAggregates.map((aggregate) => String(aggregate.indicator)),
+    );
+
+    indicators.forEach((indicator) => {
+      if (includedIndicators.size > 0 && !includedIndicators.has(String(indicator.id))) return;
+      (indicator.project_targets || []).forEach((target) => {
+        const organizationId = String(target.organization);
+        if (!selectedOrganizationIds.has(organizationId)) return;
+        if (includedProjects.size && !includedProjects.has(String(target.project))) return;
+        const bucketId =
+          comparisonMode === "coordinator"
+            ? coordinatorByOrgId.get(organizationId) || organizationId
+            : organizationId;
+        targetMap.set(bucketId, (targetMap.get(bucketId) || 0) + toSafeNumber(target.target_value));
+      });
+    });
+
+    return targetMap;
+  }, [
+    comparisonMode,
+    coordinatorByOrgId,
+    filteredAggregates,
+    indicators,
+    projectFilter,
+    selectedOrganizationIds,
+  ]);
+
+  const dashboardRollupData = useMemo(
+    () =>
+      buildRollupData({
+        aggregates: filteredAggregates,
+        bucketForOrganization: comparisonBucketByOrg,
+        bucketNames: comparisonBucketNames,
+        targetByBucketId: targetByComparisonBucket,
+      }),
+    [
+      comparisonBucketByOrg,
+      comparisonBucketNames,
+      filteredAggregates,
+      targetByComparisonBucket,
+    ],
+  );
+
+  const scopeOrganizationLabel = useMemo(() => {
+    if (orgFilter !== "all") {
+      const selectedOrgName =
+        organizationNameById.get(orgFilter) || scopedOrganizations.find((org) => String(org.id) === orgFilter)?.name;
+      return selectedOrgName || "Selected organization";
+    }
+    if (parentOrgFilter !== "all") {
+      return `${coordinatorNameById.get(parentOrgFilter) || "Coordinator"} portfolio`;
+    }
+    return "All reporting organizations";
+  }, [
+    coordinatorNameById,
+    orgFilter,
+    organizationNameById,
+    parentOrgFilter,
+    scopedOrganizations,
+  ]);
+
   const totals = useMemo(() => {
     return filteredAggregates.reduce(
-      (acc, agg) => {
-        const value = parseAggregateValue(agg.value);
-        const male = Number(value.male) || 0;
-        const female = Number(value.female) || 0;
-        const total =
-          value.total !== undefined
-            ? Number(value.total) || 0
-            : male + female;
-        acc.male += male;
-        acc.female += female;
-        acc.total += total;
+      (acc, aggregate) => {
+        const sexTotals = deriveSexTotals(aggregate.value);
+        acc.male += sexTotals.male;
+        acc.female += sexTotals.female;
+        acc.total += sexTotals.total;
         return acc;
       },
       { male: 0, female: 0, total: 0 },
@@ -728,173 +1685,6 @@ export default function AggregatesPage() {
     if (!match) return null;
     return { from: match.period_start, to: match.period_end };
   };
-
-  const indicatorNameById = useMemo(
-    () =>
-      new Map(indicators.map((indicator) => [String(indicator.id), indicator.name])),
-    [indicators],
-  );
-  const indicatorCodeById = useMemo(
-    () =>
-      new Map(indicators.map((indicator) => [String(indicator.id), indicator.code])),
-    [indicators],
-  );
-  const projectNameById = useMemo(
-    () =>
-      new Map(projects.map((project) => [String(project.id), project.name])),
-    [projects],
-  );
-  const orgParentById = useMemo(
-    () =>
-      new Map(organizations.map((org: { id: number; parent?: number | null }) => [String(org.id), org.parent ?? null])),
-    [organizations],
-  );
-  const parentOrganizations = useMemo(
-    () => organizations.filter((org: { parent?: number | null }) => !org.parent),
-    [organizations],
-  );
-  const childOrganizations = useMemo(() => {
-    if (parentOrgFilter === "all") return organizations;
-    return organizations.filter((org: { parent?: number | null }) =>
-      String(org.parent ?? "") === parentOrgFilter || String(org.id) === parentOrgFilter
-    );
-  }, [organizations, parentOrgFilter]);
-
-  const periods = useMemo(
-    () => Array.from(new Set(aggregates.map(getPeriodLabel))),
-    [aggregates],
-  );
-
-  const filteredAggregates = useMemo(() => {
-    const query = searchQuery.toLowerCase();
-    return aggregates.filter((agg) => {
-      const indicatorName =
-        agg.indicator_name ||
-        indicatorNameById.get(String(agg.indicator)) ||
-        "";
-      const matchesSearch =
-        query.length === 0 || indicatorName.toLowerCase().includes(query);
-
-      const matchesProject =
-        projectFilter === "all" || String(agg.project) === projectFilter;
-      const matchesPeriod =
-        periodFilter === "all" || getPeriodLabel(agg) === periodFilter;
-      const matchesOrg =
-        orgFilter === "all" || String(agg.organization) === orgFilter;
-      const matchesParent =
-        parentOrgFilter === "all" ||
-        String(orgParentById.get(String(agg.organization)) ?? "") === parentOrgFilter ||
-        String(agg.organization) === parentOrgFilter;
-      return matchesSearch && matchesProject && matchesPeriod && matchesParent && matchesOrg;
-    });
-  }, [aggregates, indicatorNameById, orgFilter, orgParentById, parentOrgFilter, periodFilter, projectFilter, projectNameById, searchQuery]);
-
-  }, [aggregates, indicatorNameById, orgFilter, orgParentById, parentOrgFilter, periodFilter, projectFilter, searchQuery]);
-
-  const aggregateGroups = useMemo(() => {
-    const groups = new Map<string, Aggregate[]>();
-    for (const agg of filteredAggregates) {
-      const indicatorName =
-        agg.indicator_name ||
-        indicatorNameById.get(String(agg.indicator)) ||
-        "Indicator";
-      const orgName = agg.organization_name || "";
-      const key = `${indicatorName}||${orgName}`;
-      if (!groups.has(key)) {
-        groups.set(key, []);
-      }
-      groups.get(key)!.push(agg);
-    }
-    const parseCode = (code?: string | null) => {
-      if (!code) return { num: Number.POSITIVE_INFINITY, suffix: "" };
-      const match = code.match(/(\\d+)([a-zA-Z])?/);
-      if (!match) return { num: Number.POSITIVE_INFINITY, suffix: code };
-      return { num: Number(match[1]), suffix: (match[2] || "").toLowerCase() };
-    };
-    const entries = Array.from(groups.entries()).map(([key, items]) => {
-      const indicatorName = key.split("||")[0];
-      const organizationName = key.split("||")[1];
-      const first = items[0];
-      const code =
-        first?.indicator_code ||
-        indicatorCodeById.get(String(first?.indicator)) ||
-        "";
-      return { key, indicatorName, organizationName, items, code };
-    });
-    return entries.sort((a, b) => {
-      const ac = parseCode(a.code);
-      const bc = parseCode(b.code);
-      if (ac.num !== bc.num) return ac.num - bc.num;
-      if (ac.suffix !== bc.suffix) return ac.suffix.localeCompare(bc.suffix);
-      return a.organizationName.localeCompare(b.organizationName);
-    });
-  }, [filteredAggregates, indicatorCodeById, indicatorNameById]);
-
-  const totals = useMemo(() => {
-    return filteredAggregates.reduce(
-      (acc, agg) => {
-        const value = parseAggregateValue(agg.value);
-        const male = Number(value.male) || 0;
-        const female = Number(value.female) || 0;
-        const total =
-          value.total !== undefined
-            ? Number(value.total) || 0
-            : male + female;
-        acc.male += male;
-        acc.female += female;
-        acc.total += total;
-        return acc;
-      },
-      { male: 0, female: 0, total: 0 },
-    );
-  }, [filteredAggregates]);
-
-  const parseCSV = (text: string) => {
-    const rows: string[][] = [];
-    let current = "";
-    let inQuotes = false;
-    const row: string[] = [];
-    for (let i = 0; i < text.length; i += 1) {
-      const char = text[i];
-      const next = text[i + 1];
-      if (char === "\"") {
-        if (inQuotes && next === "\"") {
-          current += "\"";
-          i += 1;
-        } else {
-          inQuotes = !inQuotes;
-        }
-        continue;
-      }
-      if (char === "," && !inQuotes) {
-        row.push(current);
-        current = "";
-        continue;
-      }
-      if ((char === "\n" || char === "\r") && !inQuotes) {
-        if (current !== "" || row.length > 0) {
-          row.push(current);
-          rows.push([...row]);
-          row.length = 0;
-          current = "";
-        }
-        continue;
-      }
-      current += char;
-    }
-    if (current !== "" || row.length > 0) {
-      row.push(current);
-      rows.push(row);
-    }
-    return rows;
-  };
-
-  const getPeriodBounds = (label: string) => {
-    const match = aggregates.find((agg) => getPeriodLabel(agg) === label);
-    if (!match) return null;
-    return { from: match.period_start, to: match.period_end };
-  };
-
 
   const handleExport = async () => {
     try {
@@ -957,61 +1747,28 @@ export default function AggregatesPage() {
       templateIndicators: Array<{ id: number; name?: string }>,
     ) => {
       if (rows.length < 2) return;
-
-      const minRecognizedHeaders = 3;
-      const headerRowIndex = rows.findIndex((row) => {
-        const normalized = row.map((cell) => normalizeImportHeader(cell));
-        const hits = (Object.keys(importColumnAliases) as ImportAliasKey[]).reduce(
-          (count, key) => count + (importColumnAliases[key].some((alias) => normalized.includes(alias)) ? 1 : 0),
-
-      const aliases: Record<string, string[]> = {
-        indicator: ["indicator_id", "indicator_name", "indicator", "output_indicator"],
-        project: ["project_id", "project_name", "project", "grant", "subgrant"],
-        organization: ["organization_id", "organization_name", "organisation_name", "organization", "organisation", "implementing_partner", "subgrantee"],
-        period_start: ["period_start", "start_date", "reporting_period_start", "period_from", "from"],
-        period_end: ["period_end", "end_date", "reporting_period_end", "period_to", "to"],
-        male: ["male"],
-        female: ["female"],
-        total: ["total", "grand_total"],
-        value_json: ["value_json", "value"],
-        notes: ["notes", "comment", "comments", "remark", "remarks"],
-      };
-
-      const minRecognizedHeaders = 3;
-      const headerRowIndex = rows.findIndex((row) => {
-        const normalized = row.map((cell) => normalizeImportHeader(cell));
-        const hits = Object.values(aliases).reduce(
-          (count, aliasList) => count + (aliasList.some((alias) => normalized.includes(alias)) ? 1 : 0),
-          0,
-        );
-        return hits >= minRecognizedHeaders;
-      });
-
-      if (headerRowIndex === -1) return;
-
-      const header = rows[headerRowIndex].map((h) => normalizeImportHeader(h));
-      const get = (row: string[], key: ImportAliasKey) => {
-        const idx = header.findIndex((column) => importColumnAliases[key].includes(column));
-
-      const get = (row: string[], key: keyof typeof aliases) => {
-        const idx = header.findIndex((column) => aliases[key].includes(column));
+      const header = rows[0].map((h) => h.trim().toLowerCase());
+      const get = (row: string[], key: string) => {
+        const idx = header.indexOf(key);
         return idx >= 0 ? row[idx]?.trim() : "";
       };
-      for (const row of rows.slice(headerRowIndex + 1)) {
+      for (const row of rows.slice(1)) {
         try {
-          if (!row.some((cell) => cell.trim())) continue;
-
-          const indicatorValue = get(row, "indicator");
+          const indicatorValue = get(row, "indicator_id") || get(row, "indicator_name");
           let indicatorId = resolveId(indicatorValue, indicators);
           if (!indicatorId && templateIndicators.length) {
             indicatorId = resolveId(indicatorValue, templateIndicators);
           }
-          const projectId = resolveId(get(row, "project"), projects);
-          let orgId = resolveId(get(row, "organization"), organizations);
+          const projectId = resolveId(get(row, "project_id") || get(row, "project_name"), projects);
+          let orgId = resolveId(get(row, "organization_id") || get(row, "organization_name"), organizations);
           if (!orgId && sheetOrgId) orgId = sheetOrgId;
-          const periodStart = parseImportDate(get(row, "period_start"));
-          const periodEnd = parseImportDate(get(row, "period_end"));
+          const periodStart = get(row, "period_start");
+          const periodEnd = get(row, "period_end");
           if (!indicatorId || !projectId || !orgId || !periodStart || !periodEnd) {
+            failed += 1;
+            continue;
+          }
+          if (!canReportAcrossOrganizations && !writableOrganizationIds.has(String(orgId))) {
             failed += 1;
             continue;
           }
@@ -1132,86 +1889,6 @@ export default function AggregatesPage() {
     });
   };
 
-  const buildDisaggregateSeed = () => {
-    const disaggregates: Record<string, Record<string, Record<string, number>>> = {};
-    for (const kp of keyPopulations) {
-      disaggregates[kp] = { Male: {}, Female: {} };
-      for (const ageBand of matrixAgeBands) {
-        disaggregates[kp].Male[ageBand] = 0;
-        disaggregates[kp].Female[ageBand] = 0;
-      }
-    }
-    return disaggregates;
-  };
-
-  const handleDownloadMakgabanengTemplate = () => {
-    const normalize = (value: string) => value.trim().toLowerCase();
-    const makgabaneng = organizations.find((org: any) =>
-      normalize(org.name).includes("makgabaneng"),
-    );
-
-    if (!makgabaneng) {
-      toast({
-        title: "Makgabaneng not found",
-        description: "No organization named Makgabaneng is available in this environment.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const subGrantees = organizations.filter(
-      (org: any) => Number(org.parent) === Number(makgabaneng.id),
-    );
-    const targetOrgs = [makgabaneng, ...subGrantees];
-    const workbook = XLSX.utils.book_new();
-
-    const project = projects[0];
-    const periodStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
-      .toISOString()
-      .slice(0, 10);
-    const periodEnd = new Date().toISOString().slice(0, 10);
-    const disaggregateTemplate = buildDisaggregateSeed();
-    const selectedTemplate = templates.find(
-      (template) => Number(template.organization) === Number(makgabaneng.id),
-    );
-    const indicatorRows =
-      selectedTemplate?.indicators?.length
-        ? selectedTemplate.indicators
-        : indicators.map((indicator) => ({
-            id: indicator.id,
-            name: indicator.name,
-            code: indicator.code,
-          }));
-
-    for (const org of targetOrgs) {
-      const rows = indicatorRows.map((indicator) => ({
-        project_id: project?.id || "",
-        project_name: project?.name || "",
-        indicator_id: indicator.id,
-        indicator_code: indicator.code || "",
-        indicator_name: indicator.name,
-        organization_id: org.id,
-        organization_name: org.name,
-        period_start: periodStart,
-        period_end: periodEnd,
-        key_populations: keyPopulations.join(" | "),
-        age_ranges: matrixAgeBands.join(" | "),
-        value_json: JSON.stringify({ disaggregates: disaggregateTemplate }),
-        notes: "",
-      }));
-
-      const sheet = XLSX.utils.json_to_sheet(rows);
-      XLSX.utils.book_append_sheet(workbook, sheet, sanitizeSheetName(org.name));
-    }
-
-    const fileName = `makgabaneng_aggregate_template_${new Date().toISOString().slice(0, 10)}.xlsx`;
-    XLSX.writeFile(workbook, fileName);
-    toast({
-      title: "Template ready",
-      description: `Created workbook with ${targetOrgs.length} sheet(s) for Makgabaneng and sub-grantees.`,
-    });
-  };
-
   const chartData = useMemo(() => {
     const totalsByIndicator = new Map<string, number>();
     for (const agg of filteredAggregates) {
@@ -1237,133 +1914,163 @@ export default function AggregatesPage() {
     }));
   }, [filteredAggregates, indicatorNameById]);
 
-  const resetFilters = () => {
-    setSearchQuery("");
-    setProjectFilter("all");
-    setParentOrgFilter("all");
-    setOrgFilter("all");
-    setPeriodFilter("all");
-  };
+  const activeCompliancePeriod = useMemo(() => {
+    if (periodFilter !== "all") return periodFilter;
+    const available = sortPeriods(
+      Array.from(new Set(filteredAggregates.map((aggregate) => getPeriodLabel(aggregate)))),
+    );
+    return available[available.length - 1] || null;
+  }, [filteredAggregates, periodFilter]);
 
+  const complianceData = useMemo(
+    () =>
+      buildComplianceData({
+        organizations: scopedOrganizations,
+        aggregates: filteredAggregates,
+        organizationNames: organizationNameById,
+        coordinatorNames: coordinatorNameById,
+        coordinatorByOrgId,
+        activePeriod: activeCompliancePeriod,
+      }),
+    [
+      activeCompliancePeriod,
+      coordinatorByOrgId,
+      coordinatorNameById,
+      filteredAggregates,
+      organizationNameById,
+      scopedOrganizations,
+    ],
+  );
 
-  const resetForm = () => {
-    setFormProject("");
-    setFormIndicator("");
-    setFormOrganization("");
-    setFormTemplate("all");
-    setFormPeriodStart("");
-    setFormPeriodEnd("");
-    setUseMatrixEntry(true);
-    setFormMale("");
-
+  const complianceSummary = useMemo(() => {
+    const summary = complianceData.reduce(
+      (acc, item) => {
+        acc.submitted += item.submitted;
+        acc.late += item.late;
+        acc.missing += item.missing;
+        return acc;
+      },
+      { submitted: 0, late: 0, missing: 0 },
+    );
+    const expected = summary.submitted + summary.late + summary.missing;
+    return {
+      ...summary,
+      expected,
+      complianceRate:
+        expected > 0 ? ((summary.submitted + summary.late) / expected) * 100 : 0,
     };
+  }, [complianceData]);
 
-    if (extension === "xlsx" || extension === "xls") {
-      const data = await file.arrayBuffer();
-      const workbook = XLSX.read(data, { type: "array" });
-      const sheetNames = workbook.SheetNames.length ? workbook.SheetNames : [];
-      for (const sheetName of sheetNames) {
-        const sheet = workbook.Sheets[sheetName];
-        const rows = (XLSX.utils.sheet_to_json(sheet, { header: 1 }) as Array<Array<unknown>>).map(
-          (row) => row.map((cell) => (cell === undefined || cell === null ? "" : String(cell))),
-        );
-        const sheetOrgId = findOrgBySheet(sheetName);
-        const template = findTemplateBySheet(sheetName);
-        const templateIndicators = template?.indicators || [];
-        processRows(rows, sheetOrgId, templateIndicators);
-      }
-    } else {
-      const text = await file.text();
-      const rows = parseCSV(text);
-      processRows(rows, null, []);
-    }
+  const contributionData = useMemo(
+    () =>
+      buildContributionData(
+        filteredAggregates,
+        organizationNameById,
+        parentOrgFilter === "all" ? 10 : scopedOrganizations.length,
+      ),
+    [filteredAggregates, organizationNameById, parentOrgFilter, scopedOrganizations.length],
+  );
 
-    if (payloads.length === 0) {
-      toast({ title: "Invalid file", description: "No rows found.", variant: "destructive" });
-      return;
-    }
-
-    const grouped = new Map<
-      string,
-      {
-        project: number;
-        organization: number;
-        period_start: string;
-        period_end: string;
-        data: Array<{ indicator: number; value: AggregateValue | unknown; notes?: string }>;
-      }
-    >();
-
-    for (const item of payloads) {
-      const key = `${item.project}::${item.organization}::${item.period_start}::${item.period_end}`;
-      if (!grouped.has(key)) {
-        grouped.set(key, {
-          project: item.project,
-          organization: item.organization,
-          period_start: item.period_start,
-          period_end: item.period_end,
-          data: [],
-        });
-      }
-      grouped.get(key)!.data.push({
-        indicator: item.indicator,
-        value: item.value,
-        notes: item.notes,
-      });
-    }
-
-    for (const group of grouped.values()) {
-      try {
-        const result = await aggregatesService.bulkCreate({
-          project: group.project,
-          organization: group.organization,
-          period_start: group.period_start,
-          period_end: group.period_end,
-          data: group.data,
-        });
-        success += result.length;
-      } catch {
-        failed += group.data.length;
-      }
-    }
-
-    await mutate();
-    toast({
-      title: "Import complete",
-      description: `Imported ${success} rows. ${failed} failed.`,
-      variant: failed ? "destructive" : "default",
+  const trendData = useMemo(() => {
+    if (!selectedDetailGroup) return { data: [], seriesKeys: [] as string[], seriesNames: new Map<string, string>() };
+    return buildTrendData({
+      aggregates: filteredAggregates,
+      indicatorId: selectedDetailGroup.indicatorId,
+      mode: trendMode,
+      bucketForOrganization:
+        trendMode === "compare" ? comparisonBucketByOrg : new Map<string, string>(),
+      bucketNames: comparisonBucketNames,
+      limit: comparisonMode === "coordinator" ? 5 : 8,
     });
-  };
+  }, [
+    comparisonBucketByOrg,
+    comparisonBucketNames,
+    comparisonMode,
+    filteredAggregates,
+    selectedDetailGroup,
+    trendMode,
+  ]);
 
-  const chartData = useMemo(() => {
-    const totalsByIndicator = new Map<string, number>();
-    for (const agg of filteredAggregates) {
-      const value = parseAggregateValue(agg.value);
-      const male = Number(value.male) || 0;
-      const female = Number(value.female) || 0;
-      const total =
-        value.total !== undefined
-          ? Number(value.total) || 0
-          : male + female;
-      const indicatorName =
-        agg.indicator_name ||
-        indicatorNameById.get(String(agg.indicator)) ||
-        "Indicator";
-      totalsByIndicator.set(
-        indicatorName,
-        (totalsByIndicator.get(indicatorName) || 0) + total,
-      );
-    }
-    return Array.from(totalsByIndicator.entries()).map(([name, total]) => ({
-      name,
-      total,
-    }));
-  }, [filteredAggregates, indicatorNameById]);
+  const disaggregateBreakdownData = useMemo(() => {
+    if (!selectedDetailGroup) return [];
+    return buildDisaggregateBreakdownData({
+      disaggregates: selectedDetailGroup.disaggregates,
+      indicatorGroups: getIndicatorDisaggregateGroups(selectedDetailGroup.indicator?.sub_labels),
+      mode: breakdownMode,
+    });
+  }, [breakdownMode, selectedDetailGroup]);
+
+  const cascadeData = useMemo(
+    () =>
+      buildCascadeData(
+        dashboardGroups.map((group) => ({
+          indicatorName: group.indicatorName,
+          totalValue: group.totalValue,
+        })),
+        selectedCascadeId,
+      ),
+    [dashboardGroups, selectedCascadeId],
+  );
+
+  const messageBreakdownData = useMemo(
+    () =>
+      dashboardGroups
+        .filter((group) => {
+          const normalized = normalizeText(group.indicatorName);
+          return (
+            normalized.includes("message") ||
+            normalized.includes("screening") ||
+            normalized.includes("screened")
+          );
+        })
+        .map((group) => ({
+          name: group.indicatorName,
+          total: group.totalValue,
+        }))
+        .sort((left, right) => right.total - left.total)
+        .slice(0, 8),
+    [dashboardGroups],
+  );
+
+  const selectedComplianceDetails = useMemo(() => {
+    if (!complianceSelection) return [];
+    const matched = complianceData.find((item) => item.id === complianceSelection.coordinatorId);
+    return matched?.details[complianceSelection.status] || [];
+  }, [complianceData, complianceSelection]);
+
+  const selectedDetailMatrix = useMemo(() => {
+    if (!selectedDetailGroup?.disaggregates) return null;
+    const indicatorGroups = getIndicatorDisaggregateGroups(
+      selectedDetailGroup.indicator?.sub_labels,
+    );
+    return {
+      ...buildDisplayMatrix(selectedDetailGroup.disaggregates, indicatorGroups),
+      primaryDisaggregateLabel: getPrimaryDisaggregateLabel(
+        selectedDetailGroup.indicator?.sub_labels,
+      ),
+    };
+  }, [selectedDetailGroup]);
+
+  const selectedDetailMatrixMax = useMemo(() => {
+    if (!selectedDetailMatrix) return 0;
+    let maxValue = 0;
+    selectedDetailMatrix.keyPops.forEach((kp) => {
+      selectedDetailMatrix.secondDimensionValues.forEach((dimension) => {
+        selectedDetailMatrix.ageBands.forEach((band) => {
+          maxValue = Math.max(
+            maxValue,
+            toSafeNumber(selectedDetailMatrix.matrix[kp]?.[dimension]?.[band]),
+          );
+        });
+      });
+    });
+    return maxValue;
+  }, [selectedDetailMatrix]);
 
   const resetForm = () => {
     setFormProject("");
     setFormIndicator("");
-    setFormOrganization("");
+    setFormOrganization(defaultOwnOrganizationValue);
     setFormTemplate("all");
     setFormPeriodStart("");
     setFormPeriodEnd("");
@@ -1375,27 +2082,57 @@ export default function AggregatesPage() {
     setMatrixValues(buildEmptyMatrix());
   };
 
-  const downloadChartSvg = () => {
-    const container = chartRef.current;
-    if (!container) return;
+  const serializeChartSvg = (container: HTMLDivElement | null) => {
+    if (!container) return null;
     const svg = container.querySelector("svg");
-    if (!svg) return;
-
+    if (!svg) return null;
     const cloned = svg.cloneNode(true) as SVGSVGElement;
     if (!cloned.getAttribute("xmlns")) {
       cloned.setAttribute("xmlns", "http://www.w3.org/2000/svg");
     }
-    const serializer = new XMLSerializer();
-    const svgText = serializer.serializeToString(cloned);
+    return new XMLSerializer().serializeToString(cloned);
+  };
+
+  const downloadChartSvg = (container: HTMLDivElement | null, filename: string) => {
+    const svgText = serializeChartSvg(container);
+    if (!svgText) return;
     const blob = new Blob([svgText], { type: "image/svg+xml;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `aggregates_chart_${new Date().toISOString().slice(0, 10)}.svg`;
+    link.download = `${filename}_${new Date().toISOString().slice(0, 10)}.svg`;
     document.body.appendChild(link);
     link.click();
     link.remove();
     URL.revokeObjectURL(url);
+  };
+
+  const downloadChartPng = async (container: HTMLDivElement | null, filename: string) => {
+    const svgText = serializeChartSvg(container);
+    if (!svgText) return;
+    const svgBlob = new Blob([svgText], { type: "image/svg+xml;charset=utf-8" });
+    const url = URL.createObjectURL(svgBlob);
+    const image = new Image();
+    image.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = image.width || 1200;
+      canvas.height = image.height || 720;
+      const context = canvas.getContext("2d");
+      if (context) {
+        context.fillStyle = "#ffffff";
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        context.drawImage(image, 0, 0);
+        const pngUrl = canvas.toDataURL("image/png");
+        const link = document.createElement("a");
+        link.href = pngUrl;
+        link.download = `${filename}_${new Date().toISOString().slice(0, 10)}.png`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+      }
+      URL.revokeObjectURL(url);
+    };
+    image.src = url;
   };
 
   const templateIndicatorOptions = useMemo(() => {
@@ -1422,103 +2159,6 @@ export default function AggregatesPage() {
     if (!useMatrixEntry) return 0;
     let total = 0;
     for (const kp of keyPopulations) {
-
-    for (const kp of selectedDisaggregates) {
-      for (const sex of ["Male", "Female"]) {
-        for (const band of matrixAgeBands) {
-          const value = parseNumber(matrixValues[kp]?.[sex]?.[band] ?? "");
-          if (value !== undefined) total += value;
-        }
-      }
-    }
-    return total;
-  }, [matrixValues, useMatrixEntry]);
-  }, [matrixValues, selectedDisaggregates, useMatrixEntry]);
-
-  const handleSave = async () => {
-    if (!formProject || !formIndicator || !formOrganization || !formPeriodStart || !formPeriodEnd) {
-      toast({
-        title: "Missing required fields",
-        description: "Project, indicator, organization, and period dates are required.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const male = !useMatrixEntry ? parseNumber(formMale) : undefined;
-    const female = !useMatrixEntry ? parseNumber(formFemale) : undefined;
-
-
-    if (useMatrixEntry && selectedDisaggregates.length === 0) {
-      toast({
-        title: "Missing disaggregate selection",
-        description: "Select at least one disaggregate category.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (useMatrixEntry && matrixTotal === 0) {
-      toast({
-        title: "Missing value",
-        description: "Enter at least one value in the disaggregate matrix.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!useMatrixEntry && male === undefined && female === undefined) {
-      toast({
-        title: "Missing value",
-        description: "Provide at least one of male or female values.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const valuePayload: AggregateValue = {
-      total: useMatrixEntry
-        ? matrixTotal
-        : (male ?? 0) + (female ?? 0),
-    };
-    if (!useMatrixEntry && male !== undefined) valuePayload.male = male;
-    if (!useMatrixEntry && female !== undefined) valuePayload.female = female;
-    if (useMatrixEntry) {
-      const matrixPayload: Record<string, Record<string, Record<string, number | undefined>>> = {};
-      for (const kp of selectedDisaggregates) {
-        matrixPayload[kp] = { Male: {}, Female: {} };
-        for (const band of matrixAgeBands) {
-          matrixPayload[kp].Male[band] = parseNumber(matrixValues[kp]?.Male?.[band] ?? "");
-          matrixPayload[kp].Female[band] = parseNumber(matrixValues[kp]?.Female?.[band] ?? "");
-        }
-      }
-      valuePayload.disaggregates = matrixPayload;
-    }
-
-  const templateIndicatorOptions = useMemo(() => {
-    if (formTemplate === "all") return indicators;
-    const selected = templates.find((template) => String(template.id) === formTemplate);
-    if (!selected) return indicators;
-    return selected.indicators.map((indicator) => ({
-      id: indicator.id,
-      name: indicator.name,
-      code: indicator.code,
-    }));
-  }, [formTemplate, indicators, templates]);
-
-  const computedTotal = useMemo(() => {
-    if (useMatrixEntry) {
-      return 0;
-    }
-    const male = parseNumber(formMale) ?? 0;
-    const female = parseNumber(formFemale) ?? 0;
-    return male + female;
-  }, [formFemale, formMale, useMatrixEntry]);
-
-  const matrixTotal = useMemo(() => {
-    if (!useMatrixEntry) return 0;
-    let total = 0;
-    for (const kp of keyPopulations) {
       for (const sex of ["Male", "Female"]) {
         for (const band of matrixAgeBands) {
           const value = parseNumber(matrixValues[kp]?.[sex]?.[band] ?? "");
@@ -1555,6 +2195,15 @@ export default function AggregatesPage() {
       toast({
         title: "Missing value",
         description: "Provide at least one of male or female values.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!canReportAcrossOrganizations && !writableOrganizationIds.has(formOrganization)) {
+      toast({
+        title: "Organization restricted",
+        description: "You can only submit aggregate data for your own organization.",
         variant: "destructive",
       });
       return;
@@ -1627,6 +2276,19 @@ export default function AggregatesPage() {
       toast({
         title: "Missing required fields",
         description: "Output, source, project, organization, and period dates are required.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (
+      autoSaveAggregate &&
+      !canReportAcrossOrganizations &&
+      !writableOrganizationIds.has(autoOrganization)
+    ) {
+      toast({
+        title: "Organization restricted",
+        description: "You can only save aggregates for your own organization.",
         variant: "destructive",
       });
       return;
@@ -1712,23 +2374,6 @@ export default function AggregatesPage() {
               <Button variant="outline" onClick={handleExport}>
                 <Download className="mr-2 h-4 w-4" /> Export
               </Button>
-
-              <Button variant="outline" onClick={handleDownloadMakgabanengTemplate}>
-                <Table2 className="mr-2 h-4 w-4" /> Makgabaneng Template
-              </Button>
-              <input
-                ref={importInputRef}
-                type="file"
-                accept=".csv,.xlsx,.xls"
-                className="hidden"
-                onChange={(event) => {
-                  const file = event.target.files?.[0];
-                  if (file) {
-                    void handleImport(file);
-                  }
-                  if (importInputRef.current) {
-                    importInputRef.current.value = "";
-                  }
               <input
                 ref={importInputRef}
                 type="file"
@@ -1758,7 +2403,7 @@ export default function AggregatesPage() {
                     Auto-calculate
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-2xl">
+                <DialogContent className="w-[95vw] max-h-[90vh] overflow-y-auto sm:max-w-2xl">
                   <DialogHeader>
                     <DialogTitle>Auto-calculate Aggregate</DialogTitle>
                     <DialogDescription>
@@ -1786,11 +2431,11 @@ export default function AggregatesPage() {
                     <div className="space-y-2">
                       <Label>Organization</Label>
                       <Select value={autoOrganization} onValueChange={setAutoOrganization}>
-                        <SelectTrigger>
+                        <SelectTrigger disabled={isOrganizationSelectionLocked}>
                           <SelectValue placeholder="Select organization" />
                         </SelectTrigger>
                         <SelectContent>
-                          {organizations.map((org: any) => (
+                          {writableOrganizations.map((org) => (
                             <SelectItem key={org.id} value={String(org.id)}>
                               {org.name}
                             </SelectItem>
@@ -2030,13 +2675,15 @@ export default function AggregatesPage() {
                     </div>
 
                     <div className="space-y-2">
-                                        <Label htmlFor="agg-org">Organization</Label>
-                  <OrganizationSelect
-                    organizations={parentOrganizations}
-                    value={formOrganization}
-                    onChange={setFormOrganization}
-                    placeholder="Select organization"
-                  /></div>
+                      <Label htmlFor="agg-org">Organization</Label>
+                      <OrganizationSelect
+                        organizations={writableOrganizations}
+                        value={formOrganization}
+                        onChange={setFormOrganization}
+                        placeholder="Select organization"
+                        disabled={isOrganizationSelectionLocked}
+                      />
+                    </div>
 
                     <div className="grid gap-4 sm:grid-cols-2">
                       <div className="space-y-2">
@@ -2064,262 +2711,28 @@ export default function AggregatesPage() {
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Checkbox
                           checked={useMatrixEntry}
+                          disabled={matrixToggleDisabled}
                           onCheckedChange={(checked) => setUseMatrixEntry(Boolean(checked))}
                         />
                         Use KP x Sex x Age matrix
                       </div>
-                    </div>
-
-                    {useMatrixEntry ? (
-                      <div className="space-y-3">
-                        <div className="rounded-lg border border-border p-3">
-                          <div className="mb-2 flex items-center justify-between gap-2">
-                            <p className="text-sm font-medium">Select disaggregate categories</p>
-                            <div className="flex gap-2">
-                              <Button type="button" variant="outline" size="sm" onClick={() => setSelectedDisaggregates([...keyPopulations])}>
-                                Select all
-                              </Button>
-                              <Button type="button" variant="outline" size="sm" onClick={() => setSelectedDisaggregates([])}>
-                                Clear
-                              </Button>
-                            </div>
-                          </div>
-                          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                            {keyPopulations.map((kp) => {
-                              const checked = selectedDisaggregates.includes(kp);
-                              return (
-                                <label key={`disagg-option-${kp}`} className="flex items-center gap-2 text-xs">
-                                  <Checkbox
-                                    checked={checked}
-                                    onCheckedChange={(value) => {
-                                      const nextChecked = Boolean(value);
-                                      setSelectedDisaggregates((prev) =>
-                                        nextChecked
-                                          ? (prev.includes(kp) ? prev : [...prev, kp])
-                                          : prev.filter((item) => item !== kp),
-                                      );
-                                    }}
-                                  />
-                                  <span>{kp}</span>
-                                </label>
-                              );
-                            })}
-                          </div>
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          Enter values by selected disaggregate, sex, and age band.
-                        </div>
-                        <div className="overflow-auto rounded-lg border border-border max-h-[55vh]">
-                          <table className="min-w-[960px] w-full border-collapse text-xs [&_td]:border [&_td]:border-border [&_th]:border [&_th]:border-border">
-                            <thead className="bg-muted/50 sticky top-0 z-10">
-                              <tr>
-                                <th className="p-1.5 text-left">Key Population</th>
-                                <th className="p-1.5 text-left">Sex</th>
-                                {matrixAgeBands.map((band) => (
-                                  <th key={band} className="p-1.5 text-center whitespace-nowrap">
-                                    {band}
-                                  </th>
-                                ))}
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {selectedDisaggregates.map((kp) => (
-                                <React.Fragment key={kp}>
-                                  {["Male", "Female"].map((sex) => (
-                                    <tr key={`${kp}-${sex}`} className="border-t border-border">
-                                      <td className="p-1.5 font-medium whitespace-nowrap">{kp}</td>
-                                      <td className="p-1.5 whitespace-nowrap">{sex}</td>
-                                      {matrixAgeBands.map((band) => (
-                                        <td key={`${kp}-${sex}-${band}`} className="p-2">
-                                          <Input
-                                            type="number"
-                                            className="h-8 text-center min-w-[72px]"
-                                            value={matrixValues[kp]?.[sex]?.[band] ?? ""}
-                                            onChange={(event) => {
-                                              const value = event.target.value;
-                                              setMatrixValues((prev) => ({
-                                                ...prev,
-                                                [kp]: {
-                                                  ...prev[kp],
-                                                  [sex]: {
-                                                    ...prev[kp]?.[sex],
-                                                    [band]: value,
-                                                  },
-                                                },
-                                              }));
-                                            }}
-                                          />
-                                        </td>
-                                      ))}
-                                    </tr>
-                                  ))}
-                                </React.Fragment>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          Matrix total: <span className="font-semibold text-foreground">{matrixTotal.toLocaleString()}</span>
-                        </div>
-                      </div>
-                    ) : (
-                    <div className="grid gap-4 sm:grid-cols-3">
-                        <div className="space-y-2">
-                          <Label htmlFor="agg-male">Male</Label>
-                          <Input
-                            id="agg-male"
-                            type="number"
-                            placeholder="0"
-                            value={formMale}
-                            onChange={(event) => setFormMale(event.target.value)}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="agg-female">Female</Label>
-                          <Input
-                            id="agg-female"
-                            type="number"
-                            placeholder="0"
-                            value={formFemale}
-                            onChange={(event) => setFormFemale(event.target.value)}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="agg-total">Total</Label>
-                          <Input
-                            id="agg-total"
-                            type="number"
-                            value={computedTotal}
-                            disabled
-                          />
-                        </div>
-                      </div>
-                    )}
-
-                  if (!open) resetForm();
-                }}
-              >
-                <DialogTrigger asChild>
-                  <Button>
-                    <Plus className="mr-2 h-4 w-4" /> Add Entry
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="fixed inset-0 !top-0 !left-0 !translate-x-0 !translate-y-0 !max-w-none !w-screen !h-screen overflow-hidden rounded-none p-0">
-                  <DialogHeader>
-                    <DialogTitle>Add Aggregate Entry</DialogTitle>
-                    <DialogDescription>
-                      Enter aggregate data for an indicator without individual
-                      respondent tracking
-                    </DialogDescription>
-                  </DialogHeader>
-
-                  <div className="grid gap-4 py-4 px-6 h-[calc(100vh-140px)] overflow-y-auto">
-                    <div className="space-y-2">
-                      <Label htmlFor="agg-project">Project</Label>
-                      <Select value={formProject} onValueChange={setFormProject}>
-                        <SelectTrigger id="agg-project">
-                          <SelectValue placeholder="Select project" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {projects.map((project) => (
-                            <SelectItem key={project.id} value={String(project.id)}>
-                              {project.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="agg-template">Indicator Template</Label>
-                      <Select
-                        value={formTemplate}
-                        onValueChange={(value) => {
-                          setFormTemplate(value);
-                          setFormIndicator("");
-                        }}
-                      >
-                        <SelectTrigger id="agg-template">
-                          <SelectValue placeholder="All indicators" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All indicators</SelectItem>
-                          {templates.map((template) => (
-                            <SelectItem key={template.id} value={String(template.id)}>
-                              {template.name} ({template.indicators?.length ?? 0})
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="agg-indicator">Indicator</Label>
-                      <Select value={formIndicator} onValueChange={setFormIndicator}>
-                        <SelectTrigger id="agg-indicator">
-                          <SelectValue placeholder="Select indicator" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {templateIndicatorOptions.map((indicator) => (
-                            <SelectItem key={indicator.id} value={String(indicator.id)}>
-                              {indicator.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                                        <Label htmlFor="agg-org">Organization</Label>
-                  <OrganizationSelect
-                    organizations={parentOrganizations}
-                    value={formOrganization}
-                    onChange={setFormOrganization}
-                    placeholder="Select organization"
-                  /></div>
-
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <div className="space-y-2">
-                        <Label htmlFor="agg-period-start">Period Start</Label>
-                        <Input
-                          id="agg-period-start"
-                          type="date"
-                          value={formPeriodStart}
-                          onChange={(event) => setFormPeriodStart(event.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="agg-period-end">Period End</Label>
-                        <Input
-                          id="agg-period-end"
-                          type="date"
-                          value={formPeriodEnd}
-                          onChange={(event) => setFormPeriodEnd(event.target.value)}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Disaggregates</Label>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Checkbox
-                          checked={useMatrixEntry}
-                          onCheckedChange={(checked) => setUseMatrixEntry(Boolean(checked))}
-                        />
-                        Use KP x Sex x Age matrix
-                      </div>
+                      {matrixToggleDisabled ? (
+                        <p className="text-xs text-muted-foreground">
+                          This indicator is configured as total-only. Matrix entry is disabled.
+                        </p>
+                      ) : null}
                     </div>
 
                     {useMatrixEntry ? (
                       <div className="space-y-3">
                         <div className="text-sm text-muted-foreground">
-                          Enter values by Key Population, Sex, and Age band.
+                          Enter values by {formPrimaryDisaggregateLabel}, Sex, and Age band.
                         </div>
                         <div className="overflow-auto rounded-lg border border-border max-h-[55vh]">
                           <table className="min-w-[960px] w-full text-xs">
                             <thead className="bg-muted/50 sticky top-0 z-10">
                               <tr>
-                                <th className="p-1.5 text-left">Key Population</th>
+                                <th className="p-1.5 text-left">{formPrimaryDisaggregateLabel}</th>
                                 <th className="p-1.5 text-left">Sex</th>
                                 {matrixAgeBands.map((band) => (
                                   <th key={band} className="p-1.5 text-center whitespace-nowrap">
@@ -2443,11 +2856,7 @@ export default function AggregatesPage() {
             <div className="relative flex-1 max-w-sm">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="Search indicators, project, or organization..."
-
                 placeholder="Search indicators..."
- 
-
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
                 className="pl-9"
@@ -2477,11 +2886,11 @@ export default function AggregatesPage() {
               }}
             >
               <SelectTrigger className="w-full sm:w-[200px]">
-                <SelectValue placeholder="Parent Org" />
+                <SelectValue placeholder="Coordinator" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Parents</SelectItem>
-                {parentOrganizations.map((org) => (
+                <SelectItem value="all">All Coordinators</SelectItem>
+                {availableCoordinatorOrganizations.map((org) => (
                   <SelectItem key={org.id} value={String(org.id)}>
                     {org.name}
                   </SelectItem>
@@ -2495,7 +2904,7 @@ export default function AggregatesPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Organizations</SelectItem>
-                {childOrganizations.map((org) => (
+                {scopedOrganizations.map((org) => (
                   <SelectItem key={org.id} value={String(org.id)}>
                     {org.name}
                   </SelectItem>
@@ -2517,502 +2926,652 @@ export default function AggregatesPage() {
                 ))}
               </SelectContent>
             </Select>
-
-            <Button variant="outline" onClick={resetFilters}>
-              Reset Filters
-            </Button>
-
-            <Select value={keyPopulationFilter} onValueChange={setKeyPopulationFilter}>
-              <SelectTrigger className="w-full sm:w-[220px]">
-                <SelectValue placeholder="Key Population" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Key Populations</SelectItem>
-                {availableKeyPopulations.map((kp) => (
-                  <SelectItem key={kp} value={kp}>
-                    {kp}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={ageFilter} onValueChange={(value) => setAgeFilter(value as "all" | "ayp" | "older")}>
-              <SelectTrigger className="w-full sm:w-[170px]">
-                <SelectValue placeholder="Age" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Ages</SelectItem>
-                <SelectItem value="ayp">AYP (10-24)</SelectItem>
-                <SelectItem value="older">25+ Years</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select value={ageRangeFilter} onValueChange={setAgeRangeFilter}>
-              <SelectTrigger className="w-full sm:w-[170px]">
-                <SelectValue placeholder="Age Range" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Age Ranges</SelectItem>
-                {matrixAgeBands.map((band) => (
-                  <SelectItem key={band} value={band}>
-                    {band}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>Total Entries</CardDescription>
-              <CardTitle className="text-2xl">{filteredAggregates.length}</CardTitle>
-            </CardHeader>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>Male Total</CardDescription>
-              <CardTitle className="text-2xl text-chart-2">
-                {totals.male.toLocaleString()}
-              </CardTitle>
-            </CardHeader>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>Female Total</CardDescription>
-              <CardTitle className="text-2xl text-chart-5">
-                {totals.female.toLocaleString()}
-              </CardTitle>
-            </CardHeader>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>Grand Total</CardDescription>
-              <CardTitle className="text-2xl text-primary">
-                {totals.total.toLocaleString()}
-              </CardTitle>
-            </CardHeader>
-          </Card>
-        </div>
+        <div className="space-y-6">
+          <div className="space-y-1">
+            <h2 className="text-xl font-semibold tracking-tight">Performance Overview</h2>
+            <p className="text-sm text-muted-foreground">
+              Consolidated dashboard for the filtered coordinator and organization scope.
+            </p>
+          </div>
 
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="flex items-center gap-2">
-                  <Table2 className="h-5 w-5" /> Aggregate Data
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
+            <Card className="border-primary/15 bg-gradient-to-br from-primary/10 via-background to-background">
+              <CardHeader className="pb-2">
+                <CardDescription>Total Indicators Reported</CardDescription>
+                <CardTitle className="flex items-center justify-between text-2xl">
+                  {dashboardGroups.length}
+                  <Target className="h-5 w-5 text-primary" />
                 </CardTitle>
-                <CardDescription>Tabular view of all aggregate entries</CardDescription>
-              </div>
-              <Button variant="outline" size="sm" onClick={() => setIsChartOpen(true)}>
-                <BarChart3 className="mr-2 h-4 w-4" /> View Chart
-              </Button>
-            </div>
-          </CardHeader>
-
-          <CardContent>
-            {aggregateGroups.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <Table2 className="h-12 w-12 text-muted-foreground/50 mb-4" />
-                <h3 className="text-lg font-semibold">No data found</h3>
-                <p className="text-muted-foreground mt-1">
-                  Try adjusting your filters or add new entries
+              </CardHeader>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardDescription>Total Organizations Reporting</CardDescription>
+                <CardTitle className="flex items-center justify-between text-2xl">
+                  {new Set(filteredAggregates.map((aggregate) => String(aggregate.organization))).size}
+                  <Building2 className="h-5 w-5 text-chart-1" />
+                </CardTitle>
+              </CardHeader>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardDescription>Grand Total Beneficiaries</CardDescription>
+                <CardTitle className="flex items-center justify-between text-2xl">
+                  {totals.total.toLocaleString()}
+                  <Users2 className="h-5 w-5 text-chart-2" />
+                </CardTitle>
+              </CardHeader>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardDescription>Total Male</CardDescription>
+                <CardTitle className="flex items-center justify-between text-2xl text-chart-2">
+                  {totals.male.toLocaleString()}
+                  <ArrowUpRight className="h-5 w-5" />
+                </CardTitle>
+              </CardHeader>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardDescription>Total Female</CardDescription>
+                <CardTitle className="flex items-center justify-between text-2xl text-chart-5">
+                  {totals.female.toLocaleString()}
+                  <ArrowUpRight className="h-5 w-5" />
+                </CardTitle>
+              </CardHeader>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardDescription>Reporting Compliance</CardDescription>
+                <CardTitle className="flex items-center justify-between text-2xl">
+                  {Math.round(complianceSummary.complianceRate)}%
+                  <CheckCircle2 className="h-5 w-5 text-primary" />
+                </CardTitle>
+                <p className="text-xs text-muted-foreground">
+                  {complianceSummary.submitted + complianceSummary.late} of{" "}
+                  {complianceSummary.expected || 0} org scopes submitted
                 </p>
-              </div>
-            )}
+              </CardHeader>
+            </Card>
+          </div>
 
-            <div className="space-y-6">
-              {aggregateGroups.map((group) => {
-                const agg = group.items[0];
-                const disaggregates = agg ? getDisaggregates(agg.value) : null;
-                const keyPops = getAllKeyPopulations(disaggregates);
-                const projectName =
-                  agg?.project_name ||
-                  projectNameById.get(String(agg?.project)) ||
-                  "Project";
-                const periodLabel = agg ? getPeriodLabel(agg) : "";
-                const totalValue = agg ? parseAggregateValue(agg.value).total ?? 0 : 0;
-                const indicatorCode =
-                  agg?.indicator_code ||
-                  indicatorCodeById.get(String(agg?.indicator)) ||
-                  "";
-
-                if (!disaggregates) {
-                  return (
-                    <div key={group.key} className="rounded-lg border border-border p-4">
-                      <div className="flex flex-wrap items-center justify-between gap-3">
-                        <div>
-                          <p className="text-sm text-muted-foreground">Indicator</p>
-                          <p className="text-base font-semibold">{group.indicatorName}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {group.organizationName} ? {projectName} ? {periodLabel}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-sm text-muted-foreground">Total</p>
-                          <p className="text-xl font-semibold text-primary">
-                            {Number(totalValue).toLocaleString()}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                }
-
-                const sexTotals: Record<"Male" | "Female", Record<string, number>> = {
-                  Male: {},
-                  Female: {},
-                };
-                for (const band of matrixAgeBandCore) {
-                  sexTotals.Male[band] = 0;
-                  sexTotals.Female[band] = 0;
-                }
-                sexTotals.Male["AYP (10-24)"] = 0;
-                sexTotals.Female["AYP (10-24)"] = 0;
-
-                keyPops.forEach((kp) => {
-                  const kpData = disaggregates[kp] || { Male: {}, Female: {} };
-                  (["Male", "Female"] as const).forEach((sex) => {
-                    const values = kpData[sex] || {};
-                    matrixAgeBandCore.forEach((band) => {
-                      sexTotals[sex][band] += values[band] || 0;
-                    });
-                    sexTotals[sex]["AYP (10-24)"] += computeAYP(values);
-                  });
-                });
-
-                const combinedTotals: Record<string, number> = {};
-                matrixAgeBandCore.forEach((band) => {
-                  combinedTotals[band] = (sexTotals.Male[band] || 0) + (sexTotals.Female[band] || 0);
-                });
-                combinedTotals["AYP (10-24)"] =
-                  (sexTotals.Male["AYP (10-24)"] || 0) + (sexTotals.Female["AYP (10-24)"] || 0);
-                const combinedSubTotal = sumBands(combinedTotals);
-                const combinedTotal = combinedSubTotal;
-                const rowSpan = keyPops.length * 2 + 3;
-
-                const chartSeries = keyPops.flatMap((kp) =>
-                  (["Male", "Female"] as const).map((sex) => ({
-                    key: `${kp}__${sex}`,
-                    label: `${kp} ${sex}`,
-                  })),
-                );
-
-                const ageDistributionData = matrixAgeBandCore.map((band) => {
-                  const row: Record<string, string | number> = { name: band };
-                  keyPops.forEach((kp) => {
-                    const kpData = disaggregates[kp] || { Male: {}, Female: {} };
-                    row[`${kp}__Male`] = kpData.Male?.[band] || 0;
-                    row[`${kp}__Female`] = kpData.Female?.[band] || 0;
-                  });
-                  return row;
-                });
-
-                const isGroupChartOpen = groupChartsOpen[group.key] || false;
-
-                return (
-                  <div key={group.key} className="rounded-lg border border-border p-4">
-                    <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-                      <div>
-                        <p className="text-sm text-muted-foreground">Indicator</p>
-                        <p className="text-base font-semibold">
-                          {indicatorCode ? `${indicatorCode} â€” ` : ""}{group.indicatorName}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {group.organizationName} ? {projectName} ? {periodLabel}
-                        </p>
-                      </div>
-                      <Badge variant="outline">Total {Number(totalValue).toLocaleString()}</Badge>
-                    </div>
-
-                    <div className="mb-3 flex justify-end">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          setGroupChartsOpen((prev) => ({
-                            ...prev,
-                            [group.key]: !prev[group.key],
-                          }))
+          <div className="grid gap-6 xl:grid-cols-2">
+            <Card>
+              <CardHeader className="flex flex-row items-start justify-between gap-4">
+                <div>
+                  <CardTitle>Coordinator Comparison</CardTitle>
+                  <CardDescription>
+                    {comparisonMode === "coordinator"
+                      ? "Portfolio totals by coordinator. Click a bar to drill down."
+                      : "Organization comparison inside the selected coordinator."}
+                  </CardDescription>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => downloadChartSvg(comparisonChartRef.current, "aggregates_comparison")}
+                  >
+                    <Download className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => void downloadChartPng(comparisonChartRef.current, "aggregates_comparison")}
+                  >
+                    <ArrowDownToLine className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div ref={comparisonChartRef}>
+                  <ChartContainer
+                    config={{
+                      total: { label: "Total", color: "hsl(var(--primary))" },
+                    }}
+                    className="h-[300px]"
+                  >
+                    <BarChart data={dashboardRollupData.slice(0, comparisonMode === "coordinator" ? 8 : 10)}>
+                      <CartesianGrid vertical={false} />
+                      <XAxis dataKey="name" tickLine={false} axisLine={false} interval={0} angle={-18} textAnchor="end" height={64} />
+                      <YAxis tickLine={false} axisLine={false} />
+                      <ChartTooltip
+                        cursor={false}
+                        content={
+                          <ChartTooltipContent
+                            formatter={(value, name, item) => (
+                              <div className="flex flex-col">
+                                <span className="font-medium">{item?.payload?.name}</span>
+                                <span>Total: {Number(value).toLocaleString()}</span>
+                                <span>Organizations: {item?.payload?.organizations ?? 0}</span>
+                              </div>
+                            )}
+                          />
                         }
-                      >
-                        <BarChart3 className="mr-2 h-4 w-4" />
-                        {isGroupChartOpen ? "Hide graph" : "Create KP/Sex/Age graph"}
-                      </Button>
-                    </div>
+                      />
+                      <Bar
+                        dataKey="total"
+                        radius={[8, 8, 0, 0]}
+                        fill="var(--color-total)"
+                        onClick={(payload) => {
+                          const id = payload?.id ? String(payload.id) : "";
+                          if (!id) return;
+                          if (comparisonMode === "coordinator") {
+                            setParentOrgFilter(id);
+                            setOrgFilter("all");
+                            setComplianceSelection(null);
+                          } else {
+                            setOrgFilter(id);
+                          }
+                        }}
+                      />
+                    </BarChart>
+                  </ChartContainer>
+                </div>
+              </CardContent>
+            </Card>
 
-                    <div className="overflow-auto rounded-lg border border-border">
-                      <table className="min-w-[960px] w-full border-collapse text-xs [&_td]:border [&_td]:border-border [&_th]:border [&_th]:border-border">
-                        <thead className="bg-muted/50">
-                          <tr>
-                            <th className="p-1.5 text-left">Indicator</th>
-                            <th className="p-1.5 text-left">Key Population</th>
-                            <th className="p-1.5 text-left">Age/Sex</th>
-                            {matrixAgeBandCore.map((band) => (
-                              <th key={band} className="p-1.5 text-center whitespace-nowrap">
-                                {band}
-                              </th>
-                            ))}
-                            <th className="p-1.5 text-center whitespace-nowrap">Sub-total</th>
-                            <th className="p-1.5 text-center whitespace-nowrap">TOTAL</th>
-                            <th className="p-1.5 text-center whitespace-nowrap">AYP (10-24)</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {keyPops.map((kp, kpIndex) => {
-                            const kpData = disaggregates[kp] || { Male: {}, Female: {} };
-                            return (
-                              <React.Fragment key={kp}>
-                                {(["Male", "Female"] as const).map((sex) => {
-                                  const values = kpData[sex] || {};
-                                  const subTotal = sumBands(values);
-                                  const ayp = computeAYP(values);
-                                  const total = subTotal;
+            <Card>
+              <CardHeader className="flex flex-row items-start justify-between gap-4">
+                <div>
+                  <CardTitle>Achieved vs Target</CardTitle>
+                  <CardDescription>
+                    Achieved totals compared with configured targets for the current scope.
+                  </CardDescription>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => downloadChartSvg(targetsChartRef.current, "aggregates_targets")}
+                  >
+                    <Download className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => void downloadChartPng(targetsChartRef.current, "aggregates_targets")}
+                  >
+                    <ArrowDownToLine className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div ref={targetsChartRef}>
+                  <ChartContainer
+                    config={{
+                      total: { label: "Achieved", color: "hsl(var(--chart-2))" },
+                      target: { label: "Target", color: "hsl(var(--chart-4))" },
+                    }}
+                    className="h-[300px]"
+                  >
+                    <BarChart data={dashboardRollupData.slice(0, comparisonMode === "coordinator" ? 8 : 10)}>
+                      <CartesianGrid vertical={false} />
+                      <XAxis dataKey="name" tickLine={false} axisLine={false} interval={0} angle={-18} textAnchor="end" height={64} />
+                      <YAxis tickLine={false} axisLine={false} />
+                      <ChartTooltip
+                        cursor={false}
+                        content={
+                          <ChartTooltipContent
+                            formatter={(value, name, item) => (
+                              <div className="flex flex-col">
+                                <span className="font-medium">{item?.payload?.name}</span>
+                                <span>{String(name)}: {Number(value).toLocaleString()}</span>
+                                <span>Achievement: {Math.round(item?.payload?.percentAchieved ?? 0)}%</span>
+                              </div>
+                            )}
+                          />
+                        }
+                      />
+                      <ChartLegend content={<ChartLegendContent />} />
+                      <Bar dataKey="total" fill="var(--color-total)" radius={[6, 6, 0, 0]} />
+                      <Bar dataKey="target" fill="var(--color-target)" radius={[6, 6, 0, 0]}>
+                        <LabelList
+                          dataKey="percentAchieved"
+                          position="top"
+                          formatter={(value: number) => `${Math.round(value)}%`}
+                        />
+                      </Bar>
+                    </BarChart>
+                  </ChartContainer>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid gap-6 xl:grid-cols-2">
+            <Card>
+              <CardHeader className="flex flex-row items-start justify-between gap-4">
+                <div>
+                  <CardTitle>Trend Over Time</CardTitle>
+                  <CardDescription>
+                    Quarter-to-quarter trend for the selected indicator.
+                  </CardDescription>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Select value={detailIndicatorId} onValueChange={setDetailIndicatorId}>
+                    <SelectTrigger className="w-[220px]">
+                      <SelectValue placeholder="Select indicator" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {dashboardGroups.map((group) => (
+                        <SelectItem key={group.indicatorId} value={group.indicatorId}>
+                          {group.indicatorName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select value={trendMode} onValueChange={(value) => setTrendMode(value as "consolidated" | "compare")}>
+                    <SelectTrigger className="w-[160px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="consolidated">Consolidated</SelectItem>
+                      <SelectItem value="compare">Compare Scope</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div ref={trendChartRef}>
+                  <ChartContainer
+                    config={trendData.seriesKeys.reduce<Record<string, { label: string; color: string }>>(
+                      (acc, key, index) => {
+                        acc[key] = {
+                          label:
+                            key === "total"
+                              ? "Total"
+                              : trendData.seriesNames?.get?.(key) || comparisonBucketNames.get(key) || key,
+                          color: dashboardSeriesColors[index % dashboardSeriesColors.length],
+                        };
+                        return acc;
+                      },
+                      {},
+                    )}
+                    className="h-[300px]"
+                  >
+                    <LineChart data={trendData.data}>
+                      <CartesianGrid vertical={false} />
+                      <XAxis dataKey="period" tickLine={false} axisLine={false} />
+                      <YAxis tickLine={false} axisLine={false} />
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <ChartLegend content={<ChartLegendContent />} />
+                      {trendData.seriesKeys.map((key) => (
+                        <Line
+                          key={key}
+                          type="monotone"
+                          dataKey={key}
+                          stroke={`var(--color-${key})`}
+                          strokeWidth={2.5}
+                          dot={{ r: 3 }}
+                          activeDot={{ r: 5 }}
+                        />
+                      ))}
+                    </LineChart>
+                  </ChartContainer>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-start justify-between gap-4">
+                <div>
+                  <CardTitle>Organization Contribution</CardTitle>
+                  <CardDescription>
+                    Contribution by CSO / organization in the current scope. Click a bar to drill down.
+                  </CardDescription>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => downloadChartSvg(contributionChartRef.current, "aggregates_contribution")}
+                  >
+                    <Download className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => void downloadChartPng(contributionChartRef.current, "aggregates_contribution")}
+                  >
+                    <ArrowDownToLine className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div ref={contributionChartRef}>
+                  <ChartContainer
+                    config={{
+                      total: { label: "Contribution", color: "hsl(var(--chart-3))" },
+                    }}
+                    className="h-[300px]"
+                  >
+                    <BarChart data={contributionData} layout="vertical" margin={{ left: 24 }}>
+                      <CartesianGrid horizontal={false} />
+                      <XAxis type="number" tickLine={false} axisLine={false} />
+                      <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} width={140} />
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <Bar
+                        dataKey="total"
+                        fill="var(--color-total)"
+                        radius={[0, 8, 8, 0]}
+                        onClick={(payload) => {
+                          const id = payload?.id ? String(payload.id) : "";
+                          if (!id) return;
+                          const coordinatorId = coordinatorByOrgId.get(id) || id;
+                          setParentOrgFilter(coordinatorId);
+                          setOrgFilter(id);
+                        }}
+                      />
+                    </BarChart>
+                  </ChartContainer>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid gap-6 xl:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Reporting Compliance</CardTitle>
+                <CardDescription>
+                  Compliance summary for {activeCompliancePeriod || "the current scope"}, based on reporting period end dates.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div ref={complianceChartRef}>
+                  <ChartContainer
+                    config={{
+                      submitted: { label: "Submitted on time", color: "hsl(var(--chart-2))" },
+                      late: { label: "Late", color: "hsl(var(--chart-4))" },
+                      missing: { label: "Missing", color: "hsl(var(--destructive))" },
+                    }}
+                    className="h-[300px]"
+                  >
+                    <BarChart data={complianceData}>
+                      <CartesianGrid vertical={false} />
+                      <XAxis dataKey="name" tickLine={false} axisLine={false} interval={0} angle={-16} textAnchor="end" height={62} />
+                      <YAxis tickLine={false} axisLine={false} />
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <ChartLegend content={<ChartLegendContent />} />
+                      <Bar
+                        dataKey="submitted"
+                        stackId="compliance"
+                        fill="var(--color-submitted)"
+                        onClick={(payload) =>
+                          payload?.id &&
+                          setComplianceSelection({
+                            coordinatorId: String(payload.id),
+                            status: "submitted",
+                          })
+                        }
+                      />
+                      <Bar
+                        dataKey="late"
+                        stackId="compliance"
+                        fill="var(--color-late)"
+                        onClick={(payload) =>
+                          payload?.id &&
+                          setComplianceSelection({
+                            coordinatorId: String(payload.id),
+                            status: "late",
+                          })
+                        }
+                      />
+                      <Bar
+                        dataKey="missing"
+                        stackId="compliance"
+                        fill="var(--color-missing)"
+                        onClick={(payload) =>
+                          payload?.id &&
+                          setComplianceSelection({
+                            coordinatorId: String(payload.id),
+                            status: "missing",
+                          })
+                        }
+                      />
+                    </BarChart>
+                  </ChartContainer>
+                </div>
+                <div className="rounded-lg border border-dashed border-border p-3">
+                  <p className="text-sm font-medium">
+                    {complianceSelection
+                      ? `${comparisonBucketNames.get(complianceSelection.coordinatorId) || coordinatorNameById.get(complianceSelection.coordinatorId) || "Scope"} ${complianceSelection.status}`
+                      : "Click a compliance segment to inspect organizations"}
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {selectedComplianceDetails.length > 0
+                      ? selectedComplianceDetails.join(", ")
+                      : "No selected compliance detail yet."}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-start justify-between gap-4">
+                <div>
+                  <CardTitle>Disaggregate Analysis</CardTitle>
+                  <CardDescription>
+                    Sex, age, and primary disaggregate breakdown for the selected indicator.
+                  </CardDescription>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Select value={breakdownMode} onValueChange={(value) => setBreakdownMode(value as "sex" | "age" | "primary")}>
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="age">Age View</SelectItem>
+                      <SelectItem value="sex">Sex View</SelectItem>
+                      <SelectItem value="primary">Disaggregate View</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => downloadChartSvg(breakdownChartRef.current, "aggregates_breakdown")}
+                  >
+                    <Download className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div ref={breakdownChartRef}>
+                  <ChartContainer
+                    config={{
+                      Male: { label: "Male", color: "hsl(var(--chart-1))" },
+                      Female: { label: "Female", color: "hsl(var(--chart-5))" },
+                      Other: { label: "Other", color: "hsl(var(--chart-4))" },
+                      Total: { label: "Total", color: "hsl(var(--primary))" },
+                    }}
+                    className="h-[300px]"
+                  >
+                    <BarChart data={disaggregateBreakdownData}>
+                      <CartesianGrid vertical={false} />
+                      <XAxis dataKey="name" tickLine={false} axisLine={false} interval={0} angle={-16} textAnchor="end" height={62} />
+                      <YAxis tickLine={false} axisLine={false} />
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <ChartLegend content={<ChartLegendContent />} />
+                      {breakdownMode === "sex" ? (
+                        <Bar dataKey="Total" fill="var(--color-Total)" radius={[8, 8, 0, 0]} />
+                      ) : (
+                        <>
+                          <Bar dataKey="Male" stackId="demo" fill="var(--color-Male)" radius={[6, 6, 0, 0]} />
+                          <Bar dataKey="Female" stackId="demo" fill="var(--color-Female)" radius={[6, 6, 0, 0]} />
+                          <Bar dataKey="Other" stackId="demo" fill="var(--color-Other)" radius={[6, 6, 0, 0]} />
+                        </>
+                      )}
+                    </BarChart>
+                  </ChartContainer>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid gap-6 xl:grid-cols-[1.6fr_1fr]">
+            <Card>
+              <CardHeader>
+                <CardTitle>Matrix Detail</CardTitle>
+                <CardDescription>
+                  Heatmap view for {selectedDetailGroup?.indicatorName || "the selected indicator"}.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {!selectedDetailMatrix ? (
+                  <div className="rounded-lg border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
+                    No matrix disaggregation is available for the selected indicator.
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto rounded-lg border border-border">
+                    <table className="min-w-full border-separate border-spacing-0 text-xs">
+                      <thead>
+                        <tr>
+                          <th className="border-b border-r border-border bg-muted/80 px-3 py-2 text-left font-semibold">
+                            {selectedDetailMatrix.primaryDisaggregateLabel}
+                          </th>
+                          <th className="border-b border-r border-border bg-muted/80 px-3 py-2 text-left font-semibold">
+                            Age/Sex
+                          </th>
+                          {selectedDetailMatrix.ageBands.map((band) => (
+                            <th
+                              key={band}
+                              className="border-b border-r border-border bg-muted/80 px-3 py-2 text-center font-semibold"
+                            >
+                              {band}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {selectedDetailMatrix.keyPops.map((kp) => (
+                          <React.Fragment key={kp}>
+                            {selectedDetailMatrix.secondDimensionValues.map((dimension, index) => (
+                              <tr key={`${kp}-${dimension}`}>
+                                {index === 0 ? (
+                                  <td
+                                    rowSpan={selectedDetailMatrix.secondDimensionValues.length}
+                                    className="border-b border-r border-border px-3 py-2 align-top font-medium"
+                                  >
+                                    {kp}
+                                  </td>
+                                ) : null}
+                                <td className="border-b border-r border-border px-3 py-2">
+                                  {dimension}
+                                </td>
+                                {selectedDetailMatrix.ageBands.map((band) => {
+                                  const value = toSafeNumber(
+                                    selectedDetailMatrix.matrix[kp]?.[dimension]?.[band],
+                                  );
                                   return (
-                                    <tr key={`${kp}-${sex}`} className="border-t border-border">
-                                      {kpIndex === 0 && sex === "Male" && (
-                                        <td className="p-1.5 font-medium min-w-[240px]" rowSpan={rowSpan}>
-                                          {group.indicatorName}
-                                        </td>
-                                      )}
-                                      {sex === "Male" ? (
-                                        <td className="p-1.5 font-medium whitespace-nowrap" rowSpan={2}>
-                                          {kp}
-                                        </td>
-                                      ) : null}
-                                      <td className="p-1.5 whitespace-nowrap">{sex}</td>
-                                      {matrixAgeBandCore.map((band) => (
-                                        <td key={`${kp}-${sex}-${band}`} className="p-1.5 text-center">
-                                          {(values[band] || 0).toLocaleString()}
-                                        </td>
-                                      ))}
-                                      <td className="p-1.5 text-center">{subTotal.toLocaleString()}</td>
-                                      <td className="p-1.5 text-center font-semibold">
-                                        {total.toLocaleString()}
-                                      </td>
-                                      <td className="p-1.5 text-center">{ayp.toLocaleString()}</td>
-                                    </tr>
+                                    <td
+                                      key={`${kp}-${dimension}-${band}`}
+                                      className="border-b border-r border-border px-3 py-2 text-center font-medium"
+                                      style={{
+                                        backgroundColor: getHeatColor(
+                                          value,
+                                          selectedDetailMatrixMax,
+                                        ),
+                                      }}
+                                    >
+                                      {value.toLocaleString()}
+                                    </td>
                                   );
                                 })}
-                              </React.Fragment>
-                            );
-                          })}
-                          <tr className="bg-muted/20 font-semibold">
-                            <td className="p-1.5" colSpan={1}>
-                              Sub - total
-                            </td>
-                            {matrixAgeBandCore.map((band) => (
-                              <td key={`sub-${band}`} className="p-1.5 text-center">
-                                {combinedTotals[band].toLocaleString()}
-                              </td>
-                            ))}
-                            <td className="p-1.5 text-center">{combinedSubTotal.toLocaleString()}</td>
-                            <td className="p-1.5 text-center">{combinedTotal.toLocaleString()}</td>
-                            <td className="p-1.5 text-center">{combinedTotals["AYP (10-24)"].toLocaleString()}</td>
-                          </tr>
-                          {(["Male", "Female"] as const).map((sex) => {
-                            const values = sexTotals[sex];
-                            const subTotal = sumBands(values);
-                            const ayp = values["AYP (10-24)"] || 0;
-                            const total = subTotal;
-                            return (
-                              <tr key={`total-${sex}`} className="bg-muted/30 font-semibold">
-                                <td className="p-1.5" colSpan={1}>
-                                  TOTAL {sex.toUpperCase()}
-                                </td>
-                                {matrixAgeBandCore.map((band) => (
-                                  <td key={`total-${sex}-${band}`} className="p-1.5 text-center">
-                                    {values[band].toLocaleString()}
-                                  </td>
-                                ))}
-                                <td className="p-1.5 text-center">{subTotal.toLocaleString()}</td>
-                                <td className="p-1.5 text-center">{total.toLocaleString()}</td>
-                                <td className="p-1.5 text-center">{ayp.toLocaleString()}</td>
                               </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                    </div>
+                            ))}
+                          </React.Fragment>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
-                    {isGroupChartOpen ? (
-                      <div className="mt-4 rounded-lg border border-border p-3">
-                        <p className="mb-1 text-sm font-medium">KP/Sex distribution across age ranges</p>
-                        <p className="mb-3 text-xs text-muted-foreground">Each color represents a key population + sex combination.</p>
-                        <div className="mb-3 flex flex-wrap gap-2">
-                          {chartSeries.map((series, index) => (
-                            <span
-                              key={`legend-${series.key}`}
-                              className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-2 py-1 text-[11px]"
-                            >
-                              <span
-                                className="inline-block h-2.5 w-2.5 rounded-full"
-                                style={{ backgroundColor: chartColors[index % chartColors.length] }}
-                                aria-hidden="true"
-                              />
-                              {series.label}
-                            </span>
+            <div className="space-y-6">
+              <Card>
+                <CardHeader className="flex flex-row items-start justify-between gap-4">
+                  <div>
+                    <CardTitle>Service Cascade</CardTitle>
+                    <CardDescription>Predefined cascade stages built from filtered indicator totals.</CardDescription>
+                  </div>
+                  <Select value={selectedCascadeId} onValueChange={setSelectedCascadeId}>
+                    <SelectTrigger className="w-[210px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {cascadePresets.map((preset) => (
+                        <SelectItem key={preset.id} value={preset.id}>
+                          {preset.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </CardHeader>
+                <CardContent>
+                  <div ref={cascadeChartRef}>
+                    <ChartContainer
+                      config={{
+                        total: { label: "Total", color: "hsl(var(--primary))" },
+                      }}
+                      className="h-[260px]"
+                    >
+                      <FunnelChart>
+                        <ChartTooltip
+                          content={
+                            <ChartTooltipContent
+                              formatter={(value, _name, item) => (
+                                <div className="flex flex-col">
+                                  <span className="font-medium">{item?.payload?.stage}</span>
+                                  <span>Total: {Number(value).toLocaleString()}</span>
+                                  <span>{item?.payload?.indicatorName}</span>
+                                </div>
+                              )}
+                            />
+                          }
+                        />
+                        <Funnel dataKey="total" data={cascadeData} isAnimationActive>
+                          <LabelList position="right" dataKey="stage" fill="hsl(var(--foreground))" stroke="none" />
+                          {cascadeData.map((entry, index) => (
+                            <Cell key={entry.stage} fill={dashboardSeriesColors[index % dashboardSeriesColors.length]} />
                           ))}
-                        </div>
-                        <div className="h-64">
-                          <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={ageDistributionData} margin={{ top: 8, right: 8, left: 0, bottom: 40 }}>
-                              <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                              <XAxis dataKey="name" interval={0} angle={-25} textAnchor="end" height={70} />
-                              <YAxis />
-                              <RechartsTooltip formatter={(value: number) => value.toLocaleString()} />
-                              {chartSeries.map((series, index) => (
-                                <Bar
-                                  key={series.key}
-                                  dataKey={series.key}
-                                  name={series.label}
-                                  fill={chartColors[index % chartColors.length]}
-                                  radius={[3, 3, 0, 0]}
-                                />
-                              ))}
-                            </BarChart>
-                          </ResponsiveContainer>
-                        </div>
-                      </div>
-                    ) : null}
+                        </Funnel>
+                      </FunnelChart>
+                    </ChartContainer>
                   </div>
-                );
-              })}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Message / Category Breakdown</CardTitle>
+                  <CardDescription>
+                    Category-style outputs such as message types and screening-related indicators.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ChartContainer
+                    config={{
+                      total: { label: "Total", color: "hsl(var(--chart-4))" },
+                    }}
+                    className="h-[260px]"
+                  >
+                    <BarChart data={messageBreakdownData} layout="vertical" margin={{ left: 20 }}>
+                      <CartesianGrid horizontal={false} />
+                      <XAxis type="number" tickLine={false} axisLine={false} />
+                      <YAxis dataKey="name" type="category" width={170} tickLine={false} axisLine={false} />
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <Bar dataKey="total" fill="var(--color-total)" radius={[0, 8, 8, 0]} />
+                    </BarChart>
+                  </ChartContainer>
+                </CardContent>
+              </Card>
             </div>
-          </CardContent>
-        </Card>
-
-                        value={formNotes}
-                        onChange={(event) => setFormNotes(event.target.value)}
-                      />
-                    </div>
-                  </div>
-
-                  <DialogFooter>
-                    <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                      Cancel
-                    </Button>
-                    <Button onClick={handleSave} disabled={isSubmitting}>
-                      {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      Save Entry
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-            </div>
-          }
-        />
-
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-1 flex-wrap items-center gap-2">
-            <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Search indicators..."
-                value={searchQuery}
-                onChange={(event) => setSearchQuery(event.target.value)}
-                className="pl-9"
-              />
-            </div>
-
-            <Select value={projectFilter} onValueChange={setProjectFilter}>
-              <SelectTrigger className="w-full sm:w-[180px]">
-                <Filter className="mr-2 h-4 w-4" />{" "}
-                <SelectValue placeholder="Project" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Projects</SelectItem>
-                {projects.map((project) => (
-                  <SelectItem key={project.id} value={String(project.id)}>
-                    {project.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select
-              value={parentOrgFilter}
-              onValueChange={(value) => {
-                setParentOrgFilter(value);
-                setOrgFilter("all");
-              }}
-            >
-              <SelectTrigger className="w-full sm:w-[200px]">
-                <SelectValue placeholder="Parent Org" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Parents</SelectItem>
-                {parentOrganizations.map((org) => (
-                  <SelectItem key={org.id} value={String(org.id)}>
-                    {org.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={orgFilter} onValueChange={setOrgFilter}>
-              <SelectTrigger className="w-full sm:w-[200px]">
-                <SelectValue placeholder="Organization" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Organizations</SelectItem>
-                {childOrganizations.map((org) => (
-                  <SelectItem key={org.id} value={String(org.id)}>
-                    {org.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={periodFilter} onValueChange={setPeriodFilter}>
-              <SelectTrigger className="w-full sm:w-[200px]">
-                <Calendar className="mr-2 h-4 w-4" />{" "}
-                <SelectValue placeholder="Period" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Periods</SelectItem>
-                {periods.map((period) => (
-                  <SelectItem key={period} value={period}>
-                    {period}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>Total Entries</CardDescription>
-              <CardTitle className="text-2xl">{filteredAggregates.length}</CardTitle>
-            </CardHeader>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>Male Total</CardDescription>
-              <CardTitle className="text-2xl text-chart-2">
-                {totals.male.toLocaleString()}
-              </CardTitle>
-            </CardHeader>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>Female Total</CardDescription>
-              <CardTitle className="text-2xl text-chart-5">
-                {totals.female.toLocaleString()}
-              </CardTitle>
-            </CardHeader>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>Grand Total</CardDescription>
-              <CardTitle className="text-2xl text-primary">
-                {totals.total.toLocaleString()}
-              </CardTitle>
-            </CardHeader>
-          </Card>
         </div>
 
         <Card>
@@ -3022,7 +3581,9 @@ export default function AggregatesPage() {
                 <CardTitle className="flex items-center gap-2">
                   <Table2 className="h-5 w-5" /> Aggregate Data
                 </CardTitle>
-                <CardDescription>Tabular view of all aggregate entries</CardDescription>
+                <CardDescription>
+                  Consolidated matrix view arranged by workbook topic across all reporting organizations in the current scope
+                </CardDescription>
               </div>
               <Button variant="outline" size="sm" onClick={() => setIsChartOpen(true)}>
                 <BarChart3 className="mr-2 h-4 w-4" /> View Chart
@@ -3031,7 +3592,7 @@ export default function AggregatesPage() {
           </CardHeader>
 
           <CardContent>
-            {aggregateGroups.length === 0 && (
+            {dashboardGroups.length === 0 && (
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <Table2 className="h-12 w-12 text-muted-foreground/50 mb-4" />
                 <h3 className="text-lg font-semibold">No data found</h3>
@@ -3041,21 +3602,69 @@ export default function AggregatesPage() {
               </div>
             )}
 
-            <div className="space-y-6">
-              {aggregateGroups.map((group) => {
-                const agg = group.items[0];
-                const disaggregates = agg ? getDisaggregates(agg.value) : null;
-                const keyPops = getAllKeyPopulations(disaggregates);
-                const projectName =
-                  agg?.project_name ||
-                  projectNameById.get(String(agg?.project)) ||
-                  "Project";
-                const periodLabel = agg ? getPeriodLabel(agg) : "";
-                const totalValue = agg ? parseAggregateValue(agg.value).total ?? 0 : 0;
-                const indicatorCode =
-                  agg?.indicator_code ||
-                  indicatorCodeById.get(String(agg?.indicator)) ||
-                  "";
+            <div className="space-y-8">
+              {dashboardTopicSections.map((section) => (
+                <section key={section.id} className="space-y-4">
+                  <div className="rounded-xl border border-border bg-muted/20 px-4 py-4">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="space-y-1">
+                        <p className="text-sm font-semibold tracking-wide text-foreground">
+                          {section.label}
+                        </p>
+                        <p className="max-w-3xl text-sm text-muted-foreground">
+                          {section.description}
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge variant="secondary">
+                          {section.groups.length} indicator
+                          {section.groups.length === 1 ? "" : "s"}
+                        </Badge>
+                        <Badge variant="outline">
+                          Topic total {section.totalValue.toLocaleString()}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-6">
+                    {section.groups.map((group) => {
+                const disaggregates = group.disaggregates;
+                const projectNames = Array.from(
+                  new Set(
+                    group.items.map((item) =>
+                      item.project_name ||
+                      projectNameById.get(String(item.project)) ||
+                      "Project",
+                    ),
+                  ),
+                );
+                const organizationNames = Array.from(
+                  new Set(
+                    group.items
+                      .map((item) => item.organization_name || "")
+                      .filter((name) => name.length > 0),
+                  ),
+                );
+                const periodLabels = Array.from(
+                  new Set(group.items.map((item) => getPeriodLabel(item))),
+                );
+                const totalValue = group.items.reduce(
+                  (sum, item) => sum + getAggregateTotal(item),
+                  0,
+                );
+                const contributingOrganizationLabel =
+                  organizationNames.length === 1
+                    ? organizationNames[0]
+                    : `${organizationNames.length} reporting organizations`;
+                const projectLabel =
+                  projectNames.length === 1
+                    ? projectNames[0]
+                    : `${projectNames.length} projects`;
+                const periodLabel =
+                  periodLabels.length === 1
+                    ? periodLabels[0]
+                    : `${periodLabels.length} periods`;
 
                 if (!disaggregates) {
                   return (
@@ -3065,10 +3674,13 @@ export default function AggregatesPage() {
                           <p className="text-sm text-muted-foreground">Indicator</p>
                           <p className="text-base font-semibold">{group.indicatorName}</p>
                           <p className="text-sm text-muted-foreground">
-                            {group.organizationName} ? {projectName} ? {periodLabel}
+                            {scopeOrganizationLabel} | {projectLabel} | {periodLabel}
                           </p>
                         </div>
                         <div className="text-right">
+                          <p className="text-xs text-muted-foreground">
+                            {group.items.length} submissions merged from {contributingOrganizationLabel}
+                          </p>
                           <p className="text-sm text-muted-foreground">Total</p>
                           <p className="text-xl font-semibold text-primary">
                             {Number(totalValue).toLocaleString()}
@@ -3079,103 +3691,228 @@ export default function AggregatesPage() {
                   );
                 }
 
-                const sexTotals: Record<"Male" | "Female", Record<string, number>> = {
-                  Male: {},
-                  Female: {},
-                };
-                for (const band of matrixAgeBandCore) {
-                  sexTotals.Male[band] = 0;
-                  sexTotals.Female[band] = 0;
-                }
-                sexTotals.Male["AYP (10-24)"] = 0;
-                sexTotals.Female["AYP (10-24)"] = 0;
+                const indicator = indicatorById.get(group.indicatorId);
+                const indicatorGroups = getIndicatorDisaggregateGroups(indicator?.sub_labels);
+                const primaryDisaggregateLabel = getPrimaryDisaggregateLabel(indicator?.sub_labels);
+                const {
+                  matrix: displayMatrix,
+                  keyPops: displayKeyPops,
+                  secondDimensionValues,
+                  ageBands,
+                  showAypColumn,
+                } = buildDisplayMatrix(disaggregates, indicatorGroups);
 
-                keyPops.forEach((kp) => {
-                  const kpData = disaggregates[kp] || { Male: {}, Female: {} };
-                  (["Male", "Female"] as const).forEach((sex) => {
-                    const values = kpData[sex] || {};
-                    matrixAgeBandCore.forEach((band) => {
-                      sexTotals[sex][band] += values[band] || 0;
+                const safeDimensions = secondDimensionValues.length ? secondDimensionValues : ["All"];
+                const safeAgeBands = ageBands.length ? ageBands : ["Value"];
+                const dataRowCount = displayKeyPops.length * safeDimensions.length;
+
+                const dimensionTotals: Record<string, Record<string, number>> = {};
+                safeDimensions.forEach((dimension) => {
+                  dimensionTotals[dimension] = {};
+                  safeAgeBands.forEach((band) => {
+                    dimensionTotals[dimension][band] = 0;
+                  });
+                  if (showAypColumn) {
+                    dimensionTotals[dimension][aypBandLabel] = 0;
+                  }
+                });
+
+                displayKeyPops.forEach((kp) => {
+                  const kpData = displayMatrix[kp] || {};
+                  safeDimensions.forEach((dimension) => {
+                    const values = kpData[dimension] || {};
+                    safeAgeBands.forEach((band) => {
+                      dimensionTotals[dimension][band] += toSafeNumber(values[band]);
                     });
-                    sexTotals[sex]["AYP (10-24)"] += computeAYP(values);
+                    if (showAypColumn) {
+                      dimensionTotals[dimension][aypBandLabel] += computeAYP(values);
+                    }
                   });
                 });
 
                 const combinedTotals: Record<string, number> = {};
-                matrixAgeBandCore.forEach((band) => {
-                  combinedTotals[band] = (sexTotals.Male[band] || 0) + (sexTotals.Female[band] || 0);
+                safeAgeBands.forEach((band) => {
+                  combinedTotals[band] = safeDimensions.reduce(
+                    (sum, dimension) => sum + toSafeNumber(dimensionTotals[dimension]?.[band]),
+                    0,
+                  );
                 });
-                combinedTotals["AYP (10-24)"] =
-                  (sexTotals.Male["AYP (10-24)"] || 0) + (sexTotals.Female["AYP (10-24)"] || 0);
-                const combinedSubTotal = sumBands(combinedTotals);
+                if (showAypColumn) {
+                  combinedTotals[aypBandLabel] = safeDimensions.reduce(
+                    (sum, dimension) =>
+                      sum + toSafeNumber(dimensionTotals[dimension]?.[aypBandLabel]),
+                    0,
+                  );
+                }
+                const combinedSubTotal = sumBands(combinedTotals, safeAgeBands);
                 const combinedTotal = combinedSubTotal;
-                const rowSpan = keyPops.length * 2 + 3;
+                const maxCellValue = Math.max(
+                  0,
+                  ...displayKeyPops.flatMap((kp) =>
+                    safeDimensions.flatMap((dimension) =>
+                      safeAgeBands.map((band) =>
+                        toSafeNumber(displayMatrix[kp]?.[dimension]?.[band]),
+                      ),
+                    ),
+                  ),
+                );
 
                 return (
                   <div key={group.key} className="rounded-lg border border-border p-4">
                     <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
                       <div>
                         <p className="text-sm text-muted-foreground">Indicator</p>
-                        <p className="text-base font-semibold">
-                          {indicatorCode ? `${indicatorCode} â€” ` : ""}{group.indicatorName}
-                        </p>
+                        <p className="text-base font-semibold">{group.indicatorName}</p>
                         <p className="text-sm text-muted-foreground">
-                          {group.organizationName} ? {projectName} ? {periodLabel}
+                          {scopeOrganizationLabel} | {projectLabel} | {periodLabel}
                         </p>
                       </div>
-                      <Badge variant="outline">Total {Number(totalValue).toLocaleString()}</Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="secondary">{group.items.length} submissions merged</Badge>
+                        <Badge variant="secondary">
+                          {organizationNames.length} contributing org
+                          {organizationNames.length === 1 ? "" : "s"}
+                        </Badge>
+                        <Badge variant="outline">Total {Number(totalValue).toLocaleString()}</Badge>
+                      </div>
                     </div>
 
-                    <div className="overflow-auto rounded-lg border border-border">
-                      <table className="min-w-[960px] w-full text-xs">
-                        <thead className="bg-muted/50">
+                    <div className="w-full overflow-x-auto overflow-y-auto rounded-lg border border-border max-h-[68vh]">
+                      <table className="w-max min-w-full border-separate border-spacing-0 text-xs">
+                        <thead>
                           <tr>
-                            <th className="p-1.5 text-left">Indicator</th>
-                            <th className="p-1.5 text-left">Key Population</th>
-                            <th className="p-1.5 text-left">Age/Sex</th>
-                            {matrixAgeBandCore.map((band) => (
-                              <th key={band} className="p-1.5 text-center whitespace-nowrap">
+                            <th
+                              className="sticky top-0 z-40 border-b border-r border-border bg-muted/90 px-2 py-2 text-center font-semibold"
+                              style={{
+                                minWidth: matrixColumnWidths.indicator,
+                                width: matrixColumnWidths.indicator,
+                              }}
+                            >
+                              Indicator
+                            </th>
+                            <th
+                              className="sticky top-0 z-40 border-b border-r border-border bg-muted/90 px-2 py-2 text-left font-semibold"
+                              style={{
+                                minWidth: matrixColumnWidths.keyPopulation,
+                                width: matrixColumnWidths.keyPopulation,
+                              }}
+                            >
+                              {primaryDisaggregateLabel}
+                            </th>
+                            <th
+                              className="sticky top-0 z-40 border-b border-r border-border bg-muted/90 px-2 py-2 text-left font-semibold"
+                              style={{
+                                minWidth: matrixColumnWidths.ageSex,
+                                width: matrixColumnWidths.ageSex,
+                              }}
+                            >
+                              Age/Sex
+                            </th>
+                            {safeAgeBands.map((band) => (
+                              <th
+                                key={band}
+                                className="sticky top-0 z-30 border-b border-r border-border bg-muted/90 px-2 py-2 text-center font-semibold whitespace-nowrap"
+                                style={{ minWidth: matrixColumnWidths.metric, width: matrixColumnWidths.metric }}
+                              >
                                 {band}
                               </th>
                             ))}
-                            <th className="p-1.5 text-center whitespace-nowrap">Sub-total</th>
-                            <th className="p-1.5 text-center whitespace-nowrap">TOTAL</th>
-                            <th className="p-1.5 text-center whitespace-nowrap">AYP (10-24)</th>
+                            <th
+                              className="sticky top-0 z-30 border-b border-r border-border bg-muted/90 px-2 py-2 text-center font-semibold whitespace-nowrap"
+                              style={{ minWidth: matrixColumnWidths.metric, width: matrixColumnWidths.metric }}
+                            >
+                              Sub-total
+                            </th>
+                            <th
+                              className="sticky top-0 z-30 border-b border-r border-border bg-muted/90 px-2 py-2 text-center font-semibold whitespace-nowrap"
+                              style={{ minWidth: matrixColumnWidths.metric, width: matrixColumnWidths.metric }}
+                            >
+                              TOTAL
+                            </th>
+                            {showAypColumn ? (
+                              <th
+                                className="sticky top-0 z-30 border-b border-r border-border bg-muted/90 px-2 py-2 text-center font-semibold whitespace-nowrap"
+                                style={{ minWidth: matrixColumnWidths.metric, width: matrixColumnWidths.metric }}
+                              >
+                                {aypBandLabel}
+                              </th>
+                            ) : null}
                           </tr>
                         </thead>
                         <tbody>
-                          {keyPops.map((kp, kpIndex) => {
-                            const kpData = disaggregates[kp] || { Male: {}, Female: {} };
+                          {displayKeyPops.map((kp, kpIndex) => {
+                            const kpData = displayMatrix[kp] || {};
                             return (
                               <React.Fragment key={kp}>
-                                {(["Male", "Female"] as const).map((sex) => {
-                                  const values = kpData[sex] || {};
-                                  const subTotal = sumBands(values);
-                                  const ayp = computeAYP(values);
+                                {safeDimensions.map((dimension, dimensionIndex) => {
+                                  const values = kpData[dimension] || {};
+                                  const subTotal = sumBands(values, safeAgeBands);
+                                  const ayp = showAypColumn ? computeAYP(values) : 0;
                                   const total = subTotal;
+                                  const rowIndex = kpIndex * safeDimensions.length + dimensionIndex;
+                                  const rowBaseClass = rowIndex % 2 === 0 ? "bg-background" : "bg-muted/10";
                                   return (
-                                    <tr key={`${kp}-${sex}`} className="border-t border-border">
-                                      {kpIndex === 0 && sex === "Male" && (
-                                        <td className="p-1.5 font-medium min-w-[240px]" rowSpan={rowSpan}>
-                                          {group.indicatorName}
+                                    <tr key={`${kp}-${dimension}`} className={rowBaseClass}>
+                                      {kpIndex === 0 && dimensionIndex === 0 && (
+                                        <td
+                                          className="border-b border-r border-border bg-background px-2 py-2 align-middle text-center font-medium"
+                                          rowSpan={dataRowCount}
+                                          style={{
+                                            minWidth: matrixColumnWidths.indicator,
+                                            width: matrixColumnWidths.indicator,
+                                          }}
+                                        >
+                                          <span className="block whitespace-normal break-words leading-snug text-center">
+                                            {group.indicatorName}
+                                          </span>
                                         </td>
                                       )}
-                                      {sex === "Male" ? (
-                                        <td className="p-1.5 font-medium whitespace-nowrap" rowSpan={2}>
+                                      {dimensionIndex === 0 ? (
+                                        <td
+                                          className={`border-b border-r border-border px-2 py-2 align-top font-medium whitespace-normal break-words ${rowBaseClass}`}
+                                          rowSpan={safeDimensions.length}
+                                          style={{
+                                            minWidth: matrixColumnWidths.keyPopulation,
+                                            width: matrixColumnWidths.keyPopulation,
+                                          }}
+                                        >
                                           {kp}
                                         </td>
                                       ) : null}
-                                      <td className="p-1.5 whitespace-nowrap">{sex}</td>
-                                      {matrixAgeBandCore.map((band) => (
-                                        <td key={`${kp}-${sex}-${band}`} className="p-1.5 text-center">
-                                          {(values[band] || 0).toLocaleString()}
+                                      <td
+                                        className={`border-b border-r border-border px-2 py-2 whitespace-normal break-words ${rowBaseClass}`}
+                                        style={{
+                                          minWidth: matrixColumnWidths.ageSex,
+                                          width: matrixColumnWidths.ageSex,
+                                        }}
+                                      >
+                                        {dimension}
+                                      </td>
+                                      {safeAgeBands.map((band) => (
+                                        <td
+                                          key={`${kp}-${dimension}-${band}`}
+                                          className={`border-b border-r border-border px-2 py-2 text-center ${rowBaseClass}`}
+                                          style={{
+                                            backgroundColor: getHeatColor(
+                                              toSafeNumber(values[band]),
+                                              maxCellValue,
+                                            ),
+                                          }}
+                                        >
+                                          {toSafeNumber(values[band]).toLocaleString()}
                                         </td>
                                       ))}
-                                      <td className="p-1.5 text-center">{subTotal.toLocaleString()}</td>
-                                      <td className="p-1.5 text-center font-semibold">
+                                      <td className={`border-b border-r border-border px-2 py-2 text-center ${rowBaseClass}`}>
+                                        {subTotal.toLocaleString()}
+                                      </td>
+                                      <td className={`border-b border-r border-border px-2 py-2 text-center font-semibold ${rowBaseClass}`}>
                                         {total.toLocaleString()}
                                       </td>
-                                      <td className="p-1.5 text-center">{ayp.toLocaleString()}</td>
+                                      {showAypColumn ? (
+                                        <td className={`border-b border-r border-border px-2 py-2 text-center ${rowBaseClass}`}>
+                                          {ayp.toLocaleString()}
+                                        </td>
+                                      ) : null}
                                     </tr>
                                   );
                                 })}
@@ -3183,36 +3920,92 @@ export default function AggregatesPage() {
                             );
                           })}
                           <tr className="bg-muted/20 font-semibold">
-                            <td className="p-1.5" colSpan={1}>
-                              Sub - total
+                            <td
+                              className="border-b border-r border-border bg-muted/20 px-2 py-2"
+                              style={{
+                                minWidth: matrixColumnWidths.indicator,
+                                width: matrixColumnWidths.indicator,
+                              }}
+                            >
+                              Sub-total
                             </td>
-                            {matrixAgeBandCore.map((band) => (
-                              <td key={`sub-${band}`} className="p-1.5 text-center">
+                            <td
+                              className="border-b border-r border-border bg-muted/20 px-2 py-2 whitespace-normal break-words"
+                              style={{
+                                minWidth: matrixColumnWidths.keyPopulation,
+                                width: matrixColumnWidths.keyPopulation,
+                              }}
+                            >
+                              All
+                            </td>
+                            <td
+                              className="border-b border-r border-border bg-muted/20 px-2 py-2 whitespace-normal break-words"
+                              style={{
+                                minWidth: matrixColumnWidths.ageSex,
+                                width: matrixColumnWidths.ageSex,
+                              }}
+                            >
+                              -
+                            </td>
+                            {safeAgeBands.map((band) => (
+                              <td key={`sub-${band}`} className="border-b border-r border-border px-2 py-2 text-center">
                                 {combinedTotals[band].toLocaleString()}
                               </td>
                             ))}
-                            <td className="p-1.5 text-center">{combinedSubTotal.toLocaleString()}</td>
-                            <td className="p-1.5 text-center">{combinedTotal.toLocaleString()}</td>
-                            <td className="p-1.5 text-center">{combinedTotals["AYP (10-24)"].toLocaleString()}</td>
+                            <td className="border-b border-r border-border px-2 py-2 text-center">{combinedSubTotal.toLocaleString()}</td>
+                            <td className="border-b border-r border-border px-2 py-2 text-center">{combinedTotal.toLocaleString()}</td>
+                            {showAypColumn ? (
+                              <td className="border-b border-r border-border px-2 py-2 text-center">
+                                {toSafeNumber(combinedTotals[aypBandLabel]).toLocaleString()}
+                              </td>
+                            ) : null}
                           </tr>
-                          {(["Male", "Female"] as const).map((sex) => {
-                            const values = sexTotals[sex];
-                            const subTotal = sumBands(values);
-                            const ayp = values["AYP (10-24)"] || 0;
+                          {safeDimensions.map((dimension) => {
+                            const values = dimensionTotals[dimension] || {};
+                            const subTotal = sumBands(values, safeAgeBands);
+                            const ayp = toSafeNumber(values[aypBandLabel]);
                             const total = subTotal;
                             return (
-                              <tr key={`total-${sex}`} className="bg-muted/30 font-semibold">
-                                <td className="p-1.5" colSpan={1}>
-                                  TOTAL {sex.toUpperCase()}
+                              <tr key={`total-${dimension}`} className="bg-muted/30 font-semibold">
+                                <td
+                                  className="border-b border-r border-border bg-muted/30 px-2 py-2"
+                                  style={{
+                                    minWidth: matrixColumnWidths.indicator,
+                                    width: matrixColumnWidths.indicator,
+                                  }}
+                                >
+                                  TOTAL
                                 </td>
-                                {matrixAgeBandCore.map((band) => (
-                                  <td key={`total-${sex}-${band}`} className="p-1.5 text-center">
-                                    {values[band].toLocaleString()}
+                                <td
+                                  className="border-b border-r border-border bg-muted/30 px-2 py-2 whitespace-normal break-words"
+                                  style={{
+                                    minWidth: matrixColumnWidths.keyPopulation,
+                                    width: matrixColumnWidths.keyPopulation,
+                                  }}
+                                >
+                                  All
+                                </td>
+                                <td
+                                  className="border-b border-r border-border bg-muted/30 px-2 py-2 whitespace-normal break-words"
+                                  style={{
+                                    minWidth: matrixColumnWidths.ageSex,
+                                    width: matrixColumnWidths.ageSex,
+                                  }}
+                                >
+                                  {dimension}
+                                </td>
+                                {safeAgeBands.map((band) => (
+                                  <td key={`total-${dimension}-${band}`} className="border-b border-r border-border px-2 py-2 text-center">
+                                    {toSafeNumber(values[band]).toLocaleString()}
                                   </td>
                                 ))}
-                                <td className="p-1.5 text-center">{subTotal.toLocaleString()}</td>
-                                <td className="p-1.5 text-center">{total.toLocaleString()}</td>
-                                <td className="p-1.5 text-center">{ayp.toLocaleString()}</td>
+                                <td className="border-b border-r border-border px-2 py-2 text-center">{subTotal.toLocaleString()}</td>
+                                <td className="border-b border-r border-border px-2 py-2 text-center">{total.toLocaleString()}</td>
+                                {showAypColumn ? (
+                                  <td className="border-b border-r border-border px-2 py-2 text-center">
+                                    {ayp.toLocaleString()}
+                                  </td>
+                                ) : null}
                               </tr>
                             );
                           })}
@@ -3221,7 +4014,10 @@ export default function AggregatesPage() {
                     </div>
                   </div>
                 );
-              })}
+                    })}
+                  </div>
+                </section>
+              ))}
             </div>
           </CardContent>
         </Card>
@@ -3235,7 +4031,11 @@ export default function AggregatesPage() {
               </DialogDescription>
             </DialogHeader>
             <div className="flex justify-end">
-              <Button variant="outline" size="sm" onClick={downloadChartSvg}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => downloadChartSvg(chartRef.current, "aggregates_indicator_totals")}
+              >
                 <Download className="mr-2 h-4 w-4" />
                 Download Chart
               </Button>
@@ -3288,3 +4088,5 @@ export default function AggregatesPage() {
     </Suspense>
   );
 }
+
+

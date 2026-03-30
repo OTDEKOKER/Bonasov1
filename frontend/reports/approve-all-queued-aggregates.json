@@ -1,0 +1,17 @@
+{
+  "user": {
+    "id": 5,
+    "username": "admin"
+  },
+  "before": {
+    "approved": 2309,
+    "pending": 974
+  },
+  "approved_from_pending": 974,
+  "approved_from_reviewed": 0,
+  "review_history_created": 974,
+  "approve_history_created": 974,
+  "after": {
+    "approved": 3283
+  }
+}

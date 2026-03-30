@@ -1,7 +1,8 @@
 ﻿"use client";
 
 import { useMemo, useState } from "react";
-import { Plus, Search, Filter, Download, Trash2, FileUp, RefreshCcw } from "lucide-react";
+import { Plus, Search, Download, Trash2, FileUp, RefreshCcw, FileSpreadsheet } from "lucide-react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -64,7 +65,7 @@ export default function UploadsPage() {
   const { data: orgsData } = useAllOrganizations();
   const { data: importJobsData, mutate: mutateImports } = useImportJobs();
 
-  const uploads = uploadsData?.results || [];
+  const uploads = useMemo(() => uploadsData?.results ?? [], [uploadsData?.results]);
   const organizations = orgsData?.results || [];
   const importJobs = importJobsData?.results || [];
 
@@ -175,92 +176,101 @@ export default function UploadsPage() {
         title="Uploads"
         description="Upload aggregates templates, reports, and supporting files."
         actions={
-          <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="gap-2">
-                <Plus className="h-4 w-4" />
-                New Upload
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-h-[80vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>New Upload</DialogTitle>
-                <DialogDescription>Attach files for reports, templates, or datasets.</DialogDescription>
-              </DialogHeader>
+          <div className="flex flex-wrap gap-2">
+            <Button asChild variant="outline" className="gap-2">
+              <Link href="/report-workbooks/">
+                <FileSpreadsheet className="h-4 w-4" />
+                Excel Workbook Flow
+              </Link>
+            </Button>
 
-              <div className="grid gap-4">
-                <div className="grid gap-2">
-                  <Label>Name *</Label>
-                  <Input
-                    value={uploadForm.name}
-                    onChange={(e) => setUploadForm({ ...uploadForm, name: e.target.value })}
-                    placeholder="e.g. Q3 Aggregates Template"
-                  />
-                </div>
-
-                <div className="grid gap-2">
-                  <Label>Description</Label>
-                  <Input
-                    value={uploadForm.description}
-                    onChange={(e) => setUploadForm({ ...uploadForm, description: e.target.value })}
-                    placeholder="Notes about this file"
-                  />
-                </div>
-
-                                <div className="grid gap-2">
-                  <Label>Organization</Label>
-                  <OrganizationSelect
-                    organizations={organizations}
-                    value={uploadForm.organization}
-                    onChange={(value) => setUploadForm({ ...uploadForm, organization: value })}
-                    includeNone
-                    noneLabel="General / none"
-                    placeholder="Select organization"
-                  />
-                </div>
-
-                <div className="grid gap-2">
-                  <Label>Linked Content Type (optional)</Label>
-                  <Input
-                    value={uploadForm.content_type}
-                    onChange={(e) => setUploadForm({ ...uploadForm, content_type: e.target.value })}
-                    placeholder="e.g. aggregates.Aggregate"
-                  />
-                </div>
-
-                <div className="grid gap-2">
-                  <Label>Linked Object ID (optional)</Label>
-                  <Input
-                    value={uploadForm.object_id}
-                    onChange={(e) => setUploadForm({ ...uploadForm, object_id: e.target.value })}
-                    placeholder="e.g. 123"
-                  />
-                </div>
-
-                <div className="grid gap-2">
-                  <Label>File *</Label>
-                  <Input
-                    type="file"
-                    onChange={(e) =>
-                      setUploadForm({
-                        ...uploadForm,
-                        file: e.target.files ? e.target.files[0] : null,
-                      })
-                    }
-                  />
-                </div>
-              </div>
-
-              <DialogFooter className="pt-2">
-                <Button variant="outline" onClick={() => setIsUploadDialogOpen(false)}>
-                  Cancel
+            <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  New Upload
                 </Button>
-                <Button onClick={handleUpload} disabled={isSubmitting}>
-                  {isSubmitting ? "Uploading..." : "Upload"}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+              </DialogTrigger>
+              <DialogContent className="max-h-[80vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>New Upload</DialogTitle>
+                  <DialogDescription>Attach files for reports, templates, or datasets.</DialogDescription>
+                </DialogHeader>
+
+                <div className="grid gap-4">
+                  <div className="grid gap-2">
+                    <Label>Name *</Label>
+                    <Input
+                      value={uploadForm.name}
+                      onChange={(e) => setUploadForm({ ...uploadForm, name: e.target.value })}
+                      placeholder="e.g. Q3 Aggregates Template"
+                    />
+                  </div>
+
+                  <div className="grid gap-2">
+                    <Label>Description</Label>
+                    <Input
+                      value={uploadForm.description}
+                      onChange={(e) => setUploadForm({ ...uploadForm, description: e.target.value })}
+                      placeholder="Notes about this file"
+                    />
+                  </div>
+
+                  <div className="grid gap-2">
+                    <Label>Organization</Label>
+                    <OrganizationSelect
+                      organizations={organizations}
+                      value={uploadForm.organization}
+                      onChange={(value) => setUploadForm({ ...uploadForm, organization: value })}
+                      includeNone
+                      noneLabel="General / none"
+                      placeholder="Select organization"
+                    />
+                  </div>
+
+                  <div className="grid gap-2">
+                    <Label>Linked Content Type (optional)</Label>
+                    <Input
+                      value={uploadForm.content_type}
+                      onChange={(e) => setUploadForm({ ...uploadForm, content_type: e.target.value })}
+                      placeholder="e.g. aggregates.Aggregate"
+                    />
+                  </div>
+
+                  <div className="grid gap-2">
+                    <Label>Linked Object ID (optional)</Label>
+                    <Input
+                      value={uploadForm.object_id}
+                      onChange={(e) => setUploadForm({ ...uploadForm, object_id: e.target.value })}
+                      placeholder="e.g. 123"
+                    />
+                  </div>
+
+                  <div className="grid gap-2">
+                    <Label>File *</Label>
+                    <Input
+                      type="file"
+                      onChange={(e) =>
+                        setUploadForm({
+                          ...uploadForm,
+                          file: e.target.files ? e.target.files[0] : null,
+                        })
+                      }
+                    />
+                  </div>
+                </div>
+
+                <DialogFooter className="pt-2">
+                  <Button variant="outline" onClick={() => setIsUploadDialogOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleUpload} disabled={isSubmitting}>
+                    {isSubmitting ? "Uploading..." : "Upload"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
         }
       />
 
@@ -406,7 +416,12 @@ export default function UploadsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Import Jobs</CardTitle>
+          <div className="flex items-center justify-between gap-2">
+            <CardTitle>Import Jobs</CardTitle>
+            <Button asChild variant="outline" size="sm">
+              <Link href="/uploads/imports">View all imports</Link>
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           {importJobs.length === 0 ? (
@@ -431,6 +446,5 @@ export default function UploadsPage() {
     </div>
   );
 }
-
 
 

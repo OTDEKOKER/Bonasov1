@@ -1,0 +1,118 @@
+{
+  "workbook": "/tmp/final-analysis-q3.xlsx",
+  "project": {
+    "id": 2,
+    "code": "NAHPA2025/26",
+    "name": "NAHPA Social Contracting"
+  },
+  "period_start": "2025-10-01",
+  "period_end": "2025-12-31",
+  "summary": {
+    "matched_rows": 170,
+    "exact_matches": 169,
+    "unmatched_indicator_rows": 33,
+    "missing_aggregate_rows": 0,
+    "mismatched_rows": 1
+  },
+  "findings": [
+    {
+      "severity": "medium",
+      "issue": "Workbook indicators skipped",
+      "detail": "33 workbook rows could not be matched to existing indicators and therefore cannot match the system."
+    },
+    {
+      "severity": "high",
+      "issue": "Workbook/data mismatches",
+      "detail": "1 matched workbook rows differ from the saved aggregate values."
+    }
+  ],
+  "sheets": {
+    "MAKGABANENG": {
+      "organization_id": 5,
+      "parsed_rows": 43,
+      "matched_rows": 39,
+      "exact_matches": 38,
+      "missing_aggregates": [],
+      "unmatched_indicators": [
+        "Number of people screened for NCDs behavioural risk factors",
+        "Number of people screened for NCDs behavioural risk factors",
+        "Number of peoples referred for diabetes treatment/management services",
+        "Number of functional tobacco cessation and alcohol abuse support group"
+      ],
+      "mismatches": [
+        {
+          "indicator_id": 415,
+          "indicator_name": "Number of new members/continuing",
+          "workbook_title": "Number of new members/ continuing",
+          "difference_count": 1,
+          "differences_preview": [
+            {
+              "type": "summary",
+              "field": "total",
+              "expected": 23.0,
+              "actual": 100.0
+            }
+          ]
+        }
+      ]
+    },
+    "BONEPWA": {
+      "organization_id": 112,
+      "parsed_rows": 73,
+      "matched_rows": 45,
+      "exact_matches": 45,
+      "missing_aggregates": [],
+      "unmatched_indicators": [
+        "Number of PLWH reached with with PREP Messages",
+        "Number of PLWH reached with Consistent, correct condom use messages",
+        "Number of people reached at health talks conducted on PHDP held at IDCC",
+        "Number of PLWH who tested positive for TB and are on treatment",
+        "Number of PLHIV screened for TB",
+        "Number of PLHIV symptomatic for TB referred for testing",
+        "Number of PLHIV on TB treatment",
+        "Number of PLHIV on TB treatment interrupting treatment",
+        "Number of PLHIV TB treatment interrupters reinitiated on treatment",
+        "Number of Missed appointments (1-13 days) followed",
+        "Number of Missed appointments (1-13 days) reinitiated to treatment",
+        "Number of ART defaulters (14-89 days) given by facility for tracing",
+        "Number of ART defaulters (14-89 days) reinitiated to treatment",
+        "Number of LTFU(90+ days) given by facility for tracing",
+        "Number of people who LTFU (90+ days) Re-initiated on ART",
+        "Number of individuals reached with messaging on equality and human rights",
+        "Number of people who report that their rights were violated and who sought redness",
+        "Number of individuals eligible for GBV services",
+        "Number of people elligible for Psychosocial Support for GBV",
+        "Number of people reffered for Psychosocial Support for GBV",
+        "Number of Male Condoms distributed",
+        "Number of People who reported collecting condoms for the repeated time",
+        "Number of people reached with NCD prevention messages",
+        "Number of people screened for NCDs",
+        "Number of people referred for NCD services",
+        "Number of individual counselling sessions conducted for youth and vulnerable groups",
+        "Number of disclosure and mental health support sessions delivered",
+        "Number of individual counselling sessions conducted for youth and vulnerable groups"
+      ],
+      "mismatches": []
+    },
+    "BONELA": {
+      "organization_id": 137,
+      "parsed_rows": 37,
+      "matched_rows": 36,
+      "exact_matches": 36,
+      "missing_aggregates": [],
+      "unmatched_indicators": [
+        "Number of people referred for STIs for services"
+      ],
+      "mismatches": []
+    },
+    "TEBELOPELE": {
+      "organization_id": 1,
+      "parsed_rows": 50,
+      "matched_rows": 50,
+      "exact_matches": 50,
+      "missing_aggregates": [],
+      "unmatched_indicators": [],
+      "mismatches": []
+    }
+  }
+}

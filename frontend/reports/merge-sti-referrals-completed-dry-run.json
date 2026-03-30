@@ -1,0 +1,60 @@
+{
+  "dry_run": true,
+  "source_indicator": {
+    "id": 354,
+    "code": "AUTO_NUMBER_OF_STI_CASES_REFERRALS_COMP",
+    "name": "Number of STI cases referrals completed",
+    "is_active": true
+  },
+  "target_indicator": {
+    "id": 470,
+    "code": "NAHPA2025-26-32-NUMBER-OF-STI-CASES-REFERRALS-COMP",
+    "name": "Number of STI cases referrals completed",
+    "is_active": true
+  },
+  "moved_aggregates": [],
+  "replaced_placeholders": [],
+  "deleted_placeholder_aggregates": [],
+  "unresolved_conflicts": [],
+  "moved_project_targets": [
+    {
+      "target_row_id": 283,
+      "organization_id": 165,
+      "project_id": 2
+    }
+  ],
+  "replaced_placeholder_project_targets": [
+    {
+      "source_target_id": 283,
+      "target_target_id": 334,
+      "organization_id": 165,
+      "project_id": 2,
+      "forced": false
+    }
+  ],
+  "deleted_placeholder_project_targets": [
+    334
+  ],
+  "deleted_source_project_assignments": [],
+  "unresolved_target_conflicts": [
+    {
+      "source_target_id": 282,
+      "target_target_id": 333,
+      "organization_id": 112,
+      "project_id": 2
+    },
+    {
+      "source_target_id": 284,
+      "target_target_id": 337,
+      "organization_id": 1,
+      "project_id": 2
+    },
+    {
+      "source_target_id": 285,
+      "target_target_id": 336,
+      "organization_id": 137,
+      "project_id": 2
+    }
+  ],
+  "retired_source_indicator": false
+}

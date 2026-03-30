@@ -1,0 +1,37 @@
+{
+  "dry_run": false,
+  "source_indicator": {
+    "id": 356,
+    "code": "AUTO_NUMBER_OF_PEOPLE_WHO_REPEATED_COLL",
+    "name": "Number of people who repeated collecting condoms for the repeated time",
+    "is_active": true
+  },
+  "target_indicator": {
+    "id": 449,
+    "code": "NAHPA2025-26-13-NUMBER-OF-PEOPLE-WHO-REPORTED-COLL",
+    "name": "Number of people who reported collecting condoms for a repeated time.",
+    "is_active": true
+  },
+  "moved_aggregates": [
+    {
+      "aggregate_id": 4038,
+      "organization_id": 1,
+      "project_id": 2,
+      "period_start": "2025-10-01",
+      "period_end": "2025-12-31",
+      "status": "approved"
+    }
+  ],
+  "replaced_placeholders": [],
+  "deleted_placeholder_aggregates": [],
+  "unresolved_conflicts": [],
+  "moved_project_targets": [],
+  "replaced_placeholder_project_targets": [],
+  "deleted_placeholder_project_targets": [],
+  "deleted_zero_source_project_targets": [],
+  "deleted_source_project_assignments": [
+    34
+  ],
+  "unresolved_target_conflicts": [],
+  "retired_source_indicator": true
+}
