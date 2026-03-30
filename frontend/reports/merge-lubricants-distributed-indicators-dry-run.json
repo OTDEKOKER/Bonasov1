@@ -1,0 +1,48 @@
+{
+  "dry_run": true,
+  "source_indicator": {
+    "id": 357,
+    "code": "AUTO_NUMBER_OF_LUBRICANTS_DISTRIBUTED",
+    "name": "Number of lubricants distributed",
+    "is_active": true
+  },
+  "target_indicator": {
+    "id": 472,
+    "code": "NAHPA2025-26-35-TOTAL-NUMBER-OF-LUBRICANTS-DISTRIB",
+    "name": "Total number of lubricants distributed",
+    "is_active": true
+  },
+  "moved_aggregates": [
+    {
+      "aggregate_id": 3932,
+      "organization_id": 137,
+      "project_id": 2,
+      "period_start": "2025-10-01",
+      "period_end": "2025-12-31",
+      "status": "approved"
+    },
+    {
+      "aggregate_id": 3995,
+      "organization_id": 1,
+      "project_id": 2,
+      "period_start": "2025-10-01",
+      "period_end": "2025-12-31",
+      "status": "approved"
+    }
+  ],
+  "replaced_placeholders": [
+    {
+      "source_aggregate_id": 3932,
+      "target_aggregate_id": 4074,
+      "organization_id": 137,
+      "project_id": 2,
+      "period_start": "2025-10-01",
+      "period_end": "2025-12-31"
+    }
+  ],
+  "deleted_placeholder_aggregates": [
+    4074
+  ],
+  "unresolved_conflicts": [],
+  "retired_source_indicator": false
+}

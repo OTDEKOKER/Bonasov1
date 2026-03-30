@@ -8,16 +8,82 @@ npm install
 ```
 
 ### 2. Configure environment
-Create `frontend/.env` with:
+Create `frontend/.env.local` with:
 ```
 NEXT_PUBLIC_API_URL=http://localhost:8000/api
 ```
+
+Alternative supported keys:
+- `BACKEND_API_URL` for the Next.js `/api/*` rewrite target
+- `NEXT_PUBLIC_API_BASE_URL` as a legacy alias for `NEXT_PUBLIC_API_URL`
 
 ### 3. Start development server
 ```bash
 npm run dev
 ```
 Open `http://localhost:3000`.
+
+## Docker
+This repo can now run as a Dockerized frontend.
+
+By default, `compose.yaml` builds the frontend with:
+```
+NEXT_PUBLIC_API_URL=/api
+BACKEND_API_URL=http://host.docker.internal:8000/api
+```
+
+Then start it with:
+```bash
+docker compose up --build
+```
+
+That setup assumes Django is still running on the host machine at `:8000`.
+
+If you need to override those Docker values, use `DOCKER_NEXT_PUBLIC_API_URL` and
+`DOCKER_BACKEND_API_URL` instead of your normal local `.env.local` keys.
+
+### Full stack note
+PostgreSQL belongs to the Django backend, not this Next.js frontend. This repo includes
+`compose.full-stack.example.yaml` as a reference for a future frontend + backend + postgres stack,
+but it is not runnable until you provide the backend image or backend source tree.
+The example file is production-oriented and expects explicit secure environment values.
+
+### Full stack on this machine
+If your Django backend source is at `C:/Projects/django_backend`, you can run the whole stack with:
+```bash
+docker compose -f compose.full-stack.local.yaml up --build
+```
+
+That file starts:
+- frontend on `http://localhost:3000`
+- Django on `http://localhost:8000`
+- PostgreSQL on `localhost:5432`
+
+It uses:
+- `NEXT_PUBLIC_API_URL=/api` in the browser
+- `BACKEND_API_URL=http://backend:8000/api` inside the frontend container
+- `DATABASE_URL=postgres://bonaso:bonaso@postgres:5432/bonaso` for Django
+
+You can override the backend source path with:
+```powershell
+$env:DJANGO_BACKEND_PATH="C:/Projects/django_backend"
+docker compose -f compose.full-stack.local.yaml up --build
+```
+
+If port `3000` is already in use, override the frontend port:
+```powershell
+$env:FRONTEND_PORT="3001"
+docker compose -f compose.full-stack.local.yaml up --build
+```
+
+This local compose file now builds a real Django image from `C:/Projects/django_backend`.
+The backend container runs migrations and `collectstatic` on startup, then serves the API with Gunicorn.
+First build is slower because Python dependencies are installed into the image.
+`compose.full-stack.local.yaml` is for local development only; it intentionally keeps `DEBUG=True`
+and disables HTTPS-only cookie settings so the stack works on `localhost`.
+
+## User Documentation
+- End-user guide: `docs/user-manual.md`
 
 ## Architecture
 The frontend is a Next.js App Router project:
@@ -61,6 +127,19 @@ Event tracking with indicators and participants. Create dialogs are responsive.
 All data is read/write via the Django backend at `NEXT_PUBLIC_API_URL`.
 Services live in `lib/api/services/` and hooks in `lib/hooks/use-api.ts`.
 
+## Data Cleanup
+To purge uploaded aggregate/report data from the backend:
+```bash
+$env:BONASO_ACCESS_TOKEN="your-jwt-access-token"
+npm run purge:data -- --dry-run
+npm run purge:data
+```
+
+Optional scope:
+```bash
+npm run purge:data -- --types=aggregates,reports,scheduled
+```
+
 ## Data Model
 The frontend mirrors backend entities: Organization, Project, Indicator, Aggregate, User, etc.
 Relations are resolved client-side using IDs from the API.
@@ -78,6 +157,16 @@ npm run build
 ```bash
 npm run start
 ```
+
+`npm run build` now validates environment configuration and runs lint before the production build.
+
+If you deploy in Docker behind the Next.js rewrite proxy, prefer:
+```
+NEXT_PUBLIC_API_URL=/api
+BACKEND_API_URL=http://backend:8000/api
+```
+
+`NEXT_PUBLIC_*` values are baked into the Next.js build, so rebuild the image when those change.
 
 ## Troubleshooting
 - **401 errors**: re-authenticate; token expired.
@@ -112,4 +201,36 @@ npm run start
 ### Development mode note
 Service worker registration is disabled by default in `npm run dev`.
 Set `NEXT_PUBLIC_ENABLE_SW=true` if you need to test service worker behavior in development.
+
+## Android App (Play Store)
+This project is configured with Capacitor for Android packaging.
+
+### Commands
+```bash
+npm run mobile:doctor
+npm run mobile:sync
+npm run mobile:open:android
+```
+
+To point the Android app at a deployed frontend, set `CAP_SERVER_URL` before syncing.
+If unset, the Android app defaults to `https://sesigo.org.bw`.
+
+Bash:
+```bash
+export CAP_SERVER_URL="https://your-frontend-domain"
+npm run mobile:sync
+```
+
+PowerShell:
+```powershell
+$env:CAP_SERVER_URL="https://your-frontend-domain"
+npm run mobile:sync
+```
+
+Full Play Store checklist is in `docs/playstore-android.md`.
+
+### Android offline behavior
+- First app launch should be online to warm caches.
+- After that, previously visited screens and cached API `GET` responses work offline.
+- Mutations are queued locally and replayed when the device reconnects.
 

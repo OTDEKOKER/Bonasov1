@@ -1,0 +1,268 @@
+{
+  "mapping_count": 17,
+  "results": [
+    {
+      "sheet": "TEBELOPELE",
+      "organization": "TEBELOPELE",
+      "returncode": 0,
+      "summary": {
+        "sections_seen": 61,
+        "sections_importable": 52,
+        "sections_skipped": 9,
+        "missing_indicators": 0,
+        "created_indicators": 0,
+        "created_aggregates": 0,
+        "updated_aggregates": 0,
+        "unchanged_aggregates": 0
+      },
+      "error": null
+    },
+    {
+      "sheet": "SENTEBALE",
+      "organization": "Sentebale",
+      "returncode": 0,
+      "summary": {
+        "sections_seen": 61,
+        "sections_importable": 52,
+        "sections_skipped": 9,
+        "missing_indicators": 0,
+        "created_indicators": 0,
+        "created_aggregates": 0,
+        "updated_aggregates": 0,
+        "unchanged_aggregates": 0
+      },
+      "error": null
+    },
+    {
+      "sheet": "BOFWA",
+      "organization": "BOFWA",
+      "returncode": 0,
+      "summary": {
+        "sections_seen": 61,
+        "sections_importable": 52,
+        "sections_skipped": 9,
+        "missing_indicators": 0,
+        "created_indicators": 0,
+        "created_aggregates": 0,
+        "updated_aggregates": 0,
+        "unchanged_aggregates": 0
+      },
+      "error": null
+    },
+    {
+      "sheet": "Stepping Stone International",
+      "organization": "Stepping Stone International",
+      "returncode": 0,
+      "summary": {
+        "sections_seen": 61,
+        "sections_importable": 52,
+        "sections_skipped": 9,
+        "missing_indicators": 0,
+        "created_indicators": 0,
+        "created_aggregates": 0,
+        "updated_aggregates": 0,
+        "unchanged_aggregates": 0
+      },
+      "error": null
+    },
+    {
+      "sheet": "Bobonong Home Based Care",
+      "organization": "Bobonong Home Based Care",
+      "returncode": 0,
+      "summary": {
+        "sections_seen": 61,
+        "sections_importable": 52,
+        "sections_skipped": 9,
+        "missing_indicators": 0,
+        "created_indicators": 0,
+        "created_aggregates": 0,
+        "updated_aggregates": 0,
+        "unchanged_aggregates": 0
+      },
+      "error": null
+    },
+    {
+      "sheet": "Mabogo aa Thebana Association S",
+      "organization": "Mabogo aa Thebana Association South",
+      "returncode": 0,
+      "summary": {
+        "sections_seen": 61,
+        "sections_importable": 52,
+        "sections_skipped": 9,
+        "missing_indicators": 0,
+        "created_indicators": 0,
+        "created_aggregates": 0,
+        "updated_aggregates": 0,
+        "unchanged_aggregates": 0
+      },
+      "error": null
+    },
+    {
+      "sheet": "Ovajua",
+      "organization": "Ovajhu",
+      "returncode": 0,
+      "summary": {
+        "sections_seen": 61,
+        "sections_importable": 52,
+        "sections_skipped": 9,
+        "missing_indicators": 0,
+        "created_indicators": 0,
+        "created_aggregates": 0,
+        "updated_aggregates": 0,
+        "unchanged_aggregates": 0
+      },
+      "error": null
+    },
+    {
+      "sheet": "Gumare Advisory",
+      "organization": "Gumare Advisory",
+      "returncode": 0,
+      "summary": {
+        "sections_seen": 61,
+        "sections_importable": 52,
+        "sections_skipped": 9,
+        "missing_indicators": 0,
+        "created_indicators": 0,
+        "created_aggregates": 0,
+        "updated_aggregates": 0,
+        "unchanged_aggregates": 0
+      },
+      "error": null
+    },
+    {
+      "sheet": "Positive Moments",
+      "organization": "Positive Moments",
+      "returncode": 0,
+      "summary": {
+        "sections_seen": 61,
+        "sections_importable": 52,
+        "sections_skipped": 9,
+        "missing_indicators": 0,
+        "created_indicators": 0,
+        "created_aggregates": 0,
+        "updated_aggregates": 0,
+        "unchanged_aggregates": 0
+      },
+      "error": null
+    },
+    {
+      "sheet": "Mind Power",
+      "organization": "Mind Power",
+      "returncode": 0,
+      "summary": {
+        "sections_seen": 61,
+        "sections_importable": 52,
+        "sections_skipped": 9,
+        "missing_indicators": 0,
+        "created_indicators": 0,
+        "created_aggregates": 0,
+        "updated_aggregates": 0,
+        "unchanged_aggregates": 0
+      },
+      "error": null
+    },
+    {
+      "sheet": "Mopipi International Trust",
+      "organization": "Mopipi International Trust",
+      "returncode": 0,
+      "summary": {
+        "sections_seen": 61,
+        "sections_importable": 52,
+        "sections_skipped": 9,
+        "missing_indicators": 0,
+        "created_indicators": 0,
+        "created_aggregates": 0,
+        "updated_aggregates": 0,
+        "unchanged_aggregates": 0
+      },
+      "error": null
+    },
+    {
+      "sheet": "House of Angels",
+      "organization": "House of Angels",
+      "returncode": 0,
+      "summary": {
+        "sections_seen": 61,
+        "sections_importable": 52,
+        "sections_skipped": 9,
+        "missing_indicators": 0,
+        "created_indicators": 0,
+        "created_aggregates": 0,
+        "updated_aggregates": 0,
+        "unchanged_aggregates": 0
+      },
+      "error": null
+    },
+    {
+      "sheet": "Inspired Hozirons",
+      "organization": "Inspired Horizons",
+      "returncode": 0,
+      "summary": {
+        "sections_seen": 61,
+        "sections_importable": 52,
+        "sections_skipped": 9,
+        "missing_indicators": 0,
+        "created_indicators": 0,
+        "created_aggregates": 0,
+        "updated_aggregates": 0,
+        "unchanged_aggregates": 0
+      },
+      "error": null
+    },
+    {
+      "sheet": "Hope Worldwide",
+      "organization": "Hope Worldwide",
+      "returncode": 0,
+      "summary": {
+        "sections_seen": 61,
+        "sections_importable": 52,
+        "sections_skipped": 9,
+        "missing_indicators": 0,
+        "created_indicators": 0,
+        "created_aggregates": 0,
+        "updated_aggregates": 0,
+        "unchanged_aggregates": 0
+      },
+      "error": null
+    },
+    {
+      "sheet": "Rena le Seabe",
+      "organization": "Rena le Seabe",
+      "returncode": 0,
+      "summary": {
+        "sections_seen": 61,
+        "sections_importable": 52,
+        "sections_skipped": 9,
+        "missing_indicators": 0,
+        "created_indicators": 0,
+        "created_aggregates": 0,
+        "updated_aggregates": 0,
+        "unchanged_aggregates": 0
+      },
+      "error": null
+    },
+    {
+      "sheet": "Social Dialogue",
+      "organization": "Social Dialogue",
+      "returncode": 0,
+      "summary": {
+        "sections_seen": 61,
+        "sections_importable": 52,
+        "sections_skipped": 9,
+        "missing_indicators": 0,
+        "created_indicators": 0,
+        "created_aggregates": 0,
+        "updated_aggregates": 0,
+        "unchanged_aggregates": 0
+      },
+      "error": null
+    },
+    {
+      "sheet": "INERELA",
+      "organization": "INERELA",
+      "returncode": 137,
+      "summary": null,
+      "error": "/usr/local/lib/python3.11/site-packages/openpyxl/worksheet/_reader.py:329: UserWarning: Data Validation extension is not supported and will be removed\n  warn(msg)"
+    }
+  ]
+}

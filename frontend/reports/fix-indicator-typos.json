@@ -1,0 +1,121 @@
+{
+  "dry_run": false,
+  "renamed_indicators": [
+    {
+      "id": 340,
+      "code": "AUTO_NUMBER_OF_NUMBER_OF_PEOPLE_PROVIDE",
+      "from": "Number of Number of people provided with legal aid services",
+      "to": "Number of people provided with legal aid services."
+    },
+    {
+      "id": 341,
+      "code": "AUTO_NUMBER_OF_NUMBER_OF_PEOPLE_LINKED_",
+      "from": "Number of Number of people linked to justice services",
+      "to": "Number of people linked to justice services."
+    }
+  ],
+  "merged_indicators": [
+    {
+      "source_indicator_id": 332,
+      "source_code": "AUTO_NUMBER_OF_NUMBER_OF_PEOPLE_TESTED_",
+      "source_name": "Number of Number of people tested for HIV.",
+      "target_indicator_id": 451,
+      "target_code": "NAHPA2025-26-8-NUMBER-OF-PEOPLE-TESTED-FOR-HIV",
+      "target_name": "Number of people tested for HIV.",
+      "moved_aggregates": [],
+      "conflicts": []
+    },
+    {
+      "source_indicator_id": 344,
+      "source_code": "AUTO_NUMBER_OF_NUMBER_ELIGIBLE_FOR_CLIN",
+      "source_name": "Number of Number eligible for clinical services for GBV",
+      "target_indicator_id": 463,
+      "target_code": "NAHPA2025-26-23-NUMBER-OF-PEOPLE-ELLIGIBLE-FOR-CLI",
+      "target_name": "Number of people eligible for clinical services for GBV.",
+      "moved_aggregates": [],
+      "conflicts": []
+    },
+    {
+      "source_indicator_id": 345,
+      "source_code": "AUTO_NUMBER_OF_NUMBER_REFERRED_FOR_CLIN",
+      "source_name": "Number of Number referred for clinical services for GBV",
+      "target_indicator_id": 464,
+      "target_code": "NAHPA2025-26-24-NUMBER-OF-PEOPLE-REFFERED-FOR-CLIN",
+      "target_name": "Number of people referred for clinical services for GBV.",
+      "moved_aggregates": [],
+      "conflicts": []
+    },
+    {
+      "source_indicator_id": 346,
+      "source_code": "AUTO_NUMBER_OF_NUMBER_ELIGIBLE_FOR_JUST",
+      "source_name": "Number of Number eligible for justice services for GBV",
+      "target_indicator_id": 465,
+      "target_code": "NAHPA2025-26-25-NUMBER-OF-PEOPLE-ELLIGIBLE-FOR-JUS",
+      "target_name": "Number of people eligible for justice services for GBV.",
+      "moved_aggregates": [],
+      "conflicts": []
+    },
+    {
+      "source_indicator_id": 347,
+      "source_code": "AUTO_NUMBER_OF_NUMBER_REFERRED_FOR_JUST",
+      "source_name": "Number of Number referred for justice services for GBV",
+      "target_indicator_id": 466,
+      "target_code": "NAHPA2025-26-26-NUMBER-OF-PEOPLE-REFFERED-FOR-JUST",
+      "target_name": "Number of people referred for justice services for GBV.",
+      "moved_aggregates": [],
+      "conflicts": []
+    },
+    {
+      "source_indicator_id": 348,
+      "source_code": "AUTO_NUMBER_OF_NUMBER_ELIGIBLE_FOR_PYSC",
+      "source_name": "Number of Number eligible for pyschosocial services for GBV",
+      "target_indicator_id": 467,
+      "target_code": "NAHPA2025-26-27-NUMBER-OF-PEOPLE-ELLIGIBLE-FOR-PSY",
+      "target_name": "Number of people eligible for psychosocial support on GBV.",
+      "moved_aggregates": [],
+      "conflicts": []
+    },
+    {
+      "source_indicator_id": 349,
+      "source_code": "AUTO_NUMBER_OF_NUMBER_REFERRED_FOR_PYSC",
+      "source_name": "Number of Number referred for pyschosocial services for GBV",
+      "target_indicator_id": 479,
+      "target_code": "SC_NUMBER_OF_PEOPLE_REFERRED_FOR_PSYCHOSOCIAL_SUPP",
+      "target_name": "Number of people referred for psychosocial support on GBV.",
+      "moved_aggregates": [],
+      "conflicts": []
+    }
+  ],
+  "project_assignments_created": [],
+  "missing_indicators": [],
+  "skipped_groups": [
+    {
+      "indicator_ids": [
+        331,
+        445
+      ],
+      "reason": "Same-period aggregate conflicts exist, so this duplicate pair was not auto-merged."
+    },
+    {
+      "indicator_ids": [
+        339,
+        446
+      ],
+      "reason": "Same-period aggregate conflicts exist, so this duplicate pair was not auto-merged."
+    },
+    {
+      "indicator_ids": [
+        340,
+        473
+      ],
+      "reason": "TEBELOPELE already has same-period legal-aid aggregates on both indicators, so this pair was left for manual review."
+    },
+    {
+      "indicator_ids": [
+        341,
+        474
+      ],
+      "reason": "TEBELOPELE already has same-period justice-service aggregates on both indicators, so this pair was left for manual review."
+    }
+  ]
+}

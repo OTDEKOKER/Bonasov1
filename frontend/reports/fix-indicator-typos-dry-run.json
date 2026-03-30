@@ -1,0 +1,322 @@
+{
+  "dry_run": true,
+  "renamed_indicators": [
+    {
+      "id": 321,
+      "code": "AUTO_NUMBER_OF_TOTAL_NUMBER_OF_PEOPLE_R",
+      "from": "Number of Total Number of people Reached with HIV TESTING Messages",
+      "to": "Total Number of People Reached with HIV Testing Messages"
+    },
+    {
+      "id": 322,
+      "code": "AUTO_NUMBER_OF_TOTAL_NUMBER_OF_PEOPLE_R_1",
+      "from": "Number of Total Number of People Reached with PEP Messages",
+      "to": "Total Number of People Reached with PEP Messages"
+    },
+    {
+      "id": 323,
+      "code": "AUTO_NUMBER_OF_TOTAL_NUMBER_OF_PEOPLE_R_2",
+      "from": "Number of Total Number of people Reached with PREP Messages",
+      "to": "Total Number of People Reached with PrEP Messages"
+    },
+    {
+      "id": 324,
+      "code": "AUTO_NUMBER_OF_TOTAL_NUMBER_OF_PEOPLE_R_3",
+      "from": "Number of Total Number of People Reached with GBV Messages",
+      "to": "Total Number of People Reached with GBV Messages"
+    },
+    {
+      "id": 325,
+      "code": "AUTO_NUMBER_OF_TOTAL_NUMBER_OF_PEOPLE_R_4",
+      "from": "Number of Total Number of People Reached with Condom Use Messages",
+      "to": "Total Number of People Reached with Condom Use Messages"
+    },
+    {
+      "id": 326,
+      "code": "AUTO_NUMBER_OF_TOTAL_NUMBER_OF_PEOPLE_R_5",
+      "from": "Number of Total Number of People Reached with HIV Treatment Messages",
+      "to": "Total Number of People Reached with HIV Treatment Messages"
+    },
+    {
+      "id": 327,
+      "code": "AUTO_NUMBER_OF_TOTAL_NUMBER_OF_PEOPLE_R_6",
+      "from": "Number of Total Number of People Reached with ARV Based Prevention Messages",
+      "to": "Total Number of People Reached with ARV Based Prevention Messages"
+    },
+    {
+      "id": 328,
+      "code": "AUTO_NUMBER_OF_TOTAL_NUMBER_OF_PEOPLE_R_7",
+      "from": "Number of Total Number of People Reached with EMTCT Messages",
+      "to": "Total Number of People Reached with eMTCT Messages"
+    },
+    {
+      "id": 329,
+      "code": "AUTO_NUMBER_OF_TOTAL_NUMBER_OF_PEOPLE_R_8",
+      "from": "Number of Total Number of People Reached with HIV Messages",
+      "to": "Total Number of People Reached with HIV Messages"
+    },
+    {
+      "id": 445,
+      "code": "NAHPA2025-26-3-NUMBER-OF-PEOPLE-REFERRED-FOR-HIV-T",
+      "from": "Number  of people referred for HIV testing.",
+      "to": "Number of people referred for HIV testing."
+    },
+    {
+      "id": 448,
+      "code": "NAHPA2025-26-11-NUMBER-OF-BRAILED-CONDOMS-DISTRIBU",
+      "from": "Number of brailed condoms distributed to PWDs",
+      "to": "Number of braille labelled condoms distributed to PWDs"
+    },
+    {
+      "id": 452,
+      "code": "NAHPA2025-26-9-NUMBER-OF-PEOPLE-WHO-TESTED-POSITIV",
+      "from": "Number  of people who tested positive for HIV.",
+      "to": "Number of people who tested positive for HIV."
+    },
+    {
+      "id": 457,
+      "code": "NAHPA2025-26-16-NUMBER-OF-PEOPLE-ELLIGIBLE-FOR-LEG",
+      "from": "Number of people elligible for legal aid services.",
+      "to": "Number of people eligible for legal aid services."
+    },
+    {
+      "id": 459,
+      "code": "NAHPA2025-26-18-NUMBER-OF-PEOPLE-ELLIGIBLE-FOR-JUS",
+      "from": "Number of people elligible for justice services.",
+      "to": "Number of people eligible for justice services."
+    },
+    {
+      "id": 463,
+      "code": "NAHPA2025-26-23-NUMBER-OF-PEOPLE-ELLIGIBLE-FOR-CLI",
+      "from": "Number of people elligible for clinical services for GBV.",
+      "to": "Number of people eligible for clinical services for GBV."
+    },
+    {
+      "id": 464,
+      "code": "NAHPA2025-26-24-NUMBER-OF-PEOPLE-REFFERED-FOR-CLIN",
+      "from": "Number of people reffered for clinical services for GBV.",
+      "to": "Number of people referred for clinical services for GBV."
+    },
+    {
+      "id": 465,
+      "code": "NAHPA2025-26-25-NUMBER-OF-PEOPLE-ELLIGIBLE-FOR-JUS",
+      "from": "Number of people elligible for justice services for GBV.",
+      "to": "Number of people eligible for justice services for GBV."
+    },
+    {
+      "id": 466,
+      "code": "NAHPA2025-26-26-NUMBER-OF-PEOPLE-REFFERED-FOR-JUST",
+      "from": "Number of people reffered for justice services for GBV.",
+      "to": "Number of people referred for justice services for GBV."
+    },
+    {
+      "id": 467,
+      "code": "NAHPA2025-26-27-NUMBER-OF-PEOPLE-ELLIGIBLE-FOR-PSY",
+      "from": "Number of People elligible for  psychosocial support on GBV.",
+      "to": "Number of people eligible for psychosocial support on GBV."
+    },
+    {
+      "id": 468,
+      "code": "NAHPA2025-26-30-NUMBER-OF-PEOPLE-SCREENED-POSITIVE",
+      "from": "Number of  people screened positive for STIs referred for services",
+      "to": "Number of people screened positive for STIs referred for services"
+    },
+    {
+      "id": 469,
+      "code": "NAHPA2025-26-31-NUMBER-OF-STI-CASES-LINKED-TO-CARE",
+      "from": "Number of  STI cases linked to care",
+      "to": "Number of STI cases linked to care"
+    },
+    {
+      "id": 470,
+      "code": "NAHPA2025-26-32-NUMBER-OF-STI-CASES-REFERRALS-COMP",
+      "from": "Number of  STI cases referrals completed",
+      "to": "Number of STI cases referrals completed"
+    },
+    {
+      "id": 473,
+      "code": "NAHPA2025-26-4-NUMBER-OF-PEOPLE-PROVIDED-WITH-LEGA",
+      "from": "Number  of people provided with legal aid services",
+      "to": "Number of people provided with legal aid services."
+    },
+    {
+      "id": 474,
+      "code": "NAHPA2025-26-5-NUMBER-OF-PEOPLE-LINKED-TO-JUSTICE-",
+      "from": "Number  of people linked to justice services",
+      "to": "Number of people linked to justice services."
+    },
+    {
+      "id": 479,
+      "code": "SC_NUMBER_OF_PEOPLE_REFERRED_FOR_PSYCHOSOCIAL_SUPP",
+      "from": "Number of People referred for psychosocial support on GBV",
+      "to": "Number of people referred for psychosocial support on GBV."
+    }
+  ],
+  "merged_indicators": [
+    {
+      "source_indicator_id": 332,
+      "source_code": "AUTO_NUMBER_OF_NUMBER_OF_PEOPLE_TESTED_",
+      "source_name": "Number of Number of people tested for HIV.",
+      "target_indicator_id": 451,
+      "target_code": "NAHPA2025-26-8-NUMBER-OF-PEOPLE-TESTED-FOR-HIV",
+      "target_name": "Number of people tested for HIV.",
+      "moved_aggregates": [
+        {
+          "aggregate_id": 4016,
+          "organization_id": 1,
+          "project_id": 2,
+          "period_start": "2025-10-01",
+          "period_end": "2025-12-31",
+          "status": "approved"
+        }
+      ],
+      "conflicts": []
+    },
+    {
+      "source_indicator_id": 344,
+      "source_code": "AUTO_NUMBER_OF_NUMBER_ELIGIBLE_FOR_CLIN",
+      "source_name": "Number of Number eligible for clinical services for GBV",
+      "target_indicator_id": 463,
+      "target_code": "NAHPA2025-26-23-NUMBER-OF-PEOPLE-ELLIGIBLE-FOR-CLI",
+      "target_name": "Number of people elligible for clinical services for GBV.",
+      "moved_aggregates": [
+        {
+          "aggregate_id": 4026,
+          "organization_id": 1,
+          "project_id": 2,
+          "period_start": "2025-10-01",
+          "period_end": "2025-12-31",
+          "status": "approved"
+        }
+      ],
+      "conflicts": []
+    },
+    {
+      "source_indicator_id": 345,
+      "source_code": "AUTO_NUMBER_OF_NUMBER_REFERRED_FOR_CLIN",
+      "source_name": "Number of Number referred for clinical services for GBV",
+      "target_indicator_id": 464,
+      "target_code": "NAHPA2025-26-24-NUMBER-OF-PEOPLE-REFFERED-FOR-CLIN",
+      "target_name": "Number of people reffered for clinical services for GBV.",
+      "moved_aggregates": [
+        {
+          "aggregate_id": 4027,
+          "organization_id": 1,
+          "project_id": 2,
+          "period_start": "2025-10-01",
+          "period_end": "2025-12-31",
+          "status": "approved"
+        }
+      ],
+      "conflicts": []
+    },
+    {
+      "source_indicator_id": 346,
+      "source_code": "AUTO_NUMBER_OF_NUMBER_ELIGIBLE_FOR_JUST",
+      "source_name": "Number of Number eligible for justice services for GBV",
+      "target_indicator_id": 465,
+      "target_code": "NAHPA2025-26-25-NUMBER-OF-PEOPLE-ELLIGIBLE-FOR-JUS",
+      "target_name": "Number of people elligible for justice services for GBV.",
+      "moved_aggregates": [
+        {
+          "aggregate_id": 4028,
+          "organization_id": 1,
+          "project_id": 2,
+          "period_start": "2025-10-01",
+          "period_end": "2025-12-31",
+          "status": "approved"
+        }
+      ],
+      "conflicts": []
+    },
+    {
+      "source_indicator_id": 347,
+      "source_code": "AUTO_NUMBER_OF_NUMBER_REFERRED_FOR_JUST",
+      "source_name": "Number of Number referred for justice services for GBV",
+      "target_indicator_id": 466,
+      "target_code": "NAHPA2025-26-26-NUMBER-OF-PEOPLE-REFFERED-FOR-JUST",
+      "target_name": "Number of people reffered for justice services for GBV.",
+      "moved_aggregates": [
+        {
+          "aggregate_id": 4029,
+          "organization_id": 1,
+          "project_id": 2,
+          "period_start": "2025-10-01",
+          "period_end": "2025-12-31",
+          "status": "approved"
+        }
+      ],
+      "conflicts": []
+    },
+    {
+      "source_indicator_id": 348,
+      "source_code": "AUTO_NUMBER_OF_NUMBER_ELIGIBLE_FOR_PYSC",
+      "source_name": "Number of Number eligible for pyschosocial services for GBV",
+      "target_indicator_id": 467,
+      "target_code": "NAHPA2025-26-27-NUMBER-OF-PEOPLE-ELLIGIBLE-FOR-PSY",
+      "target_name": "Number of People elligible for  psychosocial support on GBV.",
+      "moved_aggregates": [
+        {
+          "aggregate_id": 4030,
+          "organization_id": 1,
+          "project_id": 2,
+          "period_start": "2025-10-01",
+          "period_end": "2025-12-31",
+          "status": "approved"
+        }
+      ],
+      "conflicts": []
+    },
+    {
+      "source_indicator_id": 349,
+      "source_code": "AUTO_NUMBER_OF_NUMBER_REFERRED_FOR_PYSC",
+      "source_name": "Number of Number referred for pyschosocial services for GBV",
+      "target_indicator_id": 479,
+      "target_code": "SC_NUMBER_OF_PEOPLE_REFERRED_FOR_PSYCHOSOCIAL_SUPP",
+      "target_name": "Number of People referred for psychosocial support on GBV",
+      "moved_aggregates": [
+        {
+          "aggregate_id": 4031,
+          "organization_id": 1,
+          "project_id": 2,
+          "period_start": "2025-10-01",
+          "period_end": "2025-12-31",
+          "status": "approved"
+        }
+      ],
+      "conflicts": []
+    }
+  ],
+  "project_assignments_created": [],
+  "missing_indicators": [],
+  "skipped_groups": [
+    {
+      "indicator_ids": [
+        331,
+        445
+      ],
+      "reason": "Same-period aggregate conflicts exist, so this duplicate pair was not auto-merged."
+    },
+    {
+      "indicator_ids": [
+        339,
+        446
+      ],
+      "reason": "Same-period aggregate conflicts exist, so this duplicate pair was not auto-merged."
+    },
+    {
+      "indicator_ids": [
+        340,
+        473
+      ],
+      "reason": "TEBELOPELE already has same-period legal-aid aggregates on both indicators, so this pair was left for manual review."
+    },
+    {
+      "indicator_ids": [
+        341,
+        474
+      ],
+      "reason": "TEBELOPELE already has same-period justice-service aggregates on both indicators, so this pair was left for manual review."
+    }
+  ]
+}

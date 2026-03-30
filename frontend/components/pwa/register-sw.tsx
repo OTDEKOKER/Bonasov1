@@ -15,7 +15,31 @@ type SyncUpdatePayload = {
 export function ServiceWorkerRegister() {
   useEffect(() => {
     if (typeof window === "undefined" || !("serviceWorker" in navigator)) return
-    if (process.env.NODE_ENV !== "production" && !enableInDev) return
+    const shouldRegister = process.env.NODE_ENV === "production" || enableInDev
+
+    if (!shouldRegister) {
+      // In local dev, a stale SW can intercept Next route fetches and cause "Failed to fetch".
+      // Proactively unregister SW + clear BONASO caches unless explicitly enabled.
+      void navigator.serviceWorker
+        .getRegistrations()
+        .then((registrations) => Promise.all(registrations.map((registration) => registration.unregister())))
+        .catch(() => undefined)
+
+      if ("caches" in window) {
+        void caches
+          .keys()
+          .then((keys) =>
+            Promise.all(
+              keys
+                .filter((key) => key.startsWith("bonaso-"))
+                .map((key) => caches.delete(key)),
+            ),
+          )
+          .catch(() => undefined)
+      }
+
+      return
+    }
 
     const triggerSync = () => {
       void scheduleMutationSync()

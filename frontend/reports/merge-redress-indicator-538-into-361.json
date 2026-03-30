@@ -1,0 +1,25 @@
+{
+  "source_indicator": {
+    "id": 538,
+    "code": "AUTO_NUMBER_OF_PEOPLE_WHO_REPORT_THAT_T_1",
+    "name": "Number of people who report that their rights were violated and who sought redness"
+  },
+  "target_indicator": {
+    "id": 361,
+    "code": "AUTO_NUMBER_OF_PEOPLE_WHO_SOUGHT_REDRES",
+    "name": "Number of people who sought redress."
+  },
+  "moved_aggregate": {
+    "id": 9936,
+    "organization": "BONEPWA",
+    "project": "NAHPA2025/26",
+    "period_start": "2025-10-01",
+    "period_end": "2025-12-31"
+  },
+  "post": {
+    "source_indicator_active": false,
+    "source_indicator_aggregate_count": 0,
+    "target_indicator_aggregate_count": 16,
+    "target_q3_count": 16
+  }
+}

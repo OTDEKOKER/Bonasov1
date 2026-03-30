@@ -1,0 +1,44 @@
+{
+  "dry_run": false,
+  "source_indicator": {
+    "id": 480,
+    "code": "SC_NUMBER_OF_PEOPLE_WHO_REPORTED_COLLECTING_CONDOM",
+    "name": "Number of people who reported collecting condoms for the repeated time by age and sex",
+    "is_active": true
+  },
+  "target_indicator": {
+    "id": 449,
+    "code": "NAHPA2025-26-13-NUMBER-OF-PEOPLE-WHO-REPORTED-COLL",
+    "name": "Number of people who reported collecting condoms for a repeated time.",
+    "is_active": true
+  },
+  "moved_aggregates": [],
+  "replaced_placeholders": [],
+  "deleted_placeholder_aggregates": [],
+  "unresolved_conflicts": [],
+  "moved_project_targets": [
+    {
+      "target_row_id": 966,
+      "organization_id": 1,
+      "project_id": 2
+    },
+    {
+      "target_row_id": 972,
+      "organization_id": 112,
+      "project_id": 2
+    },
+    {
+      "target_row_id": 973,
+      "organization_id": 166,
+      "project_id": 2
+    }
+  ],
+  "replaced_placeholder_project_targets": [],
+  "deleted_placeholder_project_targets": [],
+  "deleted_zero_source_project_targets": [],
+  "deleted_source_project_assignments": [
+    152
+  ],
+  "unresolved_target_conflicts": [],
+  "retired_source_indicator": true
+}

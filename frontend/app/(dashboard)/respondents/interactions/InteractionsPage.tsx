@@ -172,7 +172,7 @@ export default function InteractionsPage() {
       if (entryMode === "derived" && derivedRule?.source_indicator) {
         indicatorIds.push(String(derivedRule.source_indicator))
       }
-      const uniqueIds = Array.from(new Set(indicatorIds))
+      const uniqueIds = Array.from(new Set(indicatorIds)).map((id) => String(id))
       const missingIds = uniqueIds.filter((id) => !indicatorDetailsById[id])
       if (missingIds.length === 0) return
 
@@ -712,6 +712,18 @@ export default function InteractionsPage() {
               <Button
                 disabled={isSubmitting}
                 onClick={async () => {
+                  if (!validateInteractionDetails()) {
+                    toast({
+                      title: "Validation Error",
+                      description:
+                        entryMode === "derived"
+                          ? "Please complete all interaction details, including project and linked indicator setup."
+                          : "Please complete all required interaction details before saving.",
+                      variant: "destructive",
+                    })
+                    return
+                  }
+
                   setIsSubmitting(true)
                   try {
                     if (entryMode === "derived" && (!formData.projectId || formData.projectId === "none")) {
@@ -776,7 +788,7 @@ export default function InteractionsPage() {
                     })
                     mutate()
                     resetDialog()
-                  } catch (err) {
+                  } catch {
                     toast({
                       title: "Error",
                       description: "Failed to save interaction",

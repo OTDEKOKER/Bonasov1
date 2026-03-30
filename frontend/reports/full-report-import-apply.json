@@ -1,0 +1,1478 @@
+{
+  "workbook": "/tmp/final-analysis-q3.xlsx",
+  "project": {
+    "id": 2,
+    "name": "NAHPA Social Contracting",
+    "code": "NAHPA2025/26"
+  },
+  "period_start": "2025-10-01",
+  "period_end": "2025-12-31",
+  "sheets": {
+    "MAKGABANENG": {
+      "organization_id": 5,
+      "parsed_rows": 43,
+      "matched_rows": [
+        {
+          "code": "1",
+          "title": "Number of service providers receiving training",
+          "indicator_id": 317,
+          "indicator_name": "Number of service providers receiving training",
+          "matrix": false,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "2",
+          "title": "Number of sub recipients mentored per month",
+          "indicator_id": 318,
+          "indicator_name": "Number of sub recipients mentored per month.",
+          "matrix": false,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "3",
+          "title": "Number of CSOs trained and equipped to provide comprehensive psychosocial and practical support, including HIV-related support",
+          "indicator_id": 319,
+          "indicator_name": "Number of CSOs trained and equipped to provide comprehensive psychosocial and practical support, including HIV-related support.",
+          "matrix": false,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "4",
+          "title": "Number of sub-recipients submitting quality reports per month",
+          "indicator_id": 371,
+          "indicator_name": "Number OF Sub-recipients Submitting Quality Reports PER Month.",
+          "matrix": false,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "5",
+          "title": "Total number of people reached with NCD prevention and Control messages",
+          "indicator_id": 372,
+          "indicator_name": "Number OF People Reached With NCD Prevention AND Control Messages.",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "6",
+          "title": "Number of people engaged with NCD prevention and control messages through social media",
+          "indicator_id": 373,
+          "indicator_name": "Number of people engaged with NCD prevention and control messages through social media.",
+          "matrix": false,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "7",
+          "title": "Number of advocacy activities conducted per quarter",
+          "indicator_id": 365,
+          "indicator_name": "Number of advocacy activities conducted per quarter.",
+          "matrix": false,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "8",
+          "title": "Number of media platforms used per quarter",
+          "indicator_id": 363,
+          "indicator_name": "Number of media platforms used per quarter",
+          "matrix": false,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "9",
+          "title": "Number of target specific demand creation activities conducted",
+          "indicator_id": 366,
+          "indicator_name": "Number of target specific demand creation activities conducted",
+          "matrix": false,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "10",
+          "title": "Number of media engagements conducted",
+          "indicator_id": 367,
+          "indicator_name": "Number of media engagements conducted",
+          "matrix": false,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "11",
+          "title": "Number of people reached with self-breast cancer examination education",
+          "indicator_id": 374,
+          "indicator_name": "Number OF People Reached With Self-breast Cancer Examination Education",
+          "matrix": false,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "12",
+          "title": "Number of peopel eligible for breast cancer screening",
+          "indicator_id": 409,
+          "indicator_name": "Number of people eligible for breast cancer screening",
+          "matrix": false,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "13",
+          "title": "Number of people screened for breast cancer",
+          "indicator_id": 380,
+          "indicator_name": "Number OF People Screened FOR Breast Cancer.",
+          "matrix": false,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "14",
+          "title": "Number of people reached with prostate cancer education",
+          "indicator_id": 375,
+          "indicator_name": "Number OF People Reached With Prostate Cancer Education.",
+          "matrix": false,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "15",
+          "title": "Number of people reached with cervical cancer education",
+          "indicator_id": 376,
+          "indicator_name": "Number OF People Reached With Cervical Cancer Education.",
+          "matrix": false,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "17",
+          "title": "Number of people eligible for tobacco cessation program",
+          "indicator_id": 421,
+          "indicator_name": "Number of people eligible for tobacco cessation program",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "18",
+          "title": "Number of people on tobacco cessation program",
+          "indicator_id": 487,
+          "indicator_name": "Number of people on tobacco cessation program",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "20",
+          "title": "Number of people eligible for alcohol abuse cessation program",
+          "indicator_id": 410,
+          "indicator_name": "Number of people eligible for alcohol abuse cessation program",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "21",
+          "title": "Number of people reffered for alcohol abuse cessation program",
+          "indicator_id": 411,
+          "indicator_name": "Number of people referred for alcohol abuse cessation program",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "22",
+          "title": "Number of people on alcohol abuse cessation program",
+          "indicator_id": 422,
+          "indicator_name": "Number of people on alcohol abuse cessation program",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "23",
+          "title": "Number of people screened for NCDs risk factors",
+          "indicator_id": 412,
+          "indicator_name": "Number of people screened for NCDs risk factors",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "24",
+          "title": "Number of people suspected of having NCDs risk factors (blood glucose, blood pressure, BMI) referred for further health services",
+          "indicator_id": 383,
+          "indicator_name": "Number OF People Suspected OF Having NCDs Risk Factors (blood Glucose, Blood Pressure, BMI) Referred FOR Further Health Services",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "26",
+          "title": "Number of people reached with psychoeducation",
+          "indicator_id": 423,
+          "indicator_name": "Number of people reached with psychoeducation",
+          "matrix": false,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "30",
+          "title": "Number of counselling sessions conducted",
+          "indicator_id": 387,
+          "indicator_name": "Number OF Counselling Sessions Conducted",
+          "matrix": false,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "35",
+          "title": "Number of people utilizing community based physical activity clubs",
+          "indicator_id": 390,
+          "indicator_name": "Number OF People Utilizing Community Based Physical Activity Clubs.",
+          "matrix": false,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "36a",
+          "title": "Number of functional cancer support groups",
+          "indicator_id": 391,
+          "indicator_name": "Number OF Functional Cancer Support Groups.",
+          "matrix": false,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "36b",
+          "title": "Number of support group meetings held",
+          "indicator_id": 413,
+          "indicator_name": "Number of support group meetings held",
+          "matrix": false,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "36c",
+          "title": "Total number of established cancer groups within the same area",
+          "indicator_id": 414,
+          "indicator_name": "Total number of established cancer groups within the same area",
+          "matrix": false,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "36d",
+          "title": "Number of new members/ continuing",
+          "indicator_id": 415,
+          "indicator_name": "Number of new members/continuing",
+          "matrix": false,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "37b",
+          "title": "Number of support group meetings held",
+          "indicator_id": 417,
+          "indicator_name": "Number of support group meetings held (tobacco/alcohol)",
+          "matrix": false,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "37c",
+          "title": "Number of established tobacco cessation and alcohol abuse groups within the same area",
+          "indicator_id": 418,
+          "indicator_name": "Number of established tobacco cessation and alcohol abuse groups within the same area",
+          "matrix": false,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "37d",
+          "title": "Number of new members/ continuing",
+          "indicator_id": 419,
+          "indicator_name": "Number of new members/continuing (tobacco/alcohol)",
+          "matrix": false,
+          "aggregate_action": "created"
+        },
+        {
+          "code": "38",
+          "title": "Number of people who attended SADC Healthy Lifestyle commemoration activities",
+          "indicator_id": 392,
+          "indicator_name": "Number OF People WHO Attended SADC Healthy Lifestyle Commemoration Activities.",
+          "matrix": false,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "39",
+          "title": "Number of people who attended World Diabetes Day activites",
+          "indicator_id": 393,
+          "indicator_name": "Number OF People WHO Attended World Diabetes DAY Activites.",
+          "matrix": false,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "40",
+          "title": "Number of people who attended the Breast Cancer Month activities",
+          "indicator_id": 394,
+          "indicator_name": "Number OF People WHO Attended THE Breast Cancer Month Activities.",
+          "matrix": false,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "41",
+          "title": "Number of people who attended cervical cancer awareness activities",
+          "indicator_id": 395,
+          "indicator_name": "Number OF People WHO Attended Cervical Cancer Awareness Activities.",
+          "matrix": false,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "42",
+          "title": "Number of people who attended Mental health Day activities",
+          "indicator_id": 396,
+          "indicator_name": "Number OF People WHO Attended Mental Health DAY Activities.",
+          "matrix": false,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "43",
+          "title": "Number of people who attended World Cancer Day activites",
+          "indicator_id": 397,
+          "indicator_name": "Number OF People WHO Attended World Cancer DAY Activites.",
+          "matrix": false,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "44",
+          "title": "Number of people who attended Mo-Vember Day activities",
+          "indicator_id": 398,
+          "indicator_name": "Number OF People WHO Attended Mo-Vember DAY Activities.",
+          "matrix": false,
+          "aggregate_action": "updated"
+        }
+      ],
+      "unknown_rows": [
+        "Number of people screened for NCDs behavioural risk factors",
+        "Number of people screened for NCDs behavioural risk factors",
+        "Number of peoples referred for diabetes treatment/management services",
+        "Number of functional tobacco cessation and alcohol abuse support group"
+      ]
+    },
+    "BONEPWA": {
+      "organization_id": 112,
+      "parsed_rows": 73,
+      "matched_rows": [
+        {
+          "code": "1",
+          "title": "Number of service providers receiving training",
+          "indicator_id": 317,
+          "indicator_name": "Number of service providers receiving training",
+          "matrix": false,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "2",
+          "title": "Number of sub recipients mentored per month. (Number of sub-recipients visited )",
+          "indicator_id": 439,
+          "indicator_name": "Number of sub recipients mentored per month. (Number of sub-recipients visited )",
+          "matrix": false,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "3",
+          "title": "Number of CSOs trained and equipped to provide comprehensive psychosocial and practical support, including HIV-related support",
+          "indicator_id": 319,
+          "indicator_name": "Number of CSOs trained and equipped to provide comprehensive psychosocial and practical support, including HIV-related support.",
+          "matrix": false,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "4",
+          "title": "Number of sub-recipients submitting quality reports per months",
+          "indicator_id": 320,
+          "indicator_name": "Number of sub-recipients submitting quality reports per months.",
+          "matrix": false,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "5a",
+          "title": "Number of PLWH reached with HIV TESTING Messages",
+          "indicator_id": 321,
+          "indicator_name": "Number of Total Number of people Reached with HIV TESTING Messages",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "5b",
+          "title": "Number of PLWH reached with PEP Messages",
+          "indicator_id": 322,
+          "indicator_name": "Number of Total Number of People Reached with PEP Messages",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "5e",
+          "title": "Number of PLWH reached with GBV Messages",
+          "indicator_id": 324,
+          "indicator_name": "Number of Total Number of People Reached with GBV Messages",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "5f",
+          "title": "Number of health talks conducted on PHDP held at IDCC",
+          "indicator_id": 500,
+          "indicator_name": "Number of health talks conducted on PHDP held at IDCC",
+          "matrix": false,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "5h",
+          "title": "Number of people reached with stigma reduction messages",
+          "indicator_id": 330,
+          "indicator_name": "Number of people reached with stigma reduction messages.",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "5i",
+          "title": "Number of PLWHs provided with treatment literacy",
+          "indicator_id": 481,
+          "indicator_name": "Number of PLWHs provided with treatment literacy",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "6d",
+          "title": "Number of TB testing referrals completed",
+          "indicator_id": 501,
+          "indicator_name": "Number of TB testing referrals completed",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "7",
+          "title": "ART Treatment Interrupters",
+          "indicator_id": 429,
+          "indicator_name": "ART Treatment Interrupters",
+          "matrix": false,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "7a",
+          "title": "Number of Missed appointments (1-13 days) given by facility for tracing",
+          "indicator_id": 502,
+          "indicator_name": "Number of Missed appointments (1-13 days) given by facility for tracing",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "7e",
+          "title": "Number of ART defaulters (14-89 days) followed",
+          "indicator_id": 503,
+          "indicator_name": "Number of ART defaulters (14-89 days) followed",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "7h",
+          "title": "Number of LTFU(90+ days) followed",
+          "indicator_id": 504,
+          "indicator_name": "Number of LTFU(90+ days) followed",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "8",
+          "title": "Human Rights",
+          "indicator_id": 430,
+          "indicator_name": "Human Rights",
+          "matrix": false,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "8a",
+          "title": "Number of people sensitised on basic human rights and HIV",
+          "indicator_id": 358,
+          "indicator_name": "Number of people sensitised on basic human rights and HIV.",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "8c",
+          "title": "Number of PLHIV referred to seek legal services",
+          "indicator_id": 505,
+          "indicator_name": "Number of PLHIV referred to seek legal services",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "8e",
+          "title": "Number of documented human rights violation cases",
+          "indicator_id": 506,
+          "indicator_name": "Number of documented human rights violation cases",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "9",
+          "title": "Human Rights & Stigma Sensitization",
+          "indicator_id": 441,
+          "indicator_name": "Human Rights & Stigma Sensitization",
+          "matrix": false,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "9a",
+          "title": "Number of community leaders sensitised on human rights, stigma and descrimination",
+          "indicator_id": 362,
+          "indicator_name": "Number of community leaders sensitised on human rights, stigma and descrimination.",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "10a",
+          "title": "Number of individuals screened for GBV",
+          "indicator_id": 343,
+          "indicator_name": "Number of individuals screened for GBV.",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "10c",
+          "title": "Number of people elligible for Clinical services for GBV",
+          "indicator_id": 463,
+          "indicator_name": "Number of people elligible for clinical services for GBV.",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "10d",
+          "title": "Number of People reffered for Clinical Services for GBV",
+          "indicator_id": 464,
+          "indicator_name": "Number of people reffered for clinical services for GBV.",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "10e",
+          "title": "Number of people elligible for Justice Services for GBV",
+          "indicator_id": 465,
+          "indicator_name": "Number of people elligible for justice services for GBV.",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "10f",
+          "title": "Number of people reffered for Justice Services for GBV",
+          "indicator_id": 466,
+          "indicator_name": "Number of people reffered for justice services for GBV.",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "11c",
+          "title": "Number of Lubricants distributed to PLHIV",
+          "indicator_id": 509,
+          "indicator_name": "Number of Lubricants distributed to PLHIV",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "12a",
+          "title": "Number of people screened for STIs",
+          "indicator_id": 351,
+          "indicator_name": "Number of people screened for STIs",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "12b",
+          "title": "Number of people screened positive for STIs reffered for Services",
+          "indicator_id": 468,
+          "indicator_name": "Number of  people screened positive for STIs referred for services",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "12c",
+          "title": "Number of STIs refferals completed",
+          "indicator_id": 511,
+          "indicator_name": "Number of  STIs refferals completed",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "13",
+          "title": "Number of AYPLHIV engaged in teen and youth club activities",
+          "indicator_id": 435,
+          "indicator_name": "Number of AYPLHIV engaged in teen and youth club activities",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "15",
+          "title": "Psychosocial Support & Counselling",
+          "indicator_id": 437,
+          "indicator_name": "Psychosocial Support & Counselling",
+          "matrix": false,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "15a",
+          "title": "Number of trauma-informed counselling sessions delivered to PLHIV, GBV survivors, adolescents, and youth",
+          "indicator_id": 514,
+          "indicator_name": "Number of trauma-informed counselling sessions delivered to PLHIV, GBV survivors, adolescents, and youth",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "15b",
+          "title": "Number of complex/high-risk cases managed and referred",
+          "indicator_id": 515,
+          "indicator_name": "Number of complex/high-risk cases managed and referred",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "15c",
+          "title": "Number of documented success stories and client outcomes",
+          "indicator_id": 516,
+          "indicator_name": "Number of documented success stories and client outcomes",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "15d",
+          "title": "Number of community youth dialogues, health campaigns, and youth forums attended",
+          "indicator_id": 517,
+          "indicator_name": "Number of community youth dialogues, health campaigns, and youth forums attended",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "15e",
+          "title": "Number of group counselling sessions conducted for youth and vulnerable groups (support group meetings)",
+          "indicator_id": 518,
+          "indicator_name": "Number of group counselling sessions conducted for youth and vulnerable groups (support group meetings)",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "15i",
+          "title": "Number of referrals made for complex cases to appropriate services (health, police, social welfare)",
+          "indicator_id": 519,
+          "indicator_name": "Number of referrals made for complex cases to appropriate services (health, police, social welfare)",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "16",
+          "title": "Number of Support groups mentored for Sustainability activities",
+          "indicator_id": 442,
+          "indicator_name": "Number of Support groups mentored for Sustainability activities",
+          "matrix": false,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "17",
+          "title": "Number of Community led monitoring conducted for quality of service and human rights",
+          "indicator_id": 364,
+          "indicator_name": "Number of community led monitoring conducted for quality of service and human rights.",
+          "matrix": false,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "18",
+          "title": "Number of advocacy activities conducted per quarter",
+          "indicator_id": 365,
+          "indicator_name": "Number of advocacy activities conducted per quarter.",
+          "matrix": false,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "19a",
+          "title": "Number of media platforms used per quarter",
+          "indicator_id": 363,
+          "indicator_name": "Number of media platforms used per quarter",
+          "matrix": false,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "19b",
+          "title": "Number of media engagements conducted",
+          "indicator_id": 367,
+          "indicator_name": "Number of media engagements conducted",
+          "matrix": false,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "20",
+          "title": "Number of target specific demand creation activities conducted",
+          "indicator_id": 366,
+          "indicator_name": "Number of target specific demand creation activities conducted",
+          "matrix": false,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "21",
+          "title": "Number of stigma reduction campaigns conducted during the project",
+          "indicator_id": 368,
+          "indicator_name": "Number of stigma reduction campaigns conducted during the project.",
+          "matrix": false,
+          "aggregate_action": "updated"
+        }
+      ],
+      "unknown_rows": [
+        "Number of PLWH reached with with PREP Messages",
+        "Number of PLWH reached with Consistent, correct condom use messages",
+        "Number of people reached at health talks conducted on PHDP held at IDCC",
+        "Number of PLWH who tested positive for TB and are on treatment",
+        "Number of PLHIV screened for TB",
+        "Number of PLHIV symptomatic for TB referred for testing",
+        "Number of PLHIV on TB treatment",
+        "Number of PLHIV on TB treatment interrupting treatment",
+        "Number of PLHIV TB treatment interrupters reinitiated on treatment",
+        "Number of Missed appointments (1-13 days) followed",
+        "Number of Missed appointments (1-13 days) reinitiated to treatment",
+        "Number of ART defaulters (14-89 days) given by facility for tracing",
+        "Number of ART defaulters (14-89 days) reinitiated to treatment",
+        "Number of LTFU(90+ days) given by facility for tracing",
+        "Number of people who LTFU (90+ days) Re-initiated on ART",
+        "Number of individuals reached with messaging on equality and human rights",
+        "Number of people who report that their rights were violated and who sought redness",
+        "Number of individuals eligible for GBV services",
+        "Number of people elligible for Psychosocial Support for GBV",
+        "Number of people reffered for Psychosocial Support for GBV",
+        "Number of Male Condoms distributed",
+        "Number of People who reported collecting condoms for the repeated time",
+        "Number of people reached with NCD prevention messages",
+        "Number of people screened for NCDs",
+        "Number of people referred for NCD services",
+        "Number of individual counselling sessions conducted for youth and vulnerable groups",
+        "Number of disclosure and mental health support sessions delivered",
+        "Number of individual counselling sessions conducted for youth and vulnerable groups"
+      ]
+    },
+    "BONELA": {
+      "organization_id": 137,
+      "parsed_rows": 37,
+      "matched_rows": [
+        {
+          "code": "1",
+          "title": "Number of service providers receiving training",
+          "indicator_id": 317,
+          "indicator_name": "Number of service providers receiving training",
+          "matrix": false,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "2",
+          "title": "Number of people reached with stigma reduction messages",
+          "indicator_id": 330,
+          "indicator_name": "Number of people reached with stigma reduction messages.",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "3",
+          "title": "Number of people referred for HIV testing",
+          "indicator_id": 445,
+          "indicator_name": "Number  of people referred for HIV testing.",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "4",
+          "title": "Number of people eligible for PrEP",
+          "indicator_id": 336,
+          "indicator_name": "Number of people eligible for PrEP",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "5",
+          "title": "Number of people referred for PrEP",
+          "indicator_id": 337,
+          "indicator_name": "Number of people referred for PrEP.",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "1a",
+          "title": "Total Number of Key and Vulnerable Populations Reached with HIV TESTING Messages",
+          "indicator_id": 321,
+          "indicator_name": "Number of Total Number of people Reached with HIV TESTING Messages",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "1b",
+          "title": "Total Number of Key and Vulnerable Populations Reached with PEP Messages",
+          "indicator_id": 322,
+          "indicator_name": "Number of Total Number of People Reached with PEP Messages",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "1c",
+          "title": "Total Number of Key and Vulnerable Populations Reached with PREP Messages",
+          "indicator_id": 323,
+          "indicator_name": "Number of Total Number of people Reached with PREP Messages",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "1d",
+          "title": "Total Number of Key and Vulnerable Populations Reached with GBV Messages",
+          "indicator_id": 324,
+          "indicator_name": "Number of Total Number of People Reached with GBV Messages",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "6",
+          "title": "Number of people eligible for PEP",
+          "indicator_id": 338,
+          "indicator_name": "Number of people eligible for PEP",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "7",
+          "title": "Number of people referred for PEP",
+          "indicator_id": 339,
+          "indicator_name": "Number of people referred for PEP",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "8a",
+          "title": "Number of individuals screened for GBV",
+          "indicator_id": 343,
+          "indicator_name": "Number of individuals screened for GBV.",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "8b",
+          "title": "Number eligible for GBV services who experienced PHYSICAL VIOLENCE",
+          "indicator_id": 475,
+          "indicator_name": "Number eligible for GBV services who experienced PHYSICAL VIOLENCE",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "8c",
+          "title": "Number eligible for GBV services who experienced SEXUAL VIOLENCE",
+          "indicator_id": 476,
+          "indicator_name": "Number eligible for GBV services who experienced SEXUAL VIOLENCE",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "8d",
+          "title": "Number eligible for GBV services who experienced EMOTIONAL VIOLENCE",
+          "indicator_id": 477,
+          "indicator_name": "Number eligible for GBV services who experienced EMOTIONAL VIOLENCE",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "8e",
+          "title": "Number of People who received psychosocial support on GBV",
+          "indicator_id": 350,
+          "indicator_name": "Number of people who received psychosocial support on GBV",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "8f",
+          "title": "Number of people reffered for justice services for GBV",
+          "indicator_id": 466,
+          "indicator_name": "Number of people reffered for justice services for GBV.",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "9a",
+          "title": "Number of people screened for STIs",
+          "indicator_id": 351,
+          "indicator_name": "Number of people screened for STIs",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "9c",
+          "title": "Number of STI cases linked to care",
+          "indicator_id": 469,
+          "indicator_name": "Number of  STI cases linked to care",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "10",
+          "title": "Number of condoms distributed to KVPs",
+          "indicator_id": 447,
+          "indicator_name": "Number of condoms distributed to KVPs.",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "11",
+          "title": "Number of brailed condoms distributed to PWDs",
+          "indicator_id": 448,
+          "indicator_name": "Number of brailed condoms distributed to PWDs",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "12",
+          "title": "Number of promotions on braille labelled condoms held",
+          "indicator_id": 438,
+          "indicator_name": "Number of promotions on braille labelled condoms held.",
+          "matrix": false,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "13",
+          "title": "Number of people who reported collecting condoms for a repeated time",
+          "indicator_id": 449,
+          "indicator_name": "Number of people who reported collecting condoms for a repeated time.",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "14",
+          "title": "Number of condoms distributed through the non-traditional sites",
+          "indicator_id": 450,
+          "indicator_name": "Number of condoms distributed through the non-traditional sites",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "15",
+          "title": "Number of lubricants distributed",
+          "indicator_id": 357,
+          "indicator_name": "Number of lubricants distributed",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "16",
+          "title": "Number of people sensitised on basic human rights and HIV",
+          "indicator_id": 358,
+          "indicator_name": "Number of people sensitised on basic human rights and HIV.",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "17",
+          "title": "Number of healthcare workers trained on medical ethics and human rights",
+          "indicator_id": 359,
+          "indicator_name": "Number of healthcare workers trained on medical ethics and human rights.",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "18a",
+          "title": "Number of people who report that their rights were violated",
+          "indicator_id": 360,
+          "indicator_name": "Number of people who report that their rights were violated",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "18b",
+          "title": "Number of people who sought redress",
+          "indicator_id": 361,
+          "indicator_name": "Number of people who sought redress.",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "19",
+          "title": "Number of community leaders sensitised on human rights, stigma and descrimination",
+          "indicator_id": 362,
+          "indicator_name": "Number of community leaders sensitised on human rights, stigma and descrimination.",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "20",
+          "title": "Number of community led monitoring conducted for quality of service and human rights",
+          "indicator_id": 364,
+          "indicator_name": "Number of community led monitoring conducted for quality of service and human rights.",
+          "matrix": false,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "21",
+          "title": "Number of advocacy activities conducted per quarter",
+          "indicator_id": 365,
+          "indicator_name": "Number of advocacy activities conducted per quarter.",
+          "matrix": false,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "22",
+          "title": "Number of media platforms used per quarter",
+          "indicator_id": 363,
+          "indicator_name": "Number of media platforms used per quarter",
+          "matrix": false,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "23",
+          "title": "Number of target specific demand creation activities conducted",
+          "indicator_id": 366,
+          "indicator_name": "Number of target specific demand creation activities conducted",
+          "matrix": false,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "24",
+          "title": "Number of media engagements conducted",
+          "indicator_id": 367,
+          "indicator_name": "Number of media engagements conducted",
+          "matrix": false,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "25",
+          "title": "Number of stigma reduction campaigns conducted during the project",
+          "indicator_id": 368,
+          "indicator_name": "Number of stigma reduction campaigns conducted during the project.",
+          "matrix": false,
+          "aggregate_action": "updated"
+        }
+      ],
+      "unknown_rows": [
+        "Number of people referred for STIs for services"
+      ]
+    },
+    "TEBELOPELE": {
+      "organization_id": 1,
+      "parsed_rows": 50,
+      "matched_rows": [
+        {
+          "code": "1",
+          "title": "Number of service providers receiving training",
+          "indicator_id": 317,
+          "indicator_name": "Number of service providers receiving training",
+          "matrix": false,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "2",
+          "title": "Number of people reached with stigma reduction messages",
+          "indicator_id": 330,
+          "indicator_name": "Number of people reached with stigma reduction messages.",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "3",
+          "title": "Number of CSOs trained and equipped to provide comprehensive psychosocial and practical support, including HIV-related support",
+          "indicator_id": 319,
+          "indicator_name": "Number of CSOs trained and equipped to provide comprehensive psychosocial and practical support, including HIV-related support.",
+          "matrix": false,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "4",
+          "title": "Number of people provided with legal aid services",
+          "indicator_id": 340,
+          "indicator_name": "Number of Number of people provided with legal aid services",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "1a",
+          "title": "Total Number of people Reached with HIV TESTING Messages",
+          "indicator_id": 321,
+          "indicator_name": "Number of Total Number of people Reached with HIV TESTING Messages",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "1b",
+          "title": "Total Number of People Reached with PEP Messages",
+          "indicator_id": 322,
+          "indicator_name": "Number of Total Number of People Reached with PEP Messages",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "1c",
+          "title": "Total Number of people Reached with PREP Messages",
+          "indicator_id": 323,
+          "indicator_name": "Number of Total Number of people Reached with PREP Messages",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "1d",
+          "title": "Total Number of People Reached with GBV Messages",
+          "indicator_id": 324,
+          "indicator_name": "Number of Total Number of People Reached with GBV Messages",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "1e",
+          "title": "Total Number of People Reached with Condom Use Messages",
+          "indicator_id": 325,
+          "indicator_name": "Number of Total Number of People Reached with Condom Use Messages",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "1f",
+          "title": "Total Number of People Reached with HIV Treatment Messages",
+          "indicator_id": 326,
+          "indicator_name": "Number of Total Number of People Reached with HIV Treatment Messages",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "1g",
+          "title": "Total Number of People Reached with ARV Based Prevention Messages",
+          "indicator_id": 327,
+          "indicator_name": "Number of Total Number of People Reached with ARV Based Prevention Messages",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "1h",
+          "title": "Total Number of People Reached with EMTCT Messages",
+          "indicator_id": 328,
+          "indicator_name": "Number of Total Number of People Reached with EMTCT Messages",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "1i",
+          "title": "Total Number of People Reached with HIV Messages",
+          "indicator_id": 329,
+          "indicator_name": "Number of Total Number of People Reached with HIV Messages",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "3a",
+          "title": "Number of people referred for HIV Testing",
+          "indicator_id": 445,
+          "indicator_name": "Number  of people referred for HIV testing.",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "3b",
+          "title": "Number of people tested for HIV",
+          "indicator_id": 332,
+          "indicator_name": "Number of Number of people tested for HIV.",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "3c",
+          "title": "Number of people who tested positive for HIV",
+          "indicator_id": 452,
+          "indicator_name": "Number  of people who tested positive for HIV.",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "3d",
+          "title": "Number of AYP linked to care",
+          "indicator_id": 334,
+          "indicator_name": "Number of AYP linked to care.",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "3e",
+          "title": "Number of AYP initiated on ART",
+          "indicator_id": 335,
+          "indicator_name": "Number of AYP initiated on ART",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "3f",
+          "title": "Number of people eligible for PrEP",
+          "indicator_id": 336,
+          "indicator_name": "Number of people eligible for PrEP",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "3g",
+          "title": "Number of people referred for PrEP",
+          "indicator_id": 337,
+          "indicator_name": "Number of people referred for PrEP.",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "3h",
+          "title": "Number of people eligible for PEP",
+          "indicator_id": 338,
+          "indicator_name": "Number of people eligible for PEP",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "3i",
+          "title": "Number of people referred for PEP",
+          "indicator_id": 339,
+          "indicator_name": "Number of people referred for PEP",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "5",
+          "title": "Number of people linked to justice services",
+          "indicator_id": 341,
+          "indicator_name": "Number of Number of people linked to justice services",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "6",
+          "title": "Number of AYP provided with family planning services",
+          "indicator_id": 342,
+          "indicator_name": "Number of AYP provided with family planning services",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "7a",
+          "title": "Number of individuals screened for GBV",
+          "indicator_id": 343,
+          "indicator_name": "Number of individuals screened for GBV.",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "7b",
+          "title": "Number eligible for clinical services for GBV",
+          "indicator_id": 344,
+          "indicator_name": "Number of Number eligible for clinical services for GBV",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "7c",
+          "title": "Number referred for clinical services for GBV",
+          "indicator_id": 345,
+          "indicator_name": "Number of Number referred for clinical services for GBV",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "7d",
+          "title": "Number eligible for justice services for GBV",
+          "indicator_id": 346,
+          "indicator_name": "Number of Number eligible for justice services for GBV",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "7e",
+          "title": "Number referred for justice services for GBV",
+          "indicator_id": 347,
+          "indicator_name": "Number of Number referred for justice services for GBV",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "7f",
+          "title": "Number eligible for pyschosocial services for GBV",
+          "indicator_id": 348,
+          "indicator_name": "Number of Number eligible for pyschosocial services for GBV",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "7h",
+          "title": "Number referred for pyschosocial services for GBV",
+          "indicator_id": 349,
+          "indicator_name": "Number of Number referred for pyschosocial services for GBV",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "7i",
+          "title": "Number of people who received psychosocial support on GBV",
+          "indicator_id": 350,
+          "indicator_name": "Number of people who received psychosocial support on GBV",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "8a",
+          "title": "Number of people screened for STIs",
+          "indicator_id": 351,
+          "indicator_name": "Number of people screened for STIs",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "8b",
+          "title": "Number of people screened positive for STIs referred for services",
+          "indicator_id": 468,
+          "indicator_name": "Number of  people screened positive for STIs referred for services",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "8c",
+          "title": "Number of STI cases linked to care",
+          "indicator_id": 469,
+          "indicator_name": "Number of  STI cases linked to care",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "8d",
+          "title": "Number of STI cases referrals completed",
+          "indicator_id": 470,
+          "indicator_name": "Number of  STI cases referrals completed",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "9a",
+          "title": "Number of condoms distributed to AYPs",
+          "indicator_id": 355,
+          "indicator_name": "Number of condoms distributed to AYPs",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "9b",
+          "title": "Number of people who repeated collecting condoms for the repeated time",
+          "indicator_id": 356,
+          "indicator_name": "Number of people who repeated collecting condoms for the repeated time",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "10",
+          "title": "Number of lubricants distributed",
+          "indicator_id": 357,
+          "indicator_name": "Number of lubricants distributed",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "11",
+          "title": "Number of people sensitised on basic human rights and HIV",
+          "indicator_id": 358,
+          "indicator_name": "Number of people sensitised on basic human rights and HIV.",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "12",
+          "title": "Number of healthcare workers trained on medical ethics and human rights",
+          "indicator_id": 359,
+          "indicator_name": "Number of healthcare workers trained on medical ethics and human rights.",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "13a",
+          "title": "Number of people who report that their rights were violated",
+          "indicator_id": 360,
+          "indicator_name": "Number of people who report that their rights were violated",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "13b",
+          "title": "Number of people who sought redress",
+          "indicator_id": 361,
+          "indicator_name": "Number of people who sought redress.",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "14",
+          "title": "Number of community leaders sensitised on human rights, stigma and descrimination",
+          "indicator_id": 362,
+          "indicator_name": "Number of community leaders sensitised on human rights, stigma and descrimination.",
+          "matrix": true,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "15",
+          "title": "Number of media platforms used per quarter",
+          "indicator_id": 363,
+          "indicator_name": "Number of media platforms used per quarter",
+          "matrix": false,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "16",
+          "title": "Number of community led monitoring conducted for quality of service and human rights",
+          "indicator_id": 364,
+          "indicator_name": "Number of community led monitoring conducted for quality of service and human rights.",
+          "matrix": false,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "17",
+          "title": "Number of advocacy activities conducted per quarter",
+          "indicator_id": 365,
+          "indicator_name": "Number of advocacy activities conducted per quarter.",
+          "matrix": false,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "18",
+          "title": "Number of target specific demand creation activities conducted",
+          "indicator_id": 366,
+          "indicator_name": "Number of target specific demand creation activities conducted",
+          "matrix": false,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "19",
+          "title": "Number of media engagements conducted",
+          "indicator_id": 367,
+          "indicator_name": "Number of media engagements conducted",
+          "matrix": false,
+          "aggregate_action": "updated"
+        },
+        {
+          "code": "20",
+          "title": "Number of stigma reduction campaigns conducted during the project",
+          "indicator_id": 368,
+          "indicator_name": "Number of stigma reduction campaigns conducted during the project.",
+          "matrix": false,
+          "aggregate_action": "updated"
+        }
+      ],
+      "unknown_rows": []
+    }
+  },
+  "summary": {
+    "matched_rows": 170,
+    "unknown_rows": 33,
+    "unique_unknown_titles": 31,
+    "updated_indicator_count": 0,
+    "project_assignments_created": 0,
+    "aggregate_upserts": 170,
+    "dry_run": false,
+    "unknown_titles": {
+      "Number of people screened for NCDs behavioural risk factors": 2,
+      "Number of individual counselling sessions conducted for youth and vulnerable groups": 2,
+      "Number of peoples referred for diabetes treatment/management services": 1,
+      "Number of functional tobacco cessation and alcohol abuse support group": 1,
+      "Number of PLWH reached with with PREP Messages": 1,
+      "Number of PLWH reached with Consistent, correct condom use messages": 1,
+      "Number of people reached at health talks conducted on PHDP held at IDCC": 1,
+      "Number of PLWH who tested positive for TB and are on treatment": 1,
+      "Number of PLHIV screened for TB": 1,
+      "Number of PLHIV symptomatic for TB referred for testing": 1,
+      "Number of PLHIV on TB treatment": 1,
+      "Number of PLHIV on TB treatment interrupting treatment": 1,
+      "Number of PLHIV TB treatment interrupters reinitiated on treatment": 1,
+      "Number of Missed appointments (1-13 days) followed": 1,
+      "Number of Missed appointments (1-13 days) reinitiated to treatment": 1,
+      "Number of ART defaulters (14-89 days) given by facility for tracing": 1,
+      "Number of ART defaulters (14-89 days) reinitiated to treatment": 1,
+      "Number of LTFU(90+ days) given by facility for tracing": 1,
+      "Number of people who LTFU (90+ days) Re-initiated on ART": 1,
+      "Number of individuals reached with messaging on equality and human rights": 1,
+      "Number of people who report that their rights were violated and who sought redness": 1,
+      "Number of individuals eligible for GBV services": 1,
+      "Number of people elligible for Psychosocial Support for GBV": 1,
+      "Number of people reffered for Psychosocial Support for GBV": 1,
+      "Number of Male Condoms distributed": 1,
+      "Number of People who reported collecting condoms for the repeated time": 1,
+      "Number of people reached with NCD prevention messages": 1,
+      "Number of people screened for NCDs": 1,
+      "Number of people referred for NCD services": 1,
+      "Number of disclosure and mental health support sessions delivered": 1,
+      "Number of people referred for STIs for services": 1
+    }
+  }
+}

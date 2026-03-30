@@ -1,7 +1,6 @@
 "use client"
 
 import React, { useState } from "react"
-import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
@@ -30,6 +29,7 @@ export interface FlagModalProps {
   objectId?: number
   title?: string
   reasonOptions?: { value: string; label: string }[]
+  requireDescription?: boolean
 }
 
 const defaultReasonOptions = [
@@ -46,6 +46,7 @@ export function FlagModal({
   onSubmit,
   title = "Flag this Entry",
   reasonOptions = defaultReasonOptions,
+  requireDescription = false,
 }: FlagModalProps) {
   const [reason, setReason] = useState("")
   const [description, setDescription] = useState("")
@@ -59,6 +60,11 @@ export function FlagModal({
       return
     }
 
+    if (requireDescription && !description.trim()) {
+      setError("Please add a comment explaining what needs to be corrected")
+      return
+    }
+
     setIsSubmitting(true)
     setError("")
 
@@ -69,7 +75,7 @@ export function FlagModal({
       setDescription("")
       setSeverity("low")
       onClose()
-    } catch (err) {
+    } catch {
       setError("Failed to create flag. Please try again.")
     } finally {
       setIsSubmitting(false)
@@ -136,7 +142,10 @@ export function FlagModal({
           </div>
 
           <div className="space-y-2">
-            <Label>Additional Details</Label>
+            <Label>
+              Additional Details
+              {requireDescription ? " *" : ""}
+            </Label>
             <Textarea
               placeholder="Provide more context about why you're flagging this entry..."
               value={description}

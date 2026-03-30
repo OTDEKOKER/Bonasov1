@@ -1,7 +1,7 @@
 "use client"
 
 import React from "react"
-import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { ArrowLeft } from "lucide-react"
 
@@ -12,15 +12,24 @@ export interface ReturnLinkProps {
 }
 
 export function ReturnLink({ url, label, className }: ReturnLinkProps) {
+  const router = useRouter()
+
   return (
     <div className={cn("mb-4", className)}>
-      <Link
-        href={url}
+      <button
+        type="button"
+        onClick={() => {
+          if (typeof window !== "undefined" && window.history.length > 1) {
+            router.back()
+            return
+          }
+          router.push(url)
+        }}
         className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
       >
         <ArrowLeft className="h-4 w-4" />
         {label}
-      </Link>
+      </button>
     </div>
   )
 }
