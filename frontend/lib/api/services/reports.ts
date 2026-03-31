@@ -67,10 +67,16 @@ export interface CreateReportRequest {
     date_from?: string;
     date_to?: string;
     organization_id?: number;
+    cascade_organization?: boolean;
     include_disaggregation?: boolean;
+    include_targets?: boolean;
+    comparison_mode?: 'indicator' | 'organization';
+    organization_scope?: 'organization_only' | 'organization_with_subgrantees' | 'all_organizations';
     format?: 'pdf' | 'excel' | 'csv';
   };
 }
+
+type ReportDownloadFormat = 'pdf' | 'excel' | 'csv';
 
 type RawReport = Partial<Report> & {
   report_type?: string;
@@ -249,21 +255,63 @@ export const reportsService = {
    * Download report file
    * Django endpoint: GET /api/analysis/reports/:id/download/
    */
-  async download(id: number, format?: 'pdf' | 'excel' | 'csv'): Promise<Blob> {
-    const query = format ? `?format=${encodeURIComponent(format)}` : '';
-    const response = await fetchWithAuth(`/analysis/reports/${id}/download/${query}`);
-    if (!response.ok) {
-      const contentType = response.headers.get('content-type');
-      const payload = contentType?.includes('application/json')
-        ? await response.json()
-        : await response.text();
-      throw normalizeApiError({
-        status: response.status,
-        payload,
-        fallbackMessage: 'Failed to download report',
-      });
+  async download(id: number, format?: ReportDownloadFormat): Promise<Blob> {
+    const endpointCandidates = [
+      `/analysis/reports/${id}/download/`,
+      `/analysis/reports/${id}/download`,
+      `/analysis/reports/${id}/export/`,
+      `/analysis/reports/${id}/export`,
+    ];
+    const formatCandidates: Array<ReportDownloadFormat | 'xlsx' | null> =
+      format === 'excel'
+        ? ['excel', 'xlsx']
+        : format
+          ? [format]
+          : [null];
+
+    const attemptedUrls = new Set<string>();
+    let lastNotFoundError: Error | null = null;
+
+    for (const endpoint of endpointCandidates) {
+      for (const candidate of formatCandidates) {
+        const url = candidate
+          ? `${endpoint}?format=${encodeURIComponent(candidate)}`
+          : endpoint;
+
+        if (attemptedUrls.has(url)) continue;
+        attemptedUrls.add(url);
+
+        const response = await fetchWithAuth(url);
+        if (response.ok) {
+          return response.blob();
+        }
+
+        const contentType = response.headers.get('content-type');
+        const payload = contentType?.includes('application/json')
+          ? await response.json()
+          : await response.text();
+        const apiError = normalizeApiError({
+          status: response.status,
+          payload,
+          fallbackMessage: 'Failed to download report',
+        });
+
+        if (response.status !== 404) {
+          throw apiError;
+        }
+        lastNotFoundError = apiError;
+      }
     }
-    return response.blob();
+
+    if (lastNotFoundError) {
+      throw lastNotFoundError;
+    }
+
+    throw normalizeApiError({
+      status: 404,
+      payload: { detail: 'Report download endpoint not found.' },
+      fallbackMessage: 'Failed to download report',
+    });
   },
 
   /**
@@ -617,4 +665,3 @@ export const flagsService = {
 };
 
 export default reportsService;
-

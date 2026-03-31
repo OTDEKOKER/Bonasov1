@@ -1,0 +1,125 @@
+﻿{
+  "dry_run": false,
+  "source_indicator": {
+    "id": 339,
+    "code": "AUTO_NUMBER_OF_PEOPLE_REFERRED_FOR_PEP",
+    "name": "Number of people referred for PEP",
+    "is_active": true
+  },
+  "target_indicator": {
+    "id": 446,
+    "code": "NAHPA2025-26-7-NUMBER-OF-PEOPLE-REFERRED-FOR-PEP",
+    "name": "Number of people referred for PEP.",
+    "is_active": true
+  },
+  "moved_aggregates": [
+    {
+      "aggregate_id": 9860,
+      "organization_id": 137,
+      "project_id": 2,
+      "period_start": "2025-10-01",
+      "period_end": "2025-12-31",
+      "status": "approved"
+    },
+    {
+      "aggregate_id": 9885,
+      "organization_id": 1,
+      "project_id": 2,
+      "period_start": "2025-10-01",
+      "period_end": "2025-12-31",
+      "status": "approved"
+    }
+  ],
+  "replaced_placeholders": [
+    {
+      "source_aggregate_id": 9860,
+      "target_aggregate_id": 6098,
+      "organization_id": 137,
+      "project_id": 2,
+      "period_start": "2025-10-01",
+      "period_end": "2025-12-31",
+      "forced": true
+    }
+  ],
+  "deleted_placeholder_aggregates": [
+    6098
+  ],
+  "unresolved_conflicts": [],
+  "moved_project_targets": [
+    {
+      "target_row_id": 268,
+      "organization_id": 166,
+      "project_id": 2
+    },
+    {
+      "target_row_id": 269,
+      "organization_id": 137,
+      "project_id": 2
+    },
+    {
+      "target_row_id": 270,
+      "organization_id": 1,
+      "project_id": 2
+    },
+    {
+      "target_row_id": 271,
+      "organization_id": 165,
+      "project_id": 2
+    },
+    {
+      "target_row_id": 272,
+      "organization_id": 112,
+      "project_id": 2
+    }
+  ],
+  "replaced_placeholder_project_targets": [
+    {
+      "source_target_id": 268,
+      "target_target_id": 262,
+      "organization_id": 166,
+      "project_id": 2,
+      "forced": true
+    },
+    {
+      "source_target_id": 269,
+      "target_target_id": 261,
+      "organization_id": 137,
+      "project_id": 2,
+      "forced": true
+    },
+    {
+      "source_target_id": 270,
+      "target_target_id": 263,
+      "organization_id": 1,
+      "project_id": 2,
+      "forced": true
+    },
+    {
+      "source_target_id": 271,
+      "target_target_id": 260,
+      "organization_id": 165,
+      "project_id": 2,
+      "forced": false
+    },
+    {
+      "source_target_id": 272,
+      "target_target_id": 259,
+      "organization_id": 112,
+      "project_id": 2,
+      "forced": false
+    }
+  ],
+  "deleted_placeholder_project_targets": [
+    262,
+    261,
+    263,
+    260,
+    259
+  ],
+  "deleted_zero_source_project_targets": [],
+  "deleted_source_project_assignments": [
+    31
+  ],
+  "unresolved_target_conflicts": [],
+  "retired_source_indicator": true
+}

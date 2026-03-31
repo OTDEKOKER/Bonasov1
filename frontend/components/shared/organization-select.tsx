@@ -24,7 +24,7 @@ export type OrganizationSelectOption = {
 };
 
 export function OrganizationSelect(props: {
-  organizations: OrganizationSelectOption[];
+  organizations: OrganizationSelectOption[] | null | undefined | unknown;
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
@@ -51,18 +51,31 @@ export function OrganizationSelect(props: {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
 
+  const safeOrganizations = useMemo<OrganizationSelectOption[]>(() => {
+    if (!Array.isArray(organizations)) return [];
+
+    return organizations.filter((organization): organization is OrganizationSelectOption => {
+      if (!organization || typeof organization !== "object") return false;
+      const candidate = organization as Partial<OrganizationSelectOption>;
+      return (
+        (typeof candidate.id === "string" || typeof candidate.id === "number") &&
+        typeof candidate.name === "string"
+      );
+    });
+  }, [organizations]);
+
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
-    if (!term) return organizations;
-    return organizations.filter((org) => org.name.toLowerCase().includes(term));
-  }, [organizations, search]);
+    if (!term) return safeOrganizations;
+    return safeOrganizations.filter((org) => org.name.toLowerCase().includes(term));
+  }, [safeOrganizations, search]);
 
   const selectedLabel = useMemo(() => {
     if (value === "all") return allLabel;
     if (value === "none") return noneLabel;
-    const match = organizations.find((org) => String(org.id) === value);
+    const match = safeOrganizations.find((org) => String(org.id) === value);
     return match?.name || "";
-  }, [value, organizations, allLabel, noneLabel]);
+  }, [value, safeOrganizations, allLabel, noneLabel]);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>

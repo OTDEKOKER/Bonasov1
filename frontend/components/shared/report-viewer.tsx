@@ -1,17 +1,18 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Download, RefreshCcw } from "lucide-react";
+import { useMemo } from "react";
+import { Download, Loader2, RefreshCw } from "lucide-react";
 import {
   Bar,
   BarChart,
   CartesianGrid,
-  Cell,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -19,548 +20,274 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
+import type { Report } from "@/lib/api";
 
-type ReportLike = {
-  id: number;
-  name?: string;
-  type?: string;
-  status?: string;
-  cached_data?: unknown;
-  last_generated?: string | null;
-  parameters?: Record<string, unknown>;
+type ViewerRecord = Record<string, unknown>;
+
+type ComparisonRow = {
+  label: string;
+  achieved: number;
+  target: number;
+  organizationName: string;
 };
 
-const chartPalette = [
-  "#1CE783",
-  "#0EA5E9",
-  "#F97316",
-  "#A855F7",
-  "#14B8A6",
-  "#EF4444",
-  "#84CC16",
-  "#FACC15",
-];
+const achievedKeys = ["achieved", "total", "total_value", "value", "current_value"];
+const targetKeys = ["target", "target_value"];
+const labelKeys = ["indicator_name", "name", "indicator", "project_name", "section"];
+const organizationKeys = ["organization_name", "organization", "scope"];
 
-const EMPTY_ROWS: Array<Record<string, unknown>> = [];
-
-const NUMERIC_PRIORITY_KEYS = [
-  "total_value",
-  "value",
-  "total",
-  "entries",
-  "count",
-  "male",
-  "female",
-];
-
-const isObject = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null && !Array.isArray(value);
-
-const toRecordArray = (value: unknown): Array<Record<string, unknown>> => {
-  if (!Array.isArray(value)) return EMPTY_ROWS;
-  return value.filter((item): item is Record<string, unknown> => isObject(item));
-};
-
-const normalizeCachedRows = (cachedData: unknown): Array<Record<string, unknown>> => {
-  const directRows = toRecordArray(cachedData);
-  if (directRows.length) return directRows;
-
-  if (!isObject(cachedData)) return EMPTY_ROWS;
-
-  for (const key of ["results", "rows", "data", "items", "cached_data"]) {
-    const nestedRows = toRecordArray(cachedData[key]);
-    if (nestedRows.length) return nestedRows;
+const statusBadge = (status: string) => {
+  switch (status) {
+    case "completed":
+      return <Badge className="bg-success/20 text-success border-success/30">Completed</Badge>;
+    case "failed":
+      return <Badge className="bg-destructive/20 text-destructive border-destructive/30">Failed</Badge>;
+    case "processing":
+      return <Badge className="bg-warning/20 text-warning border-warning/30">Processing</Badge>;
+    default:
+      return <Badge variant="secondary">Pending</Badge>;
   }
-
-  return EMPTY_ROWS;
 };
 
-const isNumericLike = (value: unknown): boolean => {
-  if (typeof value === "number") return Number.isFinite(value);
-  if (typeof value === "string") {
-    const parsed = Number(value.replace(/,/g, "").trim());
-    return Number.isFinite(parsed);
-  }
-  if (isObject(value)) {
-    return ["total", "value", "male", "female", "count", "entries"].some(
-      (key) => key in value && isNumericLike(value[key])
-    );
-  }
-  return false;
-};
-
-const toNumber = (value: unknown): number => {
-  if (value === null || value === undefined) return 0;
-  if (typeof value === "number") return Number.isFinite(value) ? value : 0;
-  if (isObject(value)) {
-    if ("total" in value) return toNumber(value.total);
-    if ("value" in value) return toNumber(value.value);
-    const male = toNumber(value.male);
-    const female = toNumber(value.female);
-    if (male !== 0 || female !== 0) return male + female;
-    return 0;
-  }
-  const text = String(value).replace(/,/g, "").trim();
-  const parsed = Number(text);
-  return Number.isFinite(parsed) ? parsed : 0;
-};
-
-const guessDefaults = (rows: Array<Record<string, unknown>>) => {
-  if (!rows.length) return { rowKey: "indicator_name", colKey: "none", valueKey: "value" };
-  const sampleRows = rows.slice(0, 200);
-  const keys = Array.from(
-    new Set(sampleRows.flatMap((row) => Object.keys(row)))
+const asRecordArray = (value: unknown): ViewerRecord[] => {
+  if (!Array.isArray(value)) return [];
+  return value.filter(
+    (entry): entry is ViewerRecord =>
+      typeof entry === "object" && entry !== null && !Array.isArray(entry),
   );
-  const has = (key: string) => keys.includes(key);
-  const isNumericKey = (key: string) => sampleRows.some((row) => isNumericLike(row[key]));
-
-  const rowCandidates = keys.filter(
-    (key) => !key.endsWith("_id") && !NUMERIC_PRIORITY_KEYS.includes(key) && !isNumericKey(key)
-  );
-
-  const rowKey =
-    (rowCandidates.includes("indicator_name") && "indicator_name") ||
-    (rowCandidates.includes("project_name") && "project_name") ||
-    (rowCandidates.includes("organization_name") && "organization_name") ||
-    rowCandidates.find((key) => key.endsWith("_name")) ||
-    rowCandidates[0] ||
-    keys.find((key) => !key.endsWith("_id")) ||
-    keys[0] ||
-    "indicator_name";
-
-  const valueKey =
-    NUMERIC_PRIORITY_KEYS.find((key) => has(key) && isNumericKey(key)) ||
-    keys.find((key) => !key.endsWith("_id") && isNumericKey(key)) ||
-    "value";
-
-  let colKey =
-    (has("organization_name") && rowKey !== "organization_name" && "organization_name") ||
-    (has("period_start") && rowKey !== "period_start" && "period_start") ||
-    "none";
-
-  if (colKey === rowKey) colKey = "none";
-
-  return { rowKey, colKey, valueKey };
 };
 
-export function ReportViewerDialog(props: {
+const readString = (record: ViewerRecord, keys: string[]) => {
+  for (const key of keys) {
+    const value = record[key];
+    if (typeof value === "string" && value.trim().length > 0) return value;
+  }
+  return "";
+};
+
+const readNumber = (record: ViewerRecord, keys: string[]) => {
+  for (const key of keys) {
+    const value = Number(record[key]);
+    if (Number.isFinite(value)) return value;
+  }
+  return 0;
+};
+
+const formatCell = (value: unknown) => {
+  if (value === null || value === undefined || value === "") return "—";
+  if (typeof value === "number") return value.toLocaleString();
+  if (typeof value === "boolean") return value ? "Yes" : "No";
+  if (typeof value === "object") return JSON.stringify(value);
+  return String(value);
+};
+
+export function ReportViewerDialog({
+  open,
+  onOpenChange,
+  report,
+  organizations,
+  onRefresh,
+  onDownload,
+  refreshing = false,
+}: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  report: ReportLike | null;
-  onRefresh: () => Promise<void>;
-  onDownload: () => Promise<void> | void;
+  report: Report | null;
+  organizations?: Array<{ id: string | number; name: string }> | null;
+  onRefresh?: () => Promise<void> | void;
+  onDownload?: () => Promise<void> | void;
   refreshing?: boolean;
 }) {
-  const { open, onOpenChange, report, onRefresh, onDownload, refreshing } = props;
-  const cachedRows = useMemo(() => normalizeCachedRows(report?.cached_data), [report?.cached_data]);
-
-  const [pivotRowKey, setPivotRowKey] = useState("indicator_name");
-  const [pivotColKey, setPivotColKey] = useState("none");
-  const [pivotValueKey, setPivotValueKey] = useState("value");
-  const chartRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    if (!cachedRows.length) return;
-    const defaults = guessDefaults(cachedRows);
-    setPivotRowKey(defaults.rowKey);
-    setPivotColKey(defaults.colKey);
-    setPivotValueKey(defaults.valueKey);
-  }, [open, report?.id]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const fieldOptions = useMemo(() => {
-    if (!cachedRows.length) return { rows: [], cols: [], values: [] };
-    const sampleRows = cachedRows.slice(0, 200);
-    const keys = Array.from(new Set(sampleRows.flatMap((row) => Object.keys(row))));
-    const isNumericKey = (key: string) => sampleRows.some((row) => isNumericLike(row[key]));
-
-    const dimensionKeys = keys.filter((key) => {
-      if (NUMERIC_PRIORITY_KEYS.includes(key)) return false;
-      if (key.endsWith("_id")) return false;
-      if (isNumericKey(key)) return false;
-      return true;
+  const dataRows = useMemo(() => asRecordArray(report?.cached_data), [report?.cached_data]);
+  const tableColumns = useMemo(() => {
+    const columns = new Set<string>();
+    dataRows.forEach((row) => {
+      Object.keys(row).forEach((key) => {
+        if (columns.size < 8) columns.add(key);
+      });
     });
-
-    const valueKeys = keys.filter((key) => {
-      if (key.endsWith("_id")) return false;
-      return NUMERIC_PRIORITY_KEYS.includes(key) || isNumericKey(key);
-    });
-
-    return {
-      rows: dimensionKeys.length ? dimensionKeys : keys,
-      cols: dimensionKeys.length ? dimensionKeys : keys,
-      values: valueKeys.length ? valueKeys : ["value"],
-    };
-  }, [cachedRows]);
-
-  const pivot = useMemo(() => {
-    const rowKey = pivotRowKey;
-    const colKey = pivotColKey;
-    const valueKey = pivotValueKey;
-
-    if (!cachedRows.length || !rowKey || !valueKey) {
-      return {
-        rowLabels: [] as string[],
-        colLabels: [] as string[],
-        matrix: {} as Record<string, Record<string, number>>,
-        rowTotals: {} as Record<string, number>,
-        colTotals: {} as Record<string, number>,
-        grandTotal: 0,
-        truncatedCols: false,
-      };
-    }
-
-    const matrix: Record<string, Record<string, number>> = {};
-    const rowTotals: Record<string, number> = {};
-    const colTotals: Record<string, number> = {};
-    let grandTotal = 0;
-
-    const rowSet = new Set<string>();
-    const colSet = new Set<string>();
-
-    for (const item of cachedRows) {
-      const rowLabel = String(item?.[rowKey] ?? "(blank)");
-      const colLabel = colKey === "none" ? "Total" : String(item?.[colKey] ?? "(blank)");
-      const v = toNumber(item?.[valueKey]);
-
-      rowSet.add(rowLabel);
-      colSet.add(colLabel);
-
-      matrix[rowLabel] ||= {};
-      matrix[rowLabel][colLabel] = (matrix[rowLabel][colLabel] || 0) + v;
-      rowTotals[rowLabel] = (rowTotals[rowLabel] || 0) + v;
-      colTotals[colLabel] = (colTotals[colLabel] || 0) + v;
-      grandTotal += v;
-    }
-
-    const rowLabels = Array.from(rowSet).sort((a, b) => (rowTotals[b] || 0) - (rowTotals[a] || 0));
-    let colLabels = Array.from(colSet).sort((a, b) => (colTotals[b] || 0) - (colTotals[a] || 0));
-
-    const MAX_COLS = 25;
-    const truncatedCols = colLabels.length > MAX_COLS;
-    if (truncatedCols) colLabels = colLabels.slice(0, MAX_COLS);
-
-    return { rowLabels, colLabels, matrix, rowTotals, colTotals, grandTotal, truncatedCols };
-  }, [cachedRows, pivotRowKey, pivotColKey, pivotValueKey]);
-
-  const chartData = useMemo(() => {
-    return pivot.rowLabels.slice(0, 20).map((label) => ({
-      label,
-      value: pivot.rowTotals[label] || 0,
-    }));
-  }, [pivot.rowLabels, pivot.rowTotals]);
-
-  const formatNumber = (value: number) => {
-    if (!Number.isFinite(value)) return "0";
-    if (Math.abs(value) >= 1000) return value.toLocaleString();
-    return String(Math.round(value * 100) / 100);
-  };
-
-  const tableHeaders = useMemo(() => {
-    if (!cachedRows.length) return [] as string[];
-    const keys = Array.from(new Set(cachedRows.slice(0, 500).flatMap((row) => Object.keys(row))));
-    const preferredOrder = [
-      "indicator_name",
-      "project_name",
-      "organization_name",
-      "period_start",
-      "period_end",
-      "value",
-      "total_value",
-      "entries",
-      "indicator_code",
-      "project_id",
-      "organization_id",
-      "indicator_id",
-    ];
-    return [
-      ...preferredOrder.filter((key) => keys.includes(key)),
-      ...keys.filter((key) => !preferredOrder.includes(key)),
-    ];
-  }, [cachedRows]);
-
-  const formatCellValue = (value: unknown) => {
-    if (value === null || value === undefined) return "";
-    if (typeof value === "number") return formatNumber(value);
-    if (isObject(value)) {
-      if ("total" in value || "male" in value || "female" in value || "value" in value) {
-        return formatNumber(toNumber(value));
-      }
-      try {
-        return JSON.stringify(value);
-      } catch {
-        return String(value);
-      }
-    }
-    if (Array.isArray(value)) {
-      return value.join(", ");
-    }
-    return String(value);
-  };
-
-  const downloadChartSvg = () => {
-    const container = chartRef.current;
-    if (!container) return;
-    const svg = container.querySelector("svg");
-    if (!svg) return;
-
-    const cloned = svg.cloneNode(true) as SVGSVGElement;
-    const viewBox = svg.getAttribute("viewBox");
-    if (viewBox) cloned.setAttribute("viewBox", viewBox);
-    if (!cloned.getAttribute("xmlns")) {
-      cloned.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-    }
-
-    const serializer = new XMLSerializer();
-    const svgText = serializer.serializeToString(cloned);
-    const blob = new Blob([svgText], { type: "image/svg+xml;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `${report?.name || "report"}-chart.svg`;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
-  };
+    return Array.from(columns);
+  }, [dataRows]);
+  const comparisonRows = useMemo<ComparisonRow[]>(() => {
+    return dataRows
+      .map((row, index) => ({
+        label: readString(row, labelKeys) || `Row ${index + 1}`,
+        achieved: readNumber(row, achievedKeys),
+        target: readNumber(row, targetKeys),
+        organizationName: readString(row, organizationKeys),
+      }))
+      .filter((row) => row.achieved > 0 || row.target > 0)
+      .slice(0, 10);
+  }, [dataRows]);
+  const summary = useMemo(() => {
+    return comparisonRows.reduce(
+      (acc, row) => {
+        acc.achieved += row.achieved;
+        acc.target += row.target;
+        return acc;
+      },
+      { achieved: 0, target: 0 },
+    );
+  }, [comparisonRows]);
+  const organizationLabel = useMemo(() => {
+    const organizationId = report?.parameters?.organization_id;
+    if (organizationId === undefined || organizationId === null) return "All organizations";
+    const matched = organizations?.find((organization) => String(organization.id) === String(organizationId));
+    if (!matched) return "Selected organization";
+    const cascade = report?.parameters?.cascade_organization === true;
+    return cascade ? `${matched.name} + subs` : matched.name;
+  }, [organizations, report?.parameters]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[98vw] sm:max-w-6xl">
+      <DialogContent className="w-[95vw] max-w-5xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{report?.name || "Report"}</DialogTitle>
-          <DialogDescription>
-            {report?.type ? String(report.type).replaceAll("_", " ") : "Report preview"}
-            {report?.last_generated ? ` - Last generated: ${new Date(report.last_generated).toLocaleString()}` : ""}
-          </DialogDescription>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <DialogTitle>{report?.name || "Report preview"}</DialogTitle>
+              <DialogDescription>
+                Review generated report data, refresh cached output, or download the latest export.
+              </DialogDescription>
+            </div>
+            {report ? statusBadge(report.status) : null}
+          </div>
         </DialogHeader>
 
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <Button variant="outline" onClick={onRefresh} disabled={!!refreshing}>
-            <RefreshCcw className="mr-2 h-4 w-4" />
-            {refreshing ? "Generating..." : "Refresh Data"}
-          </Button>
-          <Button variant="outline" onClick={onDownload} disabled={report?.status !== "completed"}>
-            <Download className="mr-2 h-4 w-4" />
-            Download
-          </Button>
-        </div>
-
-        {!cachedRows.length ? (
-          <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-            No cached data yet. Click “Refresh Data” to generate it.
+        {!report ? (
+          <div className="rounded-xl border border-dashed border-border px-4 py-10 text-center text-sm text-muted-foreground">
+            Select a report to preview it here.
           </div>
         ) : (
-          <Tabs defaultValue="pivot" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="pivot">Pivot</TabsTrigger>
-              <TabsTrigger value="chart">Chart</TabsTrigger>
-              <TabsTrigger value="table">Table</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="pivot" className="space-y-4">
-              <div className="grid gap-3 sm:grid-cols-3">
-                <div className="space-y-2">
-                  <Label>Rows</Label>
-                  <Select value={pivotRowKey} onValueChange={setPivotRowKey}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select field" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {fieldOptions.rows.map((field) => (
-                        <SelectItem key={field} value={field}>
-                          {field}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Columns</Label>
-                  <Select value={pivotColKey} onValueChange={setPivotColKey}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="No columns" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">No columns</SelectItem>
-                      {fieldOptions.cols
-                        .filter((field) => field !== pivotRowKey)
-                        .map((field) => (
-                          <SelectItem key={field} value={field}>
-                            {field}
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Values</Label>
-                  <Select value={pivotValueKey} onValueChange={setPivotValueKey}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select metric" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {fieldOptions.values.map((field) => (
-                        <SelectItem key={field} value={field}>
-                          Sum of {field}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+          <div className="space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                <span className="rounded-full border border-border bg-muted/40 px-3 py-1">
+                  {organizationLabel}
+                </span>
+                <span className="rounded-full border border-border bg-muted/40 px-3 py-1">
+                  {report.parameters?.format === "csv" ? "CSV" : report.parameters?.format === "pdf" ? "PDF" : "Excel"}
+                </span>
+                <span className="rounded-full border border-border bg-muted/40 px-3 py-1">
+                  {report.created_at ? new Date(report.created_at).toLocaleString() : "Draft"}
+                </span>
               </div>
-
-              {pivot.truncatedCols ? (
-                <div className="rounded-md border border-warning/30 bg-warning/10 p-3 text-sm">
-                  Too many columns to display ({pivot.colLabels.length}+). Showing first 25.
-                </div>
-              ) : null}
-
-              <div className="max-h-[55vh] overflow-auto rounded-lg border">
-                <table className="w-full text-[11px]">
-                  <thead className="sticky top-0 bg-card">
-                    <tr>
-                      <th className="whitespace-nowrap border-b px-3 py-2 text-left font-medium">
-                        {pivotRowKey}
-                      </th>
-                      {pivot.colLabels.map((col) => (
-                        <th key={col} className="whitespace-nowrap border-b px-3 py-2 text-right font-medium">
-                          {col}
-                        </th>
-                      ))}
-                      <th className="whitespace-nowrap border-b px-3 py-2 text-right font-medium">Row total</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {pivot.rowLabels.slice(0, 200).map((row) => (
-                      <tr key={row} className="border-b last:border-b-0">
-                        <td className="max-w-[260px] truncate px-3 py-2 font-medium" title={row}>
-                          {row}
-                        </td>
-                        {pivot.colLabels.map((col) => (
-                          <td key={col} className="whitespace-nowrap px-3 py-2 text-right tabular-nums">
-                            {formatNumber(pivot.matrix[row]?.[col] || 0)}
-                          </td>
-                        ))}
-                        <td className="whitespace-nowrap px-3 py-2 text-right font-semibold tabular-nums">
-                          {formatNumber(pivot.rowTotals[row] || 0)}
-                        </td>
-                      </tr>
-                    ))}
-                    <tr className="bg-muted/40">
-                      <td className="whitespace-nowrap px-3 py-2 font-semibold">Column total</td>
-                      {pivot.colLabels.map((col) => (
-                        <td key={col} className="whitespace-nowrap px-3 py-2 text-right font-semibold tabular-nums">
-                          {formatNumber(pivot.colTotals[col] || 0)}
-                        </td>
-                      ))}
-                      <td className="whitespace-nowrap px-3 py-2 text-right font-semibold tabular-nums">
-                        {formatNumber(pivot.grandTotal)}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-
-                {pivot.rowLabels.length > 200 ? (
-                  <div className="border-t px-3 py-2 text-xs text-muted-foreground">
-                    Showing first 200 rows (download for full data).
-                  </div>
-                ) : null}
-              </div>
-            </TabsContent>
-
-            <TabsContent value="chart" className="space-y-4">
-              <div className="rounded-lg border p-3">
-                <div className="flex flex-wrap items-center justify-between gap-2 text-sm font-medium">
-                  {pivotValueKey} by {pivotRowKey} (top {Math.min(20, pivot.rowLabels.length)})
-                  <Button variant="outline" size="sm" onClick={downloadChartSvg}>
-                    <Download className="mr-2 h-4 w-4" />
-                    Download Chart
+              <div className="flex flex-wrap gap-2">
+                {onRefresh ? (
+                  <Button variant="outline" onClick={() => void onRefresh()} disabled={refreshing}>
+                    {refreshing ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <RefreshCw className="mr-2 h-4 w-4" />
+                    )}
+                    Refresh
                   </Button>
-                </div>
-                <div className="mt-3 h-[360px]" ref={chartRef}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={chartData} margin={{ top: 10, right: 10, bottom: 60, left: 10 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                      <XAxis
-                        dataKey="label"
-                        interval={0}
-                        angle={-25}
-                        textAnchor="end"
-                        height={70}
-                        tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }}
-                        tickFormatter={(value: string) =>
-                          value.length > 18 ? `${value.slice(0, 18)}…` : value
-                        }
-                      />
-                      <YAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }} />
-                      <Tooltip
-                        cursor={{ fill: "rgba(16, 24, 40, 0.06)" }}
-                        contentStyle={{
-                          backgroundColor: "hsl(var(--card))",
-                          border: "1px solid hsl(var(--border))",
-                          borderRadius: "8px",
-                          fontSize: "12px",
-                        }}
-                        formatter={(value: unknown) => formatNumber(toNumber(value))}
-                      />
-                      <Bar dataKey="value" radius={[4, 4, 0, 0]} fillOpacity={0.88}>
-                        {chartData.map((entry, idx) => (
-                          <Cell key={entry.label} fill={chartPalette[idx % chartPalette.length]} />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="table" className="space-y-3">
-              <div className="max-h-[60vh] overflow-auto rounded-lg border">
-                <table className="w-full text-[11px]">
-                  <thead className="sticky top-0 bg-card">
-                    <tr>
-                      {tableHeaders.map((key) => (
-                        <th key={key} className="whitespace-nowrap border-b px-3 py-2 text-left font-medium">
-                          {key}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {cachedRows.slice(0, 500).map((row, idx) => (
-                      <tr key={idx} className="border-b last:border-b-0">
-                        {tableHeaders.map((key) => (
-                          <td key={key} className="whitespace-nowrap px-3 py-2 align-top">
-                            {formatCellValue(row?.[key])}
-                          </td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                {cachedRows.length > 500 ? (
-                  <div className="border-t px-3 py-2 text-xs text-muted-foreground">
-                    Showing first 500 rows (download for full data).
-                  </div>
+                ) : null}
+                {onDownload ? (
+                  <Button onClick={() => void onDownload()}>
+                    <Download className="mr-2 h-4 w-4" />
+                    Download
+                  </Button>
                 ) : null}
               </div>
-            </TabsContent>
-          </Tabs>
+            </div>
+
+            {comparisonRows.length > 0 ? (
+              <>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <div className="rounded-xl border border-border bg-muted/20 px-4 py-3">
+                    <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Rows</p>
+                    <p className="mt-2 text-2xl font-semibold">{dataRows.length}</p>
+                  </div>
+                  <div className="rounded-xl border border-border bg-muted/20 px-4 py-3">
+                    <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Achieved</p>
+                    <p className="mt-2 text-2xl font-semibold">{summary.achieved.toLocaleString()}</p>
+                  </div>
+                  <div className="rounded-xl border border-border bg-muted/20 px-4 py-3">
+                    <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Target</p>
+                    <p className="mt-2 text-2xl font-semibold">{summary.target.toLocaleString()}</p>
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-border bg-card p-4">
+                  <div className="mb-3">
+                    <p className="text-sm font-semibold text-foreground">Achieved vs target</p>
+                    <p className="text-xs text-muted-foreground">
+                      Comparison extracted from the generated report rows.
+                    </p>
+                  </div>
+                  <div className="h-[280px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={comparisonRows}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                        <XAxis
+                          dataKey="label"
+                          stroke="hsl(var(--muted-foreground))"
+                          tick={{ fontSize: 11 }}
+                          interval={0}
+                          angle={-18}
+                          textAnchor="end"
+                          height={70}
+                        />
+                        <YAxis stroke="hsl(var(--muted-foreground))" />
+                        <Tooltip
+                          cursor={{ fill: "rgba(16, 24, 40, 0.06)" }}
+                          contentStyle={{
+                            backgroundColor: "hsl(var(--card))",
+                            border: "1px solid hsl(var(--border))",
+                            borderRadius: "12px",
+                          }}
+                          formatter={(value: number, name: string) => [Number(value).toLocaleString(), name]}
+                        />
+                        <Bar dataKey="achieved" name="Achieved" fill="hsl(var(--chart-2))" radius={[6, 6, 0, 0]} />
+                        <Bar dataKey="target" name="Target" fill="hsl(var(--chart-4))" radius={[6, 6, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </>
+            ) : null}
+
+            {dataRows.length > 0 ? (
+              <div className="overflow-hidden rounded-xl border border-border">
+                <div className="overflow-x-auto">
+                  <table className="min-w-full text-sm">
+                    <thead className="bg-muted/40 text-left text-xs uppercase tracking-[0.16em] text-muted-foreground">
+                      <tr>
+                        {tableColumns.map((column) => (
+                          <th key={column} className="px-4 py-3">
+                            {column.replace(/_/g, " ")}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {dataRows.map((row, index) => (
+                        <tr key={`${report.id}-${index}`} className="border-t border-border align-top">
+                          {tableColumns.map((column) => (
+                            <td key={column} className="px-4 py-3 whitespace-nowrap">
+                              {formatCell(row[column])}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ) : report.cached_data ? (
+              <pre className="overflow-x-auto rounded-xl border border-border bg-muted/20 p-4 text-xs text-foreground">
+                {JSON.stringify(report.cached_data, null, 2)}
+              </pre>
+            ) : (
+              <div className="rounded-xl border border-dashed border-border px-4 py-10 text-center text-sm text-muted-foreground">
+                This report has no cached rows yet. Use refresh to generate the latest data.
+              </div>
+            )}
+          </div>
         )}
       </DialogContent>
     </Dialog>
   );
 }
+
+export default ReportViewerDialog;

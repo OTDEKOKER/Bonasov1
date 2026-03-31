@@ -8,6 +8,7 @@
 import { api, type PaginatedResponse } from '../client';
 import type { Organization } from '@/lib/types';
 import { canonicalizeOrganizationName } from '@/lib/organization-aliases';
+import { mapOrganizationTypeToBackend, normalizeOrganizationType } from '@/lib/organization-hierarchy';
 
 // ============================================================================
 // Types
@@ -68,7 +69,7 @@ function mapOrganization(org: RawOrganization): Organization {
   return {
     id: String(org.id),
     name: canonicalizeOrganizationName(org.name),
-    type: org.type,
+    type: normalizeOrganizationType(org.type) as Organization["type"],
     parentId: org.parent ? String(org.parent) : undefined,
     contactEmail: org.email ?? undefined,
     contactPhone: org.phone ?? undefined,
@@ -89,6 +90,8 @@ function mapPaginatedOrganizations(
     results: data.results.map(mapOrganization),
   };
 }
+
+const LIST_ALL_PAGE_SIZE = '500';
 
 // ============================================================================
 // Organizations Service
@@ -112,6 +115,9 @@ export const organizationsService = {
     let page = filters?.page ? String(filters.page) : "1";
     const baseFilters = { ...(filters || {}) } as Record<string, string>;
     delete baseFilters.page;
+    if (!baseFilters.page_size) {
+      baseFilters.page_size = LIST_ALL_PAGE_SIZE;
+    }
 
     while (true) {
       const { data } = await api.get<PaginatedResponse<RawOrganization>>('/organizations/', {
@@ -150,7 +156,7 @@ export const organizationsService = {
     const payload = {
       name: request.name,
       code: request.code || makeCode(request.name),
-      type: request.type,
+      type: mapOrganizationTypeToBackend(request.type),
       parent: request.parent ?? (request.parentId ? Number(request.parentId) : undefined),
       description: request.description,
       address: request.address,
@@ -169,6 +175,7 @@ export const organizationsService = {
   async update(id: number, request: UpdateOrganizationRequest): Promise<Organization> {
     const payload = {
       ...request,
+      type: mapOrganizationTypeToBackend(request.type),
       parent: request.parent ?? (request.parentId ? Number(request.parentId) : undefined),
       email: request.email ?? request.contactEmail,
       phone: request.phone ?? request.contactPhone,

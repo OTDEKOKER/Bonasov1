@@ -136,6 +136,7 @@ export default function UsersPage() {
   const router = useRouter()
   const { toast } = useToast()
   const { user: currentUser } = useAuth()
+  const canAdministerUsers = canManageUsers(currentUser)
 
   const { data: usersData, isLoading, error, mutate } = useUsers({ page_size: "500" })
   const { data: orgsData } = useAllOrganizations()
@@ -144,7 +145,7 @@ export default function UsersPage() {
     isLoading: isPermissionsLoading,
     error: permissionsError,
     mutate: mutatePermissions,
-  } = useUserPermissions()
+  } = useUserPermissions(canAdministerUsers)
 
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -181,9 +182,8 @@ export default function UsersPage() {
     groups: [] as string[],
   })
 
-  const users = usersData?.results || []
-  const organizations = orgsData?.results || []
-  const canAdministerUsers = canManageUsers(currentUser)
+  const users = useMemo(() => usersData?.results || [], [usersData?.results])
+  const organizations = useMemo(() => orgsData?.results || [], [orgsData?.results])
   const canResetPasswords = canResetUserPasswords(currentUser)
   const canActivateDeactivateUsers = canChangeUserActivation(currentUser)
   const permissionsErrorMessage = permissionsError
@@ -219,7 +219,7 @@ export default function UsersPage() {
         organizationName: organizationNameById.get(String(user.organizationId)) || "-",
       }
     })
-  }, [users, organizationNameById, groupCatalog])
+  }, [users, organizationNameById])
 
   const filteredUsers = useMemo(() => {
     const query = searchQuery.trim().toLowerCase()

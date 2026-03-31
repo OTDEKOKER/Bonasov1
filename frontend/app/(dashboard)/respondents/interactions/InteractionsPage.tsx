@@ -262,18 +262,18 @@ export default function InteractionsPage() {
   const { data: interactionsData, isLoading, error, mutate } = useInteractions()
   const { data: respondentsData } = useRespondents()
   const { data: assessmentsData } = useAssessments(
-    orgId ? { organization: String(orgId) } : undefined
+    orgId ? { organizations: String(orgId) } : undefined
   )
   const { data: projectsData } = useProjects()
   const { data: eventsData } = useEvents({ page_size: "200" })
   const { data: indicatorsData } = useAllIndicators()
 
-  const interactions = interactionsData?.results || []
-  const respondents = respondentsData?.results || []
-  const assessments = assessmentsData?.results || []
-  const projects = projectsData?.results || []
-  const events = eventsData?.results || []
-  const allIndicators = indicatorsData || []
+  const interactions = useMemo(() => interactionsData?.results || [], [interactionsData?.results])
+  const respondents = useMemo(() => respondentsData?.results || [], [respondentsData?.results])
+  const assessments = useMemo(() => assessmentsData?.results || [], [assessmentsData?.results])
+  const projects = useMemo(() => projectsData?.results || [], [projectsData?.results])
+  const events = useMemo(() => eventsData?.results || [], [eventsData?.results])
+  const allIndicators = useMemo(() => indicatorsData || [], [indicatorsData])
 
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)

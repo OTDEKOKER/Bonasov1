@@ -1,6 +1,7 @@
 "use client"
 
-import { Bell, Search, Menu } from "lucide-react"
+import { useState } from "react"
+import { Bell, Search, Menu, Settings2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -13,16 +14,61 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { useAuth } from "@/lib/contexts/auth-context"
+import { notificationsService } from "@/lib/api"
+import { useNotifications } from "@/lib/hooks/use-api"
 import { getUserRoleLabel } from "@/lib/roles"
-import { useRouter } from "next/navigation"
+import { usePathname, useSearchParams } from "next/navigation"
+import { ThemeToggle } from "@/components/layout/theme-toggle"
 
 interface AppHeaderProps {
   onMenuClick?: () => void
 }
 
+interface HeaderSearchProps {
+  initialValue: string
+  onSubmit: (query: string) => void
+}
+
+function HeaderSearch({ initialValue, onSubmit }: HeaderSearchProps) {
+  const [searchValue, setSearchValue] = useState(initialValue)
+
+  const handleSearchSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const trimmedQuery = searchValue.trim()
+    if (!trimmedQuery) return
+    onSubmit(trimmedQuery)
+  }
+
+  return (
+    <form onSubmit={handleSearchSubmit} className="relative hidden md:block">
+      <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+      <Input
+        type="search"
+        placeholder="Search respondents, projects..."
+        className="w-64 bg-secondary pl-9 lg:w-80"
+        value={searchValue}
+        onChange={(event) => setSearchValue(event.target.value)}
+        aria-label="Search respondents, projects, organizations, and users"
+      />
+    </form>
+  )
+}
+
 export function AppHeader({ onMenuClick }: AppHeaderProps) {
-  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
   const { user, logout } = useAuth()
+  const [notificationsOpen, setNotificationsOpen] = useState(false)
+  const [hasLoadedNotifications, setHasLoadedNotifications] = useState(false)
+  const { data: notificationsData, isLoading: notificationsLoading, mutate: mutateNotifications } =
+    useNotifications(
+      hasLoadedNotifications
+        ? {
+            page: "1",
+            page_size: "5",
+          }
+        : null,
+    )
   const currentUser = user
   const userRecord = (currentUser ?? {}) as Record<string, unknown>
   const firstName = String(
@@ -33,8 +79,30 @@ export function AppHeader({ onMenuClick }: AppHeaderProps) {
   ).trim()
   const displayName = [firstName, lastName].filter(Boolean).join(" ") || String(currentUser?.email || "My Account")
   const initials = `${(firstName[0] || String(currentUser?.email || "U")[0] || "U").toUpperCase()}${(lastName[0] || "").toUpperCase()}`
+  const searchQuery = pathname === "/search" ? (searchParams.get("q") ?? "") : ""
+
+  const navigate = (href: string) => {
+    if (typeof window === "undefined") return
+    window.location.assign(href)
+  }
+
   const handleLogout = async () => {
     await logout()
+  }
+
+  const handleOpenDashboardCustomize = () => {
+    if (typeof window === "undefined") return
+    window.dispatchEvent(new CustomEvent("bonaso:open-dashboard-customize"))
+  }
+
+  const recentNotifications = (notificationsData?.results || []).slice(0, 5)
+  const notificationCount = recentNotifications.filter((item) => !item.is_read).length
+
+  const formatNotificationTime = (timestamp?: string) => {
+    if (!timestamp) return "No timestamp"
+    const date = new Date(timestamp)
+    if (Number.isNaN(date.getTime())) return "No timestamp"
+    return date.toLocaleString()
   }
 
   return (
@@ -44,63 +112,99 @@ export function AppHeader({ onMenuClick }: AppHeaderProps) {
         <Button
           variant="ghost"
           size="icon"
-          className="lg:hidden"
+          className="text-foreground"
           onClick={onMenuClick}
         >
           <Menu className="h-5 w-5" />
-          <span className="sr-only">Toggle menu</span>
+          <span className="sr-only">Toggle sidebar</span>
         </Button>
 
         {/* Search */}
-        <div className="relative hidden md:block">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder="Search respondents, projects..."
-            className="w-64 bg-secondary pl-9 lg:w-80"
-          />
-        </div>
+        <HeaderSearch
+          key={`${pathname}:${searchQuery}`}
+          initialValue={searchQuery}
+          onSubmit={(query) => navigate(`/search?q=${encodeURIComponent(query)}`)}
+        />
       </div>
 
       {/* Right side */}
       <div className="flex items-center gap-2">
+        <ThemeToggle />
+        {pathname === "/dashboard" ? (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9"
+            onClick={handleOpenDashboardCustomize}
+            aria-label="Customize Dashboard"
+            title="Customize Dashboard"
+          >
+            <Settings2 className="h-4 w-4" />
+          </Button>
+        ) : null}
+
         {/* Notifications */}
-        <DropdownMenu>
+        <DropdownMenu
+          open={notificationsOpen}
+          onOpenChange={(open) => {
+            setNotificationsOpen(open)
+            if (open) {
+              setHasLoadedNotifications(true)
+            }
+          }}
+        >
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="relative">
               <Bell className="h-5 w-5" />
-              <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-medium text-destructive-foreground">
-                3
-              </span>
+              {notificationCount > 0 ? (
+                <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-medium text-destructive-foreground">
+                  {notificationCount > 9 ? "9+" : notificationCount}
+                </span>
+              ) : null}
               <span className="sr-only">Notifications</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-80">
             <DropdownMenuLabel>Notifications</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="flex flex-col items-start gap-1 py-3">
-              <span className="text-sm font-medium">New flag detected</span>
-              <span className="text-xs text-muted-foreground">
-                Potential duplicate respondent in HPP2025
-              </span>
-              <span className="text-xs text-muted-foreground">2 min ago</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem className="flex flex-col items-start gap-1 py-3">
-              <span className="text-sm font-medium">Deadline approaching</span>
-              <span className="text-xs text-muted-foreground">
-                Q1 Progress Report due in 3 days
-              </span>
-              <span className="text-xs text-muted-foreground">1 hour ago</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem className="flex flex-col items-start gap-1 py-3">
-              <span className="text-sm font-medium">Data upload complete</span>
-              <span className="text-xs text-muted-foreground">
-                150 interactions imported successfully
-              </span>
-              <span className="text-xs text-muted-foreground">3 hours ago</span>
-            </DropdownMenuItem>
+            {notificationsLoading ? (
+              <DropdownMenuItem disabled className="py-3 text-sm text-muted-foreground">
+                Loading notifications...
+              </DropdownMenuItem>
+            ) : recentNotifications.length === 0 ? (
+              <DropdownMenuItem disabled className="py-3 text-sm text-muted-foreground">
+                No notifications right now.
+              </DropdownMenuItem>
+            ) : (
+              recentNotifications.map((item, index) => (
+                <DropdownMenuItem
+                  key={`${item.id}-${index}`}
+                  className="flex flex-col items-start gap-1 py-3"
+                  onClick={async () => {
+                    if (!item.is_read) {
+                      await notificationsService.markRead(Number(item.id))
+                      void mutateNotifications()
+                    }
+                    navigate(item.link || "/settings?tab=notifications")
+                  }}
+                >
+                  <span className="text-sm font-medium">
+                    {item.title || "System notification"}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {item.content}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {formatNotificationTime(item.created_at)}
+                  </span>
+                </DropdownMenuItem>
+              ))
+            )}
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="justify-center text-primary">
+            <DropdownMenuItem
+              className="justify-center text-primary"
+              onClick={() => navigate("/settings?tab=notifications")}
+            >
               View all notifications
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -129,16 +233,16 @@ export function AppHeader({ onMenuClick }: AppHeaderProps) {
             <DropdownMenuLabel>My Account</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onClick={() => currentUser && router.push(`/users/${currentUser.id}`)}
+              onClick={() => currentUser && navigate(`/users/${currentUser.id}`)}
               disabled={!currentUser}
             >
               Profile
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => router.push("/settings")}>
+            <DropdownMenuItem onClick={() => navigate("/settings")}>
               Settings
             </DropdownMenuItem>
             <DropdownMenuItem
-              onClick={() => currentUser && router.push(`/users/${currentUser.id}#activity`)}
+              onClick={() => currentUser && navigate(`/users/${currentUser.id}#activity`)}
               disabled={!currentUser}
             >
               Activity Log

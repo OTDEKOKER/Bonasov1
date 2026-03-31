@@ -1,20 +1,24 @@
 "use client"
 
 import { useParams, useRouter } from "next/navigation"
-import { ArrowLeft, Loader2 } from "lucide-react"
+import { AlertCircle, ArrowLeft, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { PageHeader } from "@/components/shared/page-header"
 import QuarterlyTargetsSection from "@/components/indicators/quarterly-targets-section"
 import { useIndicator } from "@/lib/hooks/use-api"
+import { useSmartBack } from "@/lib/hooks/use-smart-back"
+import { isIndicatorEffectivelyActive } from "@/lib/indicators/activation"
+import { getIndicatorCategoryLabel } from "@/lib/indicators/categories"
 
 export default function IndicatorDetailPage() {
   const router = useRouter()
+  const handleBack = useSmartBack("/indicators")
   const params = useParams()
   const id = Number(params?.id)
 
-  const { data: indicator, isLoading, error, mutate } = useIndicator(Number.isFinite(id) ? id : null)
+  const { data: indicator, isLoading, error } = useIndicator(Number.isFinite(id) ? id : null)
 
   if (isLoading) {
     return (
@@ -28,27 +32,32 @@ export default function IndicatorDetailPage() {
     return (
       <div className="flex h-[60vh] flex-col items-center justify-center gap-4">
         <p className="text-muted-foreground">Indicator not found</p>
-        <Button onClick={() => router.push("/indicators")}>Back to Indicators</Button>
+        <Button onClick={handleBack}>Back to Indicators</Button>
       </div>
     )
   }
 
+  const displayName = indicator.short_name?.trim() || indicator.name
+
   return (
     <div className="space-y-6">
       <PageHeader
-        title={indicator.name}
+        title={displayName}
         description={`Indicator code: ${indicator.code}`}
         breadcrumbs={[
           { label: "Dashboard", href: "/dashboard" },
           { label: "Indicators", href: "/indicators" },
-          { label: indicator.name },
+          { label: displayName },
         ]}
         actions={
           <div className="flex gap-2">
             <Button onClick={() => router.push(`/indicators/${indicator.id}/edit`)}>
               Edit Indicator
             </Button>
-            <Button variant="outline" onClick={() => router.push("/indicators")}>
+            <Button variant="outline" onClick={() => router.push(`/targets/coordinators?indicator=${indicator.id}`)}>
+              Coordinator Targets
+            </Button>
+            <Button variant="outline" onClick={handleBack}>
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back
             </Button>
@@ -59,18 +68,26 @@ export default function IndicatorDetailPage() {
       <Card>
         <CardHeader>
           <CardTitle>Indicator Details</CardTitle>
-          <CardDescription>View indicator configuration and financial year targets</CardDescription>
+          <CardDescription>View indicator metadata and configuration.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-wrap gap-2">
-            <Badge variant="outline">{indicator.category}</Badge>
+            <Badge variant="outline">{getIndicatorCategoryLabel(indicator.category)}</Badge>
             <Badge variant="secondary">{indicator.type.replace(/_/g, " ")}</Badge>
-            <Badge variant={indicator.is_active ? "default" : "secondary"}>
-              {indicator.is_active ? "Active" : "Inactive"}
+            <Badge variant={isIndicatorEffectivelyActive(indicator) ? "default" : "secondary"}>
+              {isIndicatorEffectivelyActive(indicator) ? "Active" : "Inactive"}
             </Badge>
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <p className="text-sm text-muted-foreground">Name</p>
+              <p className="text-sm font-medium">{indicator.name}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Short Name</p>
+              <p className="text-sm font-medium">{indicator.short_name || "—"}</p>
+            </div>
             <div>
               <p className="text-sm text-muted-foreground">Code</p>
               <p className="text-sm font-medium">{indicator.code}</p>
@@ -87,11 +104,20 @@ export default function IndicatorDetailPage() {
         </CardContent>
       </Card>
 
+      <Card className="border-border/70 bg-muted/20">
+        <CardContent className="flex items-start gap-3 p-4 text-sm text-muted-foreground">
+          <AlertCircle className="mt-0.5 h-4 w-4 text-primary" />
+          <p>
+            Coordinator portfolio targets are managed from the dedicated Coordinator Targets workspace. The section below
+            shows generic read-only project-level targets only.
+          </p>
+        </CardContent>
+      </Card>
+
       <QuarterlyTargetsSection
         indicatorId={id}
         projectTargets={indicator.project_targets}
         editable={false}
-        onUpdated={() => mutate()}
       />
     </div>
   )

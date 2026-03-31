@@ -17,37 +17,27 @@ import {
 import { AppSidebar } from "@/components/layout/app-sidebar"
 import { AppHeader } from "@/components/layout/app-header"
 
-function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
-  const router = useRouter()
-  const { isAuthenticated, isLoading } = useAuth()
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [showDisclaimer, setShowDisclaimer] = useState(false)
-
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      router.replace("/login")
-    }
-  }, [isAuthenticated, isLoading, router])
-
-  useEffect(() => {
-    if (typeof window === "undefined") return
-    if (!isAuthenticated) return
+function DashboardShell({
+  children,
+  sidebarOpen,
+  setSidebarOpen,
+  desktopSidebarOpen,
+  setDesktopSidebarOpen,
+}: {
+  children: React.ReactNode
+  sidebarOpen: boolean
+  setSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>
+  desktopSidebarOpen: boolean
+  setDesktopSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>
+}) {
+  const [showDisclaimer, setShowDisclaimer] = useState(() => {
+    if (typeof window === "undefined") return false
     const shouldShow = sessionStorage.getItem("show_login_disclaimer") === "1"
-    if (!shouldShow) return
-    setShowDisclaimer(true)
-    sessionStorage.removeItem("show_login_disclaimer")
-  }, [isAuthenticated])
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background p-6">
-        <div className="text-sm text-muted-foreground">Loading...</div>
-      </div>
-    )
-  }
-
-  // While the redirect is happening, don't render the dashboard shell.
-  if (!isAuthenticated) return null
+    if (shouldShow) {
+      sessionStorage.removeItem("show_login_disclaimer")
+    }
+    return shouldShow
+  })
 
   return (
     <div className="min-h-screen bg-background">
@@ -124,18 +114,66 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
       </div>
 
       {/* Desktop sidebar */}
-      <div className="hidden lg:block">
+      <div
+        className={cn(
+          "fixed inset-y-0 left-0 z-40 hidden transition-all duration-200 ease-in-out lg:block",
+          desktopSidebarOpen ? "translate-x-0 opacity-100" : "-translate-x-full opacity-0 pointer-events-none",
+        )}
+      >
         <AppSidebar />
       </div>
 
       {/* Main content */}
-      <div className="lg:pl-64">
-        <AppHeader onMenuClick={() => setSidebarOpen(true)} />
-        <main className="h-[calc(100vh-4rem)] overflow-y-auto p-4 lg:p-6">
+      <div className={cn("transition-[padding] duration-200 ease-in-out", desktopSidebarOpen ? "lg:pl-64" : "lg:pl-0")}>
+        <AppHeader
+          onMenuClick={() => {
+            if (typeof window !== "undefined" && window.matchMedia("(min-width: 1024px)").matches) {
+              setDesktopSidebarOpen((value) => !value)
+              return
+            }
+            setSidebarOpen(true)
+          }}
+        />
+        <main className="min-h-[calc(100vh-4rem)] p-4 lg:p-6">
           {children}
         </main>
       </div>
     </div>
+  )
+}
+
+function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
+  const router = useRouter()
+  const { isAuthenticated, isLoading } = useAuth()
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(true)
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.replace("/login")
+    }
+  }, [isAuthenticated, isLoading, router])
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background p-6">
+        <div className="text-sm text-muted-foreground">Loading...</div>
+      </div>
+    )
+  }
+
+  // While the redirect is happening, don't render the dashboard shell.
+  if (!isAuthenticated) return null
+
+  return (
+    <DashboardShell
+      sidebarOpen={sidebarOpen}
+      setSidebarOpen={setSidebarOpen}
+      desktopSidebarOpen={desktopSidebarOpen}
+      setDesktopSidebarOpen={setDesktopSidebarOpen}
+    >
+      {children}
+    </DashboardShell>
   )
 }
 

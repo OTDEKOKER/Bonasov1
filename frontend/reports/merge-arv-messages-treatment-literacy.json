@@ -1,0 +1,43 @@
+{
+  "dry_run": false,
+  "source_indicator": {
+    "id": 481,
+    "code": "SC_NUMBER_OF_PLWHS_PROVIDED_WITH_TREATMENT_LITERAC",
+    "name": "Number of PLWHs provided with treatment literacy",
+    "is_active": true
+  },
+  "target_indicator": {
+    "id": 327,
+    "code": "AUTO_NUMBER_OF_TOTAL_NUMBER_OF_PEOPLE_R_6",
+    "name": "Total Number of People Reached with ARV Based Prevention Messages",
+    "is_active": true
+  },
+  "moved_aggregates": [],
+  "replaced_placeholders": [],
+  "deleted_placeholder_aggregates": [],
+  "unresolved_conflicts": [],
+  "moved_project_targets": [
+    {
+      "target_row_id": 967,
+      "organization_id": 112,
+      "project_id": 2
+    }
+  ],
+  "replaced_placeholder_project_targets": [
+    {
+      "source_target_id": 967,
+      "target_target_id": 91,
+      "organization_id": 112,
+      "project_id": 2,
+      "forced": true
+    }
+  ],
+  "deleted_placeholder_project_targets": [
+    91
+  ],
+  "deleted_source_project_assignments": [
+    153
+  ],
+  "unresolved_target_conflicts": [],
+  "retired_source_indicator": true
+}

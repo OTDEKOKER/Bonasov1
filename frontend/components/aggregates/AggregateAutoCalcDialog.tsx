@@ -110,7 +110,7 @@ export function AggregateAutoCalcDialog(props: AggregateAutoCalcDialogProps) {
           Auto-calculate
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="w-[95vw] max-h-[90vh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Auto-calculate Aggregate</DialogTitle>
           <DialogDescription>

@@ -1,0 +1,56 @@
+{
+  "workbook": "/tmp/final-analysis-q3.xlsx",
+  "project": {
+    "id": 2,
+    "code": "NAHPA2025/26",
+    "name": "NAHPA Social Contracting"
+  },
+  "period_start": "2025-10-01",
+  "period_end": "2025-12-31",
+  "summary": {
+    "matched_rows": 203,
+    "exact_matches": 203,
+    "unmatched_indicator_rows": 0,
+    "missing_aggregate_rows": 0,
+    "mismatched_rows": 0
+  },
+  "findings": [],
+  "sheets": {
+    "MAKGABANENG": {
+      "organization_id": 5,
+      "parsed_rows": 43,
+      "matched_rows": 43,
+      "exact_matches": 43,
+      "missing_aggregates": [],
+      "unmatched_indicators": [],
+      "mismatches": []
+    },
+    "BONEPWA": {
+      "organization_id": 112,
+      "parsed_rows": 73,
+      "matched_rows": 73,
+      "exact_matches": 73,
+      "missing_aggregates": [],
+      "unmatched_indicators": [],
+      "mismatches": []
+    },
+    "BONELA": {
+      "organization_id": 137,
+      "parsed_rows": 37,
+      "matched_rows": 37,
+      "exact_matches": 37,
+      "missing_aggregates": [],
+      "unmatched_indicators": [],
+      "mismatches": []
+    },
+    "TEBELOPELE": {
+      "organization_id": 1,
+      "parsed_rows": 50,
+      "matched_rows": 50,
+      "exact_matches": 50,
+      "missing_aggregates": [],
+      "unmatched_indicators": [],
+      "mismatches": []
+    }
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "workbook": "C:\\Users\\dekok\\Downloads\\2026 FINAL ANALYSIS May-March 03.02.2025 (1) (3).xlsx",
+  "project": {
+    "id": 2,
+    "code": "NAHPA2025/26",
+    "name": "NAHPA Social Contracting"
+  },
+  "period_start": "2025-10-01",
+  "period_end": "2025-12-31",
+  "summary": {
+    "matched_rows": 36,
+    "exact_matches": 36,
+    "unmatched_indicator_rows": 1,
+    "missing_aggregate_rows": 0,
+    "mismatched_rows": 0
+  },
+  "findings": [
+    {
+      "severity": "medium",
+      "issue": "Workbook indicators skipped",
+      "detail": "1 workbook rows could not be matched to existing indicators and therefore cannot match the system."
+    }
+  ],
+  "sheets": {
+    "BONELA": {
+      "organization_id": 137,
+      "parsed_rows": 37,
+      "matched_rows": 36,
+      "exact_matches": 36,
+      "missing_aggregates": [],
+      "unmatched_indicators": [
+        "Number of people referred for STIs for services"
+      ],
+      "mismatches": []
+    }
+  }
+}

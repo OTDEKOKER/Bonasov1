@@ -3,13 +3,13 @@
 import { useEffect, useMemo, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { ArrowLeft, Loader2 } from "lucide-react"
+import { mutate as mutateCache } from "swr"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Checkbox } from "@/components/ui/checkbox"
 import {
   Select,
   SelectContent,
@@ -22,92 +22,52 @@ import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 
 import { PageHeader } from "@/components/shared/page-header"
+import DisaggregationBuilder from "@/components/indicators/disaggregation-builder"
 import QuarterlyTargetsSection from "@/components/indicators/quarterly-targets-section"
 
 import { indicatorsService } from "@/lib/api"
-import { useIndicator } from "@/lib/hooks/use-api"
+import { useAllProjectDetails, useIndicator } from "@/lib/hooks/use-api"
 import type { Indicator } from "@/lib/types"
 import { useToast } from "@/hooks/use-toast"
-
-const disaggregateGroupOptions = [
-  "Sex",
-  "Age Range",
-  "KP",
-  "Family Planning",
-  "Community Leaders",
-  "Non Traditional Sites",
-  "Social Media Platform",
-  "NCD Screening",
-]
-
-const inferDisaggregateGroups = (subLabels: string[]) => {
-  const normalized = subLabels.map((value) => value.toLowerCase().trim())
-  const groups = new Set<string>()
-
-  if (normalized.some((value) => value === "female" || value === "male" || value === "sex")) {
-    groups.add("Sex")
-  }
-
-  if (
-    normalized.some(
-      (value) =>
-        value === "age range" ||
-        /^\d{1,2}-\d{1,2}$/.test(value) ||
-        value === "65+" ||
-        value.includes("ayp"),
-    )
-  ) {
-    groups.add("Age Range")
-  }
-
-  if (normalized.some((value) => ["kp", "fsw", "msm", "lgbtqi+", "pwd", "pwids", "pwud" ].includes(value))) {
-    groups.add("KP")
-  }
-
-  if (normalized.some((value) => value === "family planning")) {
-    groups.add("Family Planning")
-  }
-
-  if (normalized.some((value) => value === "community leaders")) {
-    groups.add("Community Leaders")
-  }
-
-  if (normalized.some((value) => value === "non traditional sites")) {
-    groups.add("Non Traditional Sites")
-  }
-
-  if (normalized.some((value) => value === "social media platform")) {
-    groups.add("Social Media Platform")
-  }
-
-  if (normalized.some((value) => value === "ncd screening")) {
-    groups.add("NCD Screening")
-  }
-
-  return Array.from(groups)
-}
+import { useSmartBack } from "@/lib/hooks/use-smart-back"
+import {
+  buildDisaggregationConfigFromPresetKeys,
+  getLegacySubLabelsFromPresetKeys,
+  getPresetKeysFromConfig,
+  type DisaggregationPresetKey,
+} from "@/lib/indicators/disaggregation-presets"
+import {
+  INDICATOR_CATEGORY_OPTIONS,
+  getIndicatorCategoryLabel,
+} from "@/lib/indicators/categories"
+import {
+  canIndicatorBeActive,
+  getIndicatorOrganizationIds,
+  } from "@/lib/indicators/activation"
 
 type FormDataState = {
   name: string
+  short_name: string
   code: string
   description: string
   category: string
   type: string
   unit: string
   options: string
-  sub_labels: string[]
+  disaggregation_preset_keys: DisaggregationPresetKey[]
   is_active: boolean
 }
 
 const initialFormData: FormDataState = {
   name: "",
+  short_name: "",
   code: "",
   description: "",
   category: "",
   type: "",
   unit: "",
   options: "",
-  sub_labels: [],
+  disaggregation_preset_keys: [],
   is_active: true,
 }
 
@@ -119,8 +79,10 @@ export default function IndicatorEditPage() {
   const rawId = params?.id
   const id = Number(Array.isArray(rawId) ? rawId[0] : rawId)
   const isValidId = Number.isFinite(id)
+  const handleBack = useSmartBack(isValidId ? `/indicators/${id}` : "/indicators")
 
   const { data: indicator, isLoading, error, mutate } = useIndicator(isValidId ? id : null)
+  const { data: projectsData } = useAllProjectDetails()
 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState<FormDataState>(initialFormData)
@@ -130,6 +92,7 @@ export default function IndicatorEditPage() {
 
     setFormData({
       name: indicator.name || "",
+      short_name: indicator.short_name || "",
       code: indicator.code || "",
       description: indicator.description || "",
       category: indicator.category || "",
@@ -141,24 +104,16 @@ export default function IndicatorEditPage() {
             .filter(Boolean)
             .join(", ")
         : "",
-      sub_labels: Array.isArray(indicator.sub_labels)
-        ? inferDisaggregateGroups(indicator.sub_labels)
-        : [],
+      disaggregation_preset_keys: getPresetKeysFromConfig(
+        indicator.aggregate_disaggregation_config,
+        indicator.sub_labels,
+      ),
       is_active: indicator.is_active ?? true,
     })
   }, [indicator])
 
   const updateField = <K extends keyof FormDataState>(field: K, value: FormDataState[K]) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
-  }
-
-  const toggleDisaggregate = (value: string, checked: boolean) => {
-    setFormData((prev) => ({
-      ...prev,
-      sub_labels: checked
-        ? Array.from(new Set([...prev.sub_labels, value]))
-        : prev.sub_labels.filter((item) => item !== value),
-    }))
   }
 
   const parsedOptions = useMemo(() => {
@@ -169,6 +124,79 @@ export default function IndicatorEditPage() {
   }, [formData.options])
 
   const requiresOptions = formData.type === "select" || formData.type === "multiselect"
+  const projects = useMemo(() => projectsData?.results || [], [projectsData?.results])
+  const assignedProjectIds = useMemo(() => {
+    if (!indicator) return new Set<string>()
+
+    const next = new Set<string>()
+
+    projects.forEach((project) => {
+      const isIndicatorAssigned =
+        (project.project_indicators || []).some((entry) => String(entry.indicator) === String(indicator.id)) ||
+        (project.organization_targets || []).some((entry) => String(entry.indicator) === String(indicator.id))
+
+      if (isIndicatorAssigned) {
+        next.add(String(project.id))
+      }
+    })
+
+    return next
+  }, [indicator, projects])
+  const assignmentCounts = useMemo(() => {
+    const organizationIds = new Set(indicator ? getIndicatorOrganizationIds(indicator) : [])
+
+    projects.forEach((project) => {
+      ;(project.organization_targets || []).forEach((entry) => {
+        if (String(entry.indicator) !== String(indicator?.id)) return
+        const organizationId = String(entry.organization || "").trim()
+        if (organizationId) organizationIds.add(organizationId)
+      })
+    })
+
+    const hasDetailedProjectAssignments = projects.length > 0
+
+    if (hasDetailedProjectAssignments) {
+      return {
+        organizationCount: organizationIds.size,
+        projectCount: assignedProjectIds.size,
+      }
+    }
+
+    const fallbackProjectCount = indicator?.project_targets
+      ? new Set(
+          indicator.project_targets
+            .map((target) => String(target.project || "").trim())
+            .filter(Boolean),
+        ).size
+      : 0
+
+    return {
+      organizationCount: organizationIds.size,
+      projectCount: fallbackProjectCount,
+    }
+  }, [assignedProjectIds, indicator, projects])
+  const canActivateIndicator = useMemo(
+    () => {
+      if (!indicator) return false
+
+      const hasOrganizations = assignmentCounts.organizationCount > 0
+      if (!hasOrganizations) return false
+
+      if (projects.length > 0) {
+        return assignmentCounts.projectCount > 0
+      }
+
+      return canIndicatorBeActive(indicator)
+    },
+    [assignmentCounts.organizationCount, assignmentCounts.projectCount, indicator, projects.length],
+  )
+  const effectiveIsActive = formData.is_active && canActivateIndicator
+
+  useEffect(() => {
+    if (!canActivateIndicator && formData.is_active) {
+      setFormData((prev) => ({ ...prev, is_active: false }))
+    }
+  }, [canActivateIndicator, formData.is_active])
 
   const handleSave = async () => {
     if (!isValidId) {
@@ -203,14 +231,18 @@ export default function IndicatorEditPage() {
     try {
       await indicatorsService.update(id, {
         name: formData.name.trim(),
+        short_name: formData.short_name.trim() || undefined,
         code: formData.code.trim(),
         description: formData.description.trim() || undefined,
         category: formData.category as Indicator["category"],
         type: formData.type as Indicator["type"],
         unit: formData.unit.trim() || undefined,
         options: requiresOptions ? parsedOptions : undefined,
-        sub_labels: formData.sub_labels,
-        is_active: formData.is_active,
+        sub_labels: getLegacySubLabelsFromPresetKeys(formData.disaggregation_preset_keys),
+        aggregate_disaggregation_config: buildDisaggregationConfigFromPresetKeys(
+          formData.disaggregation_preset_keys,
+        ),
+        is_active: canActivateIndicator ? formData.is_active : false,
       })
 
       toast({
@@ -218,8 +250,16 @@ export default function IndicatorEditPage() {
         description: "Changes saved successfully.",
       })
 
-      await mutate()
+      await Promise.all([
+        mutate(),
+        mutateCache(
+          (key) => Array.isArray(key) && (key[0] === "indicators-all" || key[0] === "indicators"),
+          undefined,
+          { revalidate: true },
+        ),
+      ])
       router.push("/indicators")
+      router.refresh()
     } catch {
       toast({
         title: "Error",
@@ -243,7 +283,7 @@ export default function IndicatorEditPage() {
     return (
       <div className="flex h-[60vh] flex-col items-center justify-center gap-4">
         <p className="text-muted-foreground">Indicator not found</p>
-        <Button onClick={() => router.push("/indicators")}>Back to Indicators</Button>
+        <Button onClick={handleBack}>Back to Indicators</Button>
       </div>
     )
   }
@@ -259,7 +299,7 @@ export default function IndicatorEditPage() {
           { label: "Edit" },
         ]}
         actions={
-          <Button variant="outline" onClick={() => router.push("/indicators")}>
+          <Button variant="outline" onClick={handleBack}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back
           </Button>
@@ -277,17 +317,17 @@ export default function IndicatorEditPage() {
             </div>
 
             <div className="flex flex-wrap gap-2">
-              <Badge variant={formData.is_active ? "default" : "secondary"}>
-                {formData.is_active ? "Active" : "Inactive"}
+              <Badge variant={effectiveIsActive ? "default" : "secondary"}>
+                {effectiveIsActive ? "Active" : "Inactive"}
               </Badge>
-              <Badge variant="outline">{formData.category || "No category"}</Badge>
+              <Badge variant="outline">{getIndicatorCategoryLabel(formData.category)}</Badge>
               <Badge variant="outline">{formData.type || "No type"}</Badge>
             </div>
           </div>
         </CardHeader>
 
         <CardContent className="space-y-6 p-6">
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-3">
             <div className="space-y-2">
               <Label htmlFor="name">Indicator Name *</Label>
               <Input
@@ -295,6 +335,16 @@ export default function IndicatorEditPage() {
                 value={formData.name}
                 onChange={(e) => updateField("name", e.target.value)}
                 placeholder="Enter indicator name"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="short_name">Short Name</Label>
+              <Input
+                id="short_name"
+                value={formData.short_name}
+                onChange={(e) => updateField("short_name", e.target.value)}
+                placeholder="e.g. HIV Messages"
               />
             </div>
 
@@ -330,9 +380,11 @@ export default function IndicatorEditPage() {
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="hiv_prevention">HIV Prevention</SelectItem>
-                  <SelectItem value="ncd">Non-Communicable Diseases</SelectItem>
-                  <SelectItem value="events">Events</SelectItem>
+                  {INDICATOR_CATEGORY_OPTIONS.map((category) => (
+                    <SelectItem key={category.value} value={category.value}>
+                      {category.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -408,47 +460,35 @@ export default function IndicatorEditPage() {
                 Select the disaggregate groups used when entering aggregate values.
               </p>
             </div>
-
-            <div className="grid gap-3 rounded-lg border border-border p-4 sm:grid-cols-2 lg:grid-cols-3">
-              {disaggregateGroupOptions.map((group) => {
-                const htmlId = `disaggregate-group-${group
-                  .replace(/[^a-zA-Z0-9]+/g, "-")
-                  .toLowerCase()}`
-                const checked = formData.sub_labels.includes(group)
-
-                return (
-                  <label
-                    key={group}
-                    htmlFor={htmlId}
-                    className="flex cursor-pointer items-center gap-3 rounded-md border border-transparent p-2 transition hover:bg-muted/50"
-                  >
-                    <Checkbox
-                      id={htmlId}
-                      checked={checked}
-                      onCheckedChange={(value) => toggleDisaggregate(group, Boolean(value))}
-                    />
-                    <span className="text-sm">{group}</span>
-                  </label>
-                )
-              })}
-            </div>
+            <DisaggregationBuilder
+              value={formData.disaggregation_preset_keys}
+              onChange={(next) =>
+                setFormData((prev) => ({ ...prev, disaggregation_preset_keys: next }))
+              }
+            />
           </div>
 
           <div className="flex items-center justify-between rounded-lg border border-border bg-muted/20 p-4">
             <div className="space-y-1">
               <p className="text-sm font-medium text-foreground">Active</p>
               <p className="text-xs text-muted-foreground">
-                Enable or disable this indicator for use in the system.
+                Enable this only after the indicator is assigned to at least one project and one organization.
               </p>
+              {!canActivateIndicator ? (
+                <p className="text-xs text-amber-600">
+                  Needs at least 1 project assignment and 1 organization assignment. Current: {assignmentCounts.projectCount} project{assignmentCounts.projectCount === 1 ? "" : "s"}, {assignmentCounts.organizationCount} organization{assignmentCounts.organizationCount === 1 ? "" : "s"}.
+                </p>
+              ) : null}
             </div>
             <Switch
-              checked={formData.is_active}
+              checked={effectiveIsActive}
               onCheckedChange={(checked) => updateField("is_active", checked)}
+              disabled={!canActivateIndicator}
             />
           </div>
 
           <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
-            <Button variant="outline" onClick={() => router.push("/indicators")} disabled={isSubmitting}>
+            <Button variant="outline" onClick={handleBack} disabled={isSubmitting}>
               Cancel
             </Button>
             <Button onClick={handleSave} disabled={isSubmitting}>

@@ -1,0 +1,579 @@
+{
+  "workbook": "/tmp/final-analysis-q3.xlsx",
+  "project": {
+    "id": 2,
+    "code": "NAHPA2025/26",
+    "name": "NAHPA Social Contracting"
+  },
+  "period_start": "2025-10-01",
+  "period_end": "2025-12-31",
+  "dry_run": false,
+  "summary": {
+    "created_indicators": [
+      {
+        "id": 520,
+        "code": "25",
+        "name": "Number of peoples referred for diabetes treatment/management services",
+        "sheet": "MAKGABANENG",
+        "source_title": "Number of peoples referred for diabetes treatment/management services",
+        "indicator_name": "Number of peoples referred for diabetes treatment/management services"
+      },
+      {
+        "id": 521,
+        "code": "37a",
+        "name": "Number of functional tobacco cessation and alcohol abuse support group",
+        "sheet": "MAKGABANENG",
+        "source_title": "Number of functional tobacco cessation and alcohol abuse support group",
+        "indicator_name": "Number of functional tobacco cessation and alcohol abuse support group"
+      },
+      {
+        "id": 522,
+        "code": "5c",
+        "name": "Number of PLWH reached with with PREP Messages",
+        "sheet": "BONEPWA",
+        "source_title": "Number of PLWH reached with with PREP Messages",
+        "indicator_name": "Number of PLWH reached with with PREP Messages"
+      },
+      {
+        "id": 523,
+        "code": "5d",
+        "name": "Number of PLWH reached with Consistent, correct condom use messages",
+        "sheet": "BONEPWA",
+        "source_title": "Number of PLWH reached with Consistent, correct condom use messages",
+        "indicator_name": "Number of PLWH reached with Consistent, correct condom use messages"
+      },
+      {
+        "id": 524,
+        "code": "5g",
+        "name": "Number of people reached at health talks conducted on PHDP held at IDCC",
+        "sheet": "BONEPWA",
+        "source_title": "Number of people reached at health talks conducted on PHDP held at IDCC",
+        "indicator_name": "Number of people reached at health talks conducted on PHDP held at IDCC"
+      },
+      {
+        "id": 525,
+        "code": "6a",
+        "name": "Number of PLWH who tested positive for TB and are on treatment",
+        "sheet": "BONEPWA",
+        "source_title": "Number of PLWH who tested positive for TB and are on treatment",
+        "indicator_name": "Number of PLWH who tested positive for TB and are on treatment"
+      },
+      {
+        "id": 526,
+        "code": "6b",
+        "name": "Number of PLHIV screened for TB",
+        "sheet": "BONEPWA",
+        "source_title": "Number of PLHIV screened for TB",
+        "indicator_name": "Number of PLHIV screened for TB"
+      },
+      {
+        "id": 527,
+        "code": "6c",
+        "name": "Number of PLHIV symptomatic for TB referred for testing",
+        "sheet": "BONEPWA",
+        "source_title": "Number of PLHIV symptomatic for TB referred for testing",
+        "indicator_name": "Number of PLHIV symptomatic for TB referred for testing"
+      },
+      {
+        "id": 528,
+        "code": "6e",
+        "name": "Number of PLHIV on TB treatment",
+        "sheet": "BONEPWA",
+        "source_title": "Number of PLHIV on TB treatment",
+        "indicator_name": "Number of PLHIV on TB treatment"
+      },
+      {
+        "id": 529,
+        "code": "6f",
+        "name": "Number of PLHIV on TB treatment interrupting treatment",
+        "sheet": "BONEPWA",
+        "source_title": "Number of PLHIV on TB treatment interrupting treatment",
+        "indicator_name": "Number of PLHIV on TB treatment interrupting treatment"
+      },
+      {
+        "id": 530,
+        "code": "6g",
+        "name": "Number of PLHIV TB treatment interrupters reinitiated on treatment",
+        "sheet": "BONEPWA",
+        "source_title": "Number of PLHIV TB treatment interrupters reinitiated on treatment",
+        "indicator_name": "Number of PLHIV TB treatment interrupters reinitiated on treatment"
+      },
+      {
+        "id": 531,
+        "code": "7b",
+        "name": "Number of Missed appointments (1-13 days) followed",
+        "sheet": "BONEPWA",
+        "source_title": "Number of Missed appointments (1-13 days) followed",
+        "indicator_name": "Number of Missed appointments (1-13 days) followed"
+      },
+      {
+        "id": 532,
+        "code": "7c",
+        "name": "Number of Missed appointments (1-13 days) reinitiated to treatment",
+        "sheet": "BONEPWA",
+        "source_title": "Number of Missed appointments (1-13 days) reinitiated to treatment",
+        "indicator_name": "Number of Missed appointments (1-13 days) reinitiated to treatment"
+      },
+      {
+        "id": 533,
+        "code": "7d",
+        "name": "Number of ART defaulters (14-89 days) given by facility for tracing",
+        "sheet": "BONEPWA",
+        "source_title": "Number of ART defaulters (14-89 days) given by facility for tracing",
+        "indicator_name": "Number of ART defaulters (14-89 days) given by facility for tracing"
+      },
+      {
+        "id": 534,
+        "code": "7f",
+        "name": "Number of ART defaulters (14-89 days) reinitiated to treatment",
+        "sheet": "BONEPWA",
+        "source_title": "Number of ART defaulters (14-89 days) reinitiated to treatment",
+        "indicator_name": "Number of ART defaulters (14-89 days) reinitiated to treatment"
+      },
+      {
+        "id": 535,
+        "code": "7g",
+        "name": "Number of LTFU(90+ days) given by facility for tracing",
+        "sheet": "BONEPWA",
+        "source_title": "Number of LTFU(90+ days) given by facility for tracing",
+        "indicator_name": "Number of LTFU(90+ days) given by facility for tracing"
+      },
+      {
+        "id": 536,
+        "code": "7i",
+        "name": "Number of people who LTFU (90+ days) Re-initiated on ART",
+        "sheet": "BONEPWA",
+        "source_title": "Number of people who LTFU (90+ days) Re-initiated on ART",
+        "indicator_name": "Number of people who LTFU (90+ days) Re-initiated on ART"
+      },
+      {
+        "id": 537,
+        "code": "8b",
+        "name": "Number of individuals reached with messaging on equality and human rights",
+        "sheet": "BONEPWA",
+        "source_title": "Number of individuals reached with messaging on equality and human rights",
+        "indicator_name": "Number of individuals reached with messaging on equality and human rights"
+      },
+      {
+        "id": 538,
+        "code": "8d",
+        "name": "Number of people who report that their rights were violated and who sought redness",
+        "sheet": "BONEPWA",
+        "source_title": "Number of people who report that their rights were violated and who sought redness",
+        "indicator_name": "Number of people who report that their rights were violated and who sought redness"
+      },
+      {
+        "id": 539,
+        "code": "10b",
+        "name": "Number of individuals eligible for GBV services",
+        "sheet": "BONEPWA",
+        "source_title": "Number of individuals eligible for GBV services",
+        "indicator_name": "Number of individuals eligible for GBV services"
+      },
+      {
+        "id": 540,
+        "code": "10g",
+        "name": "Number of people elligible for Psychosocial Support for GBV",
+        "sheet": "BONEPWA",
+        "source_title": "Number of people elligible for Psychosocial Support for GBV",
+        "indicator_name": "Number of people elligible for Psychosocial Support for GBV"
+      },
+      {
+        "id": 541,
+        "code": "10h",
+        "name": "Number of people reffered for Psychosocial Support for GBV",
+        "sheet": "BONEPWA",
+        "source_title": "Number of people reffered for Psychosocial Support for GBV",
+        "indicator_name": "Number of people reffered for Psychosocial Support for GBV"
+      },
+      {
+        "id": 542,
+        "code": "11a",
+        "name": "Number of Male Condoms distributed",
+        "sheet": "BONEPWA",
+        "source_title": "Number of Male Condoms distributed",
+        "indicator_name": "Number of Male Condoms distributed"
+      },
+      {
+        "id": 543,
+        "code": "11b",
+        "name": "Number of People who reported collecting condoms for the repeated time",
+        "sheet": "BONEPWA",
+        "source_title": "Number of People who reported collecting condoms for the repeated time",
+        "indicator_name": "Number of People who reported collecting condoms for the repeated time"
+      },
+      {
+        "id": 544,
+        "code": "14a",
+        "name": "Number of people reached with NCD prevention messages",
+        "sheet": "BONEPWA",
+        "source_title": "Number of people reached with NCD prevention messages",
+        "indicator_name": "Number of people reached with NCD prevention messages"
+      },
+      {
+        "id": 545,
+        "code": "14b",
+        "name": "Number of people screened for NCDs",
+        "sheet": "BONEPWA",
+        "source_title": "Number of people screened for NCDs",
+        "indicator_name": "Number of people screened for NCDs"
+      },
+      {
+        "id": 546,
+        "code": "14c",
+        "name": "Number of people referred for NCD services",
+        "sheet": "BONEPWA",
+        "source_title": "Number of people referred for NCD services",
+        "indicator_name": "Number of people referred for NCD services"
+      },
+      {
+        "id": 547,
+        "code": "15f",
+        "name": "Number of individual counselling sessions conducted for youth and vulnerable groups (15f)",
+        "sheet": "BONEPWA",
+        "source_title": "Number of individual counselling sessions conducted for youth and vulnerable groups",
+        "indicator_name": "Number of individual counselling sessions conducted for youth and vulnerable groups (15f)"
+      },
+      {
+        "id": 548,
+        "code": "15g",
+        "name": "Number of disclosure and mental health support sessions delivered",
+        "sheet": "BONEPWA",
+        "source_title": "Number of disclosure and mental health support sessions delivered",
+        "indicator_name": "Number of disclosure and mental health support sessions delivered"
+      },
+      {
+        "id": 549,
+        "code": "15h",
+        "name": "Number of individual counselling sessions conducted for youth and vulnerable groups (15h)",
+        "sheet": "BONEPWA",
+        "source_title": "Number of individual counselling sessions conducted for youth and vulnerable groups",
+        "indicator_name": "Number of individual counselling sessions conducted for youth and vulnerable groups (15h)"
+      },
+      {
+        "id": 550,
+        "code": "9b",
+        "name": "Number of people referred for STIs for services",
+        "sheet": "BONELA",
+        "source_title": "Number of people referred for STIs for services",
+        "indicator_name": "Number of people referred for STIs for services"
+      }
+    ],
+    "updated_indicators": [],
+    "project_assignments_created": [
+      {
+        "indicator_id": 520,
+        "indicator_name": "Number of peoples referred for diabetes treatment/management services"
+      },
+      {
+        "indicator_id": 521,
+        "indicator_name": "Number of functional tobacco cessation and alcohol abuse support group"
+      },
+      {
+        "indicator_id": 522,
+        "indicator_name": "Number of PLWH reached with with PREP Messages"
+      },
+      {
+        "indicator_id": 523,
+        "indicator_name": "Number of PLWH reached with Consistent, correct condom use messages"
+      },
+      {
+        "indicator_id": 524,
+        "indicator_name": "Number of people reached at health talks conducted on PHDP held at IDCC"
+      },
+      {
+        "indicator_id": 525,
+        "indicator_name": "Number of PLWH who tested positive for TB and are on treatment"
+      },
+      {
+        "indicator_id": 526,
+        "indicator_name": "Number of PLHIV screened for TB"
+      },
+      {
+        "indicator_id": 527,
+        "indicator_name": "Number of PLHIV symptomatic for TB referred for testing"
+      },
+      {
+        "indicator_id": 528,
+        "indicator_name": "Number of PLHIV on TB treatment"
+      },
+      {
+        "indicator_id": 529,
+        "indicator_name": "Number of PLHIV on TB treatment interrupting treatment"
+      },
+      {
+        "indicator_id": 530,
+        "indicator_name": "Number of PLHIV TB treatment interrupters reinitiated on treatment"
+      },
+      {
+        "indicator_id": 531,
+        "indicator_name": "Number of Missed appointments (1-13 days) followed"
+      },
+      {
+        "indicator_id": 532,
+        "indicator_name": "Number of Missed appointments (1-13 days) reinitiated to treatment"
+      },
+      {
+        "indicator_id": 533,
+        "indicator_name": "Number of ART defaulters (14-89 days) given by facility for tracing"
+      },
+      {
+        "indicator_id": 534,
+        "indicator_name": "Number of ART defaulters (14-89 days) reinitiated to treatment"
+      },
+      {
+        "indicator_id": 535,
+        "indicator_name": "Number of LTFU(90+ days) given by facility for tracing"
+      },
+      {
+        "indicator_id": 536,
+        "indicator_name": "Number of people who LTFU (90+ days) Re-initiated on ART"
+      },
+      {
+        "indicator_id": 537,
+        "indicator_name": "Number of individuals reached with messaging on equality and human rights"
+      },
+      {
+        "indicator_id": 538,
+        "indicator_name": "Number of people who report that their rights were violated and who sought redness"
+      },
+      {
+        "indicator_id": 539,
+        "indicator_name": "Number of individuals eligible for GBV services"
+      },
+      {
+        "indicator_id": 540,
+        "indicator_name": "Number of people elligible for Psychosocial Support for GBV"
+      },
+      {
+        "indicator_id": 541,
+        "indicator_name": "Number of people reffered for Psychosocial Support for GBV"
+      },
+      {
+        "indicator_id": 542,
+        "indicator_name": "Number of Male Condoms distributed"
+      },
+      {
+        "indicator_id": 543,
+        "indicator_name": "Number of People who reported collecting condoms for the repeated time"
+      },
+      {
+        "indicator_id": 544,
+        "indicator_name": "Number of people reached with NCD prevention messages"
+      },
+      {
+        "indicator_id": 545,
+        "indicator_name": "Number of people screened for NCDs"
+      },
+      {
+        "indicator_id": 546,
+        "indicator_name": "Number of people referred for NCD services"
+      },
+      {
+        "indicator_id": 547,
+        "indicator_name": "Number of individual counselling sessions conducted for youth and vulnerable groups (15f)"
+      },
+      {
+        "indicator_id": 548,
+        "indicator_name": "Number of disclosure and mental health support sessions delivered"
+      },
+      {
+        "indicator_id": 549,
+        "indicator_name": "Number of individual counselling sessions conducted for youth and vulnerable groups (15h)"
+      },
+      {
+        "indicator_id": 550,
+        "indicator_name": "Number of people referred for STIs for services"
+      }
+    ],
+    "matched_existing_rows": 172,
+    "created_for_rows": [
+      {
+        "sheet": "MAKGABANENG",
+        "code": "25",
+        "source_title": "Number of peoples referred for diabetes treatment/management services",
+        "indicator_name": "Number of peoples referred for diabetes treatment/management services"
+      },
+      {
+        "sheet": "MAKGABANENG",
+        "code": "37a",
+        "source_title": "Number of functional tobacco cessation and alcohol abuse support group",
+        "indicator_name": "Number of functional tobacco cessation and alcohol abuse support group"
+      },
+      {
+        "sheet": "BONEPWA",
+        "code": "5c",
+        "source_title": "Number of PLWH reached with with PREP Messages",
+        "indicator_name": "Number of PLWH reached with with PREP Messages"
+      },
+      {
+        "sheet": "BONEPWA",
+        "code": "5d",
+        "source_title": "Number of PLWH reached with Consistent, correct condom use messages",
+        "indicator_name": "Number of PLWH reached with Consistent, correct condom use messages"
+      },
+      {
+        "sheet": "BONEPWA",
+        "code": "5g",
+        "source_title": "Number of people reached at health talks conducted on PHDP held at IDCC",
+        "indicator_name": "Number of people reached at health talks conducted on PHDP held at IDCC"
+      },
+      {
+        "sheet": "BONEPWA",
+        "code": "6a",
+        "source_title": "Number of PLWH who tested positive for TB and are on treatment",
+        "indicator_name": "Number of PLWH who tested positive for TB and are on treatment"
+      },
+      {
+        "sheet": "BONEPWA",
+        "code": "6b",
+        "source_title": "Number of PLHIV screened for TB",
+        "indicator_name": "Number of PLHIV screened for TB"
+      },
+      {
+        "sheet": "BONEPWA",
+        "code": "6c",
+        "source_title": "Number of PLHIV symptomatic for TB referred for testing",
+        "indicator_name": "Number of PLHIV symptomatic for TB referred for testing"
+      },
+      {
+        "sheet": "BONEPWA",
+        "code": "6e",
+        "source_title": "Number of PLHIV on TB treatment",
+        "indicator_name": "Number of PLHIV on TB treatment"
+      },
+      {
+        "sheet": "BONEPWA",
+        "code": "6f",
+        "source_title": "Number of PLHIV on TB treatment interrupting treatment",
+        "indicator_name": "Number of PLHIV on TB treatment interrupting treatment"
+      },
+      {
+        "sheet": "BONEPWA",
+        "code": "6g",
+        "source_title": "Number of PLHIV TB treatment interrupters reinitiated on treatment",
+        "indicator_name": "Number of PLHIV TB treatment interrupters reinitiated on treatment"
+      },
+      {
+        "sheet": "BONEPWA",
+        "code": "7b",
+        "source_title": "Number of Missed appointments (1-13 days) followed",
+        "indicator_name": "Number of Missed appointments (1-13 days) followed"
+      },
+      {
+        "sheet": "BONEPWA",
+        "code": "7c",
+        "source_title": "Number of Missed appointments (1-13 days) reinitiated to treatment",
+        "indicator_name": "Number of Missed appointments (1-13 days) reinitiated to treatment"
+      },
+      {
+        "sheet": "BONEPWA",
+        "code": "7d",
+        "source_title": "Number of ART defaulters (14-89 days) given by facility for tracing",
+        "indicator_name": "Number of ART defaulters (14-89 days) given by facility for tracing"
+      },
+      {
+        "sheet": "BONEPWA",
+        "code": "7f",
+        "source_title": "Number of ART defaulters (14-89 days) reinitiated to treatment",
+        "indicator_name": "Number of ART defaulters (14-89 days) reinitiated to treatment"
+      },
+      {
+        "sheet": "BONEPWA",
+        "code": "7g",
+        "source_title": "Number of LTFU(90+ days) given by facility for tracing",
+        "indicator_name": "Number of LTFU(90+ days) given by facility for tracing"
+      },
+      {
+        "sheet": "BONEPWA",
+        "code": "7i",
+        "source_title": "Number of people who LTFU (90+ days) Re-initiated on ART",
+        "indicator_name": "Number of people who LTFU (90+ days) Re-initiated on ART"
+      },
+      {
+        "sheet": "BONEPWA",
+        "code": "8b",
+        "source_title": "Number of individuals reached with messaging on equality and human rights",
+        "indicator_name": "Number of individuals reached with messaging on equality and human rights"
+      },
+      {
+        "sheet": "BONEPWA",
+        "code": "8d",
+        "source_title": "Number of people who report that their rights were violated and who sought redness",
+        "indicator_name": "Number of people who report that their rights were violated and who sought redness"
+      },
+      {
+        "sheet": "BONEPWA",
+        "code": "10b",
+        "source_title": "Number of individuals eligible for GBV services",
+        "indicator_name": "Number of individuals eligible for GBV services"
+      },
+      {
+        "sheet": "BONEPWA",
+        "code": "10g",
+        "source_title": "Number of people elligible for Psychosocial Support for GBV",
+        "indicator_name": "Number of people elligible for Psychosocial Support for GBV"
+      },
+      {
+        "sheet": "BONEPWA",
+        "code": "10h",
+        "source_title": "Number of people reffered for Psychosocial Support for GBV",
+        "indicator_name": "Number of people reffered for Psychosocial Support for GBV"
+      },
+      {
+        "sheet": "BONEPWA",
+        "code": "11a",
+        "source_title": "Number of Male Condoms distributed",
+        "indicator_name": "Number of Male Condoms distributed"
+      },
+      {
+        "sheet": "BONEPWA",
+        "code": "11b",
+        "source_title": "Number of People who reported collecting condoms for the repeated time",
+        "indicator_name": "Number of People who reported collecting condoms for the repeated time"
+      },
+      {
+        "sheet": "BONEPWA",
+        "code": "14a",
+        "source_title": "Number of people reached with NCD prevention messages",
+        "indicator_name": "Number of people reached with NCD prevention messages"
+      },
+      {
+        "sheet": "BONEPWA",
+        "code": "14b",
+        "source_title": "Number of people screened for NCDs",
+        "indicator_name": "Number of people screened for NCDs"
+      },
+      {
+        "sheet": "BONEPWA",
+        "code": "14c",
+        "source_title": "Number of people referred for NCD services",
+        "indicator_name": "Number of people referred for NCD services"
+      },
+      {
+        "sheet": "BONEPWA",
+        "code": "15f",
+        "source_title": "Number of individual counselling sessions conducted for youth and vulnerable groups",
+        "indicator_name": "Number of individual counselling sessions conducted for youth and vulnerable groups (15f)"
+      },
+      {
+        "sheet": "BONEPWA",
+        "code": "15g",
+        "source_title": "Number of disclosure and mental health support sessions delivered",
+        "indicator_name": "Number of disclosure and mental health support sessions delivered"
+      },
+      {
+        "sheet": "BONEPWA",
+        "code": "15h",
+        "source_title": "Number of individual counselling sessions conducted for youth and vulnerable groups",
+        "indicator_name": "Number of individual counselling sessions conducted for youth and vulnerable groups (15h)"
+      },
+      {
+        "sheet": "BONELA",
+        "code": "9b",
+        "source_title": "Number of people referred for STIs for services",
+        "indicator_name": "Number of people referred for STIs for services"
+      }
+    ]
+  }
+}

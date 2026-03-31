@@ -44,10 +44,22 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
   const { id } = use(params)
   const router = useRouter()
   const { toast } = useToast()
-  const projectId = Number(id)
-  const { data: project, isLoading, error, mutate: mutateProject } = useProject(Number.isFinite(projectId) ? projectId : null)
-  const { data: tasksData, mutate: mutateTasks } = useTasks(Number.isFinite(projectId) ? { project: String(projectId) } : undefined)
-  const { data: deadlinesData, mutate: mutateDeadlines } = useDeadlines(Number.isFinite(projectId) ? { project: String(projectId) } : undefined)
+  const routeProjectId = Number(id)
+  const { data: project, isLoading, error, mutate: mutateProject } = useProject(
+    Number.isFinite(routeProjectId) ? routeProjectId : null,
+    { keepPreviousData: false }
+  )
+  const resolvedProjectId = Number(project?.id)
+  const activeProjectId = Number.isFinite(resolvedProjectId) ? resolvedProjectId : routeProjectId
+  const isResolvedProject = Boolean(project) && Number.isFinite(resolvedProjectId) && resolvedProjectId === routeProjectId
+  const { data: tasksData, mutate: mutateTasks } = useTasks(
+    isResolvedProject ? { project: String(activeProjectId) } : undefined,
+    { keepPreviousData: false }
+  )
+  const { data: deadlinesData, mutate: mutateDeadlines } = useDeadlines(
+    isResolvedProject ? { project: String(activeProjectId) } : undefined,
+    { keepPreviousData: false }
+  )
   const { data: organizationsData } = useAllOrganizations()
   const [isEditOpen, setIsEditOpen] = useState(false)
   const [isTaskOpen, setIsTaskOpen] = useState(false)
@@ -112,6 +124,15 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
       .sort((left, right) => left.organizationName.localeCompare(right.organizationName))
   })()
 
+  const projectTasks = tasksData?.results || []
+  const projectDeadlines = deadlinesData?.results || []
+  const allOrganizations = organizationsData?.results || []
+  const projectOrgs = allOrganizations.filter((org) => project?.organizations?.includes(org.id))
+  const completedTasks = projectTasks.filter((task) => task.status === "completed").length
+  const progress = projectTasks.length > 0
+    ? Math.round((completedTasks / projectTasks.length) * 100)
+    : project.progress_percentage || 0
+
   if (isLoading) {
     return (
       <div className="flex h-[50vh] items-center justify-center">
@@ -120,13 +141,14 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
     )
   }
 
-  if (error || !project) {
+  if (error || !project || !isResolvedProject) {
     return (
       <div className="flex h-[50vh] items-center justify-center">
         <p className="text-muted-foreground">Project not found</p>
       </div>
     )
   }
+
 
   const projectTasks = (tasksData?.results || []).filter((task) => String(task.project) === String(project.id))
   const projectDeadlines = (deadlinesData?.results || []).filter((deadline) => String(deadline.project) === String(project.id))
@@ -138,6 +160,22 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
       ? Math.round((projectTasks.filter((task) => task.status === "completed").length / projectTasks.length) * 100)
       : 0
   )
+
+  const projectTasks = tasksData?.results || []
+  const projectDeadlines = deadlinesData?.results || []
+  const projectOrgs = (organizationsData?.results || []).filter((organization) =>
+    (project.organizations || []).includes(String(organization.id)),
+  )
+  const progress = Number.isFinite(Number(project.progress_percentage))
+    ? Number(project.progress_percentage)
+    : 0
+
+  const getApiErrorMessage = (err: unknown, fallback: string) => {
+    if (err && typeof err === "object" && "message" in err && typeof err.message === "string" && err.message.trim()) {
+      return err.message
+    }
+    return fallback
+  }
 
   const taskColumns = [
     {
@@ -212,7 +250,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
     }
     setIsSubmitting(true)
     try {
-      await projectsService.update(projectId, {
+      await projectsService.update(activeProjectId, {
         name: editForm.name,
         code: editForm.code,
         description: editForm.description || undefined,
@@ -227,7 +265,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
       console.error("Failed to update project", err)
       toast({
         title: "Update failed",
-        description: "Could not update project.",
+        description: getApiErrorMessage(err, "Could not update project."),
         variant: "destructive",
       })
     } finally {
@@ -239,14 +277,14 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
     if (!confirm("Delete this project? This cannot be undone.")) return
     setIsSubmitting(true)
     try {
-      await projectsService.delete(projectId)
+      await projectsService.delete(activeProjectId)
       toast({ title: "Project deleted" })
       router.push("/projects")
     } catch (err) {
       console.error("Failed to delete project", err)
       toast({
         title: "Delete failed",
-        description: "Could not delete project.",
+        description: getApiErrorMessage(err, "Could not delete project."),
         variant: "destructive",
       })
     } finally {
@@ -268,7 +306,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
       await tasksService.create({
         name: taskForm.name,
         description: taskForm.description || undefined,
-        project: projectId,
+        project: activeProjectId,
         due_date: taskForm.due_date || project.end_date || undefined,
         priority: taskForm.priority as "low" | "medium" | "high" | "urgent",
       })
@@ -280,7 +318,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
       console.error("Failed to create task", err)
       toast({
         title: "Create failed",
-        description: "Could not create task.",
+        description: getApiErrorMessage(err, "Could not create task."),
         variant: "destructive",
       })
     } finally {
@@ -300,7 +338,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
     setIsSubmitting(true)
     try {
       await deadlinesService.create({
-        project: projectId,
+        project: activeProjectId,
         name: deadlineForm.name,
         description: deadlineForm.description || undefined,
         due_date: deadlineForm.due_date,
@@ -313,7 +351,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
       console.error("Failed to create deadline", err)
       toast({
         title: "Create failed",
-        description: "Could not create deadline.",
+        description: getApiErrorMessage(err, "Could not create deadline."),
         variant: "destructive",
       })
     } finally {

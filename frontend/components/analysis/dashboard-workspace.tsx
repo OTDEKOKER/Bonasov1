@@ -1,979 +1,491 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  Area,
-  AreaChart,
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  Line,
-  LineChart,
-  Pie,
-  PieChart,
-  XAxis,
-  YAxis,
-} from "recharts";
-import {
+  BarChart3,
   ChevronLeft,
   ChevronRight,
-  Download,
+  LayoutDashboard,
   Loader2,
   Plus,
-  Save,
   Search,
   Trash2,
 } from "lucide-react";
 
+import { DashboardAnalyticsSurface } from "@/components/analysis/dashboard-analytics-surface";
+import { DashboardChartCard } from "@/components/analysis/dashboard-chart-card";
+import { DashboardChartSettingsDialog } from "@/components/analysis/dashboard-chart-settings-dialog";
+import type { CustomAnalysisState } from "@/components/analysis/custom-analysis-builder";
+import { DashboardSettingsDialog } from "@/components/analysis/dashboard-settings-dialog";
 import { PageHeader } from "@/components/shared/page-header";
-import { OrganizationSelect } from "@/components/shared/organization-select";
-import {
-  ChartContainer,
-  ChartLegend,
-  ChartLegendContent,
-  ChartTooltip,
-  ChartTooltipContent,
-  type ChartConfig,
-} from "@/components/ui/chart";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
 import { Input } from "@/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { dashboardChartsService } from "@/lib/api";
 import {
-  useAllIndicators,
-  useAllOrganizations,
-  useAllProjects,
-  useDashboardCharts,
-  useIndicatorTrendsBulk,
-} from "@/lib/hooks/use-api";
+  AnalyticsFiltersProvider,
+  defaultAnalyticsFilters,
+  type AnalyticsFilterState,
+} from "@/hooks/use-analytics-filters";
+import {
+  dashboardSettingsService,
+  type DashboardSetting,
+  type IndicatorChartSetting,
+} from "@/lib/api";
+import { useDashboardSetting, useDashboardSettings } from "@/lib/hooks/use-api";
 
-type TrendSeries = {
-  indicator_id: number;
-  indicator_name: string;
-  data: Array<{ month: string; value: number; target: number }>;
-};
+const EMPTY_DASHBOARDS: DashboardSetting[] = [];
 
-type DashboardChartType = "line" | "bar" | "area" | "pie";
-type DateMode = "quarter" | "dates";
-
-const getCurrentFiscalSelection = () => {
-  const now = new Date();
-  const month = now.getMonth() + 1;
-  const year = now.getFullYear();
-
-  if (month >= 4 && month <= 6) return { quarter: "Q1", fiscalYearStart: year };
-  if (month >= 7 && month <= 9) return { quarter: "Q2", fiscalYearStart: year };
-  if (month >= 10 && month <= 12) return { quarter: "Q3", fiscalYearStart: year };
-  return { quarter: "Q4", fiscalYearStart: year - 1 };
-};
-
-const getFiscalQuarterRange = (fiscalYearStart: number, quarter: string) => {
-  const nextYear = fiscalYearStart + 1;
-
-  switch (quarter) {
-    case "Q1":
-      return { start: `${fiscalYearStart}-04-01`, end: `${fiscalYearStart}-06-30` };
-    case "Q2":
-      return { start: `${fiscalYearStart}-07-01`, end: `${fiscalYearStart}-09-30` };
-    case "Q3":
-      return { start: `${fiscalYearStart}-10-01`, end: `${fiscalYearStart}-12-31` };
-    case "Q4":
-    default:
-      return { start: `${nextYear}-01-01`, end: `${nextYear}-03-31` };
+function buildInitialAnalyticsState(
+  dashboard: DashboardSetting | null,
+): Partial<AnalyticsFilterState> {
+  if (!dashboard) {
+    return defaultAnalyticsFilters;
   }
-};
 
-const formatFiscalYearLabel = (fiscalYearStart: string) => {
-  const start = Number(fiscalYearStart);
-  if (Number.isNaN(start)) return fiscalYearStart;
-  return `FY ${start}/${String(start + 1).slice(-2)}`;
-};
+  const dashboardOrgId = dashboard.organization ? String(dashboard.organization) : "";
 
-const toNumberArray = (value: unknown): number[] => {
-  if (!Array.isArray(value)) return [];
-  return value
-    .map((entry) => Number(entry))
-    .filter((entry) => Number.isFinite(entry));
-};
-
-const palette = [
-  "#1CE783",
-  "#0EA5E9",
-  "#F97316",
-  "#A855F7",
-  "#14B8A6",
-  "#EF4444",
-  "#84CC16",
-  "#FACC15",
-];
+  return {
+    ...defaultAnalyticsFilters,
+    projectId: dashboard.project ? String(dashboard.project) : "all",
+    scopeMode: dashboardOrgId
+      ? dashboard.cascade_organization
+        ? "parent_org"
+        : "selected_orgs"
+      : "all_orgs",
+    parentOrgId: dashboard.cascade_organization ? dashboardOrgId : "",
+    selectedOrgIds:
+      dashboard.cascade_organization || !dashboardOrgId ? [] : [dashboardOrgId],
+    cascadeOrganization: Boolean(dashboard.cascade_organization),
+  };
+}
 
 export function DashboardWorkspace() {
-  const initialFiscal = useMemo(() => getCurrentFiscalSelection(), []);
   const { toast } = useToast();
-  const chartRef = useRef<HTMLDivElement | null>(null);
-
-  const { data: indicatorsData } = useAllIndicators();
-  const { data: organizationsData } = useAllOrganizations();
-  const { data: projectsData } = useAllProjects();
-  const { data: savedChartsData, mutate: mutateSavedCharts } = useDashboardCharts();
-
-  const indicators = useMemo(() => indicatorsData ?? [], [indicatorsData]);
-  const organizations = organizationsData?.results || [];
-  const projects = projectsData?.results || [];
-  const savedCharts = savedChartsData?.results || [];
 
   const [sidebarHidden, setSidebarHidden] = useState(false);
-  const [creating, setCreating] = useState(false);
   const [dashboardSearch, setDashboardSearch] = useState("");
-  const [indicatorSearch, setIndicatorSearch] = useState("");
-  const [dashboardName, setDashboardName] = useState("");
-  const [dashboardShared, setDashboardShared] = useState(false);
+  const [page, setPage] = useState(1);
+
   const [activeDashboardId, setActiveDashboardId] = useState<number | null>(null);
-  const [selectedIndicatorIds, setSelectedIndicatorIds] = useState<number[]>([]);
-  const [organizationId, setOrganizationId] = useState<string>("all");
-  const [projectId, setProjectId] = useState<string>("all");
-  const [dateMode, setDateMode] = useState<DateMode>("quarter");
-  const [quarter, setQuarter] = useState(initialFiscal.quarter);
-  const [year, setYear] = useState(String(initialFiscal.fiscalYearStart));
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
-  const [chartType, setChartType] = useState<DashboardChartType>("line");
-  const [activePieIndex, setActivePieIndex] = useState<number | null>(null);
-  const [saving, setSaving] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-  const [hasInitializedIndicators, setHasInitializedIndicators] = useState(false);
 
-  const selectedDashboard = useMemo(
-    () => savedCharts.find((chart) => chart.id === activeDashboardId) ?? null,
-    [activeDashboardId, savedCharts],
-  );
+  const [createOpen, setCreateOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+
+  const [chartDialogOpen, setChartDialogOpen] = useState(false);
+  const [editingChart, setEditingChart] = useState<IndicatorChartSetting | null>(null);
+  const [chartDraft, setChartDraft] = useState<Partial<CustomAnalysisState> | null>(null);
+
+  const [deletingDashboard, setDeletingDashboard] = useState(false);
+  const [deletingChartId, setDeletingChartId] = useState<number | null>(null);
+
+  const {
+    data: dashboardSettingsData,
+    mutate: mutateDashboardSettings,
+    isLoading: dashboardsLoading,
+  } = useDashboardSettings({
+    search: dashboardSearch || undefined,
+    page,
+  });
+
+  const dashboards = dashboardSettingsData?.results ?? EMPTY_DASHBOARDS;
+  const totalCount = dashboardSettingsData?.count ?? 0;
+  const hasNextPage = Boolean(dashboardSettingsData?.next);
+  const hasPrevPage = Boolean(dashboardSettingsData?.previous);
+
+  const {
+    data: selectedDashboardDetail,
+    mutate: mutateSelectedDashboard,
+    isLoading: detailLoading,
+  } = useDashboardSetting(activeDashboardId);
 
   useEffect(() => {
-    if (savedCharts.length === 0) {
-      setCreating(true);
+    if (dashboards.length === 0) {
+      setActiveDashboardId(null);
+      return;
     }
-  }, [savedCharts.length]);
-
-  useEffect(() => {
-    if (hasInitializedIndicators) return;
-    if (indicators.length === 0) return;
-
-    setSelectedIndicatorIds([indicators[0].id]);
-    setHasInitializedIndicators(true);
-  }, [hasInitializedIndicators, indicators]);
-
-  useEffect(() => {
-    if (dateMode !== "quarter") return;
-    const fiscalYearStart = Number(year);
-    if (Number.isNaN(fiscalYearStart)) return;
-
-    const range = getFiscalQuarterRange(fiscalYearStart, quarter);
-    setDateFrom(range.start);
-    setDateTo(range.end);
-  }, [dateMode, quarter, year]);
-
-  const resetWorkspace = () => {
-    const range = getFiscalQuarterRange(initialFiscal.fiscalYearStart, initialFiscal.quarter);
-
-    setCreating(true);
-    setActiveDashboardId(null);
-    setDashboardName("");
-    setDashboardShared(false);
-    setDashboardSearch("");
-    setIndicatorSearch("");
-    setOrganizationId("all");
-    setProjectId("all");
-    setDateMode("quarter");
-    setQuarter(initialFiscal.quarter);
-    setYear(String(initialFiscal.fiscalYearStart));
-    setDateFrom(range.start);
-    setDateTo(range.end);
-    setChartType("line");
-    setActivePieIndex(null);
-    setSelectedIndicatorIds(indicators[0] ? [indicators[0].id] : []);
-  };
-
-  const applyChartParameters = (params: Record<string, unknown>) => {
-    const indicatorIds = toNumberArray(params.indicator_ids);
-
-    setSelectedIndicatorIds(indicatorIds);
-    setOrganizationId(
-      params.organization_id !== null && params.organization_id !== undefined
-        ? String(params.organization_id)
-        : "all",
-    );
-    setProjectId(
-      params.project_id !== null && params.project_id !== undefined
-        ? String(params.project_id)
-        : "all",
-    );
-    setDateMode(params.date_mode === "dates" ? "dates" : "quarter");
-
-    if (typeof params.quarter === "string") setQuarter(params.quarter);
-    if (params.year !== null && params.year !== undefined) setYear(String(params.year));
-    if (typeof params.date_from === "string") setDateFrom(params.date_from);
-    if (typeof params.date_to === "string") setDateTo(params.date_to);
 
     if (
-      params.chart_type === "line" ||
-      params.chart_type === "bar" ||
-      params.chart_type === "area" ||
-      params.chart_type === "pie"
+      activeDashboardId === null ||
+      !dashboards.some((dashboard) => dashboard.id === activeDashboardId)
     ) {
-      setChartType(params.chart_type);
+      setActiveDashboardId(dashboards[0].id);
     }
-  };
+  }, [activeDashboardId, dashboards]);
 
-  useEffect(() => {
-    if (!selectedDashboard) return;
-
-    setDashboardName(selectedDashboard.name);
-    setDashboardShared(Boolean(selectedDashboard.is_public));
-    applyChartParameters((selectedDashboard.parameters || {}) as Record<string, unknown>);
-    setCreating(false);
-  }, [selectedDashboard]);
-
-  const startNewDashboard = () => {
-    resetWorkspace();
-  };
-
-  const visibleDashboards = useMemo(() => {
-    const query = dashboardSearch.trim().toLowerCase();
-    if (!query) return savedCharts;
-
-    return savedCharts.filter((chart) => {
-      const haystack = `${chart.name} ${chart.description || ""} ${chart.created_by_name || ""}`.toLowerCase();
-      return haystack.includes(query);
-    });
-  }, [dashboardSearch, savedCharts]);
-
-  const filteredIndicators = useMemo(() => {
-    const term = indicatorSearch.trim().toLowerCase();
-    if (!term) return indicators;
-    return indicators.filter((indicator) => indicator.name.toLowerCase().includes(term));
-  }, [indicatorSearch, indicators]);
-
-  const selectedIndicatorsLabel = useMemo(() => {
-    if (selectedIndicatorIds.length === 0) return "Select indicators";
-    if (selectedIndicatorIds.length === indicators.length && indicators.length > 0) return "All indicators";
-    if (selectedIndicatorIds.length === 1) {
-      const match = indicators.find((indicator) => indicator.id === selectedIndicatorIds[0]);
-      return match ? match.name : "Selected indicators";
+  const currentDashboard = useMemo<DashboardSetting | null>(() => {
+    if (selectedDashboardDetail?.id) {
+      return selectedDashboardDetail;
     }
-    return `${selectedIndicatorIds.length} indicators selected`;
-  }, [indicators, selectedIndicatorIds]);
+    return dashboards.find((dashboard) => dashboard.id === activeDashboardId) ?? null;
+  }, [activeDashboardId, dashboards, selectedDashboardDetail]);
 
-  const previewTitle = dashboardName.trim() || `Tracking ${selectedIndicatorsLabel}`;
-
-  const { data: trendsBulk, isLoading, error } = useIndicatorTrendsBulk(selectedIndicatorIds, {
-    months: 12,
-    organizationId: organizationId !== "all" ? Number(organizationId) : null,
-    projectId: projectId !== "all" ? Number(projectId) : null,
-    dateFrom: dateFrom || undefined,
-    dateTo: dateTo || undefined,
-  });
-
-  const chartSeries = useMemo<TrendSeries[]>(
-    () => (trendsBulk?.series ?? []) as TrendSeries[],
-    [trendsBulk?.series],
+  const analyticsInitialState = useMemo(
+    () => buildInitialAnalyticsState(currentDashboard),
+    [currentDashboard],
   );
 
-  const chartData = useMemo(() => {
-    if (chartSeries.length === 0) return [];
-
-    const allPeriods = Array.from(
-      new Set(chartSeries.flatMap((series) => series.data.map((item) => item.month))),
-    );
-
-    return allPeriods.map((month) => {
-      const row: Record<string, string | number> = { period: month };
-
-      chartSeries.forEach((series) => {
-        const point = series.data.find((item) => item.month === month);
-        row[`indicator_${series.indicator_id}`] = point?.value ?? 0;
-      });
-
-      return row;
-    });
-  }, [chartSeries]);
-
-  const pieData = useMemo(() => {
-    return chartSeries.map((series) => ({
-      name: series.indicator_name,
-      value: series.data.reduce((sum, item) => sum + (item.value || 0), 0),
-      key: `indicator_${series.indicator_id}`,
-    }));
-  }, [chartSeries]);
-
-  const chartConfig = useMemo<ChartConfig>(() => {
-    return chartSeries.reduce<Record<string, { label: string; color: string }>>((acc, series, index) => {
-      acc[`indicator_${series.indicator_id}`] = {
-        label: series.indicator_name,
-        color: palette[index % palette.length],
-      };
-      return acc;
-    }, {});
-  }, [chartSeries]);
-
-  const toggleIndicator = (indicatorIdValue: number) => {
-    setSelectedIndicatorIds((previous) => {
-      if (previous.includes(indicatorIdValue)) {
-        return previous.filter((id) => id !== indicatorIdValue);
+  const refreshDashboards = useCallback(
+    async (dashboardId?: number | null) => {
+      if (dashboardId !== undefined) {
+        setActiveDashboardId(dashboardId ?? null);
       }
-      return [...previous, indicatorIdValue];
-    });
-  };
 
-  const toggleAllIndicators = () => {
-    if (selectedIndicatorIds.length === indicators.length) {
-      setSelectedIndicatorIds([]);
-      return;
-    }
-    setSelectedIndicatorIds(indicators.map((indicator) => indicator.id));
-  };
+      await mutateDashboardSettings();
 
-  const buildPayload = () => ({
-    name: dashboardName.trim(),
-    description: `Saved dashboard for ${selectedIndicatorsLabel}`,
-    organization: organizationId !== "all" ? Number(organizationId) : null,
-    is_public: dashboardShared,
-    parameters: {
-      indicator_ids: selectedIndicatorIds,
-      organization_id: organizationId !== "all" ? Number(organizationId) : null,
-      project_id: projectId !== "all" ? Number(projectId) : null,
-      date_mode: dateMode,
-      quarter,
-      year,
-      date_from: dateFrom || null,
-      date_to: dateTo || null,
-      chart_type: chartType,
+      if (dashboardId !== null && dashboardId !== undefined) {
+        await mutateSelectedDashboard();
+      }
     },
-  });
+    [mutateDashboardSettings, mutateSelectedDashboard],
+  );
 
-  const handleSaveDashboard = async () => {
-    if (!dashboardName.trim()) {
-      toast({
-        title: "Dashboard name required",
-        description: "Add a dashboard name before saving.",
-        variant: "destructive",
-      });
-      return;
-    }
+  const openAddChart = useCallback(() => {
+    setEditingChart(null);
+    setChartDraft(null);
+    setChartDialogOpen(true);
+  }, []);
 
-    if (selectedIndicatorIds.length === 0) {
-      toast({
-        title: "Select at least one indicator",
-        description: "Dashboards need indicator data to display.",
-        variant: "destructive",
-      });
-      return;
-    }
+  const openEditChart = useCallback((chart: IndicatorChartSetting) => {
+    setEditingChart(chart);
+    setChartDraft(null);
+    setChartDialogOpen(true);
+  }, []);
 
-    setSaving(true);
+  const openCustomDraft = useCallback((draft: Partial<CustomAnalysisState>) => {
+    setEditingChart(null);
+    setChartDraft(draft);
+    setChartDialogOpen(true);
+  }, []);
+
+  const handleDeleteDashboard = useCallback(async () => {
+    if (!currentDashboard?.id || deletingDashboard) return;
+
+    setDeletingDashboard(true);
     try {
-      const payload = buildPayload();
-      const saved = activeDashboardId
-        ? await dashboardChartsService.update(activeDashboardId, payload)
-        : await dashboardChartsService.create(payload);
+      const deletedId = currentDashboard.id;
+      await dashboardSettingsService.delete(deletedId);
 
-      await mutateSavedCharts();
-      setActiveDashboardId(saved.id);
-      setDashboardName(saved.name);
-      setDashboardShared(Boolean(saved.is_public));
-      setCreating(false);
+      const remainingDashboards = dashboards.filter(
+        (dashboard) => dashboard.id !== deletedId,
+      );
+      const nextDashboardId = remainingDashboards[0]?.id ?? null;
 
-      toast({
-        title: activeDashboardId ? "Dashboard updated" : "Dashboard saved",
-        description: saved.name,
-      });
-    } catch (saveError) {
-      console.error("Failed to save dashboard", saveError);
-      toast({
-        title: "Save failed",
-        description: "Unable to save this dashboard.",
-        variant: "destructive",
-      });
-    } finally {
-      setSaving(false);
-    }
-  };
+      setActiveDashboardId(nextDashboardId);
+      await mutateDashboardSettings();
 
-  const handleDeleteDashboard = async () => {
-    if (!activeDashboardId) return;
-
-    setDeleting(true);
-    try {
-      await dashboardChartsService.delete(activeDashboardId);
-      await mutateSavedCharts();
-      resetWorkspace();
+      if (nextDashboardId) {
+        await mutateSelectedDashboard();
+      }
 
       toast({
         title: "Dashboard deleted",
-        description: "The saved dashboard has been removed.",
+        description: "The dashboard and its saved analyses have been removed.",
       });
-    } catch (deleteError) {
-      console.error("Failed to delete dashboard", deleteError);
+    } catch (error) {
+      console.error("Failed to delete dashboard", error);
       toast({
         title: "Delete failed",
         description: "Unable to delete this dashboard.",
         variant: "destructive",
       });
     } finally {
-      setDeleting(false);
+      setDeletingDashboard(false);
     }
-  };
+  }, [
+    currentDashboard,
+    dashboards,
+    deletingDashboard,
+    mutateDashboardSettings,
+    mutateSelectedDashboard,
+    toast,
+  ]);
 
-  const downloadChartSvg = () => {
-    const svg = chartRef.current?.querySelector("svg");
-    if (!svg) return;
+  const handleDeleteChart = useCallback(
+    async (chart: IndicatorChartSetting) => {
+      if (!currentDashboard?.id || !chart.id || deletingChartId === chart.id) return;
 
-    if (!svg.getAttribute("xmlns")) {
-      svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-    }
+      setDeletingChartId(chart.id);
+      try {
+        await dashboardSettingsService.removeChart(currentDashboard.id, chart.id);
+        await refreshDashboards(currentDashboard.id);
+        toast({
+          title: "Analysis removed",
+          description: "The analysis has been removed from the dashboard.",
+        });
+      } catch (error) {
+        console.error("Failed to delete chart", error);
+        toast({
+          title: "Remove failed",
+          description: "Unable to remove this analysis.",
+          variant: "destructive",
+        });
+      } finally {
+        setDeletingChartId(null);
+      }
+    },
+    [currentDashboard, deletingChartId, refreshDashboards, toast],
+  );
 
-    const serializer = new XMLSerializer();
-    const svgString = serializer.serializeToString(svg);
-    const blob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-
-    const link = document.createElement("a");
-    const safeName = previewTitle.replace(/[^a-z0-9_-]+/gi, "_").slice(0, 60) || "dashboard";
-    link.href = url;
-    link.download = `${safeName}-${chartType}.svg`;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
-  };
-
-  const downloadChartCsv = () => {
-    const rows = chartType === "pie" ? pieData : chartData;
-    if (!rows.length) return;
-
-    const headers = Object.keys(rows[0]);
-    const lines = [
-      headers.join(","),
-      ...rows.map((row) =>
-        headers
-          .map((key) => {
-            const value = (row as Record<string, unknown>)[key];
-            const text = value === null || value === undefined ? "" : String(value);
-            return `"${text.replace(/"/g, '""')}"`;
-          })
-          .join(","),
-      ),
-    ];
-
-    const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-
-    const link = document.createElement("a");
-    const safeName = previewTitle.replace(/[^a-z0-9_-]+/gi, "_").slice(0, 60) || "dashboard";
-    link.href = url;
-    link.download = `${safeName}-${chartType}.csv`;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
-  };
-
-  const fiscalYears = Array.from({ length: 4 }, (_, index) => String(initialFiscal.fiscalYearStart - index));
+  const chartCount = currentDashboard?.charts?.length ?? 0;
 
   return (
-    <div className="space-y-6">
+    <>
       <PageHeader
-        title="Analytics"
-        description="Create, load, and review saved dashboards like the legacy analytics workspace"
-        breadcrumbs={[
-          { label: "Dashboard", href: "/dashboard" },
-          { label: "Analysis" },
-        ]}
-        actions={
-          <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={() => setSidebarHidden((value) => !value)}>
-              {sidebarHidden ? <ChevronRight className="mr-2 h-4 w-4" /> : <ChevronLeft className="mr-2 h-4 w-4" />}
-              {sidebarHidden ? "Show Dashboards" : "Hide Dashboards"}
-            </Button>
-            <Button onClick={startNewDashboard}>
-              <Plus className="mr-2 h-4 w-4" />
-              New Dashboard
-            </Button>
-          </div>
-        }
+        title="Dashboard Workspace"
+        description="Create dashboard definitions, attach analyses, and review saved analytics views."
       />
 
-      <div className={`grid gap-6 ${sidebarHidden ? "xl:grid-cols-1" : "xl:grid-cols-[320px_minmax(0,1fr)]"}`}>
-        {!sidebarHidden && (
-          <Card className="h-fit">
-            <CardHeader className="space-y-3">
-              <div className="flex items-center justify-between gap-2">
+      <div className="grid min-h-[calc(100vh-9rem)] grid-cols-1 gap-5 lg:grid-cols-[18rem_minmax(0,1fr)]">
+        {!sidebarHidden ? (
+          <aside className="rounded-[1.4rem] border border-border bg-card shadow-sm">
+            <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-4">
+              <div className="flex items-center gap-2">
+                <LayoutDashboard className="h-5 w-5 text-[var(--green-primary)]" />
                 <div>
-                  <CardTitle>Your Dashboards</CardTitle>
-                  <CardDescription>Saved analysis views</CardDescription>
+                  <div className="text-sm font-semibold">Dashboards</div>
+                  <div className="text-xs text-muted-foreground">{totalCount} total</div>
                 </div>
-                <Badge variant="outline">{savedCharts.length}</Badge>
               </div>
+              <Button size="icon" variant="ghost" onClick={() => setSidebarHidden(true)}>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <div className="space-y-3 p-4">
               <div className="relative">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   value={dashboardSearch}
-                  onChange={(event) => setDashboardSearch(event.target.value)}
-                  placeholder="Search dashboards..."
+                  onChange={(event) => {
+                    setDashboardSearch(event.target.value);
+                    setPage(1);
+                  }}
+                  placeholder="Search dashboards"
                   className="pl-9"
                 />
               </div>
-            </CardHeader>
 
-            <CardContent className="space-y-2">
-              {visibleDashboards.length === 0 ? (
-                <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
-                  No dashboards found.
-                </div>
-              ) : (
-                visibleDashboards.map((chart) => {
-                  const active = chart.id === activeDashboardId;
+              <Button className="w-full" onClick={() => setCreateOpen(true)}>
+                <Plus className="mr-2 h-4 w-4" />
+                New Dashboard
+              </Button>
+            </div>
 
-                  return (
-                    <button
-                      key={chart.id}
-                      type="button"
-                      onClick={() => setActiveDashboardId(chart.id)}
-                      className={`w-full rounded-lg border px-3 py-3 text-left transition-colors ${
-                        active
-                          ? "border-primary bg-primary/5"
-                          : "border-border hover:border-primary/40 hover:bg-muted/50"
-                      }`}
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <div className="truncate font-medium">{chart.name}</div>
-                          <div className="mt-1 text-xs text-muted-foreground">
-                            {chart.created_by_name ? `By ${chart.created_by_name}` : "Saved dashboard"}
+            <Separator />
+
+            <ScrollArea className="h-[calc(100vh-22rem)]">
+              <div className="space-y-2 p-3">
+                {dashboardsLoading ? (
+                  <div className="flex items-center justify-center py-8 text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  </div>
+                ) : dashboards.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-border px-4 py-6 text-center text-sm text-muted-foreground">
+                    No dashboards found.
+                  </div>
+                ) : (
+                  dashboards.map((dashboard) => {
+                    const isActive = dashboard.id === activeDashboardId;
+                    return (
+                      <button
+                        key={dashboard.id}
+                        type="button"
+                        onClick={() => setActiveDashboardId(dashboard.id)}
+                        className={[
+                          "w-full rounded-2xl border px-4 py-3 text-left transition-colors",
+                          isActive
+                            ? "border-[var(--green-primary)] bg-[var(--green-primary)]/5"
+                            : "border-border bg-background hover:bg-muted/50",
+                        ].join(" ")}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <div className="truncate text-sm font-semibold">
+                              {dashboard.name}
+                            </div>
+                            <div className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+                              {dashboard.description || "Configured analytics dashboard"}
+                            </div>
                           </div>
+                          <Badge variant="outline" className="shrink-0">
+                            {dashboard.charts?.length ?? 0}
+                          </Badge>
                         </div>
-                        {chart.is_public ? <Badge variant="secondary">Shared</Badge> : null}
-                      </div>
-                    </button>
-                  );
-                })
-              )}
-            </CardContent>
-          </Card>
+                      </button>
+                    );
+                  })
+                )}
+              </div>
+            </ScrollArea>
+
+            <div className="flex items-center justify-between gap-2 border-t border-border px-3 py-3">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={!hasPrevPage}
+                onClick={() => setPage((value) => Math.max(1, value - 1))}
+              >
+                <ChevronLeft className="mr-1 h-4 w-4" />
+                Prev
+              </Button>
+              <div className="text-xs text-muted-foreground">Page {page}</div>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={!hasNextPage}
+                onClick={() => setPage((value) => value + 1)}
+              >
+                Next
+                <ChevronRight className="ml-1 h-4 w-4" />
+              </Button>
+            </div>
+          </aside>
+        ) : (
+          <div className="lg:hidden" />
         )}
 
-        <div className="space-y-6 min-w-0">
-          {!creating && !selectedDashboard && savedCharts.length > 0 ? (
-            <Card className="border-dashed">
-              <CardContent className="flex min-h-[220px] flex-col items-center justify-center gap-3 text-center">
-                <div className="text-lg font-semibold">Select or create a dashboard to begin.</div>
-                <p className="max-w-xl text-sm text-muted-foreground">
-                  This matches the old analytics flow: use the sidebar to open a saved dashboard, or start a new one.
-                </p>
-                <Button onClick={startNewDashboard}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  New Dashboard
-                </Button>
-              </CardContent>
-            </Card>
+        <main className="min-w-0">
+          {sidebarHidden ? (
+            <div className="mb-4">
+              <Button variant="outline" onClick={() => setSidebarHidden(false)}>
+                <ChevronRight className="mr-2 h-4 w-4" />
+                Show dashboards
+              </Button>
+            </div>
+          ) : null}
+
+          {!currentDashboard ? (
+            <div className="rounded-[1.4rem] border border-dashed border-border bg-card px-6 py-10 text-center text-muted-foreground">
+              Select or create a dashboard to begin.
+            </div>
           ) : (
-            <>
-              <Card>
-                <CardHeader>
-                  <CardTitle>{creating ? "New Dashboard" : dashboardName || "Dashboard"}</CardTitle>
-                  <CardDescription>
-                    {creating
-                      ? "Configure indicators, filters, and save this dashboard."
-                      : "Update the selected dashboard and save your changes."}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_220px]">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Dashboard name</label>
-                      <Input
-                        value={dashboardName}
-                        onChange={(event) => setDashboardName(event.target.value)}
-                        placeholder="New Dashboard"
-                      />
+            <AnalyticsFiltersProvider
+              key={`dashboard-filters-${currentDashboard.id}`}
+              dashboardId={currentDashboard.id}
+              initialState={analyticsInitialState}
+            >
+              <div className="space-y-4">
+                <section className="rounded-[1.35rem] border border-border bg-card p-4 shadow-sm">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <h2 className="text-lg font-semibold tracking-tight">
+                        {currentDashboard.name}
+                      </h2>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {currentDashboard.description || "Configured analytics dashboard"}
+                      </p>
                     </div>
 
-                    <div className="flex items-center justify-between rounded-lg border px-4 py-3">
-                      <div>
-                        <div className="text-sm font-medium">Shared dashboard</div>
-                        <div className="text-xs text-muted-foreground">Available to other users</div>
-                      </div>
-                      <Switch checked={dashboardShared} onCheckedChange={setDashboardShared} />
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Button variant="outline" onClick={() => setEditOpen(true)}>
+                        Dashboard Settings
+                      </Button>
+                      <Button variant="outline" onClick={openAddChart}>
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add Analysis
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        className="text-rose-600 hover:bg-rose-50 hover:text-rose-700"
+                        onClick={handleDeleteDashboard}
+                        disabled={deletingDashboard}
+                      >
+                        {deletingDashboard ? (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="mr-2 h-4 w-4" />
+                        )}
+                        Delete Dashboard
+                      </Button>
                     </div>
                   </div>
 
-                  <div className="flex flex-wrap gap-2">
-                    <Button onClick={handleSaveDashboard} disabled={saving}>
-                      <Save className="mr-2 h-4 w-4" />
-                      {saving ? "Saving..." : activeDashboardId ? "Update Dashboard" : "Save Dashboard"}
-                    </Button>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <Badge variant="outline">
+                      <BarChart3 className="mr-1 h-3.5 w-3.5" />
+                      {chartCount} {chartCount === 1 ? "analysis" : "analyses"}
+                    </Badge>
 
-                    <Button variant="outline" onClick={downloadChartSvg} disabled={!chartData.length && !pieData.length}>
-                      <Download className="mr-2 h-4 w-4" />
-                      Download SVG
-                    </Button>
+                    {currentDashboard.project_name || currentDashboard.project ? (
+                      <Badge variant="outline">
+                        Project: {currentDashboard.project_name || currentDashboard.project}
+                      </Badge>
+                    ) : null}
 
-                    <Button variant="outline" onClick={downloadChartCsv} disabled={!chartData.length && !pieData.length}>
-                      <Download className="mr-2 h-4 w-4" />
-                      Download CSV
-                    </Button>
-
-                    {activeDashboardId ? (
-                      <Button variant="ghost" onClick={handleDeleteDashboard} disabled={deleting}>
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        {deleting ? "Deleting..." : "Delete Dashboard"}
-                      </Button>
+                    {currentDashboard.organization_name || currentDashboard.organization ? (
+                      <Badge variant="outline">
+                        Organization:{" "}
+                        {currentDashboard.organization_name || currentDashboard.organization}
+                        {currentDashboard.cascade_organization ? " + subgrantees" : ""}
+                      </Badge>
                     ) : null}
                   </div>
-                </CardContent>
-              </Card>
+                </section>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>Dashboard Filters</CardTitle>
-                  <CardDescription>Pick indicators, scope, and fiscal quarter filters</CardDescription>
-                </CardHeader>
-
-                <CardContent className="space-y-4">
-                  <div className="flex flex-wrap items-end gap-2">
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" className="w-full justify-between sm:w-[320px]">
-                          <span className="truncate">{selectedIndicatorsLabel}</span>
-                          <span className="text-xs text-muted-foreground">{selectedIndicatorIds.length}</span>
-                        </Button>
-                      </PopoverTrigger>
-
-                      <PopoverContent align="start" className="w-[calc(100vw-2rem)] p-0 sm:w-[320px]">
-                        <Command>
-                          <CommandInput
-                            placeholder="Search indicators..."
-                            value={indicatorSearch}
-                            onValueChange={setIndicatorSearch}
-                          />
-                          <CommandList>
-                            <CommandEmpty>No indicators found.</CommandEmpty>
-                            <CommandGroup heading="Indicators">
-                              <CommandItem onSelect={toggleAllIndicators} className="flex items-center justify-between">
-                                <span>All indicators</span>
-                                <Checkbox
-                                  checked={selectedIndicatorIds.length === indicators.length && indicators.length > 0}
-                                />
-                              </CommandItem>
-
-                              {filteredIndicators.map((indicator) => (
-                                <CommandItem
-                                  key={indicator.id}
-                                  onSelect={() => toggleIndicator(indicator.id)}
-                                  className="flex items-center justify-between"
-                                >
-                                  <span className="truncate">{indicator.name}</span>
-                                  <Checkbox checked={selectedIndicatorIds.includes(indicator.id)} />
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                          </CommandList>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
-
-                    <OrganizationSelect
-                      organizations={organizations}
-                      value={organizationId}
-                      onChange={setOrganizationId}
-                      includeAll
-                      allLabel="All organizations"
-                      placeholder="Organization"
-                      className="w-full sm:w-[240px]"
-                    />
-
-                    <Select value={projectId} onValueChange={setProjectId}>
-                      <SelectTrigger className="w-full sm:w-[220px]">
-                        <SelectValue placeholder="All projects" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All projects</SelectItem>
-                        {projects.map((project) => (
-                          <SelectItem key={project.id} value={String(project.id)}>
-                            {project.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-
-                    <Select value={chartType} onValueChange={(value) => setChartType(value as DashboardChartType)}>
-                      <SelectTrigger className="w-full sm:w-[160px]">
-                        <SelectValue placeholder="Chart type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="line">Line</SelectItem>
-                        <SelectItem value="bar">Bar</SelectItem>
-                        <SelectItem value="area">Area</SelectItem>
-                        <SelectItem value="pie">Pie</SelectItem>
-                      </SelectContent>
-                    </Select>
-
-                    <Select value={dateMode} onValueChange={(value) => setDateMode(value as DateMode)}>
-                      <SelectTrigger className="w-full sm:w-[170px]">
-                        <SelectValue placeholder="Date mode" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="quarter">Fiscal quarter</SelectItem>
-                        <SelectItem value="dates">Custom dates</SelectItem>
-                      </SelectContent>
-                    </Select>
-
-                    {dateMode === "quarter" ? (
-                      <>
-                        <Select value={quarter} onValueChange={setQuarter}>
-                          <SelectTrigger className="w-full sm:w-[140px]">
-                            <SelectValue placeholder="Quarter" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Q1">Q1 · Apr-Jun</SelectItem>
-                            <SelectItem value="Q2">Q2 · Jul-Sep</SelectItem>
-                            <SelectItem value="Q3">Q3 · Oct-Dec</SelectItem>
-                            <SelectItem value="Q4">Q4 · Jan-Mar</SelectItem>
-                          </SelectContent>
-                        </Select>
-
-                        <Select value={year} onValueChange={setYear}>
-                          <SelectTrigger className="w-full sm:w-[140px]">
-                            <SelectValue placeholder="Fiscal year" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {fiscalYears.map((fiscalYear) => (
-                              <SelectItem key={fiscalYear} value={fiscalYear}>
-                                {formatFiscalYearLabel(fiscalYear)}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </>
-                    ) : (
-                      <>
-                        <div className="space-y-1">
-                          <span className="text-xs text-muted-foreground">From</span>
-                          <Input type="date" value={dateFrom} onChange={(event) => setDateFrom(event.target.value)} />
-                        </div>
-                        <div className="space-y-1">
-                          <span className="text-xs text-muted-foreground">To</span>
-                          <Input type="date" value={dateTo} onChange={(event) => setDateTo(event.target.value)} />
-                        </div>
-                      </>
-                    )}
+                {detailLoading && !selectedDashboardDetail ? (
+                  <div className="flex min-h-[10rem] items-center justify-center rounded-[1.35rem] border border-border bg-card">
+                    <Loader2 className="h-5 w-5 animate-spin text-[var(--green-primary)]" />
                   </div>
-
-                  {dateMode === "quarter" ? (
-                    <div className="rounded-lg border bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
-                      {quarter} covers {dateFrom} to {dateTo}. Q1 starts on April 1 and Q4 ends the following March.
-                    </div>
-                  ) : null}
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>{previewTitle}</CardTitle>
-                  <CardDescription>Trend view for the selected dashboard</CardDescription>
-                </CardHeader>
-
-                <CardContent>
-                  {isLoading ? (
-                    <div className="flex h-[320px] items-center justify-center">
-                      <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                    </div>
-                  ) : null}
-
-                  {!isLoading && error ? (
-                    <div className="flex h-[320px] items-center justify-center text-muted-foreground">
-                      Unable to load trends.
-                    </div>
-                  ) : null}
-
-                  {!isLoading && !error && chartData.length === 0 && pieData.length === 0 ? (
-                    <div className="flex h-[320px] items-center justify-center text-muted-foreground">
-                      No charts yet. Add filters and save the dashboard.
-                    </div>
-                  ) : null}
-
-                  {!isLoading && !error && chartData.length > 0 && chartType !== "pie" ? (
-                    <div ref={chartRef} className="min-w-0">
-                      <ChartContainer config={chartConfig} className="h-[360px] w-full">
-                        {chartType === "line" ? (
-                          <LineChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 10 }}>
-                            <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                            <XAxis dataKey="period" tickLine={false} axisLine={false} />
-                            <YAxis tickLine={false} axisLine={false} />
-                            <ChartTooltip
-                              cursor={{ fill: "rgba(16, 24, 40, 0.06)" }}
-                              content={<ChartTooltipContent indicator="dot" />}
+                ) : (
+                  <>
+                    {currentDashboard.charts?.length ? (
+                      <section className="space-y-3">
+                        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                          {currentDashboard.charts.map((chart) => (
+                            <DashboardChartCard
+                              key={chart.id}
+                              chart={chart}
+                              onEdit={() => openEditChart(chart)}
+                              onDelete={() => handleDeleteChart(chart)}
+                              deleteDisabled={deletingChartId === chart.id}
                             />
-                            <ChartLegend content={<ChartLegendContent />} />
-                            {chartSeries.map((series) => (
-                              <Line
-                                key={series.indicator_id}
-                                type="monotone"
-                                dataKey={`indicator_${series.indicator_id}`}
-                                stroke={`var(--color-indicator_${series.indicator_id})`}
-                                strokeWidth={2.5}
-                                strokeLinecap="round"
-                                dot={{ r: 2 }}
-                                activeDot={{ r: 5 }}
-                              />
-                            ))}
-                          </LineChart>
-                        ) : null}
+                          ))}
+                        </div>
+                      </section>
+                    ) : null}
 
-                        {chartType === "area" ? (
-                          <AreaChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 10 }}>
-                            <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                            <XAxis dataKey="period" tickLine={false} axisLine={false} />
-                            <YAxis tickLine={false} axisLine={false} />
-                            <ChartTooltip
-                              cursor={{ fill: "rgba(16, 24, 40, 0.06)" }}
-                              content={<ChartTooltipContent indicator="dot" />}
-                            />
-                            <ChartLegend content={<ChartLegendContent />} />
-                            {chartSeries.map((series) => (
-                              <Area
-                                key={series.indicator_id}
-                                type="monotone"
-                                dataKey={`indicator_${series.indicator_id}`}
-                                stroke={`var(--color-indicator_${series.indicator_id})`}
-                                fill={`var(--color-indicator_${series.indicator_id})`}
-                                fillOpacity={0.25}
-                                strokeWidth={2}
-                                activeDot={{ r: 4 }}
-                              />
-                            ))}
-                          </AreaChart>
-                        ) : null}
-
-                        {chartType === "bar" ? (
-                          <BarChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 10 }}>
-                            <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                            <XAxis dataKey="period" tickLine={false} axisLine={false} />
-                            <YAxis tickLine={false} axisLine={false} />
-                            <ChartTooltip
-                              cursor={{ fill: "rgba(16, 24, 40, 0.06)" }}
-                              content={<ChartTooltipContent indicator="dot" />}
-                            />
-                            <ChartLegend content={<ChartLegendContent />} />
-                            {chartSeries.map((series) => (
-                              <Bar
-                                key={series.indicator_id}
-                                dataKey={`indicator_${series.indicator_id}`}
-                                fill={`var(--color-indicator_${series.indicator_id})`}
-                                fillOpacity={0.85}
-                                stroke="rgba(16, 24, 40, 0.2)"
-                                strokeWidth={1}
-                                barSize={24}
-                                radius={[4, 4, 0, 0]}
-                              />
-                            ))}
-                          </BarChart>
-                        ) : null}
-                      </ChartContainer>
-                    </div>
-                  ) : null}
-
-                  {!isLoading && !error && chartType === "pie" && pieData.length > 0 ? (
-                    <div ref={chartRef} className="min-w-0">
-                      <ChartContainer config={chartConfig} className="h-[360px] w-full">
-                        <PieChart>
-                          <ChartTooltip
-                            cursor={{ fill: "rgba(16, 24, 40, 0.06)" }}
-                            content={<ChartTooltipContent indicator="dot" />}
-                          />
-                          <ChartLegend content={<ChartLegendContent />} />
-                          <Pie
-                            data={pieData}
-                            dataKey="value"
-                            nameKey="name"
-                            innerRadius={60}
-                            outerRadius={110}
-                            paddingAngle={2}
-                            activeIndex={activePieIndex ?? undefined}
-                            onMouseEnter={(_, index) => setActivePieIndex(index)}
-                            onMouseLeave={() => setActivePieIndex(null)}
-                          >
-                            {pieData.map((entry) => (
-                              <Cell
-                                key={entry.key}
-                                fill={`var(--color-${entry.key})`}
-                                stroke="hsl(var(--background))"
-                              />
-                            ))}
-                          </Pie>
-                        </PieChart>
-                      </ChartContainer>
-                    </div>
-                  ) : null}
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Monthly Totals</CardTitle>
-                  <CardDescription>Secondary comparison view for the same dashboard filters</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {!isLoading && !error && chartData.length > 0 ? (
-                    <ChartContainer config={chartConfig} className="h-[320px]">
-                      <BarChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 10 }}>
-                        <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                        <XAxis dataKey="period" tickLine={false} axisLine={false} />
-                        <YAxis tickLine={false} axisLine={false} />
-                        <ChartTooltip
-                          cursor={{ fill: "rgba(16, 24, 40, 0.06)" }}
-                          content={<ChartTooltipContent indicator="dot" />}
-                        />
-                        <ChartLegend content={<ChartLegendContent />} />
-                        {chartSeries.map((series) => (
-                          <Bar
-                            key={series.indicator_id}
-                            dataKey={`indicator_${series.indicator_id}`}
-                            fill={`var(--color-indicator_${series.indicator_id})`}
-                            fillOpacity={0.85}
-                            stroke="rgba(16, 24, 40, 0.2)"
-                            strokeWidth={1}
-                            barSize={24}
-                            radius={[4, 4, 0, 0]}
-                          />
-                        ))}
-                      </BarChart>
-                    </ChartContainer>
-                  ) : (
-                    <div className="flex h-[300px] items-center justify-center text-muted-foreground">
-                      No data available.
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </>
+                    <DashboardAnalyticsSurface
+                      dashboard={currentDashboard}
+                      onEditChart={openCustomDraft}
+                    />
+                  </>
+                )}
+              </div>
+            </AnalyticsFiltersProvider>
           )}
-        </div>
+        </main>
       </div>
-    </div>
+
+      <DashboardSettingsDialog
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        onSaved={refreshDashboards}
+      />
+
+      <DashboardSettingsDialog
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        existing={currentDashboard}
+        onSaved={refreshDashboards}
+      />
+
+      <DashboardChartSettingsDialog
+        open={chartDialogOpen}
+        onOpenChange={(open) => {
+          setChartDialogOpen(open);
+          if (!open) {
+            setEditingChart(null);
+            setChartDraft(null);
+          }
+        }}
+        dashboard={currentDashboard}
+        existing={editingChart}
+        initialCustomAnalysis={chartDraft}
+        onSaved={refreshDashboards}
+      />
+    </>
   );
-}
+}2

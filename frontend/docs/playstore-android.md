@@ -55,7 +55,7 @@ Output is typically in:
 4. Run pre-launch checks, then promote to production.
 
 ## Notes
-- If `CAP_SERVER_URL` is not set, the app uses the default live URL in `capacitor.config.ts`.
+- If `CAP_SERVER_URL` is not set, the app uses the default live URL in `capacitor.config.ts` (`https://sesigo.org.bw`).
 - After any Capacitor/plugin/config change, run `npm run mobile:sync`.
 - Offline behavior:
   - First launch must be online so service worker/cache can warm.

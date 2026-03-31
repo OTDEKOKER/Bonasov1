@@ -47,7 +47,28 @@ export type BuildImportPayloadsArgs = {
 export type BuildImportPayloadsResult = {
   payloads: AggregateImportPayload[];
   failedCount: number;
+  errors: string[];
 };
+
+export const AGGREGATE_IMPORT_REQUIRED_COLUMNS_HINT =
+  "indicator_id or indicator_name, project_id or project_name, organization_id or organization_name, period_start, period_end, and at least one of value_json, male, female, or total";
+
+const MAX_IMPORT_ERRORS = 8;
+const VALUE_COLUMNS = ["value_json", "male", "female", "total"] as const;
+const IDENTIFIER_COLUMN_GROUPS = [
+  {
+    label: "indicator",
+    columns: ["indicator_id", "indicator_name"] as const,
+  },
+  {
+    label: "project",
+    columns: ["project_id", "project_name"] as const,
+  },
+  {
+    label: "organization",
+    columns: ["organization_id", "organization_name"] as const,
+  },
+] as const;
 
 function normalize(value: string): string {
   return value.trim().toLowerCase();
@@ -110,7 +131,7 @@ export function parseCsv(text: string): string[][] {
 
 function parseRowsToPayloads(args: {
   rows: string[][];
-  sheetOrgId: number | null;
+  sourceLabel: string;
   templateIndicators: Array<{ id: number; name?: string }>;
   organizations: ImportEntityOption[];
   projects: ImportEntityOption[];
@@ -120,7 +141,7 @@ function parseRowsToPayloads(args: {
 }): BuildImportPayloadsResult {
   const {
     rows,
-    sheetOrgId,
+    sourceLabel,
     templateIndicators,
     organizations,
     projects,
@@ -130,7 +151,7 @@ function parseRowsToPayloads(args: {
   } = args;
 
   if (rows.length < 2) {
-    return { payloads: [], failedCount: 0 };
+    return { payloads: [], failedCount: 0, errors: [] };
   }
 
   const header = rows[0].map((value) => value.trim().toLowerCase());
@@ -138,36 +159,145 @@ function parseRowsToPayloads(args: {
     const index = header.indexOf(key);
     return index >= 0 ? row[index]?.trim() ?? "" : "";
   };
+  const hasHeaderColumn = (key: string) => header.includes(key);
+  const addError = (errors: string[], message: string) => {
+    if (errors.length < MAX_IMPORT_ERRORS) {
+      errors.push(message);
+    }
+  };
+  const normalizeDateValue = (value: string) => {
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed;
+    const parsed = new Date(trimmed);
+    if (Number.isNaN(parsed.getTime())) return null;
+    return parsed.toISOString().slice(0, 10);
+  };
+  const isBlankRow = (row: string[]) => row.every((value) => value.trim() === "");
+  const hasAnyValueColumn = VALUE_COLUMNS.some((column) => hasHeaderColumn(column));
+  const headerErrors: string[] = [];
+
+  IDENTIFIER_COLUMN_GROUPS.forEach((group) => {
+    if (!group.columns.some((column) => hasHeaderColumn(column))) {
+      addError(
+        headerErrors,
+        `${sourceLabel}: missing ${group.columns.join(" or ")} column.`,
+      );
+    }
+  });
+  if (!hasHeaderColumn("period_start")) {
+    addError(headerErrors, `${sourceLabel}: missing period_start column.`);
+  }
+  if (!hasHeaderColumn("period_end")) {
+    addError(headerErrors, `${sourceLabel}: missing period_end column.`);
+  }
+  if (!hasAnyValueColumn) {
+    addError(
+      headerErrors,
+      `${sourceLabel}: missing one value column (${VALUE_COLUMNS.join(", ")}).`,
+    );
+  }
+
+  if (headerErrors.length > 0) {
+    return {
+      payloads: [],
+      failedCount: Math.max(rows.length - 1, 0),
+      errors: headerErrors,
+    };
+  }
 
   const payloads: AggregateImportPayload[] = [];
   let failedCount = 0;
+  const errors: string[] = [];
+  const seenRows = new Set<string>();
 
-  for (const row of rows.slice(1)) {
+  for (const [offset, row] of rows.slice(1).entries()) {
+    if (isBlankRow(row)) {
+      continue;
+    }
+
+    const rowNumber = offset + 2;
+    const rowLabel = `${sourceLabel} row ${rowNumber}`;
+
     try {
       const indicatorValue = getColumn(row, "indicator_id") || getColumn(row, "indicator_name");
+      if (!indicatorValue) {
+        failedCount += 1;
+        addError(errors, `${rowLabel}: indicator_id or indicator_name is required.`);
+        continue;
+      }
+
       let indicatorId = resolveId(indicatorValue, indicators);
       if (!indicatorId && templateIndicators.length > 0) {
         indicatorId = resolveId(indicatorValue, templateIndicators);
       }
-
-      const projectId = resolveId(
-        getColumn(row, "project_id") || getColumn(row, "project_name"),
-        projects,
-      );
-
-      let organizationId = resolveId(
-        getColumn(row, "organization_id") || getColumn(row, "organization_name"),
-        organizations,
-      );
-      if (!organizationId && sheetOrgId) {
-        organizationId = sheetOrgId;
+      if (!indicatorId) {
+        failedCount += 1;
+        addError(errors, `${rowLabel}: indicator "${indicatorValue}" was not found.`);
+        continue;
       }
 
-      const periodStart = getColumn(row, "period_start");
-      const periodEnd = getColumn(row, "period_end");
-
-      if (!indicatorId || !projectId || !organizationId || !periodStart || !periodEnd) {
+      const projectValue = getColumn(row, "project_id") || getColumn(row, "project_name");
+      if (!projectValue) {
         failedCount += 1;
+        addError(errors, `${rowLabel}: project_id or project_name is required.`);
+        continue;
+      }
+
+      const projectId = resolveId(
+        projectValue,
+        projects,
+      );
+      if (!projectId) {
+        failedCount += 1;
+        addError(errors, `${rowLabel}: project "${projectValue}" was not found.`);
+        continue;
+      }
+
+      const organizationValue =
+        getColumn(row, "organization_id") || getColumn(row, "organization_name");
+      if (!organizationValue) {
+        failedCount += 1;
+        addError(errors, `${rowLabel}: organization_id or organization_name is required.`);
+        continue;
+      }
+
+      const organizationId = resolveId(
+        organizationValue,
+        organizations,
+      );
+      if (!organizationId) {
+        failedCount += 1;
+        addError(errors, `${rowLabel}: organization "${organizationValue}" was not found.`);
+        continue;
+      }
+
+      const periodStart = normalizeDateValue(getColumn(row, "period_start"));
+      const periodEnd = normalizeDateValue(getColumn(row, "period_end"));
+
+      if (!periodStart) {
+        failedCount += 1;
+        addError(errors, `${rowLabel}: period_start must be a valid date.`);
+        continue;
+      }
+      if (!periodEnd) {
+        failedCount += 1;
+        addError(errors, `${rowLabel}: period_end must be a valid date.`);
+        continue;
+      }
+      if (periodEnd < periodStart) {
+        failedCount += 1;
+        addError(errors, `${rowLabel}: period_end cannot be earlier than period_start.`);
+        continue;
+      }
+
+      const rowKey = `${indicatorId}::${projectId}::${organizationId}::${periodStart}::${periodEnd}`;
+      if (seenRows.has(rowKey)) {
+        failedCount += 1;
+        addError(
+          errors,
+          `${rowLabel}: duplicate aggregate row for the same indicator, project, organization, and period.`,
+        );
         continue;
       }
 
@@ -176,6 +306,7 @@ function parseRowsToPayloads(args: {
         !writableOrganizationIds.has(String(organizationId))
       ) {
         failedCount += 1;
+        addError(errors, `${rowLabel}: you cannot import data for organization "${organizationValue}".`);
         continue;
       }
 
@@ -185,13 +316,25 @@ function parseRowsToPayloads(args: {
         try {
           value = JSON.parse(valueJson);
         } catch {
-          value = {};
+          failedCount += 1;
+          addError(errors, `${rowLabel}: value_json must contain valid JSON.`);
+          continue;
         }
       }
 
       const male = parseNumberInput(getColumn(row, "male"));
       const female = parseNumberInput(getColumn(row, "female"));
       const total = parseNumberInput(getColumn(row, "total"));
+      const hasValueInput = VALUE_COLUMNS.some((column) => getColumn(row, column) !== "");
+
+      if (!hasValueInput) {
+        failedCount += 1;
+        addError(
+          errors,
+          `${rowLabel}: at least one of value_json, male, female, or total is required.`,
+        );
+        continue;
+      }
 
       if (typeof value === "object" && value !== null) {
         if (male !== undefined) (value as AggregateValue).male = male;
@@ -203,11 +346,30 @@ function parseRowsToPayloads(args: {
         !value ||
         (typeof value === "object" && Object.keys(value as Record<string, unknown>).length === 0)
       ) {
-        value = {
-          total: total ?? (male ?? 0) + (female ?? 0),
+        const fallbackValue: AggregateValue = {
           ...(male !== undefined ? { male } : {}),
           ...(female !== undefined ? { female } : {}),
+          ...(total !== undefined ? { total } : {}),
         };
+        if (
+          fallbackValue.total === undefined &&
+          (fallbackValue.male !== undefined || fallbackValue.female !== undefined)
+        ) {
+          fallbackValue.total = (fallbackValue.male ?? 0) + (fallbackValue.female ?? 0);
+        }
+        value = fallbackValue;
+      }
+
+      if (
+        !value ||
+        (typeof value === "object" && Object.keys(value as Record<string, unknown>).length === 0)
+      ) {
+        failedCount += 1;
+        addError(
+          errors,
+          `${rowLabel}: aggregate value could not be derived from value_json, male, female, or total.`,
+        );
+        continue;
       }
 
       payloads.push({
@@ -219,12 +381,14 @@ function parseRowsToPayloads(args: {
         value,
         notes: getColumn(row, "notes") || undefined,
       });
+      seenRows.add(rowKey);
     } catch {
       failedCount += 1;
+      addError(errors, `${rowLabel}: the row could not be parsed.`);
     }
   }
 
-  return { payloads, failedCount };
+  return { payloads, failedCount, errors };
 }
 
 export async function buildImportPayloadsFromFile(
@@ -241,13 +405,12 @@ export async function buildImportPayloadsFromFile(
   } = args;
 
   const extension = file.name.split(".").pop()?.toLowerCase();
-  const findOrgBySheet = (sheetName: string) =>
-    organizations.find((org) => normalize(org.name || "") === normalize(sheetName))?.id ?? null;
   const findTemplateBySheet = (sheetName: string) =>
     templates.find((template) => normalize(template.name || "") === normalize(sheetName)) ?? null;
 
   let payloads: AggregateImportPayload[] = [];
   let failedCount = 0;
+  let errors: string[] = [];
 
   if (extension === "xlsx" || extension === "xls") {
     const data = await file.arrayBuffer();
@@ -257,18 +420,21 @@ export async function buildImportPayloadsFromFile(
     for (const sheetName of sheetNames) {
       const sheet = workbook.Sheets[sheetName];
       const rows = (
-        XLSX.utils.sheet_to_json(sheet, { header: 1 }) as Array<Array<unknown>>
+        XLSX.utils.sheet_to_json(sheet, {
+          header: 1,
+          raw: false,
+          dateNF: "yyyy-mm-dd",
+        }) as Array<Array<unknown>>
       ).map((row) =>
         row.map((cell) => (cell === undefined || cell === null ? "" : String(cell))),
       );
 
-      const sheetOrgId = findOrgBySheet(sheetName);
       const template = findTemplateBySheet(sheetName);
       const templateIndicators = template?.indicators || [];
 
       const parsed = parseRowsToPayloads({
         rows,
-        sheetOrgId: sheetOrgId ? Number(sheetOrgId) : null,
+        sourceLabel: `Sheet "${sheetName}"`,
         templateIndicators,
         organizations,
         projects,
@@ -279,16 +445,17 @@ export async function buildImportPayloadsFromFile(
 
       payloads = payloads.concat(parsed.payloads);
       failedCount += parsed.failedCount;
+      errors = errors.concat(parsed.errors).slice(0, MAX_IMPORT_ERRORS);
     }
 
-    return { payloads, failedCount };
+    return { payloads, failedCount, errors };
   }
 
   const text = await file.text();
   const rows = parseCsv(text);
-  const parsed = parseRowsToPayloads({
+  return parseRowsToPayloads({
     rows,
-    sheetOrgId: null,
+    sourceLabel: `File "${file.name}"`,
     templateIndicators: [],
     organizations,
     projects,
@@ -296,8 +463,6 @@ export async function buildImportPayloadsFromFile(
     canReportAcrossOrganizations,
     writableOrganizationIds,
   });
-
-  return parsed;
 }
 
 export function groupImportPayloadsByScope(

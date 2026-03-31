@@ -15,11 +15,12 @@ The portal supports:
 
 ### Login
 1. Open the portal in your browser.
-2. Enter your username or email and password.
+2. Enter your username and password.
 3. Select **Sign In**.
 
 If login fails:
 - Check your username and password.
+- Make sure you are using your username, not your email address.
 - Confirm the backend server is running.
 - Ask an administrator to verify your account permissions.
 
@@ -323,4 +324,3 @@ Check:
 - Review flags regularly.
 - Confirm fiscal quarter before entering targets.
 - Use project and analysis pages to review target distribution across organizations.
-

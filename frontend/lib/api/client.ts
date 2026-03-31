@@ -2,11 +2,35 @@
  * BONASO Data Portal - API Client
  * 
  * This is the base HTTP client for communicating with your Django backend.
- * Configure NEXT_PUBLIC_API_URL in your environment variables.
+ * Configure NEXT_PUBLIC_API_URL (or NEXT_PUBLIC_API_BASE_URL) in your environment variables.
  */
 import { enqueueMutation, scheduleMutationSync } from '@/lib/offline/mutation-queue';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
+function normalizeApiBaseUrl(baseUrl: string): string {
+  const trimmed = baseUrl.trim().replace(/\/+$/, '');
+  if (!trimmed) return '/api';
+  if (trimmed.startsWith('/')) return trimmed;
+
+  try {
+    const url = new URL(trimmed);
+    const normalizedPath = url.pathname.replace(/\/+$/, '');
+    const isLocalDevHost = url.hostname === '127.0.0.1' || url.hostname === 'localhost';
+
+    if (isLocalDevHost && (!normalizedPath || normalizedPath === '/')) {
+      url.pathname = '/api';
+      return url.toString().replace(/\/+$/, '');
+    }
+  } catch {
+    return trimmed;
+  }
+
+  return trimmed;
+}
+
+const API_BASE_URL = normalizeApiBaseUrl(
+  process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '/api',
+);
+const API_REQUEST_TIMEOUT_MS = 15_000;
 
 type ApiMeta = Record<string, unknown>;
 
@@ -37,6 +61,71 @@ function isApiEnvelope(value: unknown): value is ApiResponse<unknown> {
   return 'meta' in value || 'message' in value || 'errors' in value;
 }
 
+function extractFirstErrorMessage(payload: unknown): string | null {
+  if (typeof payload === 'string' && payload.trim()) {
+    return payload.trim();
+  }
+
+  if (Array.isArray(payload)) {
+    for (const item of payload) {
+      const nested = extractFirstErrorMessage(item);
+      if (nested) return nested;
+    }
+    return null;
+  }
+
+  if (!isObject(payload)) return null;
+
+  const directDetail = typeof payload.detail === 'string' ? payload.detail.trim() : '';
+  if (directDetail) return directDetail;
+
+  const directMessage = typeof payload.message === 'string' ? payload.message.trim() : '';
+  if (directMessage) return directMessage;
+
+  for (const [key, value] of Object.entries(payload)) {
+    const nested = extractFirstErrorMessage(value);
+    if (!nested) continue;
+    if (key === 'non_field_errors' || key === 'errors') return nested;
+    if (key === 'detail' || key === 'message') return nested;
+    return `${key}: ${nested}`;
+  }
+
+  return null;
+}
+
+function extractHtmlTitle(payload: string): string | null {
+  const match = payload.match(/<title>([^<]+)<\/title>/i);
+  return match?.[1]?.trim() || null;
+}
+
+function isHtmlPayload(payload: string): boolean {
+  const trimmed = payload.trim();
+  return trimmed.startsWith('<!DOCTYPE html') || trimmed.startsWith('<html');
+}
+
+function formatUnexpectedHtmlError(bodyText: string): string {
+  const title = extractHtmlTitle(bodyText);
+  const missingApiEndpointMatch = title?.match(/^Page not found at (\/api\/.+)$/i);
+
+  if (
+    title?.includes('/users/') &&
+    (API_BASE_URL.startsWith('http://127.0.0.1') || API_BASE_URL.startsWith('http://localhost')) &&
+    !/\/api$/i.test(API_BASE_URL)
+  ) {
+    return 'The API base URL is missing /api. Set NEXT_PUBLIC_API_URL to http://127.0.0.1:8000/api and restart the dev server.';
+  }
+
+  if (missingApiEndpointMatch?.[1]) {
+    return `This endpoint is not available on this backend: ${missingApiEndpointMatch[1]}`;
+  }
+
+  if (title) {
+    return `The server returned an HTML error page: ${title}`;
+  }
+
+  return 'The server returned an unexpected HTML error page.';
+}
+
 export function normalizeApiError(params: {
   status: number;
   payload?: unknown;
@@ -49,18 +138,19 @@ export function normalizeApiError(params: {
   let meta: ApiMeta | null = null;
 
   if (payloadIsEnvelope) {
-    message = payload.message || message;
+    message = payload.message || extractFirstErrorMessage(payload.errors) || message;
     errors = payload.errors ?? null;
     meta = payload.meta ?? null;
   } else if (isObject(payload)) {
     const detail = typeof payload.detail === 'string' ? payload.detail : undefined;
     const msg = typeof payload.message === 'string' ? payload.message : undefined;
-    message = detail || msg || message;
+    message = detail || msg || extractFirstErrorMessage(payload) || message;
     errors = 'errors' in payload ? payload.errors : payload;
   } else if (typeof payload === 'string' && payload.trim()) {
     message = payload;
     errors = payload;
   } else if (Array.isArray(payload) && payload.length > 0) {
+    message = extractFirstErrorMessage(payload) || message;
     errors = payload;
   }
 
@@ -96,6 +186,13 @@ const NON_QUEUEABLE_ENDPOINT_PREFIXES = [
   '/manage/users/reset_password/',
   '/manage/users/reset_password_confirm/',
   '/users/admin-reset-password/',
+];
+
+const AUTH_HEADER_EXCLUDED_ENDPOINT_PREFIXES = [
+  '/users/request-token/',
+  '/users/token/refresh/',
+  '/manage/users/reset_password/',
+  '/manage/users/reset_password_confirm/',
 ];
 
 function canQueueOfflineMutation(endpoint: string, method: string): boolean {
@@ -151,6 +248,46 @@ function resolveApiUrl(endpoint: string): string {
   return `${base}${endpoint}`;
 }
 
+function isLocalhostHost(hostname: string): boolean {
+  return hostname === 'localhost' || hostname === '127.0.0.1';
+}
+
+function isPrivateIpv4Host(hostname: string): boolean {
+  if (/^10\.\d+\.\d+\.\d+$/.test(hostname)) return true;
+  if (/^192\.168\.\d+\.\d+$/.test(hostname)) return true;
+
+  const match = hostname.match(/^172\.(\d+)\.\d+\.\d+$/);
+  if (!match) return false;
+
+  const secondOctet = Number(match[1]);
+  return secondOctet >= 16 && secondOctet <= 31;
+}
+
+function buildNetworkErrorMessage(requestUrl: string, error: Error): string {
+  const timeoutMessage = error.message.includes('timed out');
+
+  try {
+    const url = new URL(requestUrl);
+    if (
+      typeof window !== 'undefined' &&
+      isPrivateIpv4Host(url.hostname) &&
+      isLocalhostHost(window.location.hostname)
+    ) {
+      return `Cannot reach ${url.origin}. The frontend is configured to use a private LAN IP, but this browser is running locally. If the backend is on this machine, set NEXT_PUBLIC_API_URL to http://127.0.0.1:8000/api and restart the dev server.`;
+    }
+
+    if (timeoutMessage) {
+      return `Timed out reaching ${url.origin}. Check that the backend server is running and that NEXT_PUBLIC_API_URL points to a reachable host.`;
+    }
+  } catch {
+    if (timeoutMessage) {
+      return `Timed out reaching ${requestUrl}. Check that the backend server is running and that NEXT_PUBLIC_API_URL points to a reachable host.`;
+    }
+  }
+
+  return `Failed to fetch ${requestUrl}`;
+}
+
 function prepareHeaders(options: RequestInit): Headers {
   const headers = new Headers(options.headers || {});
   const hasContentType = headers.has('Content-Type');
@@ -163,7 +300,16 @@ function prepareHeaders(options: RequestInit): Headers {
   return headers;
 }
 
-function applyAuthHeader(headers: Headers): Headers {
+function shouldAttachAuthHeader(endpoint: string): boolean {
+  return !AUTH_HEADER_EXCLUDED_ENDPOINT_PREFIXES.some((prefix) => endpoint.startsWith(prefix));
+}
+
+function applyAuthHeader(endpoint: string, headers: Headers): Headers {
+  if (!shouldAttachAuthHeader(endpoint)) {
+    headers.delete('Authorization');
+    return headers;
+  }
+
   const token = getAuthToken();
   if (token && !headers.has('Authorization')) {
     headers.set('Authorization', `Bearer ${token}`);
@@ -173,7 +319,7 @@ function applyAuthHeader(headers: Headers): Headers {
 
 function buildRequestConfig(endpoint: string, options: RequestInit) {
   const requestUrl = resolveApiUrl(endpoint);
-  const headers = applyAuthHeader(prepareHeaders(options));
+  const headers = applyAuthHeader(endpoint, prepareHeaders(options));
   return { requestUrl, headers };
 }
 
@@ -281,11 +427,24 @@ export async function fetchWithAuth(
 ): Promise<Response> {
   const { requestUrl, headers } = buildRequestConfig(endpoint, options);
 
-  const doFetch = async (overrideHeaders?: HeadersInit) =>
-    fetch(requestUrl, {
-      ...options,
-      headers: overrideHeaders ?? headers,
+  const doFetch = async (overrideHeaders?: HeadersInit) => {
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    const timeoutPromise = new Promise<Response>((_, reject) => {
+      timeoutId = setTimeout(() => {
+        reject(new Error(`Request timed out after ${Math.round(API_REQUEST_TIMEOUT_MS / 1000)}s`));
+      }, API_REQUEST_TIMEOUT_MS);
     });
+
+    try {
+      const fetchPromise = fetch(requestUrl, {
+        ...options,
+        headers: overrideHeaders ?? headers,
+      });
+      return await Promise.race([fetchPromise, timeoutPromise]);
+    } finally {
+      if (timeoutId) clearTimeout(timeoutId);
+    }
+  };
 
   let response = await doFetch();
   if (
@@ -348,10 +507,12 @@ async function apiRequest<T>(
       typeof window !== 'undefined' && requestUrl.startsWith('/')
         ? `${window.location.origin}${requestUrl}`
         : requestUrl;
+
     throw normalizeApiError({
       status: 0,
       payload: err instanceof Error ? { name: err.name, message: err.message } : err,
-      fallbackMessage: `Failed to fetch ${debugUrl}`,
+      fallbackMessage:
+        err instanceof Error ? buildNetworkErrorMessage(debugUrl, err) : `Failed to fetch ${debugUrl}`,
     });
   }
   
@@ -364,7 +525,7 @@ async function apiRequest<T>(
       } catch {}
       throw normalizeApiError({
         status: response.status,
-        payload: bodyText || undefined,
+        payload: isHtmlPayload(bodyText) ? { detail: formatUnexpectedHtmlError(bodyText) } : bodyText || undefined,
         fallbackMessage: 'Server error',
       });
     }

@@ -2,9 +2,17 @@
 
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Calendar, Download, Filter, Loader2, Search, Upload } from "lucide-react";
+import { Calendar, Clock3, Download, Filter, Loader2, Search, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -14,33 +22,31 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { PageHeader } from "@/components/shared/page-header";
+import { OrganizationMultiSelect } from "@/components/shared/organization-multi-select";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/contexts/auth-context";
-import { getUserOrganizationId } from "@/lib/utils/organization";
-import { isPlatformAdmin } from "@/lib/permissions";
 import { aggregatesService } from "@/lib/api";
 import {
-  useAggregates,
+  useAllAggregates,
   useAggregateTemplates,
   useAllOrganizations,
-  useIndicators,
-  useProjects,
+  useAllIndicators,
+  useAllProjects,
+  useProject,
 } from "@/lib/hooks/use-api";
 import {
-  buildChartData,
-  buildEmptyMatrix,
-  buildMatrixPayload,
+  buildEmptyEntryMatrix,
+  buildEntryMatrixPayload,
   calculateAggregateTotals,
-  computeMatrixTotal,
-  getPeriodLabel,
-  getPrimaryDisaggregateLabel,
+  computeEntryMatrixTotal,
+  getAggregateEntryMatrixConfig,
   groupAggregatesByIndicator,
-  indicatorUsesMatrixEntry,
   parseNumberInput,
-  resolveParentOrganizationId,
   type AggregateValue,
+  type AggregateEntryMatrixConfig,
 } from "@/lib/aggregates/aggregate-helpers";
 import {
+  AGGREGATE_IMPORT_REQUIRED_COLUMNS_HINT,
   buildImportPayloadsFromFile,
   groupImportPayloadsByScope,
 } from "@/lib/aggregates/aggregate-import";
@@ -48,46 +54,53 @@ import { AggregateEntryDialog } from "@/components/aggregates/AggregateEntryDial
 import { AggregateAutoCalcDialog } from "@/components/aggregates/AggregateAutoCalcDialog";
 import { AggregateChartDialog } from "@/components/aggregates/AggregateChartDialog";
 import { AggregateMatrixTable } from "@/components/aggregates/AggregateMatrixTable";
-
-type OrganizationWithParent = {
-  id: string | number;
-  name?: string;
-  parentId?: string | number | null;
-  parent?: string | number | null;
-};
+import { AggregateReviewQueue } from "@/components/aggregates/AggregateReviewQueue";
+import type { AggregateIndicatorGroup } from "@/lib/aggregates/aggregate-helpers";
+import type { Indicator } from "@/lib/types";
+import {
+  type AggregateEntryDraft,
+  useAggregateChartState,
+  useAggregateEntryForm,
+  useAggregateFilters,
+  useAggregateReviewActions,
+  useAggregateVisibilityScope,
+} from "./hooks";
 
 function AggregatesPageContent() {
   const { toast } = useToast();
   const { user } = useAuth();
   const searchParams = useSearchParams();
-
-  const [searchQuery, setSearchQuery] = useState("");
-  const [projectFilter, setProjectFilter] = useState("all");
-  const [periodFilter, setPeriodFilter] = useState("all");
-  const [parentOrgFilter, setParentOrgFilter] = useState("all");
-  const [orgFilter, setOrgFilter] = useState("all");
+  const reviewAggregateIdParam = searchParams.get("reviewAggregateId");
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isChartOpen, setIsChartOpen] = useState(false);
   const [isAutoCalcOpen, setIsAutoCalcOpen] = useState(false);
+  const [isReviewQueueOpen, setIsReviewQueueOpen] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAutoCalcSubmitting, setIsAutoCalcSubmitting] = useState(false);
 
   const importInputRef = useRef<HTMLInputElement | null>(null);
 
-  const [formProject, setFormProject] = useState("");
-  const [formIndicator, setFormIndicator] = useState("");
-  const [formOrganization, setFormOrganization] = useState("");
-  const [formTemplate, setFormTemplate] = useState("all");
-  const [formPeriodStart, setFormPeriodStart] = useState("");
-  const [formPeriodEnd, setFormPeriodEnd] = useState("");
-  const [useMatrixEntry, setUseMatrixEntry] = useState(true);
-  const [formMale, setFormMale] = useState("");
-  const [formFemale, setFormFemale] = useState("");
-  const [formNotes, setFormNotes] = useState("");
-  const [formDataSource, setFormDataSource] = useState("");
-  const [matrixValues, setMatrixValues] = useState(buildEmptyMatrix);
+  const {
+    formDataSource,
+    formNotes,
+    formOrganization,
+    formPeriodEnd,
+    formPeriodStart,
+    formProject,
+    handleFormOrganizationChange,
+    handleFormProjectChange,
+    indicatorDrafts,
+    resetForm,
+    selectedIndicatorIds,
+    setFormDataSource,
+    setFormNotes,
+    setFormOrganization,
+    setFormPeriodEnd,
+    setFormPeriodStart,
+    setIndicatorDrafts,
+    setSelectedIndicatorIds,
+  } = useAggregateEntryForm();
 
   const [autoOutputIndicator, setAutoOutputIndicator] = useState("");
   const [autoSourceIndicator, setAutoSourceIndicator] = useState("");
@@ -102,159 +115,299 @@ function AggregatesPageContent() {
   const [autoSaveAggregate, setAutoSaveAggregate] = useState(true);
   const [autoComputed, setAutoComputed] = useState<number | null>(null);
 
-  const { data: aggregatesData, isLoading, error, mutate } = useAggregates();
-  const { data: projectsData } = useProjects();
-  const { data: indicatorsData } = useIndicators();
+  const { data: aggregatesData, isLoading, error, mutate } = useAllAggregates(undefined, {
+    revalidateOnFocus: true,
+    revalidateOnReconnect: true,
+    revalidateIfStale: true,
+    dedupingInterval: 0,
+  });
+  const { data: projectsData } = useAllProjects();
+  const { data: indicatorsData } = useAllIndicators();
   const { data: organizationsData } = useAllOrganizations();
+  const selectedProjectId = formProject ? Number(formProject) : null;
+  const { data: selectedProjectData } = useProject(selectedProjectId, {
+    keepPreviousData: false,
+  });
+  const selectedProjectDetail =
+    selectedProjectData && String(selectedProjectData.id) === formProject
+      ? selectedProjectData
+      : null;
   const { data: templatesData } = useAggregateTemplates({
-    project: formProject || undefined,
-    organization: formOrganization || undefined,
+    project: undefined,
+    organization: undefined,
   });
 
-  const aggregates = aggregatesData?.results || [];
-  const projects = projectsData?.results || [];
-  const indicators = indicatorsData?.results || [];
-  const organizations = organizationsData?.results || [];
-  const templates = templatesData || [];
+  const aggregates = useMemo(() => aggregatesData || [], [aggregatesData]);
+  const projects = useMemo(
+    () =>
+      [...(projectsData?.results || [])].sort((left, right) =>
+        String(left.name || "").localeCompare(String(right.name || "")),
+      ),
+    [projectsData],
+  );
+  const indicators = useMemo(
+    () =>
+      [...(indicatorsData || [])].sort((left, right) =>
+        String(left.name || "").localeCompare(String(right.name || "")),
+      ),
+    [indicatorsData],
+  );
+  const organizations = useMemo(() => organizationsData?.results || [], [organizationsData?.results]);
+  const templates = useMemo(() => templatesData || [], [templatesData]);
 
-  const userOrganizationId = useMemo(() => getUserOrganizationId(user), [user]);
-  const canReportAcrossOrganizations = useMemo(() => isPlatformAdmin(user), [user]);
-
-  const indicatorById = useMemo(
-    () => new Map(indicators.map((indicator) => [String(indicator.id), indicator])),
+  const indicatorById = useMemo<Map<string, Indicator>>(
+    () => new Map<string, Indicator>(indicators.map((indicator) => [String(indicator.id), indicator])),
     [indicators],
   );
-  const indicatorNameById = useMemo(
-    () => new Map(indicators.map((indicator) => [String(indicator.id), indicator.name])),
+  const indicatorNameById = useMemo<Map<string, string>>(
+    () => new Map<string, string>(indicators.map((indicator) => [String(indicator.id), indicator.name])),
     [indicators],
   );
-  const indicatorCodeById = useMemo(
-    () => new Map(indicators.map((indicator) => [String(indicator.id), indicator.code])),
+  const indicatorCodeById = useMemo<Map<string, string>>(
+    () => new Map<string, string>(indicators.map((indicator) => [String(indicator.id), indicator.code])),
     [indicators],
   );
-  const projectNameById = useMemo(
-    () => new Map(projects.map((project) => [String(project.id), project.name])),
+  const projectNameById = useMemo<Map<string, string>>(
+    () => new Map<string, string>(projects.map((project) => [String(project.id), project.name])),
     [projects],
   );
-
-  const parentOrganizations = useMemo(
+  const selectedProjectSummary = useMemo(
+    () => projects.find((project) => String(project.id) === formProject) || null,
+    [formProject, projects],
+  );
+  const projectOptions = useMemo(
     () =>
-      organizations
-        .filter(
-          (organization) =>
-            !resolveParentOrganizationId(organization as unknown as OrganizationWithParent),
-        )
-        .slice()
-        .sort((left, right) => String(left.name || "").localeCompare(String(right.name || ""))),
-    [organizations],
+      projects.map((project) => ({
+        id: project.id,
+        name: String(project.name || `Project ${project.id}`),
+      })),
+    [projects],
+  );
+  const indicatorOptions = useMemo(
+    () =>
+      indicators.map((indicator) => ({
+        id: indicator.id,
+        name: String(indicator.name || `Indicator ${indicator.id}`),
+        code: indicator.code || undefined,
+        type: indicator.type || undefined,
+      })),
+    [indicators],
   );
 
-  const scopedOrganizations = useMemo(() => {
-    const scoped =
-      parentOrgFilter === "all"
-        ? organizations
-        : organizations.filter((organization) => {
-            const organizationId = String(organization.id);
-            const parentId = resolveParentOrganizationId(
-              organization as unknown as OrganizationWithParent,
-            );
-            return organizationId === parentOrgFilter || parentId === parentOrgFilter;
-          });
+  const {
+    availableCoordinatorOrganizations,
+    canReportAcrossOrganizations,
+    canReviewAggregates,
+    defaultOwnOrganizationValue,
+    isOrganizationSelectionLocked,
+    userOrganizationId,
+    visibleOrganizationIds,
+    visibleOrganizations,
+    writableOrganizationIds,
+    writableOrganizations,
+  } = useAggregateVisibilityScope({
+    organizations,
+    user,
+  });
+
+  const {
+    parentOrgFilter,
+    periodFilter,
+    periodOptions,
+    projectFilter,
+    scopedOrganizations,
+    searchQuery,
+    selectedOrganizationIds,
+    selectedOrganizationIdsList,
+    selectedPeriodOption,
+    setCoordinatorFilter,
+    setPeriodFilter,
+    setProjectFilter,
+    setSearchQuery,
+    setSelectedOrganizationIdsList,
+  } = useAggregateFilters({
+    aggregates,
+    availableCoordinatorOrganizations,
+    visibleOrganizations,
+  });
+
+  const availableFormOrganizations = useMemo(() => {
+    if (!formProject) return [];
+
+    const projectOrganizationIds = new Set(
+      (selectedProjectDetail?.organizations || selectedProjectSummary?.organizations || []).map(
+        (organizationId) => String(organizationId),
+      ),
+    );
+
+    const scoped = visibleOrganizations.filter((organization) =>
+      projectOrganizationIds.has(String(organization.id)),
+    );
 
     return scoped
-      .slice()
+      .filter(
+        (organization) =>
+          canReportAcrossOrganizations ||
+          writableOrganizationIds.has(String(organization.id)),
+      )
       .sort((left, right) => String(left.name || "").localeCompare(String(right.name || "")));
-  }, [organizations, parentOrgFilter]);
-
-  const scopedOrganizationIds = useMemo(
-    () => new Set(scopedOrganizations.map((organization) => String(organization.id))),
-    [scopedOrganizations],
+  }, [
+    canReportAcrossOrganizations,
+    formProject,
+    visibleOrganizations,
+    selectedProjectDetail?.organizations,
+    selectedProjectSummary?.organizations,
+    writableOrganizationIds,
+  ]);
+  const availableFormOrganizationOptions = useMemo(
+    () =>
+      availableFormOrganizations.map((organization) => ({
+        id: organization.id,
+        name: String(organization.name || `Organization ${organization.id}`),
+      })),
+    [availableFormOrganizations],
   );
-
-  const selectedOrganizationIds = useMemo(() => {
-    if (orgFilter === "all") {
-      return scopedOrganizationIds;
-    }
-
-    return new Set(
-      orgFilter
-        .split(",")
-        .map((value) => value.trim())
-        .filter((value) => value.length > 0 && scopedOrganizationIds.has(value)),
-    );
-  }, [orgFilter, scopedOrganizationIds]);
-
-  const writableOrganizations = useMemo(() => {
-    if (canReportAcrossOrganizations) return organizations;
-    const ownOrganizationId = userOrganizationId ? String(userOrganizationId) : "";
-    if (!ownOrganizationId) return [];
-    return organizations.filter((organization) => String(organization.id) === ownOrganizationId);
-  }, [canReportAcrossOrganizations, organizations, userOrganizationId]);
-
-  const writableOrganizationIds = useMemo(
-    () => new Set(writableOrganizations.map((organization) => String(organization.id))),
+  const writableOrganizationOptions = useMemo(
+    () =>
+      writableOrganizations.map((organization) => ({
+        id: organization.id,
+        name: String(organization.name || `Organization ${organization.id}`),
+      })),
     [writableOrganizations],
   );
-
-  const isOrganizationSelectionLocked = !canReportAcrossOrganizations;
-  const defaultOwnOrganizationValue = userOrganizationId ? String(userOrganizationId) : "";
-
-  const selectedFormIndicator = useMemo(
-    () => indicatorById.get(formIndicator),
-    [formIndicator, indicatorById],
+  const visibleOrganizationOptions = useMemo(
+    () =>
+      visibleOrganizations.map((organization) => ({
+        id: organization.id,
+        name: String(organization.name || `Organization ${organization.id}`),
+      })),
+    [visibleOrganizations],
   );
-  const selectedFormIndicatorUsesMatrix = useMemo(
-    () => indicatorUsesMatrixEntry(selectedFormIndicator?.sub_labels),
-    [selectedFormIndicator],
+  const availableCoordinatorOptions = useMemo(
+    () =>
+      availableCoordinatorOrganizations.map((organization) => ({
+        id: organization.id,
+        name: String(organization.name || `Organization ${organization.id}`),
+      })),
+    [availableCoordinatorOrganizations],
   );
-  const formPrimaryDisaggregateLabel = useMemo(
-    () => getPrimaryDisaggregateLabel(selectedFormIndicator?.sub_labels),
-    [selectedFormIndicator],
+
+  const availableIndicatorIds = useMemo(() => {
+    if (!formProject || !formOrganization || !selectedProjectDetail) return new Set<string>();
+
+    const organizationId = String(formOrganization);
+    const ids = new Set<string>();
+
+    const organizationTargets =
+      selectedProjectDetail.organization_targets?.filter(
+        (target) => String(target.organization) === organizationId,
+      ) || [];
+
+    organizationTargets.forEach((target) => ids.add(String(target.indicator)));
+
+    (selectedProjectDetail.project_indicators || []).forEach((projectIndicator) => {
+      ids.add(String(projectIndicator.indicator));
+    });
+
+    return ids;
+  }, [formOrganization, formProject, selectedProjectDetail]);
+
+  const availableIndicators = useMemo(() => {
+    if (!formProject || !formOrganization || !selectedProjectDetail) return [];
+
+    const organizationId = String(formOrganization);
+
+    return indicators.filter((indicator) => {
+      const indicatorId = String(indicator.id);
+      if (availableIndicatorIds.size > 0 && !availableIndicatorIds.has(indicatorId)) {
+        return false;
+      }
+
+      const attachedOrganizations = new Set(
+        (indicator.organizations || []).map((value) => String(value)),
+      );
+
+      return attachedOrganizations.size === 0 || attachedOrganizations.has(organizationId);
+    });
+  }, [availableIndicatorIds, formOrganization, formProject, indicators, selectedProjectDetail]);
+
+  const indicatorConfigs = useMemo<Record<string, AggregateEntryMatrixConfig>>(
+    () =>
+      Object.fromEntries(
+        availableIndicators.map((indicator) => [
+          String(indicator.id),
+          getAggregateEntryMatrixConfig(indicator),
+        ]),
+      ),
+    [availableIndicators],
   );
-
-  const matrixToggleDisabled = Boolean(formIndicator) && !selectedFormIndicatorUsesMatrix;
-  const sidebarOrgId = searchParams.get("orgId");
-
-  useEffect(() => {
-    if (!formIndicator) return;
-    if (selectedFormIndicatorUsesMatrix && !useMatrixEntry) {
-      setUseMatrixEntry(true);
-      return;
-    }
-    if (!selectedFormIndicatorUsesMatrix && useMatrixEntry) {
-      setUseMatrixEntry(false);
-    }
-  }, [formIndicator, selectedFormIndicatorUsesMatrix, useMatrixEntry]);
-
-  useEffect(() => {
-    if (!sidebarOrgId) return;
-
-    const matchedCoordinator = parentOrganizations.find(
-      (organization) => String(organization.id) === sidebarOrgId,
-    );
-    if (matchedCoordinator) {
-      setParentOrgFilter(sidebarOrgId);
-      setOrgFilter("all");
-      return;
-    }
-
-    const matchedOrganization = organizations.find(
-      (organization) => String(organization.id) === sidebarOrgId,
-    );
-    if (!matchedOrganization) return;
-
-    const parentId = resolveParentOrganizationId(
-      matchedOrganization as unknown as OrganizationWithParent,
-    );
-    setParentOrgFilter(parentId || String(matchedOrganization.id));
-    setOrgFilter("all");
-  }, [organizations, parentOrganizations, sidebarOrgId]);
 
   useEffect(() => {
     if (!isDialogOpen || !isOrganizationSelectionLocked) return;
-    if (!userOrganizationId) return;
-    setFormOrganization(String(userOrganizationId));
-  }, [isDialogOpen, isOrganizationSelectionLocked, userOrganizationId]);
+    if (!defaultOwnOrganizationValue) return;
+    if (!formProject) return;
+    const ownOrganizationIsAvailable = availableFormOrganizations.some(
+      (organization) => String(organization.id) === defaultOwnOrganizationValue,
+    );
+    setFormOrganization(ownOrganizationIsAvailable ? defaultOwnOrganizationValue : "");
+  }, [
+    availableFormOrganizations,
+    defaultOwnOrganizationValue,
+    formProject,
+    isDialogOpen,
+    isOrganizationSelectionLocked,
+    setFormOrganization,
+  ]);
+
+  useEffect(() => {
+    if (!formProject) {
+      if (formOrganization !== "") setFormOrganization("");
+      return;
+    }
+
+    if (
+      formOrganization &&
+      availableFormOrganizations.some(
+        (organization) => String(organization.id) === formOrganization,
+      )
+    ) {
+      return;
+    }
+
+    if (isOrganizationSelectionLocked && defaultOwnOrganizationValue) {
+      const ownOrganizationIsAvailable = availableFormOrganizations.some(
+        (organization) => String(organization.id) === defaultOwnOrganizationValue,
+      );
+      setFormOrganization(ownOrganizationIsAvailable ? defaultOwnOrganizationValue : "");
+      return;
+    }
+
+    setFormOrganization("");
+  }, [
+    availableFormOrganizations,
+    defaultOwnOrganizationValue,
+    formOrganization,
+    formProject,
+    isOrganizationSelectionLocked,
+    setFormOrganization,
+  ]);
+
+  useEffect(() => {
+    const allowedIndicatorIds = new Set(
+      availableIndicators.map((indicator) => String(indicator.id)),
+    );
+
+    setSelectedIndicatorIds((previous) =>
+      previous.filter((indicatorId) => allowedIndicatorIds.has(indicatorId)),
+    );
+
+    setIndicatorDrafts((previous) => {
+      const next = Object.fromEntries(
+        Object.entries(previous).filter(([indicatorId]) => allowedIndicatorIds.has(indicatorId)),
+      );
+      return Object.keys(next).length === Object.keys(previous).length ? previous : next;
+    });
+  }, [availableIndicators, setIndicatorDrafts, setSelectedIndicatorIds]);
 
   useEffect(() => {
     if (!isAutoCalcOpen || !isOrganizationSelectionLocked) return;
@@ -262,89 +415,121 @@ function AggregatesPageContent() {
     setAutoOrganization(String(userOrganizationId));
   }, [isAutoCalcOpen, isOrganizationSelectionLocked, userOrganizationId]);
 
-  const periods = useMemo(
-    () => Array.from(new Set(aggregates.map(getPeriodLabel))),
-    [aggregates],
-  );
-
   const filteredAggregates = useMemo(() => {
-    const query = searchQuery.toLowerCase();
+    const query = searchQuery.trim().toLowerCase();
 
     return aggregates.filter((aggregate) => {
+      if (aggregate.status !== "approved") return false;
+
       const aggregateOrganizationId = String(aggregate.organization);
+      if (!visibleOrganizationIds.has(aggregateOrganizationId)) return false;
       if (!selectedOrganizationIds.has(aggregateOrganizationId)) return false;
 
       const matchesProject =
         projectFilter === "all" || String(aggregate.project) === projectFilter;
       if (!matchesProject) return false;
 
-      const matchesPeriod = periodFilter === "all" || getPeriodLabel(aggregate) === periodFilter;
+      const matchesPeriod =
+        periodFilter === "all" ||
+        (selectedPeriodOption !== null &&
+          String(aggregate.period_start) === selectedPeriodOption.periodStart &&
+          String(aggregate.period_end) === selectedPeriodOption.periodEnd);
       if (!matchesPeriod) return false;
 
+      if (query.length === 0) return true;
+
+      const indicatorId = String(aggregate.indicator || "");
       const indicatorName =
-        aggregate.indicator_name || indicatorNameById.get(String(aggregate.indicator)) || "";
-      return query.length === 0 || indicatorName.toLowerCase().includes(query);
+        aggregate.indicator_name || indicatorNameById.get(indicatorId) || "";
+      const indicatorCode =
+        aggregate.indicator_code || indicatorCodeById.get(indicatorId) || "";
+
+      return (
+        indicatorName.toLowerCase().includes(query) ||
+        indicatorCode.toLowerCase().includes(query) ||
+        indicatorId.toLowerCase().includes(query)
+      );
     });
   }, [
     aggregates,
+    indicatorCodeById,
     indicatorNameById,
     periodFilter,
     projectFilter,
     searchQuery,
     selectedOrganizationIds,
+    selectedPeriodOption,
+    visibleOrganizationIds,
   ]);
 
-  const aggregateGroups = useMemo(
+  const aggregateGroups = useMemo<AggregateIndicatorGroup[]>(
     () => groupAggregatesByIndicator(filteredAggregates, indicatorNameById, indicatorCodeById),
     [filteredAggregates, indicatorCodeById, indicatorNameById],
   );
 
   const totals = useMemo(() => calculateAggregateTotals(filteredAggregates), [filteredAggregates]);
+  const {
+    chartData,
+    chartDescription,
+    chartTitle,
+    isChartOpen,
+    openChartForGroup,
+    setIsChartOpen,
+  } = useAggregateChartState({
+    aggregateGroups,
+  });
 
-  const chartData = useMemo(
-    () => buildChartData(filteredAggregates, indicatorNameById),
-    [filteredAggregates, indicatorNameById],
+  const reviewQueueAggregates = useMemo(
+    () =>
+      aggregates
+        .filter(
+          (aggregate) =>
+            visibleOrganizationIds.has(String(aggregate.organization)) &&
+            (aggregate.status === "pending" ||
+              aggregate.status === "reviewed" ||
+              aggregate.status === "flagged"),
+        )
+        .sort((left, right) => String(left.created_at).localeCompare(String(right.created_at))),
+    [aggregates, visibleOrganizationIds],
   );
 
-  const templateIndicatorOptions = useMemo(() => {
-    if (formTemplate === "all") return indicators;
-    const selectedTemplate = templates.find(
-      (template) => String(template.id) === formTemplate,
+  const correctionQueueAggregates = useMemo(
+    () =>
+      aggregates
+        .filter(
+          (aggregate) =>
+            visibleOrganizationIds.has(String(aggregate.organization)) &&
+            aggregate.status === "flagged" &&
+            (canReportAcrossOrganizations ||
+              writableOrganizationIds.has(String(aggregate.organization))),
+        )
+        .sort((left, right) => String(right.updated_at).localeCompare(String(left.updated_at))),
+    [aggregates, canReportAcrossOrganizations, visibleOrganizationIds, writableOrganizationIds],
+  );
+
+  useEffect(() => {
+    if (!reviewAggregateIdParam || !canReviewAggregates) return;
+    const hasMatch = reviewQueueAggregates.some(
+      (aggregate) => String(aggregate.id) === reviewAggregateIdParam,
     );
-    if (!selectedTemplate) return indicators;
-    return selectedTemplate.indicators.map((indicator) => ({
-      id: indicator.id,
-      name: indicator.name,
-      code: indicator.code,
-    }));
-  }, [formTemplate, indicators, templates]);
-
-  const computedTotal = useMemo(() => {
-    if (useMatrixEntry) return 0;
-    const male = parseNumberInput(formMale) ?? 0;
-    const female = parseNumberInput(formFemale) ?? 0;
-    return male + female;
-  }, [formFemale, formMale, useMatrixEntry]);
-
-  const matrixTotal = useMemo(
-    () => (useMatrixEntry ? computeMatrixTotal(matrixValues) : 0),
-    [matrixValues, useMatrixEntry],
-  );
-
-  const resetForm = () => {
-    setFormProject("");
-    setFormIndicator("");
-    setFormOrganization(defaultOwnOrganizationValue);
-    setFormTemplate("all");
-    setFormPeriodStart("");
-    setFormPeriodEnd("");
-    setUseMatrixEntry(true);
-    setFormMale("");
-    setFormFemale("");
-    setFormNotes("");
-    setFormDataSource("");
-    setMatrixValues(buildEmptyMatrix());
-  };
+    if (hasMatch) {
+      setIsReviewQueueOpen(true);
+    }
+  }, [canReviewAggregates, reviewAggregateIdParam, reviewQueueAggregates]);
+  const {
+    actingAggregateId,
+    actingReviewAction,
+    handleApproveAggregate,
+    handleDeleteAggregate,
+    handleFlagAggregate,
+    handleReviewAggregate,
+    handleUpdateAggregate,
+  } = useAggregateReviewActions({
+    mutate: async () => {
+      await mutate();
+    },
+    toast,
+  });
 
   const resetAutoCalcForm = () => {
     setAutoOutputIndicator("");
@@ -361,21 +546,23 @@ function AggregatesPageContent() {
     setAutoComputed(null);
   };
 
-  const getPeriodBounds = (label: string) => {
-    const match = aggregates.find((aggregate) => getPeriodLabel(aggregate) === label);
-    if (!match) return null;
-    return { from: match.period_start, to: match.period_end };
-  };
-
   const handleExport = async () => {
     try {
-      const periodBounds = periodFilter !== "all" ? getPeriodBounds(periodFilter) : null;
+      const exportOrganizationIds = Array.from(selectedOrganizationIds);
+      if (exportOrganizationIds.length === 0) {
+        toast({
+          title: "No organizations in scope",
+          description: "Update your coordinator/organization filters before exporting.",
+          variant: "destructive",
+        });
+        return;
+      }
       const blob = await aggregatesService.export({
         format: "excel",
         project: projectFilter !== "all" ? projectFilter : undefined,
-        organization: orgFilter !== "all" ? orgFilter : undefined,
-        date_from: periodBounds?.from,
-        date_to: periodBounds?.to,
+        organization: exportOrganizationIds.join(","),
+        date_from: selectedPeriodOption?.periodStart,
+        date_to: selectedPeriodOption?.periodEnd,
       });
 
       const url = URL.createObjectURL(blob);
@@ -396,20 +583,36 @@ function AggregatesPageContent() {
 
   const handleImport = async (file: File) => {
     try {
-      const { payloads, failedCount: parseFailedCount } = await buildImportPayloadsFromFile({
-        file,
-        organizations,
-        projects,
-        indicators,
-        templates,
-        canReportAcrossOrganizations,
-        writableOrganizationIds,
-      });
+      const { payloads, failedCount: parseFailedCount, errors } =
+        await buildImportPayloadsFromFile({
+          file,
+          organizations,
+          projects,
+          indicators,
+          templates,
+          canReportAcrossOrganizations,
+          writableOrganizationIds,
+        });
+
+      if (errors.length > 0) {
+        const preview = errors.slice(0, 3).join(" ");
+        const moreIssues =
+          errors.length > 3 ? ` ${errors.length - 3} more issue(s) found.` : "";
+        toast({
+          title: "Import blocked",
+          description:
+            `${preview}${moreIssues} Required columns: ` +
+            `${AGGREGATE_IMPORT_REQUIRED_COLUMNS_HINT}. ` +
+            `Use Export to download a valid import template.`,
+          variant: "destructive",
+        });
+        return;
+      }
 
       if (payloads.length === 0) {
         toast({
           title: "Invalid file",
-          description: "No rows found.",
+          description: "No rows found. Use Export to download the expected import template.",
           variant: "destructive",
         });
         return;
@@ -418,20 +621,29 @@ function AggregatesPageContent() {
       const grouped = groupImportPayloadsByScope(payloads);
       let success = 0;
       let failed = parseFailedCount;
+      const saveErrors: string[] = [];
 
       for (const group of grouped) {
         try {
           const result = await aggregatesService.bulkCreate(group);
           success += result.length;
-        } catch {
+        } catch (error) {
           failed += group.data.length;
+          if (saveErrors.length < 3) {
+            saveErrors.push(
+              error instanceof Error ? error.message : "One or more rows could not be saved.",
+            );
+          }
         }
       }
 
       await mutate();
       toast({
         title: "Import complete",
-        description: `Imported ${success} rows. ${failed} failed.`,
+        description:
+          saveErrors.length > 0
+            ? `Imported ${success} rows. ${failed} failed. ${saveErrors.join(" ")}`
+            : `Imported ${success} rows. ${failed} failed.`,
         variant: failed ? "destructive" : "default",
       });
     } catch (err) {
@@ -444,50 +656,92 @@ function AggregatesPageContent() {
     }
   };
 
-  const handleMatrixCellChange = (
-    kp: string,
-    sex: "Male" | "Female",
-    band: string,
-    value: string,
-  ) => {
-    setMatrixValues((previous) => ({
+  const createIndicatorDraft = (indicatorId: string): AggregateEntryDraft => {
+    const config = indicatorConfigs[indicatorId] || getAggregateEntryMatrixConfig();
+    return {
+      total: "",
+      matrixValues: buildEmptyEntryMatrix(config),
+    };
+  };
+
+  const toggleSelectedIndicator = (indicatorId: string) => {
+    setSelectedIndicatorIds((previous) => {
+      const exists = previous.includes(indicatorId);
+      if (exists) {
+        setIndicatorDrafts((current) => {
+          const next = { ...current };
+          delete next[indicatorId];
+          return next;
+        });
+        return previous.filter((value) => value !== indicatorId);
+      }
+
+      setIndicatorDrafts((current) => ({
+        ...current,
+        [indicatorId]: current[indicatorId] || createIndicatorDraft(indicatorId),
+      }));
+      return [...previous, indicatorId];
+    });
+  };
+
+  const handleIndicatorTotalChange = (indicatorId: string, value: string) => {
+    setIndicatorDrafts((previous) => ({
       ...previous,
-      [kp]: {
-        ...previous[kp],
-        [sex]: {
-          ...previous[kp]?.[sex],
-          [band]: value,
-        },
+      [indicatorId]: {
+        ...(previous[indicatorId] || createIndicatorDraft(indicatorId)),
+        total: value,
       },
     }));
   };
 
+  const handleIndicatorMatrixCellChange = (
+    indicatorId: string,
+    primaryValue: string,
+    secondaryValue: string,
+    bandValue: string,
+    value: string,
+  ) => {
+    setIndicatorDrafts((previous) => {
+      const current = previous[indicatorId] || createIndicatorDraft(indicatorId);
+      return {
+        ...previous,
+        [indicatorId]: {
+          ...current,
+          matrixValues: {
+            ...current.matrixValues,
+            [primaryValue]: {
+              ...current.matrixValues[primaryValue],
+              [secondaryValue]: {
+                ...current.matrixValues[primaryValue]?.[secondaryValue],
+                [bandValue]: value,
+              },
+            },
+          },
+        },
+      };
+    });
+  };
+
   const handleSave = async () => {
-    if (!formProject || !formIndicator || !formOrganization || !formPeriodStart || !formPeriodEnd) {
+    if (
+      !formProject ||
+      !formOrganization ||
+      !formPeriodStart ||
+      !formPeriodEnd ||
+      selectedIndicatorIds.length === 0
+    ) {
       toast({
         title: "Missing required fields",
-        description: "Project, indicator, organization, and period dates are required.",
+        description: "Project, organization, period dates, and at least one indicator are required.",
         variant: "destructive",
       });
       return;
     }
 
-    const male = !useMatrixEntry ? parseNumberInput(formMale) : undefined;
-    const female = !useMatrixEntry ? parseNumberInput(formFemale) : undefined;
-
-    if (useMatrixEntry && matrixTotal === 0) {
+    if (!selectedProjectDetail) {
       toast({
-        title: "Missing value",
-        description: "Enter at least one value in the disaggregate matrix.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!useMatrixEntry && male === undefined && female === undefined) {
-      toast({
-        title: "Missing value",
-        description: "Provide at least one of male or female values.",
+        title: "Project still loading",
+        description: "Please wait for the selected project's organizations and indicators to load.",
         variant: "destructive",
       });
       return;
@@ -502,17 +756,6 @@ function AggregatesPageContent() {
       return;
     }
 
-    const valuePayload: AggregateValue = {
-      total: useMatrixEntry ? matrixTotal : (male ?? 0) + (female ?? 0),
-    };
-
-    if (!useMatrixEntry && male !== undefined) valuePayload.male = male;
-    if (!useMatrixEntry && female !== undefined) valuePayload.female = female;
-
-    if (useMatrixEntry) {
-      valuePayload.disaggregates = buildMatrixPayload(matrixValues);
-    }
-
     setIsSubmitting(true);
     try {
       const combinedNotes = [
@@ -522,19 +765,48 @@ function AggregatesPageContent() {
         .filter(Boolean)
         .join(" | ");
 
-      await aggregatesService.create({
-        indicator: Number(formIndicator),
+      const payload = selectedIndicatorIds.map((indicatorId) => {
+        const config = indicatorConfigs[indicatorId] || getAggregateEntryMatrixConfig();
+        const draft = indicatorDrafts[indicatorId] || createIndicatorDraft(indicatorId);
+        const valuePayload: AggregateValue = {};
+
+        if (config.hasDisaggregates) {
+          const total = computeEntryMatrixTotal(draft.matrixValues, config);
+          if (total === 0) {
+            throw new Error(
+              `${indicatorById.get(indicatorId)?.name || "Indicator"} is missing disaggregated values.`,
+            );
+          }
+          valuePayload.total = total;
+          valuePayload.disaggregates = buildEntryMatrixPayload(draft.matrixValues, config);
+        } else {
+          const total = parseNumberInput(draft.total);
+          if (total === undefined) {
+            throw new Error(
+              `${indicatorById.get(indicatorId)?.name || "Indicator"} requires a total value.`,
+            );
+          }
+          valuePayload.total = total;
+        }
+
+        return {
+          indicator: Number(indicatorId),
+          value: valuePayload,
+          notes: combinedNotes,
+        };
+      });
+
+      await aggregatesService.bulkCreate({
         project: Number(formProject),
         organization: Number(formOrganization),
         period_start: formPeriodStart,
         period_end: formPeriodEnd,
-        value: valuePayload,
-        notes: combinedNotes || undefined,
+        data: payload,
       });
 
       toast({
-        title: "Aggregate saved",
-        description: "Aggregate entry created successfully.",
+        title: "Aggregates saved",
+        description: `${payload.length} indicator entr${payload.length === 1 ? "y" : "ies"} submitted for coordinator review.`,
       });
 
       await mutate();
@@ -544,7 +816,8 @@ function AggregatesPageContent() {
       console.error("Failed to create aggregate", err);
       toast({
         title: "Error",
-        description: "Failed to create aggregate entry.",
+        description:
+          err instanceof Error ? err.message : "Failed to create aggregate entries.",
         variant: "destructive",
       });
     } finally {
@@ -647,6 +920,15 @@ function AggregatesPageContent() {
         ]}
         actions={
           <div className="flex items-center gap-2">
+            {canReviewAggregates ? (
+              <Button variant="outline" onClick={() => setIsReviewQueueOpen(true)}>
+                <Clock3 className="mr-2 h-4 w-4" />
+                Queued Review
+                <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+                  {reviewQueueAggregates.length}
+                </span>
+              </Button>
+            ) : null}
             <Button variant="outline" onClick={() => importInputRef.current?.click()}>
               <Upload className="mr-2 h-4 w-4" /> Import
             </Button>
@@ -679,9 +961,9 @@ function AggregatesPageContent() {
               onCalculate={handleAutoCalculate}
               isSubmitting={isAutoCalcSubmitting}
               computedValue={autoComputed}
-              projects={projects}
-              organizations={writableOrganizations}
-              indicators={indicators}
+              projects={projectOptions}
+              organizations={writableOrganizationOptions}
+              indicators={indicatorOptions}
               isOrganizationSelectionLocked={isOrganizationSelectionLocked}
               autoProject={autoProject}
               setAutoProject={setAutoProject}
@@ -715,35 +997,24 @@ function AggregatesPageContent() {
               }}
               onSave={handleSave}
               isSubmitting={isSubmitting}
-              projects={projects}
-              templates={templates}
-              templateIndicatorOptions={templateIndicatorOptions}
-              writableOrganizations={writableOrganizations}
+              projects={projectOptions}
+              availableOrganizations={availableFormOrganizationOptions}
+              availableIndicators={availableIndicators}
               isOrganizationSelectionLocked={isOrganizationSelectionLocked}
               formProject={formProject}
-              setFormProject={setFormProject}
-              formIndicator={formIndicator}
-              setFormIndicator={setFormIndicator}
+              setFormProject={handleFormProjectChange}
               formOrganization={formOrganization}
-              setFormOrganization={setFormOrganization}
-              formTemplate={formTemplate}
-              setFormTemplate={setFormTemplate}
+              setFormOrganization={handleFormOrganizationChange}
+              selectedIndicatorIds={selectedIndicatorIds}
+              onToggleIndicator={toggleSelectedIndicator}
+              indicatorDrafts={indicatorDrafts}
+              indicatorConfigs={indicatorConfigs}
+              onTotalChange={handleIndicatorTotalChange}
+              onMatrixCellChange={handleIndicatorMatrixCellChange}
               formPeriodStart={formPeriodStart}
               setFormPeriodStart={setFormPeriodStart}
               formPeriodEnd={formPeriodEnd}
               setFormPeriodEnd={setFormPeriodEnd}
-              useMatrixEntry={useMatrixEntry}
-              setUseMatrixEntry={setUseMatrixEntry}
-              matrixToggleDisabled={matrixToggleDisabled}
-              formPrimaryDisaggregateLabel={formPrimaryDisaggregateLabel}
-              matrixValues={matrixValues}
-              onMatrixCellChange={handleMatrixCellChange}
-              matrixTotal={matrixTotal}
-              formMale={formMale}
-              setFormMale={setFormMale}
-              formFemale={formFemale}
-              setFormFemale={setFormFemale}
-              computedTotal={computedTotal}
               formDataSource={formDataSource}
               setFormDataSource={setFormDataSource}
               formNotes={formNotes}
@@ -753,20 +1024,94 @@ function AggregatesPageContent() {
         }
       />
 
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-1 flex-wrap items-center gap-2">
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Search indicators..."
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
-              className="pl-9"
-            />
-          </div>
+      {canReviewAggregates ? (
+        <Dialog open={isReviewQueueOpen} onOpenChange={setIsReviewQueueOpen}>
+          <DialogContent className="fixed inset-0 !top-0 !left-0 !translate-x-0 !translate-y-0 !h-screen !w-screen !max-w-none overflow-hidden rounded-none p-0">
+            <DialogHeader className="border-b border-border/70 px-6 py-4">
+              <DialogTitle className="flex items-center gap-2">
+                <Clock3 className="h-5 w-5" />
+                Queued Review
+              </DialogTitle>
+              <DialogDescription>
+                Review submissions, flag issues for correction, and approve only after review.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="h-[calc(100vh-88px)] overflow-y-auto p-6">
+              <AggregateReviewQueue
+                items={reviewQueueAggregates}
+                indicatorNameById={indicatorNameById}
+                indicatorById={indicatorById}
+                projectNameById={projectNameById}
+                projects={projects}
+                organizations={visibleOrganizationOptions}
+                indicators={indicatorOptions}
+                onReview={handleReviewAggregate}
+                onApprove={handleApproveAggregate}
+                onFlag={handleFlagAggregate}
+                onUpdate={handleUpdateAggregate}
+                onDelete={handleDeleteAggregate}
+                actingAggregateId={actingAggregateId}
+                actingReviewAction={actingReviewAction}
+                embedded
+                initialReviewAggregateId={reviewAggregateIdParam}
+              />
+            </div>
+          </DialogContent>
+        </Dialog>
+      ) : null}
 
+      {canReviewAggregates && reviewQueueAggregates.length > 0 ? (
+        <Alert>
+          <Clock3 className="h-4 w-4" />
+          <AlertTitle>Queued aggregates are awaiting review</AlertTitle>
+          <AlertDescription className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <span>
+              {reviewQueueAggregates.length} aggregate row(s) are currently pending, reviewed, or flagged.
+              They do not appear in the main aggregate table until approved.
+            </span>
+            <Button variant="outline" size="sm" onClick={() => setIsReviewQueueOpen(true)}>
+              Open Queued Review
+            </Button>
+          </AlertDescription>
+        </Alert>
+      ) : null}
+
+      {!canReviewAggregates && correctionQueueAggregates.length > 0 ? (
+        <AggregateReviewQueue
+          items={correctionQueueAggregates}
+          indicatorNameById={indicatorNameById}
+          indicatorById={indicatorById}
+          projectNameById={projectNameById}
+          projects={projects}
+          organizations={writableOrganizationOptions}
+          indicators={indicatorOptions}
+          onReview={handleReviewAggregate}
+          onApprove={handleApproveAggregate}
+          onFlag={handleFlagAggregate}
+          onUpdate={handleUpdateAggregate}
+          onDelete={handleDeleteAggregate}
+          actingAggregateId={actingAggregateId}
+          actingReviewAction={actingReviewAction}
+          mode="correction"
+          initialReviewAggregateId={reviewAggregateIdParam}
+        />
+      ) : null}
+
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+        <div className="relative sm:col-span-2 xl:col-span-1">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Search indicators..."
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.target.value)}
+            className="pl-9"
+          />
+        </div>
+
+        <div className="space-y-1">
+          <p className="text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">Project</p>
           <Select value={projectFilter} onValueChange={setProjectFilter}>
-            <SelectTrigger className="w-full sm:w-[180px]">
+            <SelectTrigger className="w-full">
               <Filter className="mr-2 h-4 w-4" />
               <SelectValue placeholder="Project" />
             </SelectTrigger>
@@ -779,51 +1124,55 @@ function AggregatesPageContent() {
               ))}
             </SelectContent>
           </Select>
+        </div>
 
-          <Select
-            value={parentOrgFilter}
-            onValueChange={(value) => {
-              setParentOrgFilter(value);
-              setOrgFilter("all");
-            }}
-          >
-            <SelectTrigger className="w-full sm:w-[200px]">
+        <div className="space-y-1">
+          <p className="text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">Coordinator</p>
+          <Select value={parentOrgFilter} onValueChange={setCoordinatorFilter}>
+            <SelectTrigger className="w-full">
               <SelectValue placeholder="Coordinator" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Coordinators</SelectItem>
-              {parentOrganizations.map((organization) => (
+              {availableCoordinatorOptions.map((organization) => (
                 <SelectItem key={organization.id} value={String(organization.id)}>
                   {organization.name}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
+        </div>
 
-          <Select value={orgFilter} onValueChange={setOrgFilter}>
-            <SelectTrigger className="w-full sm:w-[200px]">
-              <SelectValue placeholder="Organization" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Organizations</SelectItem>
-              {scopedOrganizations.map((organization) => (
-                <SelectItem key={organization.id} value={String(organization.id)}>
-                  {organization.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="space-y-1">
+          <p className="text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">Organizations</p>
+          <OrganizationMultiSelect
+            organizations={scopedOrganizations.map((organization) => ({
+              id: organization.id,
+              name: organization.name || "Organization",
+            }))}
+            selectedIds={selectedOrganizationIdsList}
+            onChange={setSelectedOrganizationIdsList}
+            allLabel="All organizations"
+          />
+          <p className="text-xs text-muted-foreground">
+            {selectedOrganizationIdsList.length > 0
+              ? `${selectedOrganizationIdsList.length} selected`
+              : `${scopedOrganizations.length} in scope`}
+          </p>
+        </div>
 
+        <div className="space-y-1">
+          <p className="text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">Period</p>
           <Select value={periodFilter} onValueChange={setPeriodFilter}>
-            <SelectTrigger className="w-full sm:w-[200px]">
+            <SelectTrigger className="w-full">
               <Calendar className="mr-2 h-4 w-4" />
               <SelectValue placeholder="Period" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Periods</SelectItem>
-              {periods.map((period) => (
-                <SelectItem key={period} value={period}>
-                  {period}
+              {periodOptions.map((period) => (
+                <SelectItem key={period.id} value={period.id}>
+                  {period.label}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -862,13 +1211,15 @@ function AggregatesPageContent() {
         aggregateGroups={aggregateGroups}
         projectNameById={projectNameById}
         indicatorById={indicatorById}
-        onViewChart={() => setIsChartOpen(true)}
+        onViewChart={openChartForGroup}
       />
 
       <AggregateChartDialog
         open={isChartOpen}
         onOpenChange={setIsChartOpen}
         data={chartData}
+        title={chartTitle}
+        description={chartDescription}
       />
     </div>
   );

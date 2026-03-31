@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { useParams } from "next/navigation"
 import { ArrowLeft, Loader2, Mail, Building2, CalendarDays, Clock, Shield } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { PageHeader } from "@/components/shared/page-header"
 
 import { useAllOrganizations, useUser } from "@/lib/hooks/use-api"
+import { useSmartBack } from "@/lib/hooks/use-smart-back"
 import { getUserGroupsForUser } from "@/lib/user-groups"
 
 type RawUser = {
@@ -71,7 +72,7 @@ const formatRole = (value?: string) => {
 }
 
 export default function UserDetailPage() {
-  const router = useRouter()
+  const handleBack = useSmartBack("/users")
   const params = useParams()
 
   const rawId = params?.id
@@ -81,7 +82,7 @@ export default function UserDetailPage() {
   const { data: user, isLoading, error } = useUser(isValidId ? userId : null)
   const { data: orgsData } = useAllOrganizations()
 
-  const organizations = orgsData?.results || []
+  const organizations = useMemo(() => orgsData?.results || [], [orgsData?.results])
 
   const normalizedUser = useMemo(() => {
     const source = (user ?? {}) as RawUser
@@ -131,7 +132,7 @@ export default function UserDetailPage() {
     return (
       <div className="flex h-[60vh] flex-col items-center justify-center gap-4">
         <p className="text-muted-foreground">User not found</p>
-        <Button onClick={() => router.push("/users")}>Back to Users</Button>
+        <Button onClick={handleBack}>Back to Users</Button>
       </div>
     )
   }
@@ -147,7 +148,7 @@ export default function UserDetailPage() {
           { label: "Profile" },
         ]}
         actions={
-          <Button variant="outline" onClick={() => router.push("/users")}>
+          <Button variant="outline" onClick={handleBack}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back
           </Button>

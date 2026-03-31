@@ -92,6 +92,8 @@ export interface TargetRequest {
 // Projects Service
 // ============================================================================
 
+const LIST_ALL_PAGE_SIZE = '500';
+
 export const projectsService = {
   /**
    * List all projects with optional filters
@@ -110,6 +112,9 @@ export const projectsService = {
     let page = filters?.page ? String(filters.page) : "1";
     const baseFilters = { ...(filters || {}) } as Record<string, string>;
     delete baseFilters.page;
+    if (!baseFilters.page_size) {
+      baseFilters.page_size = LIST_ALL_PAGE_SIZE;
+    }
 
     while (true) {
       const { data } = await api.get<PaginatedResponse<Project>>('/manage/projects/', {

@@ -7,26 +7,18 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { PageHeader } from "@/components/shared/page-header"
+import { useAuth } from "@/lib/contexts/auth-context"
 import { useAllOrganizations, useIndicators, useOrganization, useUsers } from "@/lib/hooks/use-api"
-
-const orgTypeColors: Record<string, string> = {
-  headquarters: "bg-chart-1/10 text-chart-1",
-  regional: "bg-chart-2/10 text-chart-2",
-  district: "bg-chart-3/10 text-chart-3",
-  partner: "bg-chart-4/10 text-chart-4",
-}
-
-const orgTypeLabels: Record<string, string> = {
-  headquarters: "Headquarters",
-  regional: "Regional Office",
-  district: "District Office",
-  partner: "Partner Organization",
-}
+import { useSmartBack } from "@/lib/hooks/use-smart-back"
+import { getEffectiveOrganizationType, getOrganizationTypeColorClass, getOrganizationTypeLabel } from "@/lib/organization-hierarchy"
+import { canManageOrganizations } from "@/lib/permissions"
 
 export default function OrganizationDetailPage() {
   const router = useRouter()
+  const handleBack = useSmartBack("/organizations")
   const params = useParams()
   const id = Number(params?.id)
+  const { user } = useAuth()
 
   const { data: org, isLoading, error } = useOrganization(Number.isFinite(id) ? id : null)
   const { data: orgsData } = useAllOrganizations()
@@ -39,6 +31,8 @@ export default function OrganizationDetailPage() {
   )
   const indicators = indicatorsData?.results || []
   const activeUsers = usersData?.results || []
+  const displayType = getEffectiveOrganizationType(org || undefined)
+  const canManageOrgRecords = canManageOrganizations(user)
 
   const parentName = useMemo(() => {
     if (!org?.parentId) return null
@@ -57,7 +51,7 @@ export default function OrganizationDetailPage() {
     return (
       <div className="flex h-[60vh] flex-col items-center justify-center gap-4">
         <p className="text-muted-foreground">Organization not found</p>
-        <Button onClick={() => router.push("/organizations")}>Back to Organizations</Button>
+        <Button onClick={handleBack}>Back to Organizations</Button>
       </div>
     )
   }
@@ -74,17 +68,25 @@ export default function OrganizationDetailPage() {
         ]}
         actions={
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={() => router.push("/organizations")}>
+            <Button variant="outline" onClick={handleBack}>
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back
             </Button>
-            <Button onClick={() => router.push(`/organizations/${org.id}/edit`)}>
-              <Pencil className="mr-2 h-4 w-4" />
-              Edit
-            </Button>
+            {canManageOrgRecords ? (
+              <Button onClick={() => router.push(`/organizations/${org.id}/edit`)}>
+                <Pencil className="mr-2 h-4 w-4" />
+                Edit
+              </Button>
+            ) : null}
           </div>
         }
       />
+
+      {!canManageOrgRecords ? (
+        <div className="rounded-lg border border-border bg-muted/20 px-4 py-3 text-sm text-muted-foreground">
+          You are viewing this organization in read-only mode. Editing is limited to platform admins.
+        </div>
+      ) : null}
 
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
@@ -97,8 +99,8 @@ export default function OrganizationDetailPage() {
           <CardContent className="space-y-4">
             <div>
               <p className="text-sm text-muted-foreground">Type</p>
-              <Badge variant="secondary" className={orgTypeColors[org.type] || ""}>
-                {orgTypeLabels[org.type] || org.type}
+              <Badge variant="secondary" className={getOrganizationTypeColorClass(displayType)}>
+                {getOrganizationTypeLabel(displayType)}
               </Badge>
             </div>
             <div>

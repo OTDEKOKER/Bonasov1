@@ -30,6 +30,7 @@ import { canManageUsers } from "@/lib/permissions"
 import { useAuth } from "@/lib/contexts/auth-context"
 import { getGroupCatalog, getUserGroupsForUser, setUserGroupsForUser } from "@/lib/user-groups"
 import { useToast } from "@/hooks/use-toast"
+import { useSmartBack } from "@/lib/hooks/use-smart-back"
 
 type EditableUser = {
   email?: string
@@ -72,18 +73,21 @@ export default function UserEditPage() {
   const router = useRouter()
   const { toast } = useToast()
   const { user: currentUser } = useAuth()
+  const canEditRestrictedFields = canManageUsers(currentUser)
   const params = useParams()
 
   const rawId = params?.id
   const userId = Number(Array.isArray(rawId) ? rawId[0] : rawId)
   const isValidUserId = Number.isFinite(userId)
+  const handleBack = useSmartBack(isValidUserId ? `/users/${userId}` : "/users")
 
   const { data: user, isLoading, error, mutate } = useUser(isValidUserId ? userId : null)
   const { data: orgsData } = useAllOrganizations()
-  const { data: availablePermissions = [], isLoading: isPermissionsLoading } = useUserPermissions()
+  const { data: availablePermissions = [], isLoading: isPermissionsLoading } = useUserPermissions(
+    canEditRestrictedFields,
+  )
 
   const organizations = orgsData?.results || []
-  const canEditRestrictedFields = canManageUsers(currentUser)
 
   const [isSaving, setIsSaving] = useState(false)
   const [groupCatalog, setGroupCatalog] = useState<string[]>([])
@@ -225,7 +229,7 @@ export default function UserEditPage() {
         ]}
         actions={
           <div className="flex flex-wrap items-center gap-2">
-            <Button variant="outline" onClick={() => router.push(`/users/${userId}`)} disabled={isSaving}>
+            <Button variant="outline" onClick={handleBack} disabled={isSaving}>
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back
             </Button>

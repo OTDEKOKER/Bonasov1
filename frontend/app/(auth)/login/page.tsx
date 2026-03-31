@@ -9,11 +9,24 @@ import { Label } from "@/components/ui/label"
 import { authService } from "@/lib/api"
 import { useToast } from "@/hooks/use-toast"
 
+function getLoginErrorMessage(error: unknown) {
+  const rawMessage =
+    error && typeof error === "object" && "message" in error
+      ? String((error as { message?: unknown }).message ?? "").trim()
+      : ""
+
+  if (rawMessage === "No active account found with the given credentials") {
+    return "Invalid username/email or password. If this keeps happening, the account may be inactive."
+  }
+
+  return rawMessage || "Invalid username or password. Please try again."
+}
+
 export default function LoginPage() {
   const router = useRouter()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
-  const [username, setUsername] = useState("")
+  const [identifier, setIdentifier] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
 
@@ -29,17 +42,14 @@ export default function LoginPage() {
     setError("")
 
     try {
-      await authService.login({ username, password })
+      await authService.login({ username: identifier.trim(), password })
       toast({
         title: "Welcome back!",
         description: "You have successfully signed in.",
       })
       router.push("/dashboard")
     } catch (err: unknown) {
-      const errorMessage = err && typeof err === "object" && "message" in err
-        ? (err as { message: string }).message
-        : "Invalid username or password. Please try again."
-
+      const errorMessage = getLoginErrorMessage(err)
       setError(errorMessage)
       toast({
         title: "Login Failed",
@@ -73,17 +83,21 @@ export default function LoginPage() {
 
           <div className="space-y-2">
             <Label htmlFor="username" className="block text-center text-3xl font-semibold text-white">
-              Username
+              Username or Email
             </Label>
             <Input
               id="username"
               type="text"
               autoComplete="username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
               required
+              placeholder="Enter your username or email"
               className="h-12 rounded-none border-0 bg-[#d7dde7] text-lg text-black placeholder:text-slate-600"
             />
+            <p className="text-center text-sm text-white/80">
+              Sign in with either your username or email address.
+            </p>
           </div>
 
           <div className="space-y-2">

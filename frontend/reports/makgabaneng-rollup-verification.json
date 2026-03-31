@@ -1,0 +1,13 @@
+{
+  "organization": "MAKGABANENG",
+  "project_code": "NAHPA2025/26",
+  "period_start": "2025-10-01",
+  "period_end": "2025-12-31",
+  "summary": {
+    "parent_rollup_aggregates_created": 44,
+    "parent_rollup_aggregates_updated": 0,
+    "child_imports_unchanged": 792,
+    "child_sheet_exact_matches": 792,
+    "child_sheet_mismatches": 0
+  }
+}

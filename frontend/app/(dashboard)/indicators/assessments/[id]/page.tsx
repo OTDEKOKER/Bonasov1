@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { useParams } from "next/navigation"
 import { ArrowLeft, Loader2, Plus, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -19,6 +19,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { PageHeader } from "@/components/shared/page-header"
 import { assessmentsService } from "@/lib/api"
 import { useAssessment, useIndicators } from "@/lib/hooks/use-api"
+import { useSmartBack } from "@/lib/hooks/use-smart-back"
 import { useToast } from "@/hooks/use-toast"
 
 const typeLabels: Record<string, string> = {
@@ -33,7 +34,7 @@ const typeLabels: Record<string, string> = {
 }
 
 export default function AssessmentDetailPage() {
-  const router = useRouter()
+  const handleBack = useSmartBack("/indicators/assessments")
   const { toast } = useToast()
   const params = useParams()
   const rawId = Array.isArray(params?.id) ? params.id[0] : params?.id
@@ -155,7 +156,7 @@ export default function AssessmentDetailPage() {
     return (
       <div className="flex h-[60vh] flex-col items-center justify-center gap-4">
         <p className="text-muted-foreground">Assessment not found</p>
-        <Button onClick={() => router.push("/indicators/assessments")}>
+        <Button onClick={handleBack}>
           Back to Assessments
         </Button>
       </div>
@@ -174,7 +175,7 @@ export default function AssessmentDetailPage() {
           { label: assessment.name },
         ]}
         actions={
-          <Button variant="outline" onClick={() => router.push("/indicators/assessments")}>
+          <Button variant="outline" onClick={handleBack}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back
           </Button>
