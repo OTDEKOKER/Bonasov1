@@ -27,6 +27,7 @@ import { compareMonthLabels, compareQuarterLabels, compareYearLabels } from "@/l
 import {
   buildAnalyticsFacts,
   computeReportingCompleteness,
+  type AnalyticsFact,
   type AnalyticsQueryContract,
 } from "@/lib/analytics/query-builder";
 import { resolveOrgScope } from "@/lib/analytics/org-scope";
@@ -39,6 +40,7 @@ import { getUserOrganizationId } from "@/lib/utils/organization";
 import {
   buildVisualizationResult,
   type DrilldownTarget,
+  type NormalizedAggregateRecord,
 } from "@/lib/visualization/engine";
 import { buildVisualizationResultV2Compat } from "@/lib/visualization/engine-v2-compat";
 import { ENABLE_VISUALIZATION_ENGINE_V2 } from "@/lib/visualization/feature-flags";
@@ -55,7 +57,7 @@ type DashboardChartCardConfig = {
   id: string;
   title: string;
   description: string;
-  chart: any;
+  chart: unknown;
   size: ChartSizeTier;
   footerText?: string | null;
 };
@@ -274,7 +276,7 @@ function DashboardChartCard(props: {
             compact
           />
         )}
-        {config.footerText ? <ChartInsightFooter text={config.footerText} /> : null}
+        {config.footerText ? <ChartInsightFooter>{config.footerText}</ChartInsightFooter> : null}
       </CardContent>
     </Card>
   );
@@ -282,7 +284,7 @@ function DashboardChartCard(props: {
 
 function DashboardVisualizationPanels(props: {
   dashboardId: number;
-  facts: any[];
+  facts: AnalyticsFact[];
   selectedIndicators: Indicator[];
   organizations: Organization[];
   organizationsById: Map<string, Organization>;
@@ -375,7 +377,9 @@ function DashboardVisualizationPanels(props: {
   const completeness = useMemo(
     () =>
       computeReportingCompleteness({
-        facts: visualization.normalizedRecords.map((record: any) => record.source),
+        facts: visualization.normalizedRecords.map(
+          (record: NormalizedAggregateRecord) => record.source,
+        ),
         scopedOrgIds,
       }),
     [scopedOrgIds, visualization.normalizedRecords],
@@ -384,15 +388,22 @@ function DashboardVisualizationPanels(props: {
   const handleDrilldown = (sourceChartId: string, target: DrilldownTarget) =>
     applyInteraction(sourceChartId, target);
 
+  const draftCompareBy: CustomAnalysisState["compareBy"] =
+    filters.comparisonMode === "disaggregate" || filters.comparisonMode === "disaggregation"
+      ? "none"
+      : filters.comparisonMode;
+
   const buildDraft = (): Partial<CustomAnalysisState> => ({
-    indicatorIds: selectedIndicators.map((indicator) => Number(indicator.id)),
+    indicatorIds: selectedIndicators.map((indicator) => String(indicator.id)),
     selectedPeriods: [...selectedPeriods],
     selectedOrgIds: [...filters.selectedOrgIds],
     dateFrom: filters.dateFrom,
     dateTo: filters.dateTo,
-    comparisonMode: filters.comparisonMode,
-    disaggregationKeys: [...filters.disaggregationKeys],
+    compareBy: draftCompareBy,
+    breakDownBy: filters.disaggregationKeys[0] || "none",
+    secondaryBreakdown: filters.disaggregationKeys[1] || "none",
     scopeMode: filters.scopeMode,
+    parentOrgId: filters.parentOrgId,
   });
 
   const cards: DashboardChartCardConfig[] = [
@@ -659,25 +670,25 @@ export function DashboardAnalyticsSurface(props: DashboardAnalyticsSurfaceProps)
 
   const userOrgId = useMemo(() => String(getUserOrganizationId(user) ?? ""), [user]);
 
-  const scope = useMemo(
-    () =>
-      resolveOrgScope({
+    const scope = useMemo(
+      () =>
+        resolveOrgScope({
+          organizations,
+          scopeMode: filters.scopeMode,
+          currentUserOrgId: userOrgId || null,
+          currentUserRole: user?.role || null,
+          parentOrgId: filters.parentOrgId || null,
+          selectedOrgIds: filters.selectedOrgIds,
+        }),
+      [
+        filters.parentOrgId,
+        filters.scopeMode,
+        filters.selectedOrgIds,
         organizations,
-        scopeMode: filters.scopeMode,
-        currentOrgId: userOrgId || null,
-        parentOrgId: filters.parentOrgId || null,
-        selectedOrgIds: filters.selectedOrgIds,
-        cascadeOrganization: filters.cascadeOrganization,
-      }),
-    [
-      filters.cascadeOrganization,
-      filters.parentOrgId,
-      filters.scopeMode,
-      filters.selectedOrgIds,
-      organizations,
-      userOrgId,
-    ],
-  );
+        user?.role,
+        userOrgId,
+      ],
+    );
 
   const scopedOrganizations = useMemo(
     () =>

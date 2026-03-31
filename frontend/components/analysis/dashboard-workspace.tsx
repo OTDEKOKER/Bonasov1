@@ -438,6 +438,7 @@ export function DashboardWorkspace() {
                             <DashboardChartCard
                               key={chart.id}
                               chart={chart}
+                              dashboard={currentDashboard}
                               onEdit={() => openEditChart(chart)}
                               onDelete={() => handleDeleteChart(chart)}
                               deleteDisabled={deletingChartId === chart.id}
@@ -488,4 +489,4 @@ export function DashboardWorkspace() {
       />
     </>
   );
-}2
+}
