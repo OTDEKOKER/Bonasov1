@@ -25,12 +25,54 @@ const META_KEYS = new Set([
   "message_type",
 ]);
 
+const AGE_RANGES = [
+  "10-14",
+  "15-19",
+  "20-24",
+  "25-29",
+  "30-34",
+  "35-39",
+  "40-44",
+  "45-49",
+  "50-54",
+  "55-59",
+  "60-64",
+  "65+",
+] as const;
+
 function normalizeKey(value: string) {
   return String(value || "")
     .toLowerCase()
     .replace(/[_-]+/g, " ")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+function toAgeRange(value: string): string {
+  const trimmed = String(value || "").trim();
+  const numericMatch = trimmed.match(/^(\d{1,3})$/);
+  if (!numericMatch) return trimmed;
+
+  const age = Number(numericMatch[1]);
+  if (!Number.isFinite(age)) return trimmed;
+
+  for (const range of AGE_RANGES) {
+    const closedMatch = range.match(/^(\d+)-(\d+)$/);
+    if (closedMatch) {
+      const start = Number(closedMatch[1]);
+      const end = Number(closedMatch[2]);
+      if (age >= start && age <= end) return range;
+      continue;
+    }
+
+    const plusMatch = range.match(/^(\d+)\+$/);
+    if (plusMatch) {
+      const start = Number(plusMatch[1]);
+      if (age >= start) return range;
+    }
+  }
+
+  return trimmed;
 }
 
 export function toSafeAggregateNumber(value: unknown) {
@@ -259,8 +301,9 @@ export function normalizeAggregateValueToDisaggregateMap(
     if (!map[row.first]) map[row.first] = {};
     const secondLevel = map[row.first];
     const existing = secondLevel[row.second];
+    const normalizedThird = toAgeRange(row.third);
 
-    if (row.third === "Total") {
+    if (normalizedThird === "Total") {
       if (existing && typeof existing === "object" && existing !== null) {
         (existing as Record<string, unknown>).TOTAL = toSafeAggregateNumber(
           (existing as Record<string, unknown>).TOTAL,
@@ -275,7 +318,7 @@ export function normalizeAggregateValueToDisaggregateMap(
       existing && typeof existing === "object" && existing !== null
         ? (existing as Record<string, number>)
         : {};
-    thirdLevel[row.third] = toSafeAggregateNumber(thirdLevel[row.third]) + row.value;
+    thirdLevel[normalizedThird] = toSafeAggregateNumber(thirdLevel[normalizedThird]) + row.value;
     secondLevel[row.second] = thirdLevel;
   });
 

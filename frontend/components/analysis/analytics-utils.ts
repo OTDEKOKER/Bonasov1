@@ -7,7 +7,7 @@ type BreakdownOption = {
   label?: string;
 };
 
-type BreakdownMap = Record<string, BreakdownOption[]>;
+export type BreakdownMap = Record<string, BreakdownOption[]>;
 
 export function cleanLabel(value: string | null | undefined) {
   if (!value) return "—";

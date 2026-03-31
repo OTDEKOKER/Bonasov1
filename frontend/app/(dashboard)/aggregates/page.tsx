@@ -5,7 +5,6 @@ import { useSearchParams } from "next/navigation";
 import { Calendar, Clock3, Download, Filter, Loader2, Search, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -37,11 +36,11 @@ import {
 import {
   buildEmptyEntryMatrix,
   buildEntryMatrixPayload,
-  calculateAggregateTotals,
   computeEntryMatrixTotal,
   getAggregateEntryMatrixConfig,
   groupAggregatesByIndicator,
   parseNumberInput,
+  resolveParentOrganizationId,
   type AggregateValue,
   type AggregateEntryMatrixConfig,
 } from "@/lib/aggregates/aggregate-helpers";
@@ -71,6 +70,7 @@ function AggregatesPageContent() {
   const { user } = useAuth();
   const searchParams = useSearchParams();
   const reviewAggregateIdParam = searchParams.get("reviewAggregateId");
+  const sidebarOrgId = searchParams.get("orgId");
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isAutoCalcOpen, setIsAutoCalcOpen] = useState(false);
@@ -216,6 +216,7 @@ function AggregatesPageContent() {
     periodOptions,
     projectFilter,
     scopedOrganizations,
+    scopedOrganizationIds,
     searchQuery,
     selectedOrganizationIds,
     selectedOrganizationIdsList,
@@ -230,6 +231,44 @@ function AggregatesPageContent() {
     availableCoordinatorOrganizations,
     visibleOrganizations,
   });
+
+  useEffect(() => {
+    if (!sidebarOrgId) return;
+
+    const matchedCoordinator = availableCoordinatorOrganizations.find(
+      (organization) => String(organization.id) === sidebarOrgId,
+    );
+    if (matchedCoordinator) {
+      if (parentOrgFilter !== sidebarOrgId) {
+        setCoordinatorFilter(sidebarOrgId);
+      } else if (selectedOrganizationIdsList.length > 0) {
+        setSelectedOrganizationIdsList([]);
+      }
+      return;
+    }
+
+    const matchedOrganization = visibleOrganizations.find(
+      (organization) => String(organization.id) === sidebarOrgId,
+    );
+    if (!matchedOrganization) return;
+
+    const parentId = resolveParentOrganizationId(matchedOrganization);
+    const fallbackCoordinatorId = parentId || String(matchedOrganization.id);
+    const coordinatorExists = availableCoordinatorOrganizations.some(
+      (organization) => String(organization.id) === fallbackCoordinatorId,
+    );
+    if (!coordinatorExists || parentOrgFilter === fallbackCoordinatorId) return;
+
+    setCoordinatorFilter(fallbackCoordinatorId);
+  }, [
+    availableCoordinatorOrganizations,
+    parentOrgFilter,
+    setCoordinatorFilter,
+    setSelectedOrganizationIdsList,
+    sidebarOrgId,
+    selectedOrganizationIdsList,
+    visibleOrganizations,
+  ]);
 
   const availableFormOrganizations = useMemo(() => {
     if (!formProject) return [];
@@ -423,6 +462,7 @@ function AggregatesPageContent() {
 
       const aggregateOrganizationId = String(aggregate.organization);
       if (!visibleOrganizationIds.has(aggregateOrganizationId)) return false;
+      if (!scopedOrganizationIds.has(aggregateOrganizationId)) return false;
       if (!selectedOrganizationIds.has(aggregateOrganizationId)) return false;
 
       const matchesProject =
@@ -457,6 +497,7 @@ function AggregatesPageContent() {
     periodFilter,
     projectFilter,
     searchQuery,
+    scopedOrganizationIds,
     selectedOrganizationIds,
     selectedPeriodOption,
     visibleOrganizationIds,
@@ -467,9 +508,8 @@ function AggregatesPageContent() {
     [filteredAggregates, indicatorCodeById, indicatorNameById],
   );
 
-  const totals = useMemo(() => calculateAggregateTotals(filteredAggregates), [filteredAggregates]);
   const {
-    chartData,
+    chartSections,
     chartDescription,
     chartTitle,
     isChartOpen,
@@ -506,7 +546,6 @@ function AggregatesPageContent() {
         .sort((left, right) => String(right.updated_at).localeCompare(String(left.updated_at))),
     [aggregates, canReportAcrossOrganizations, visibleOrganizationIds, writableOrganizationIds],
   );
-
   useEffect(() => {
     if (!reviewAggregateIdParam || !canReviewAggregates) return;
     const hasMatch = reviewQueueAggregates.some(
@@ -1097,15 +1136,18 @@ function AggregatesPageContent() {
         />
       ) : null}
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-        <div className="relative sm:col-span-2 xl:col-span-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search indicators..."
-            value={searchQuery}
-            onChange={(event) => setSearchQuery(event.target.value)}
-            className="pl-9"
-          />
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="space-y-1 sm:col-span-2 lg:col-span-1">
+          <div className="h-5" aria-hidden="true" />
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search indicators..."
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              className="pl-9"
+            />
+          </div>
         </div>
 
         <div className="space-y-1">
@@ -1180,33 +1222,6 @@ function AggregatesPageContent() {
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Total Entries</CardDescription>
-            <CardTitle className="text-2xl">{filteredAggregates.length}</CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Male Total</CardDescription>
-            <CardTitle className="text-2xl text-chart-2">{totals.male.toLocaleString()}</CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Female Total</CardDescription>
-            <CardTitle className="text-2xl text-chart-5">{totals.female.toLocaleString()}</CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Grand Total</CardDescription>
-            <CardTitle className="text-2xl text-primary">{totals.total.toLocaleString()}</CardTitle>
-          </CardHeader>
-        </Card>
-      </div>
-
       <AggregateMatrixTable
         aggregateGroups={aggregateGroups}
         projectNameById={projectNameById}
@@ -1217,7 +1232,7 @@ function AggregatesPageContent() {
       <AggregateChartDialog
         open={isChartOpen}
         onOpenChange={setIsChartOpen}
-        data={chartData}
+        sections={chartSections}
         title={chartTitle}
         description={chartDescription}
       />

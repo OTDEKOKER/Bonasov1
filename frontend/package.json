@@ -7,7 +7,7 @@
     "purge:data": "node scripts/purge-live-data.mjs",
     "prebuild": "node scripts/validate-no-diff-markers.mjs && node scripts/validate-env.mjs && npm run lint",
     "build": "next build",
-    "dev": "next dev -H 0.0.0.0 -p 3000",
+    "dev": "next dev -H 0.0.0.0 -p 3001",
     "lint": "eslint .",
     "start": "next start",
     "mobile:doctor": "npx cap doctor",

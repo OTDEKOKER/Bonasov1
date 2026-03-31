@@ -1,0 +1,289 @@
+{
+  "summary": {
+    "workbook": "C:\\Users\\dekok\\Downloads\\CSOs Reports\\CSOs Reports\\TEBELOPELE\\TEBELOPELE- NAHPA REPORTING TEMPLATE 2025_26 Q3.xlsm",
+    "period_start": "2025-10-01",
+    "period_end": "2025-12-31",
+    "organization_count": 17,
+    "matched_rows": 884,
+    "exact_matches": 867,
+    "mismatched_rows": 17,
+    "missing_rows": 0,
+    "unresolved_rows": 0
+  },
+  "sheets": {
+    "TEBELOPELE": {
+      "parsed_rows": 52,
+      "exact_matches": 51,
+      "mismatches": 1,
+      "missing": 0,
+      "unresolved": 0
+    },
+    "SENTEBALE": {
+      "parsed_rows": 52,
+      "exact_matches": 51,
+      "mismatches": 1,
+      "missing": 0,
+      "unresolved": 0
+    },
+    "BOFWA": {
+      "parsed_rows": 52,
+      "exact_matches": 51,
+      "mismatches": 1,
+      "missing": 0,
+      "unresolved": 0
+    },
+    "Stepping Stone International": {
+      "parsed_rows": 52,
+      "exact_matches": 51,
+      "mismatches": 1,
+      "missing": 0,
+      "unresolved": 0
+    },
+    "Bobonong Home Based Care": {
+      "parsed_rows": 52,
+      "exact_matches": 51,
+      "mismatches": 1,
+      "missing": 0,
+      "unresolved": 0
+    },
+    "Mabogo aa Thebana Association S": {
+      "parsed_rows": 52,
+      "exact_matches": 51,
+      "mismatches": 1,
+      "missing": 0,
+      "unresolved": 0
+    },
+    "Ovajua": {
+      "parsed_rows": 52,
+      "exact_matches": 51,
+      "mismatches": 1,
+      "missing": 0,
+      "unresolved": 0
+    },
+    "Gumare Advisory": {
+      "parsed_rows": 52,
+      "exact_matches": 51,
+      "mismatches": 1,
+      "missing": 0,
+      "unresolved": 0
+    },
+    "Positive Moments": {
+      "parsed_rows": 52,
+      "exact_matches": 51,
+      "mismatches": 1,
+      "missing": 0,
+      "unresolved": 0
+    },
+    "Mind Power": {
+      "parsed_rows": 52,
+      "exact_matches": 51,
+      "mismatches": 1,
+      "missing": 0,
+      "unresolved": 0
+    },
+    "Mopipi International Trust": {
+      "parsed_rows": 52,
+      "exact_matches": 51,
+      "mismatches": 1,
+      "missing": 0,
+      "unresolved": 0
+    },
+    "House of Angels": {
+      "parsed_rows": 52,
+      "exact_matches": 51,
+      "mismatches": 1,
+      "missing": 0,
+      "unresolved": 0
+    },
+    "Inspired Hozirons": {
+      "parsed_rows": 52,
+      "exact_matches": 51,
+      "mismatches": 1,
+      "missing": 0,
+      "unresolved": 0
+    },
+    "Hope Worldwide": {
+      "parsed_rows": 52,
+      "exact_matches": 51,
+      "mismatches": 1,
+      "missing": 0,
+      "unresolved": 0
+    },
+    "Rena le Seabe": {
+      "parsed_rows": 52,
+      "exact_matches": 51,
+      "mismatches": 1,
+      "missing": 0,
+      "unresolved": 0
+    },
+    "Social Dialogue": {
+      "parsed_rows": 52,
+      "exact_matches": 51,
+      "mismatches": 1,
+      "missing": 0,
+      "unresolved": 0
+    },
+    "INERELA": {
+      "parsed_rows": 52,
+      "exact_matches": 51,
+      "mismatches": 1,
+      "missing": 0,
+      "unresolved": 0
+    }
+  },
+  "examples": [
+    {
+      "sheet": "TEBELOPELE",
+      "organization": "TEBELOPELE",
+      "code": "14",
+      "title": "Number of community leaders sensitised on human rights, stigma and descrimination",
+      "issue": "mismatch",
+      "indicator_id": 362,
+      "indicator_name": "Number of community leaders sensitised on human rights, stigma and descrimination."
+    },
+    {
+      "sheet": "SENTEBALE",
+      "organization": "Sentebale",
+      "code": "14",
+      "title": "Number of community leaders sensitised on human rights, stigma and descrimination",
+      "issue": "mismatch",
+      "indicator_id": 362,
+      "indicator_name": "Number of community leaders sensitised on human rights, stigma and descrimination."
+    },
+    {
+      "sheet": "BOFWA",
+      "organization": "BOFWA",
+      "code": "14",
+      "title": "Number of community leaders sensitised on human rights, stigma and descrimination",
+      "issue": "mismatch",
+      "indicator_id": 362,
+      "indicator_name": "Number of community leaders sensitised on human rights, stigma and descrimination."
+    },
+    {
+      "sheet": "Stepping Stone International",
+      "organization": "Stepping Stone International",
+      "code": "14",
+      "title": "Number of community leaders sensitised on human rights, stigma and descrimination",
+      "issue": "mismatch",
+      "indicator_id": 362,
+      "indicator_name": "Number of community leaders sensitised on human rights, stigma and descrimination."
+    },
+    {
+      "sheet": "Bobonong Home Based Care",
+      "organization": "Bobonong Home Based Care",
+      "code": "14",
+      "title": "Number of community leaders sensitised on human rights, stigma and descrimination",
+      "issue": "mismatch",
+      "indicator_id": 362,
+      "indicator_name": "Number of community leaders sensitised on human rights, stigma and descrimination."
+    },
+    {
+      "sheet": "Mabogo aa Thebana Association S",
+      "organization": "Mabogo aa Thebana Association South",
+      "code": "14",
+      "title": "Number of community leaders sensitised on human rights, stigma and descrimination",
+      "issue": "mismatch",
+      "indicator_id": 362,
+      "indicator_name": "Number of community leaders sensitised on human rights, stigma and descrimination."
+    },
+    {
+      "sheet": "Ovajua",
+      "organization": "Ovajhu",
+      "code": "14",
+      "title": "Number of community leaders sensitised on human rights, stigma and descrimination",
+      "issue": "mismatch",
+      "indicator_id": 362,
+      "indicator_name": "Number of community leaders sensitised on human rights, stigma and descrimination."
+    },
+    {
+      "sheet": "Gumare Advisory",
+      "organization": "Gumare Advisory",
+      "code": "14",
+      "title": "Number of community leaders sensitised on human rights, stigma and descrimination",
+      "issue": "mismatch",
+      "indicator_id": 362,
+      "indicator_name": "Number of community leaders sensitised on human rights, stigma and descrimination."
+    },
+    {
+      "sheet": "Positive Moments",
+      "organization": "Positive Moments",
+      "code": "14",
+      "title": "Number of community leaders sensitised on human rights, stigma and descrimination",
+      "issue": "mismatch",
+      "indicator_id": 362,
+      "indicator_name": "Number of community leaders sensitised on human rights, stigma and descrimination."
+    },
+    {
+      "sheet": "Mind Power",
+      "organization": "Mind Power",
+      "code": "14",
+      "title": "Number of community leaders sensitised on human rights, stigma and descrimination",
+      "issue": "mismatch",
+      "indicator_id": 362,
+      "indicator_name": "Number of community leaders sensitised on human rights, stigma and descrimination."
+    },
+    {
+      "sheet": "Mopipi International Trust",
+      "organization": "Mopipi International Trust",
+      "code": "14",
+      "title": "Number of community leaders sensitised on human rights, stigma and descrimination",
+      "issue": "mismatch",
+      "indicator_id": 362,
+      "indicator_name": "Number of community leaders sensitised on human rights, stigma and descrimination."
+    },
+    {
+      "sheet": "House of Angels",
+      "organization": "House of Angels",
+      "code": "14",
+      "title": "Number of community leaders sensitised on human rights, stigma and descrimination",
+      "issue": "mismatch",
+      "indicator_id": 362,
+      "indicator_name": "Number of community leaders sensitised on human rights, stigma and descrimination."
+    },
+    {
+      "sheet": "Inspired Hozirons",
+      "organization": "Inspired Horizons",
+      "code": "14",
+      "title": "Number of community leaders sensitised on human rights, stigma and descrimination",
+      "issue": "mismatch",
+      "indicator_id": 362,
+      "indicator_name": "Number of community leaders sensitised on human rights, stigma and descrimination."
+    },
+    {
+      "sheet": "Hope Worldwide",
+      "organization": "Hope Worldwide",
+      "code": "14",
+      "title": "Number of community leaders sensitised on human rights, stigma and descrimination",
+      "issue": "mismatch",
+      "indicator_id": 362,
+      "indicator_name": "Number of community leaders sensitised on human rights, stigma and descrimination."
+    },
+    {
+      "sheet": "Rena le Seabe",
+      "organization": "Rena le Seabe",
+      "code": "14",
+      "title": "Number of community leaders sensitised on human rights, stigma and descrimination",
+      "issue": "mismatch",
+      "indicator_id": 362,
+      "indicator_name": "Number of community leaders sensitised on human rights, stigma and descrimination."
+    },
+    {
+      "sheet": "Social Dialogue",
+      "organization": "Social Dialogue",
+      "code": "14",
+      "title": "Number of community leaders sensitised on human rights, stigma and descrimination",
+      "issue": "mismatch",
+      "indicator_id": 362,
+      "indicator_name": "Number of community leaders sensitised on human rights, stigma and descrimination."
+    },
+    {
+      "sheet": "INERELA",
+      "organization": "INERELA",
+      "code": "14",
+      "title": "Number of community leaders sensitised on human rights, stigma and descrimination",
+      "issue": "mismatch",
+      "indicator_id": 362,
+      "indicator_name": "Number of community leaders sensitised on human rights, stigma and descrimination."
+    }
+  ]
+}

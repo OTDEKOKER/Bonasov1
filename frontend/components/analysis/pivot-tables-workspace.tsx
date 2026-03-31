@@ -13,7 +13,12 @@ import {
   Trash2,
 } from "lucide-react";
 
-import { cleanLabel, formatAnalyticsValue, triggerBlobDownload } from "@/components/analysis/analytics-utils";
+import {
+  cleanLabel,
+  formatAnalyticsValue,
+  triggerBlobDownload,
+  type BreakdownMap,
+} from "@/components/analysis/analytics-utils";
 import { SmartChartRenderer } from "@/components/analysis/smart-chart-renderer";
 import { PageHeader } from "@/components/shared/page-header";
 import {
@@ -245,7 +250,7 @@ function formatPivotDisplayValue(
   value: PivotMatrixCell,
   options?: {
     field?: string | null;
-    breakdowns?: Record<string, unknown>;
+    breakdowns?: BreakdownMap;
     numeric?: boolean;
   },
 ) {
@@ -295,7 +300,7 @@ function buildPivotPreviewChart(input: {
   bodyRows: Array<Array<PivotMatrixCell>>;
   numericColumns: boolean[];
   pivotParamNames: string[];
-  dashboardBreakdowns?: Record<string, unknown>;
+  dashboardBreakdowns?: BreakdownMap;
 }): BarLikeChart | null {
   const { headerRow, bodyRows, numericColumns, pivotParamNames, dashboardBreakdowns } = input;
   if (headerRow.length < 2 || bodyRows.length === 0) return null;
@@ -782,7 +787,7 @@ export function PivotTablesWorkspace() {
     isLoading: detailLoading,
     error: detailError,
   } = usePivotTable(selectedId);
-  const dashboardBreakdowns = undefined;
+  const dashboardBreakdowns: BreakdownMap | undefined = undefined;
 
   const pivotTablesUnavailable = isBackendUnavailable(listError);
   const pivotTables = pivotTablesData?.results ?? EMPTY_ITEMS;
