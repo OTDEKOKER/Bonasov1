@@ -27,6 +27,7 @@ import { compareMonthLabels, compareQuarterLabels, compareYearLabels } from "@/l
 import {
   buildAnalyticsFacts,
   computeReportingCompleteness,
+  type AnalyticsFact,
   type AnalyticsQueryContract,
 } from "@/lib/analytics/query-builder";
 import { resolveOrgScope } from "@/lib/analytics/org-scope";
@@ -39,6 +40,7 @@ import { getUserOrganizationId } from "@/lib/utils/organization";
 import {
   buildVisualizationResult,
   type DrilldownTarget,
+  type NormalizedAggregateRecord,
 } from "@/lib/visualization/engine";
 import { buildVisualizationResultV2Compat } from "@/lib/visualization/engine-v2-compat";
 import { ENABLE_VISUALIZATION_ENGINE_V2 } from "@/lib/visualization/feature-flags";
@@ -55,7 +57,7 @@ type DashboardChartCardConfig = {
   id: string;
   title: string;
   description: string;
-  chart: any;
+  chart: unknown;
   size: ChartSizeTier;
   footerText?: string | null;
 };
@@ -282,7 +284,7 @@ function DashboardChartCard(props: {
 
 function DashboardVisualizationPanels(props: {
   dashboardId: number;
-  facts: any[];
+  facts: AnalyticsFact[];
   selectedIndicators: Indicator[];
   organizations: Organization[];
   organizationsById: Map<string, Organization>;
@@ -375,7 +377,9 @@ function DashboardVisualizationPanels(props: {
   const completeness = useMemo(
     () =>
       computeReportingCompleteness({
-        facts: visualization.normalizedRecords.map((record: any) => record.source),
+        facts: visualization.normalizedRecords.map(
+          (record: NormalizedAggregateRecord) => record.source,
+        ),
         scopedOrgIds,
       }),
     [scopedOrgIds, visualization.normalizedRecords],

@@ -111,6 +111,7 @@ export const KEY_POPULATIONS = [
   "FSW",
   "PWD",
   "PWID",
+  "PWUD",
   "LGBTQI+",
   "GENERAL POP.",
 ] as const;
@@ -331,9 +332,22 @@ function buildDimensionAliasMap(expectedValues: string[]): Map<string, string> {
     ["male", "Male"],
     ["f", "Female"],
     ["female", "Female"],
+    ["pwud", "PWUD"],
+    ["wud", "PWUD"],
+    ["people who use drugs", "PWUD"],
+    ["pwid", "PWID"],
+    ["wids", "PWID"],
+    ["people who inject drugs", "PWID"],
+    ["pwd", "PWD"],
+    ["persons with disabilities", "PWD"],
+    ["lgbtqi", "LGBTQI+"],
+    ["lgbtqi+", "LGBTQI+"],
+    ["general pop", "GENERAL POP."],
     ["gen pop", "GENERAL POP."],
     ["general pop", "GENERAL POP."],
     ["general population", "GENERAL POP."],
+    ["general population.", "GENERAL POP."],
+    ["general pop.", "GENERAL POP."],
     ["blood pressure", "Blood Pressure"],
     ["bp", "Blood Pressure"],
     ["blood pressure messages", "Blood Pressure messages"],
@@ -352,9 +366,69 @@ function buildDimensionAliasMap(expectedValues: string[]): Map<string, string> {
   return aliasMap;
 }
 
+function resolveAgeRangeBucket(
+  value: string,
+  expectedValues: string[],
+): string | null {
+  const trimmed = String(value || "").trim();
+  if (!trimmed) return null;
+
+  const numericMatch = trimmed.match(/^(\d{1,3})$/);
+  if (!numericMatch) return null;
+
+  const age = Number(numericMatch[1]);
+  if (!Number.isFinite(age)) return null;
+
+  const matchedRange = expectedValues.find((expectedValue) => {
+    const rangeMatch = String(expectedValue).trim().match(/^(\d{1,3})-(\d{1,3})$/);
+    if (!rangeMatch) return false;
+    const start = Number(rangeMatch[1]);
+    const end = Number(rangeMatch[2]);
+    return age >= start && age <= end;
+  });
+  if (matchedRange) return matchedRange;
+
+  const matchedOpenEndedRange = expectedValues.find((expectedValue) => {
+    const plusMatch = String(expectedValue).trim().match(/^(\d{1,3})\+$/);
+    if (!plusMatch) return false;
+    const start = Number(plusMatch[1]);
+    return age >= start;
+  });
+
+  return matchedOpenEndedRange || null;
+}
+
+function normalizeConfiguredAgeBands(values: string[]): string[] {
+  const normalized = new Set<string>();
+
+  values.forEach((value) => {
+    const trimmed = String(value || "").trim();
+    if (!trimmed) return;
+
+    const mappedBucket = resolveAgeRangeBucket(trimmed, [...AGE_RANGES]);
+    if (mappedBucket) {
+      normalized.add(mappedBucket);
+      return;
+    }
+
+    if (AGE_RANGES.includes(trimmed as (typeof AGE_RANGES)[number])) {
+      normalized.add(trimmed);
+    }
+  });
+
+  if (normalized.size === 0) {
+    return [...AGE_RANGES];
+  }
+
+  return AGE_RANGES.filter((band) => normalized.has(band));
+}
+
 function canonicalizeDimensionValue(value: string, expectedValues: string[]): string {
   const trimmed = String(value || "").trim();
   if (!trimmed) return trimmed;
+
+  const ageRangeBucket = resolveAgeRangeBucket(trimmed, expectedValues);
+  if (ageRangeBucket) return ageRangeBucket;
 
   const sexNormalized = normalizeSexValue(trimmed);
   if (sexNormalized !== trimmed && expectedValues.some((item) => normalizeDimensionToken(item) === normalizeDimensionToken(sexNormalized))) {
@@ -471,7 +545,39 @@ export function getDisaggregates(value: unknown): MatrixDisaggregates | null {
   return coerceMatrixDisaggregates(normalizeAggregateValueToDisaggregateMap(value));
 }
 
+function deriveAggregateTotalsFromDisaggregates(
+  value: unknown,
+): { male: number; female: number; total: number } | null {
+  const disaggregates = getDisaggregates(value);
+  if (!disaggregates) return null;
+
+  let male = 0;
+  let female = 0;
+  let total = 0;
+
+  Object.values(disaggregates).forEach((dimensions) => {
+    Object.entries(dimensions || {}).forEach(([dimension, bands]) => {
+      const normalizedDimension = normalizeDimensionToken(dimension);
+      Object.entries(bands || {}).forEach(([band, rawValue]) => {
+        if (band === AYP_BAND_LABEL) return;
+        const numericValue = toSafeNumber(rawValue);
+        total += numericValue;
+        if (normalizedDimension === "male" || normalizedDimension === "m") {
+          male += numericValue;
+        } else if (normalizedDimension === "female" || normalizedDimension === "f") {
+          female += numericValue;
+        }
+      });
+    });
+  });
+
+  return { male, female, total };
+}
+
 export function getAggregateTotal(aggregate: Pick<Aggregate, "value">): number {
+  const derivedTotals = deriveAggregateTotalsFromDisaggregates(aggregate.value);
+  if (derivedTotals) return derivedTotals.total;
+
   const value = parseAggregateValue(aggregate.value);
   const male = Number(value.male) || 0;
   const female = Number(value.female) || 0;
@@ -485,6 +591,14 @@ export function calculateAggregateTotals(aggregates: Aggregate[]): {
 } {
   return aggregates.reduce(
     (acc, aggregate) => {
+      const derivedTotals = deriveAggregateTotalsFromDisaggregates(aggregate.value);
+      if (derivedTotals) {
+        acc.male += derivedTotals.male;
+        acc.female += derivedTotals.female;
+        acc.total += derivedTotals.total;
+        return acc;
+      }
+
       const value = parseAggregateValue(aggregate.value);
       acc.male += Number(value.male) || 0;
       acc.female += Number(value.female) || 0;
@@ -663,11 +777,16 @@ export function getAggregateEntryMatrixConfig(
   const secondaryDimension = sexDimension || nonSpecialDimensions[1] || null;
   const primaryKey = getPrimaryDisaggregateKey(input);
 
-  const primaryValues = primaryDimension?.values?.length
+  const configuredPrimaryValues = primaryDimension?.values?.length
     ? [...primaryDimension.values]
-    : primaryKey
-      ? [...(primaryDisaggregateValueMap[primaryKey] || ["All"])]
-      : ["All"];
+    : [];
+
+  const primaryValues =
+    primaryKey && primaryDisaggregateValueMap[primaryKey]
+      ? [...primaryDisaggregateValueMap[primaryKey]]
+      : configuredPrimaryValues.length > 0
+        ? configuredPrimaryValues
+        : ["All"];
 
   const secondaryValues = secondaryDimension
     ? secondaryDimension.values.length > 0
@@ -679,7 +798,7 @@ export function getAggregateEntryMatrixConfig(
 
   const bandValues = ageDimension
     ? ageDimension.values.length > 0
-      ? [...ageDimension.values]
+      ? normalizeConfiguredAgeBands([...ageDimension.values])
       : [...AGE_RANGES]
     : ["Value"];
 
@@ -728,7 +847,12 @@ export function normalizeMatrixDisaggregatesForIndicator(
     });
   });
 
-  const seedPrimaryValues = config.primaryValues.length > 0 ? config.primaryValues : ["All"];
+  const seedPrimaryValues =
+    Object.keys(normalized).length > 0
+      ? Object.keys(normalized)
+      : config.primaryValues.length > 0
+        ? config.primaryValues
+        : ["All"];
   const seedSecondaryValues = config.secondaryValues.length > 0 ? config.secondaryValues : ["All"];
 
   seedPrimaryValues.forEach((primaryValue) => {
@@ -888,6 +1012,7 @@ export function buildDisplayMatrix(source: MatrixDisaggregates, groups: Set<stri
 
   const secondDimensions = new Set<string>();
   const ageBandSet = new Set<string>();
+  const nonZeroAgeBandSet = new Set<string>();
   let hasAypFromData = false;
 
   keyPops.forEach((kp) => {
@@ -900,6 +1025,9 @@ export function buildDisplayMatrix(source: MatrixDisaggregates, groups: Set<stri
           return;
         }
         ageBandSet.add(band);
+        if (toSafeNumber(row[dimension]?.[band]) !== 0) {
+          nonZeroAgeBandSet.add(band);
+        }
       });
     });
   });
@@ -912,11 +1040,12 @@ export function buildDisplayMatrix(source: MatrixDisaggregates, groups: Set<stri
     ? sortWithPreferred(Array.from(secondDimensions), preferredSecondDimensionOrder)
     : ["All"];
 
-  const hasAgeDefaults = groups.has("age range") && ageBandSet.size === 0;
+  const effectiveAgeBands = nonZeroAgeBandSet.size > 0 ? nonZeroAgeBandSet : ageBandSet;
+  const hasAgeDefaults = groups.has("age range") && effectiveAgeBands.size === 0;
   const ageBands = includeAge
     ? hasAgeDefaults
       ? [...AGE_RANGES]
-      : sortAgeBands(Array.from(ageBandSet))
+      : sortAgeBands(Array.from(effectiveAgeBands))
     : ["Value"];
 
   const showAypColumn =

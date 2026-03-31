@@ -21,7 +21,12 @@ import {
 import { ChevronDown, ChevronUp, FileImage, FileSpreadsheet, Loader2, Maximize2, Menu, RotateCw, Settings, Trash2 } from "lucide-react";
 import * as XLSX from "xlsx-js-style";
 
-import { cleanLabel, normalizeBreakdownLabel, triggerBlobDownload } from "@/components/analysis/analytics-utils";
+import {
+  cleanLabel,
+  normalizeBreakdownLabel,
+  triggerBlobDownload,
+  type BreakdownMap,
+} from "@/components/analysis/analytics-utils";
 import { ChartHeader } from "@/components/analysis/chart-header";
 import { ConsolidatedMatrixTable } from "@/components/analysis/consolidated-matrix-table";
 import { Button } from "@/components/ui/button";
@@ -83,7 +88,8 @@ type DashboardChartCardProps = {
   dashboard: DashboardSetting;
   onEdit: (chart: IndicatorChartSetting) => void;
   onDelete: (chart: IndicatorChartSetting) => Promise<void> | void;
-  onRefresh: () => Promise<void> | void;
+  onRefresh?: () => Promise<void> | void;
+  deleteDisabled?: boolean;
   zoomable?: boolean;
   zoomedView?: boolean;
 };
@@ -1320,7 +1326,7 @@ function WrappedXAxisTick({
 
 function buildFilterGroups(
   chart: IndicatorChartSetting,
-  dashboardBreakdowns: Record<string, unknown> | undefined,
+  dashboardBreakdowns: BreakdownMap | undefined,
 ): ChartFilterGroup[] {
   const groups = new Map<string, ChartFilterGroup>();
   const isSocialChart = (chart.indicator_details ?? []).some((indicator) => indicator.category === "social");
@@ -1616,7 +1622,7 @@ function getRowDimensionValue(row: Record<string, unknown>, fieldName: string | 
 
 function splitLegacyChartData(
   chart: IndicatorChartSetting,
-  breakdowns: Record<string, Array<{ value: unknown; label?: string }>> | undefined,
+  breakdowns: BreakdownMap | undefined,
   axisOverride?: "month" | "quarter" | null,
 ): { dataArray: Array<Record<string, string | number>>; keys: LegacyChartKey[] } {
   const rows = normalizeLegacyRows(chart.chart_data);
@@ -1867,7 +1873,16 @@ async function renderElementToBlob(
 }
 
 export function DashboardChartCard(props: DashboardChartCardProps) {
-  const { chart, dashboard, onEdit, onDelete, onRefresh, zoomable = true, zoomedView = false } = props;
+  const {
+    chart,
+    dashboard,
+    onEdit,
+    onDelete,
+    onRefresh,
+    deleteDisabled = false,
+    zoomable = true,
+    zoomedView = false,
+  } = props;
   const { toast } = useToast();
   const cardRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<HTMLDivElement | null>(null);
@@ -1887,7 +1902,7 @@ export function DashboardChartCard(props: DashboardChartCardProps) {
   const [activeFilters, setActiveFilters] = useState<Record<string, string[]>>(() => groupChartFilters(chart.filters));
   const [expandedFilterGroups, setExpandedFilterGroups] = useState<Record<string, boolean>>({});
   const usingDemoDashboard = isDemoAnalysisId(dashboard.id);
-  const dashboardBreakdowns = undefined;
+  const dashboardBreakdowns: BreakdownMap | undefined = undefined;
   const hasLegacyChartData = !usingDemoDashboard && normalizeLegacyRows(chart.chart_data).length > 0;
   const primaryIndicator = chart.indicator_details?.[0];
   const indicatorShortNameById = useMemo(() => {
@@ -3061,6 +3076,7 @@ export function DashboardChartCard(props: DashboardChartCardProps) {
     setRemoving(true);
     try {
       await onDelete(chart);
+      await onRefresh?.();
     } catch (errorCaught) {
       console.error("Failed to delete chart", errorCaught);
       toast({
@@ -3257,7 +3273,7 @@ export function DashboardChartCard(props: DashboardChartCardProps) {
                   <FileSpreadsheet className="h-4 w-4" />
                   Download Excel (.xlsx)
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleDelete} disabled={removing} variant="destructive">
+                <DropdownMenuItem onClick={handleDelete} disabled={removing || deleteDisabled} variant="destructive">
                   {removing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
                   Delete
                 </DropdownMenuItem>

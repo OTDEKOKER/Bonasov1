@@ -138,7 +138,7 @@ export function ReportingCompleteness(props: ReportingCompletenessProps) {
         )}
 
         <ChartInsightFooter>
-          {summary.submittedCount} of {totalOrganizations} organizations submitted data in the active scope.
+          {`${summary.submittedCount} of ${totalOrganizations} organizations submitted data in the active scope.`}
         </ChartInsightFooter>
       </CardContent>
     </Card>

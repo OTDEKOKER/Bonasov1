@@ -124,6 +124,53 @@ const cleanParams = (filters?: Record<string, string | undefined | null>) => {
 
 const LIST_ALL_PAGE_SIZE = '500';
 
+async function listAllAggregatePages(filters?: AggregateFilters): Promise<{
+  count: number;
+  results: Aggregate[];
+}> {
+  const results: Aggregate[] = [];
+  const seenIds = new Set<string>();
+  const startPage = Math.max(1, Number(filters?.page || 1));
+  const baseFilters = cleanParams({ ...(filters || {}) } as Record<string, string | undefined>) || {};
+  delete baseFilters.page;
+  if (!baseFilters.page_size) {
+    baseFilters.page_size = LIST_ALL_PAGE_SIZE;
+  }
+
+  const appendPageResults = (items: Aggregate[]) => {
+    items.forEach((item) => {
+      const id = String(item?.id ?? "");
+      if (!id || seenIds.has(id)) return;
+      seenIds.add(id);
+      results.push(item);
+    });
+  };
+
+  const { data: firstPage } = await api.get<PaginatedResponse<Aggregate>>('/aggregates/', {
+    ...baseFilters,
+    page: String(startPage),
+  });
+
+  appendPageResults(firstPage.results || []);
+
+  let nextUrl: string | null = firstPage.next;
+  const visitedPages = new Set<string>();
+
+  while (nextUrl) {
+    if (visitedPages.has(nextUrl)) break;
+    visitedPages.add(nextUrl);
+
+    const { data } = await api.get<PaginatedResponse<Aggregate>>(nextUrl);
+    appendPageResults(data.results || []);
+    nextUrl = data.next;
+  }
+
+  return {
+    count: Number(firstPage.count || results.length),
+    results,
+  };
+}
+
 export const aggregatesService = {
   /**
    * List all aggregates with optional filters
@@ -138,48 +185,7 @@ export const aggregatesService = {
    * List all aggregates across all pages
    */
   async listAll(filters?: AggregateFilters): Promise<Aggregate[]> {
-    const results: Aggregate[] = [];
-    const startPage = Math.max(1, Number(filters?.page || 1));
-    const baseFilters = cleanParams({ ...(filters || {}) } as Record<string, string | undefined>) || {};
-    delete baseFilters.page;
-    if (!baseFilters.page_size) {
-      baseFilters.page_size = LIST_ALL_PAGE_SIZE;
-    }
-
-    const { data: firstPage } = await api.get<PaginatedResponse<Aggregate>>('/aggregates/', {
-      ...baseFilters,
-      page: String(startPage),
-    });
-
-    const firstPageResults = firstPage.results || [];
-    results.push(...firstPageResults);
-
-    const pageSize = firstPageResults.length;
-    const totalCount = Number(firstPage.count || firstPageResults.length);
-    if (!firstPage.next || pageSize === 0) {
-      return results;
-    }
-
-    const totalPages = Math.ceil(totalCount / pageSize);
-    if (!Number.isFinite(totalPages) || totalPages <= startPage) {
-      return results;
-    }
-
-    const pageRequests: Promise<{ data: PaginatedResponse<Aggregate> }>[] = [];
-    for (let page = startPage + 1; page <= totalPages; page += 1) {
-      pageRequests.push(
-        api.get<PaginatedResponse<Aggregate>>('/aggregates/', {
-          ...baseFilters,
-          page: String(page),
-        })
-      );
-    }
-
-    const remainingPages = await Promise.all(pageRequests);
-    remainingPages.forEach(({ data }) => {
-      results.push(...(data.results || []));
-    });
-
+    const { results } = await listAllAggregatePages(filters);
     return results;
   },
 

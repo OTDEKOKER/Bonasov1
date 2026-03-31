@@ -117,10 +117,10 @@ export default function SearchPage() {
     router.push(`/search?q=${encodeURIComponent(trimmedQuery)}`)
   }
 
-  const respondents = respondentResults.data?.results ?? []
-  const projects = projectResults.data?.results ?? []
-  const organizations = organizationResults.data?.results ?? []
-  const users = userResults.data?.results ?? []
+  const respondents = useMemo(() => respondentResults.data?.results ?? [], [respondentResults.data?.results])
+  const projects = useMemo(() => projectResults.data?.results ?? [], [projectResults.data?.results])
+  const organizations = useMemo(() => organizationResults.data?.results ?? [], [organizationResults.data?.results])
+  const users = useMemo(() => userResults.data?.results ?? [], [userResults.data?.results])
 
   return (
     <div className="space-y-6">

@@ -493,7 +493,8 @@ def parse_sheet(ws):
 
     deduped = {}
     for item in parsed:
-        deduped[item["code"]] = item
+        dedupe_key = (str(item["code"]).strip(), canonical_indicator_key(item["title"]))
+        deduped[dedupe_key] = item
     return list(deduped.values())
 
 

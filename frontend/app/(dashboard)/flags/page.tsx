@@ -100,7 +100,6 @@ export default function FlagsPage() {
         critical: statsData.by_priority.find((p) => p.priority === "critical")?.count || 0,
       }
     : computedStats;
-
   const handleResolve = async () => {
     if (!selectedFlag) return;
     setIsUpdating(true);

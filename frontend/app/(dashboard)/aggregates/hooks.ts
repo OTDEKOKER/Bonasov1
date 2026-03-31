@@ -2,7 +2,17 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { aggregatesService } from "@/lib/api";
-import { type AggregateIndicatorGroup, getAggregateTotal, getPeriodLabel, resolveParentOrganizationId } from "@/lib/aggregates/aggregate-helpers";
+import {
+  AYP_BAND_LABEL,
+  AGE_RANGES,
+  KEY_POPULATIONS,
+  type AggregateIndicatorGroup,
+  calculateAggregateTotals,
+  getAggregateTotal,
+  getPeriodLabel,
+  mergeDisaggregatesForGroup,
+  resolveParentOrganizationId,
+} from "@/lib/aggregates/aggregate-helpers";
 import { isPlatformAdmin } from "@/lib/permissions";
 import type { Aggregate, User } from "@/lib/types";
 import { getUserOrganizationId } from "@/lib/utils/organization";
@@ -28,6 +38,19 @@ type ToastFn = (payload: {
   variant?: "default" | "destructive";
 }) => void;
 
+export type AggregateChartPoint = {
+  name: string;
+  total: number;
+};
+
+export type AggregateChartSection = {
+  id: string;
+  title: string;
+  note: string;
+  color: string;
+  data: AggregateChartPoint[];
+};
+
 const coordinatorOrganizationTypes = new Set([
   "coordinator",
   "senior_coordinator",
@@ -35,6 +58,17 @@ const coordinatorOrganizationTypes = new Set([
   "regional",
   "district",
 ]);
+
+const coordinatorPortfolioNames = new Set([
+  "tebelopele",
+  "makgabaneng",
+  "bonepwa",
+  "bonela",
+  "mbge",
+]);
+
+const isCoordinatorPortfolioOrganization = (organization: OrganizationWithParent) =>
+  coordinatorPortfolioNames.has(String(organization.name || "").trim().toLowerCase());
 
 function collectDescendantOrganizationIds(
   rootId: string,
@@ -125,16 +159,17 @@ export function useAggregateVisibilityScope(args: AggregateVisibilityScopeArgs) 
     if (!canReportAcrossOrganizations && !canReviewAggregates && !isCoordinatorUser) {
       return [];
     }
-    if (isCoordinatorUser && ownOrganization) {
+    if (!canReportAcrossOrganizations && !canReviewAggregates && isCoordinatorUser && ownOrganization) {
       return [ownOrganization];
     }
     return visibleOrganizations.filter((organization) => {
+      if (!isCoordinatorPortfolioOrganization(organization)) return false;
       const organizationId = String(organization.id);
-      const parentId = resolveParentOrganizationId(organization);
-      const hasVisibleChildren = (childrenByParentId.get(organizationId) || []).some((childId) =>
-        visibleOrganizationIds.has(childId),
+      const descendantIds = collectDescendantOrganizationIds(organizationId, childrenByParentId);
+      const hasVisibleDescendants = Array.from(descendantIds).some((descendantId) =>
+        visibleOrganizationIds.has(descendantId),
       );
-      return !parentId || !visibleOrganizationIds.has(parentId) || hasVisibleChildren;
+      return hasVisibleDescendants;
     });
   }, [
     canReportAcrossOrganizations,
@@ -294,6 +329,7 @@ export function useAggregateFilters(args: AggregateFiltersArgs) {
     periodOptions,
     projectFilter,
     scopedOrganizations,
+    scopedOrganizationIds,
     searchQuery,
     selectedOrganizationIds,
     selectedOrganizationIdsList: normalizedSelectedOrganizationIdsList,
@@ -539,6 +575,180 @@ type AggregateChartStateArgs = {
   aggregateGroups: AggregateIndicatorGroup[];
 };
 
+const SEX_LABEL_BY_TOKEN: Record<string, string> = {
+  male: "Male",
+  m: "Male",
+  female: "Female",
+  f: "Female",
+  other: "Other",
+  unknown: "Unknown",
+};
+
+function normalizeChartToken(value: string | null | undefined) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+const KEY_POPULATION_LABEL_BY_TOKEN = Object.fromEntries(
+  KEY_POPULATIONS.map((value) => [normalizeChartToken(value), value]),
+) as Record<string, string>;
+
+const AGE_BAND_ORDER = AGE_RANGES.map((value) => String(value));
+
+function addToChartMap(map: Map<string, number>, key: string, value: number) {
+  if (!key || value <= 0) return;
+  map.set(key, (map.get(key) || 0) + value);
+}
+
+function sortChartValues(values: string[], preferredOrder: string[]) {
+  const preferredIndex = new Map(preferredOrder.map((value, index) => [normalizeChartToken(value), index]));
+  return [...values].sort((left, right) => {
+    const leftRank = preferredIndex.get(normalizeChartToken(left)) ?? Number.POSITIVE_INFINITY;
+    const rightRank = preferredIndex.get(normalizeChartToken(right)) ?? Number.POSITIVE_INFINITY;
+    if (leftRank !== rightRank) return leftRank - rightRank;
+    return left.localeCompare(right);
+  });
+}
+
+function buildAggregateChartSections(items: Aggregate[]): AggregateChartSection[] {
+  if (items.length === 0) return [];
+
+  const sections: AggregateChartSection[] = [];
+  const mergedDisaggregates = mergeDisaggregatesForGroup(items);
+
+  if (mergedDisaggregates) {
+    const sexTotals = new Map<string, number>();
+    const keyPopulationTotals = new Map<string, number>();
+    const ageBandTotals = new Map<string, number>();
+
+    Object.entries(mergedDisaggregates).forEach(([primaryValue, dimensions]) => {
+      const canonicalKeyPopulation = KEY_POPULATION_LABEL_BY_TOKEN[normalizeChartToken(primaryValue)] || null;
+      let keyPopulationTotal = 0;
+
+      Object.entries(dimensions || {}).forEach(([dimensionValue, bands]) => {
+        const canonicalSex = SEX_LABEL_BY_TOKEN[normalizeChartToken(dimensionValue)] || null;
+
+        Object.entries(bands || {}).forEach(([band, rawValue]) => {
+          if (band === AYP_BAND_LABEL) return;
+          const numericValue = Number(rawValue) || 0;
+          if (numericValue <= 0) return;
+          const isAgeBand = AGE_BAND_ORDER.includes(String(band));
+
+          if (canonicalSex) {
+            addToChartMap(sexTotals, canonicalSex, numericValue);
+          }
+          if (canonicalKeyPopulation) {
+            keyPopulationTotal += numericValue;
+          }
+          if (isAgeBand) {
+            addToChartMap(ageBandTotals, String(band), numericValue);
+          }
+        });
+      });
+
+      if (canonicalKeyPopulation) {
+        addToChartMap(keyPopulationTotals, canonicalKeyPopulation, keyPopulationTotal);
+      }
+    });
+
+    if (sexTotals.size > 0) {
+      sections.push({
+        id: "sex",
+        title: "Total by Sex",
+        note: "This chart compares contributions by sex within the current filter scope.",
+        color: "hsl(var(--chart-1))",
+        data: sortChartValues(Array.from(sexTotals.keys()), ["Male", "Female", "Other", "Unknown"]).map((name) => ({
+          name,
+          total: sexTotals.get(name) || 0,
+        })),
+      });
+    }
+
+    if (keyPopulationTotals.size > 0) {
+      sections.push({
+        id: "key-population",
+        title: "Total by Key Population",
+        note: "This chart shows which key populations contribute most to the total.",
+        color: "hsl(var(--chart-2))",
+        data: sortChartValues(Array.from(keyPopulationTotals.keys()), [...KEY_POPULATIONS]).map((name) => ({
+          name,
+          total: keyPopulationTotals.get(name) || 0,
+        })),
+      });
+    }
+
+    if (ageBandTotals.size > 0) {
+      sections.push({
+        id: "age-band",
+        title: "Total by Age Band",
+        note: "This chart compares totals across age bands within the current filter scope.",
+        color: "hsl(var(--chart-5))",
+        data: sortChartValues(Array.from(ageBandTotals.keys()), AGE_BAND_ORDER).map((name) => ({
+          name,
+          total: ageBandTotals.get(name) || 0,
+        })),
+      });
+    }
+  }
+
+  if (!sections.some((section) => section.id === "sex")) {
+    const totals = calculateAggregateTotals(items);
+    const sexData: AggregateChartPoint[] = [];
+    if (totals.male > 0) sexData.push({ name: "Male", total: totals.male });
+    if (totals.female > 0) sexData.push({ name: "Female", total: totals.female });
+    if (sexData.length > 0) {
+      sections.unshift({
+        id: "sex",
+        title: "Total by Sex",
+        note: "This chart compares contributions by sex within the current filter scope.",
+        color: "hsl(var(--chart-1))",
+        data: sexData,
+      });
+    }
+  }
+
+  const totalsByPeriod = new Map<string, { label: string; periodEnd: string; total: number }>();
+  items.forEach((aggregate) => {
+    const periodStart = String(aggregate.period_start || "");
+    const periodEnd = String(aggregate.period_end || "");
+    const periodKey = `${periodStart}|${periodEnd}`;
+    const current = totalsByPeriod.get(periodKey) || {
+      label: getPeriodLabel(aggregate),
+      periodEnd,
+      total: 0,
+    };
+    current.total += getAggregateTotal(aggregate);
+    totalsByPeriod.set(periodKey, current);
+  });
+
+  if (totalsByPeriod.size > 1) {
+    sections.push({
+      id: "period",
+      title: "Total by Period",
+      note: "This chart compares totals across reporting periods within the current filter scope.",
+      color: "hsl(var(--chart-4))",
+      data: Array.from(totalsByPeriod.values())
+        .sort((left, right) => String(left.periodEnd).localeCompare(String(right.periodEnd)))
+        .map((entry) => ({ name: entry.label, total: entry.total })),
+    });
+  }
+
+  if (sections.length === 0) {
+    sections.push({
+      id: "total",
+      title: "Total",
+      note: "No disaggregated breakdown is available for this indicator within the current filter scope.",
+      color: "hsl(var(--primary))",
+      data: [{ name: "Total", total: items.reduce((sum, item) => sum + getAggregateTotal(item), 0) }],
+    });
+  }
+
+  return sections.filter((section) => section.data.some((point) => point.total > 0));
+}
+
 export function useAggregateChartState(args: AggregateChartStateArgs) {
   const { aggregateGroups } = args;
   const [isChartOpen, setIsChartOpen] = useState(false);
@@ -549,25 +759,10 @@ export function useAggregateChartState(args: AggregateChartStateArgs) {
     [aggregateGroups, selectedChartGroupKey],
   );
 
-  const chartData = useMemo(() => {
-    if (!selectedChartGroup) return [];
-    const totalsByPeriod = new Map<string, { label: string; periodEnd: string; total: number }>();
-    selectedChartGroup.items.forEach((aggregate) => {
-      const periodStart = String(aggregate.period_start || "");
-      const periodEnd = String(aggregate.period_end || "");
-      const periodKey = `${periodStart}|${periodEnd}`;
-      const current = totalsByPeriod.get(periodKey) || {
-        label: getPeriodLabel(aggregate),
-        periodEnd,
-        total: 0,
-      };
-      current.total += getAggregateTotal(aggregate);
-      totalsByPeriod.set(periodKey, current);
-    });
-    return Array.from(totalsByPeriod.values())
-      .sort((left, right) => String(left.periodEnd).localeCompare(String(right.periodEnd)))
-      .map((entry) => ({ name: entry.label, total: entry.total }));
-  }, [selectedChartGroup]);
+  const chartSections = useMemo(
+    () => (selectedChartGroup ? buildAggregateChartSections(selectedChartGroup.items) : []),
+    [selectedChartGroup],
+  );
 
   const openChartForGroup = useCallback((group: AggregateIndicatorGroup) => {
     setSelectedChartGroupKey(group.key);
@@ -575,9 +770,9 @@ export function useAggregateChartState(args: AggregateChartStateArgs) {
   }, []);
 
   return {
-    chartData,
+    chartSections,
     chartDescription: selectedChartGroup
-      ? `Totals for ${selectedChartGroup.indicatorName} within the current filter scope.`
+      ? `Breakdowns for ${selectedChartGroup.indicatorName} within the current filter scope.`
       : "Totals by indicator for the selected filters.",
     chartTitle: selectedChartGroup?.indicatorName || "Aggregate Totals",
     isChartOpen,

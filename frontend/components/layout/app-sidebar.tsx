@@ -6,6 +6,7 @@ import { usePathname, useSearchParams } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { useOrganizationTree } from "@/lib/hooks/use-api"
 import { useAuth } from "@/lib/contexts/auth-context"
+import type { Organization } from "@/lib/types"
 import {
   LayoutDashboard,
   Building2,
@@ -112,6 +113,30 @@ function NestedSubItem({ item, isChildActive, level = 1 }: NestedSubItemProps) {
     </Collapsible>
   )
 }
+
+function flattenOrganizations(nodes: Array<(Organization & { children?: Organization[] }) | undefined> | undefined) {
+  const flattened: Organization[] = []
+  const queue = [...(nodes ?? [])]
+
+  while (queue.length > 0) {
+    const next = queue.shift()
+    if (!next) continue
+    flattened.push(next)
+    for (const child of next.children ?? []) {
+      queue.push(child)
+    }
+  }
+
+  return flattened
+}
+
+const coordinatorPortfolioNames = new Set([
+  "tebelopele",
+  "makgabaneng",
+  "bonepwa",
+  "bonela",
+  "mbge",
+])
 
 function NavItem({ title, href, icon, badge, isActive, subItems }: NavItemProps) {
   const [isOpen, setIsOpen] = useState(false)
@@ -250,7 +275,10 @@ export function AppSidebar() {
   const { logout } = useAuth()
   const [isSigningOut, setIsSigningOut] = useState(false)
 
-  const parentOrganizations = (organizationTree ?? [])
+  const parentOrganizations = flattenOrganizations(
+    organizationTree as Array<(Organization & { children?: Organization[] }) | undefined> | undefined,
+  )
+    .filter((organization) => coordinatorPortfolioNames.has(String(organization.name || "").trim().toLowerCase()))
     .sort((left, right) => String(left.name || "").localeCompare(String(right.name || "")))
 
   const aggregateChildren: SidebarSubItem[] = [
