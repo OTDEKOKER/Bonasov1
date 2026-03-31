@@ -7,6 +7,8 @@
 
 import { api, type PaginatedResponse } from '../client';
 import type { Organization } from '@/lib/types';
+import { canonicalizeOrganizationName } from '@/lib/organization-aliases';
+import { mapOrganizationTypeToBackend, normalizeOrganizationType } from '@/lib/organization-hierarchy';
 
 // ============================================================================
 // Types
@@ -39,6 +41,21 @@ export interface UpdateOrganizationRequest extends Partial<CreateOrganizationReq
   is_active?: boolean;
 }
 
+type RawOrganization = {
+  id: string | number;
+  name: string;
+  type: string;
+  parent?: string | number | null;
+  email?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  description?: string | null;
+  is_active?: boolean | null;
+  created_at?: string;
+  createdAt?: string;
+  code?: string;
+};
+
 function makeCode(name: string): string {
   const base = name
     .trim()
@@ -48,11 +65,11 @@ function makeCode(name: string): string {
   return base || 'ORG';
 }
 
-function mapOrganization(org: any): Organization {
+function mapOrganization(org: RawOrganization): Organization {
   return {
     id: String(org.id),
-    name: org.name,
-    type: org.type,
+    name: canonicalizeOrganizationName(org.name),
+    type: normalizeOrganizationType(org.type) as Organization["type"],
     parentId: org.parent ? String(org.parent) : undefined,
     contactEmail: org.email ?? undefined,
     contactPhone: org.phone ?? undefined,
@@ -66,13 +83,15 @@ function mapOrganization(org: any): Organization {
 }
 
 function mapPaginatedOrganizations(
-  data: PaginatedResponse<any>,
+  data: PaginatedResponse<RawOrganization>,
 ): PaginatedResponse<Organization> {
   return {
     ...data,
     results: data.results.map(mapOrganization),
   };
 }
+
+const LIST_ALL_PAGE_SIZE = '500';
 
 // ============================================================================
 // Organizations Service
@@ -85,8 +104,8 @@ export const organizationsService = {
    */
   async list(filters?: OrganizationFilters): Promise<PaginatedResponse<Organization>> {
     const params = filters as Record<string, string> | undefined;
-    const { data } = await api.get<PaginatedResponse<Organization>>('/organizations/', params);
-    return mapPaginatedOrganizations(data as PaginatedResponse<any>);
+    const { data } = await api.get<PaginatedResponse<RawOrganization>>('/organizations/', params);
+    return mapPaginatedOrganizations(data);
   },
   /**
    * List all organizations across all pages
@@ -95,14 +114,17 @@ export const organizationsService = {
     const results: Organization[] = [];
     let page = filters?.page ? String(filters.page) : "1";
     const baseFilters = { ...(filters || {}) } as Record<string, string>;
-    delete (baseFilters as any).page;
+    delete baseFilters.page;
+    if (!baseFilters.page_size) {
+      baseFilters.page_size = LIST_ALL_PAGE_SIZE;
+    }
 
     while (true) {
-      const { data } = await api.get<PaginatedResponse<Organization>>('/organizations/', {
+      const { data } = await api.get<PaginatedResponse<RawOrganization>>('/organizations/', {
         ...baseFilters,
         page,
       });
-      const mapped = mapPaginatedOrganizations(data as PaginatedResponse<any>);
+      const mapped = mapPaginatedOrganizations(data);
       results.push(...mapped.results);
       if (!mapped.next) break;
       try {
@@ -122,7 +144,7 @@ export const organizationsService = {
    * Django endpoint: GET /api/organizations/:id/
    */
   async get(id: number): Promise<Organization> {
-    const { data } = await api.get<Organization>(`/organizations/${id}/`);
+    const { data } = await api.get<RawOrganization>(`/organizations/${id}/`);
     return mapOrganization(data);
   },
 
@@ -134,7 +156,7 @@ export const organizationsService = {
     const payload = {
       name: request.name,
       code: request.code || makeCode(request.name),
-      type: request.type,
+      type: mapOrganizationTypeToBackend(request.type),
       parent: request.parent ?? (request.parentId ? Number(request.parentId) : undefined),
       description: request.description,
       address: request.address,
@@ -142,7 +164,7 @@ export const organizationsService = {
       phone: request.phone ?? request.contactPhone,
       is_active: request.is_active,
     };
-    const { data } = await api.post<Organization>('/organizations/', payload);
+    const { data } = await api.post<RawOrganization>('/organizations/', payload);
     return mapOrganization(data);
   },
 
@@ -153,14 +175,15 @@ export const organizationsService = {
   async update(id: number, request: UpdateOrganizationRequest): Promise<Organization> {
     const payload = {
       ...request,
+      type: mapOrganizationTypeToBackend(request.type),
       parent: request.parent ?? (request.parentId ? Number(request.parentId) : undefined),
       email: request.email ?? request.contactEmail,
       phone: request.phone ?? request.contactPhone,
     };
-    delete (payload as any).parentId;
-    delete (payload as any).contactEmail;
-    delete (payload as any).contactPhone;
-    const { data } = await api.patch<Organization>(`/organizations/${id}/`, payload);
+    delete payload.parentId;
+    delete payload.contactEmail;
+    delete payload.contactPhone;
+    const { data } = await api.patch<RawOrganization>(`/organizations/${id}/`, payload);
     return mapOrganization(data);
   },
 

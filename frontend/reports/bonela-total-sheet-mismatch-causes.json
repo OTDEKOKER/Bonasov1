@@ -1,0 +1,550 @@
+[
+  {
+    "code": "10",
+    "name": "Number of condoms distributed to KVPs",
+    "totalSheetDerivedTotal": 52170,
+    "sumOfOrgDerivedTotals": 51784,
+    "difference": 386,
+    "blockStartRow": 377,
+    "blockEndRow": 393,
+    "causingSheets": [
+      {
+        "sheet": "BOTSWANA COUNCIL OF THE DISABLE",
+        "contributedViaTotalRows": 681,
+        "actualIndicatorTotal": 0,
+        "difference": 681
+      },
+      {
+        "sheet": "BOTSWANA TRANS INITIATIVE",
+        "contributedViaTotalRows": 5907,
+        "actualIndicatorTotal": 1969,
+        "difference": 3938
+      },
+      {
+        "sheet": "CAPTIVE EYE ORG.",
+        "contributedViaTotalRows": 25158,
+        "actualIndicatorTotal": 8386,
+        "difference": 16772
+      },
+      {
+        "sheet": "LESBIANS, GAYS & BISEXUALS OF B",
+        "contributedViaTotalRows": 1350,
+        "actualIndicatorTotal": 450,
+        "difference": 900
+      },
+      {
+        "sheet": "MEN FOR HEALTH & GENDER JUSTICE",
+        "contributedViaTotalRows": 57798,
+        "actualIndicatorTotal": 19266,
+        "difference": 38532
+      },
+      {
+        "sheet": "NKAIKELA YOUTH GROUP",
+        "contributedViaTotalRows": 59661,
+        "actualIndicatorTotal": 19887,
+        "difference": 39774
+      },
+      {
+        "sheet": "SILENCE KILLS SUPPORT GROUP",
+        "contributedViaTotalRows": 5478,
+        "actualIndicatorTotal": 1826,
+        "difference": 3652
+      }
+    ]
+  },
+  {
+    "code": "11",
+    "name": "Number of braille labelled condoms distributed to PWDs",
+    "totalSheetDerivedTotal": 218,
+    "sumOfOrgDerivedTotals": 411,
+    "difference": -193,
+    "blockStartRow": 394,
+    "blockEndRow": 398,
+    "causingSheets": [
+      {
+        "sheet": "BOTSWANA COUNCIL OF THE DISABLE",
+        "contributedViaTotalRows": 0,
+        "actualIndicatorTotal": 193,
+        "difference": -193
+      },
+      {
+        "sheet": "BOTSWANA SOCIETY FOR THE DISABL",
+        "contributedViaTotalRows": 260,
+        "actualIndicatorTotal": 130,
+        "difference": 130
+      },
+      {
+        "sheet": "MWATUMWAYA REHABILITATION CENTR",
+        "contributedViaTotalRows": 176,
+        "actualIndicatorTotal": 88,
+        "difference": 88
+      }
+    ]
+  },
+  {
+    "code": "13",
+    "name": "Number of people who reported collecting condoms for a repeated time",
+    "totalSheetDerivedTotal": 3368,
+    "sumOfOrgDerivedTotals": 1148,
+    "difference": 2220,
+    "blockStartRow": 404,
+    "blockEndRow": 420,
+    "causingSheets": [
+      {
+        "sheet": "BOTSWANA ASSOCIATION OF THE DEA",
+        "contributedViaTotalRows": 3,
+        "actualIndicatorTotal": 1,
+        "difference": 2
+      },
+      {
+        "sheet": "BOTSWANA COUNCIL OF THE DISABLE",
+        "contributedViaTotalRows": 4607,
+        "actualIndicatorTotal": 11,
+        "difference": 4596
+      },
+      {
+        "sheet": "BOTSWANA TRANS INITIATIVE",
+        "contributedViaTotalRows": 63,
+        "actualIndicatorTotal": 21,
+        "difference": 42
+      },
+      {
+        "sheet": "CAPTIVE EYE ORG.",
+        "contributedViaTotalRows": 393,
+        "actualIndicatorTotal": 131,
+        "difference": 262
+      },
+      {
+        "sheet": "BOTSWANA SOCIETY FOR THE DISABL",
+        "contributedViaTotalRows": 6,
+        "actualIndicatorTotal": 2,
+        "difference": 4
+      },
+      {
+        "sheet": "LESBIANS, GAYS & BISEXUALS OF B",
+        "contributedViaTotalRows": 1038,
+        "actualIndicatorTotal": 346,
+        "difference": 692
+      },
+      {
+        "sheet": "MEN FOR HEALTH & GENDER JUSTICE",
+        "contributedViaTotalRows": 729,
+        "actualIndicatorTotal": 243,
+        "difference": 486
+      },
+      {
+        "sheet": "NKAIKELA YOUTH GROUP",
+        "contributedViaTotalRows": 729,
+        "actualIndicatorTotal": 243,
+        "difference": 486
+      },
+      {
+        "sheet": "SILENCE KILLS SUPPORT GROUP",
+        "contributedViaTotalRows": 450,
+        "actualIndicatorTotal": 150,
+        "difference": 300
+      }
+    ]
+  },
+  {
+    "code": "14",
+    "name": "Number of condoms distributed through the non-traditional sites",
+    "totalSheetDerivedTotal": 47995,
+    "sumOfOrgDerivedTotals": 54125,
+    "difference": -6130,
+    "blockStartRow": 421,
+    "blockEndRow": 439,
+    "causingSheets": [
+      {
+        "sheet": "BOTSWANA ASSOCIATION OF THE DEA",
+        "contributedViaTotalRows": 3060,
+        "actualIndicatorTotal": 1166,
+        "difference": 1894
+      },
+      {
+        "sheet": "BOTSWANA COUNCIL OF THE DISABLE",
+        "contributedViaTotalRows": 3098,
+        "actualIndicatorTotal": 2231,
+        "difference": 867
+      },
+      {
+        "sheet": "BOTSWANA TRANS INITIATIVE",
+        "contributedViaTotalRows": 2555,
+        "actualIndicatorTotal": 981,
+        "difference": 1574
+      },
+      {
+        "sheet": "CAPTIVE EYE ORG.",
+        "contributedViaTotalRows": 19275,
+        "actualIndicatorTotal": 8386,
+        "difference": 10889
+      },
+      {
+        "sheet": "BOTSWANA SOCIETY FOR THE DISABL",
+        "contributedViaTotalRows": 3412,
+        "actualIndicatorTotal": 1378,
+        "difference": 2034
+      },
+      {
+        "sheet": "LESBIANS, GAYS & BISEXUALS OF B",
+        "contributedViaTotalRows": 9,
+        "actualIndicatorTotal": 4,
+        "difference": 5
+      },
+      {
+        "sheet": "MADIKWE COMMUNITY TRUST",
+        "contributedViaTotalRows": 4920,
+        "actualIndicatorTotal": 1900,
+        "difference": 3020
+      },
+      {
+        "sheet": "MEN FOR HEALTH & GENDER JUSTICE",
+        "contributedViaTotalRows": 57798,
+        "actualIndicatorTotal": 19266,
+        "difference": 38532
+      },
+      {
+        "sheet": "MWATUMWAYA REHABILITATION CENTR",
+        "contributedViaTotalRows": 812,
+        "actualIndicatorTotal": 313,
+        "difference": 499
+      },
+      {
+        "sheet": "NKAIKELA YOUTH GROUP",
+        "contributedViaTotalRows": 55500,
+        "actualIndicatorTotal": 18500,
+        "difference": 37000
+      }
+    ]
+  },
+  {
+    "code": "15",
+    "name": "Number of lubricants distributed",
+    "totalSheetDerivedTotal": 16225,
+    "sumOfOrgDerivedTotals": 16390,
+    "difference": -165,
+    "blockStartRow": 440,
+    "blockEndRow": 456,
+    "causingSheets": [
+      {
+        "sheet": "BOTSWANA ASSOCIATION FOR THE BL",
+        "contributedViaTotalRows": 120,
+        "actualIndicatorTotal": 40,
+        "difference": 80
+      },
+      {
+        "sheet": "BOTSWANA ASSOCIATION OF THE DEA",
+        "contributedViaTotalRows": 8655,
+        "actualIndicatorTotal": 2885,
+        "difference": 5770
+      },
+      {
+        "sheet": "BOTSWANA COUNCIL OF THE DISABLE",
+        "contributedViaTotalRows": 1315,
+        "actualIndicatorTotal": 555,
+        "difference": 760
+      },
+      {
+        "sheet": "BOTSWANA TRANS INITIATIVE",
+        "contributedViaTotalRows": 2130,
+        "actualIndicatorTotal": 710,
+        "difference": 1420
+      },
+      {
+        "sheet": "CAPTIVE EYE ORG.",
+        "contributedViaTotalRows": 10176,
+        "actualIndicatorTotal": 3392,
+        "difference": 6784
+      },
+      {
+        "sheet": "BOTSWANA SOCIETY FOR THE DISABL",
+        "contributedViaTotalRows": 873,
+        "actualIndicatorTotal": 291,
+        "difference": 582
+      },
+      {
+        "sheet": "LESBIANS, GAYS & BISEXUALS OF B",
+        "contributedViaTotalRows": 1404,
+        "actualIndicatorTotal": 468,
+        "difference": 936
+      },
+      {
+        "sheet": "MADIKWE COMMUNITY TRUST",
+        "contributedViaTotalRows": 360,
+        "actualIndicatorTotal": 120,
+        "difference": 240
+      },
+      {
+        "sheet": "MEN FOR HEALTH & GENDER JUSTICE",
+        "contributedViaTotalRows": 4716,
+        "actualIndicatorTotal": 1572,
+        "difference": 3144
+      },
+      {
+        "sheet": "MWATUMWAYA REHABILITATION CENTR",
+        "contributedViaTotalRows": 75,
+        "actualIndicatorTotal": 25,
+        "difference": 50
+      },
+      {
+        "sheet": "NKAIKELA YOUTH GROUP",
+        "contributedViaTotalRows": 15924,
+        "actualIndicatorTotal": 5308,
+        "difference": 10616
+      },
+      {
+        "sheet": "SILENCE KILLS SUPPORT GROUP",
+        "contributedViaTotalRows": 3072,
+        "actualIndicatorTotal": 1024,
+        "difference": 2048
+      }
+    ]
+  },
+  {
+    "code": "16",
+    "name": "Number of people sensitised on basic human rights and HIV",
+    "totalSheetDerivedTotal": 3313,
+    "sumOfOrgDerivedTotals": 3703,
+    "difference": -390,
+    "blockStartRow": 457,
+    "blockEndRow": 473,
+    "causingSheets": [
+      {
+        "sheet": "BOTSWANA ASSOCIATION FOR THE BL",
+        "contributedViaTotalRows": 399,
+        "actualIndicatorTotal": 133,
+        "difference": 266
+      },
+      {
+        "sheet": "BOTSWANA ASSOCIATION OF THE DEA",
+        "contributedViaTotalRows": 918,
+        "actualIndicatorTotal": 306,
+        "difference": 612
+      },
+      {
+        "sheet": "BOTSWANA COUNCIL OF THE DISABLE",
+        "contributedViaTotalRows": 145,
+        "actualIndicatorTotal": 390,
+        "difference": -245
+      },
+      {
+        "sheet": "BOTSWANA TRANS INITIATIVE",
+        "contributedViaTotalRows": 48,
+        "actualIndicatorTotal": 16,
+        "difference": 32
+      },
+      {
+        "sheet": "CAPTIVE EYE ORG.",
+        "contributedViaTotalRows": 1623,
+        "actualIndicatorTotal": 541,
+        "difference": 1082
+      },
+      {
+        "sheet": "BOTSWANA SOCIETY FOR THE DISABL",
+        "contributedViaTotalRows": 843,
+        "actualIndicatorTotal": 281,
+        "difference": 562
+      },
+      {
+        "sheet": "LESBIANS, GAYS & BISEXUALS OF B",
+        "contributedViaTotalRows": 1431,
+        "actualIndicatorTotal": 477,
+        "difference": 954
+      },
+      {
+        "sheet": "MADIKWE COMMUNITY TRUST",
+        "contributedViaTotalRows": 1032,
+        "actualIndicatorTotal": 344,
+        "difference": 688
+      },
+      {
+        "sheet": "MEN FOR HEALTH & GENDER JUSTICE",
+        "contributedViaTotalRows": 1032,
+        "actualIndicatorTotal": 344,
+        "difference": 688
+      },
+      {
+        "sheet": "MWATUMWAYA REHABILITATION CENTR",
+        "contributedViaTotalRows": 915,
+        "actualIndicatorTotal": 305,
+        "difference": 610
+      },
+      {
+        "sheet": "NKAIKELA YOUTH GROUP",
+        "contributedViaTotalRows": 891,
+        "actualIndicatorTotal": 297,
+        "difference": 594
+      },
+      {
+        "sheet": "SILENCE KILLS SUPPORT GROUP",
+        "contributedViaTotalRows": 807,
+        "actualIndicatorTotal": 269,
+        "difference": 538
+      }
+    ]
+  },
+  {
+    "code": "17",
+    "name": "Number of healthcare workers trained on medical ethics and human rights",
+    "totalSheetDerivedTotal": 2,
+    "sumOfOrgDerivedTotals": 0,
+    "difference": 2,
+    "blockStartRow": 474,
+    "blockEndRow": 492,
+    "causingSheets": [
+      {
+        "sheet": "BOTSWANA COUNCIL OF THE DISABLE",
+        "contributedViaTotalRows": 151,
+        "actualIndicatorTotal": 0,
+        "difference": 151
+      }
+    ]
+  },
+  {
+    "code": "18b",
+    "name": "Number of people who sought redress",
+    "totalSheetDerivedTotal": 23,
+    "sumOfOrgDerivedTotals": 25,
+    "difference": -2,
+    "blockStartRow": 510,
+    "blockEndRow": 526,
+    "causingSheets": [
+      {
+        "sheet": "BOTSWANA ASSOCIATION FOR THE BL",
+        "contributedViaTotalRows": 3,
+        "actualIndicatorTotal": 1,
+        "difference": 2
+      },
+      {
+        "sheet": "BOTSWANA ASSOCIATION OF THE DEA",
+        "contributedViaTotalRows": 3,
+        "actualIndicatorTotal": 1,
+        "difference": 2
+      },
+      {
+        "sheet": "BOTSWANA COUNCIL OF THE DISABLE",
+        "contributedViaTotalRows": 145,
+        "actualIndicatorTotal": 2,
+        "difference": 143
+      },
+      {
+        "sheet": "BOTSWANA SOCIETY FOR THE DISABL",
+        "contributedViaTotalRows": 54,
+        "actualIndicatorTotal": 18,
+        "difference": 36
+      },
+      {
+        "sheet": "MADIKWE COMMUNITY TRUST",
+        "contributedViaTotalRows": 6,
+        "actualIndicatorTotal": 2,
+        "difference": 4
+      },
+      {
+        "sheet": "MWATUMWAYA REHABILITATION CENTR",
+        "contributedViaTotalRows": 3,
+        "actualIndicatorTotal": 1,
+        "difference": 2
+      }
+    ]
+  },
+  {
+    "code": "23",
+    "name": "Number of target specific demand creation activities conducted",
+    "totalSheetDerivedTotal": 63,
+    "sumOfOrgDerivedTotals": 45,
+    "difference": 18,
+    "blockStartRow": 559,
+    "blockEndRow": 563,
+    "causingSheets": [
+      {
+        "sheet": "BOTSWANA TRANS INITIATIVE",
+        "contributedViaTotalRows": 0,
+        "actualIndicatorTotal": 4,
+        "difference": -4
+      },
+      {
+        "sheet": "BOTSWANA SOCIETY FOR THE DISABL",
+        "contributedViaTotalRows": 0,
+        "actualIndicatorTotal": 3,
+        "difference": -3
+      },
+      {
+        "sheet": "LESBIANS, GAYS & BISEXUALS OF B",
+        "contributedViaTotalRows": 0,
+        "actualIndicatorTotal": 11,
+        "difference": -11
+      },
+      {
+        "sheet": "MADIKWE COMMUNITY TRUST",
+        "contributedViaTotalRows": 0,
+        "actualIndicatorTotal": 2,
+        "difference": -2
+      },
+      {
+        "sheet": "MEN FOR HEALTH & GENDER JUSTICE",
+        "contributedViaTotalRows": 0,
+        "actualIndicatorTotal": 6,
+        "difference": -6
+      },
+      {
+        "sheet": "MWATUMWAYA REHABILITATION CENTR",
+        "contributedViaTotalRows": 0,
+        "actualIndicatorTotal": 1,
+        "difference": -1
+      },
+      {
+        "sheet": "NKAIKELA YOUTH GROUP",
+        "contributedViaTotalRows": 0,
+        "actualIndicatorTotal": 18,
+        "difference": -18
+      }
+    ]
+  },
+  {
+    "code": "25",
+    "name": "Number of stigma reduction campaigns conducted during the project",
+    "totalSheetDerivedTotal": 18,
+    "sumOfOrgDerivedTotals": 24,
+    "difference": -6,
+    "blockStartRow": 569,
+    "blockEndRow": 606,
+    "causingSheets": [
+      {
+        "sheet": "BOTSWANA ASSOCIATION OF THE DEA",
+        "contributedViaTotalRows": 0,
+        "actualIndicatorTotal": 6,
+        "difference": -6
+      },
+      {
+        "sheet": "BOTSWANA TRANS INITIATIVE",
+        "contributedViaTotalRows": 0,
+        "actualIndicatorTotal": 2,
+        "difference": -2
+      },
+      {
+        "sheet": "BOTSWANA SOCIETY FOR THE DISABL",
+        "contributedViaTotalRows": 0,
+        "actualIndicatorTotal": 3,
+        "difference": -3
+      },
+      {
+        "sheet": "MADIKWE COMMUNITY TRUST",
+        "contributedViaTotalRows": 0,
+        "actualIndicatorTotal": 2,
+        "difference": -2
+      },
+      {
+        "sheet": "MEN FOR HEALTH & GENDER JUSTICE",
+        "contributedViaTotalRows": 0,
+        "actualIndicatorTotal": 8,
+        "difference": -8
+      },
+      {
+        "sheet": "NKAIKELA YOUTH GROUP",
+        "contributedViaTotalRows": 0,
+        "actualIndicatorTotal": 3,
+        "difference": -3
+      }
+    ]
+  }
+]

@@ -1,13 +1,13 @@
 ﻿"use client";
 
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { PageHeader } from "@/components/shared/page-header";
 import { OrganizationSelect } from "@/components/shared/organization-select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -25,41 +25,56 @@ import {
   Shield,
   Database,
   Palette,
-  Globe,
-  Key,
   Mail,
   Save,
   Upload,
+  Loader2,
 } from "lucide-react";
 import { useAuth } from "@/lib/contexts/auth-context";
-import { useAllOrganizations } from "@/lib/hooks/use-api";
-import { usersService } from "@/lib/api";
+import { notificationsService } from "@/lib/api";
+import { useAllOrganizations, useNotifications } from "@/lib/hooks/use-api";
 import { useToast } from "@/hooks/use-toast";
 import { getUserRoleLabel } from "@/lib/roles";
 
-export default function SettingsPage() {
-  const { user, refreshUser } = useAuth();
-  const { toast } = useToast();
-  const { data: orgsData } = useAllOrganizations();
-  const organizations = orgsData?.results || [];
-  const [isSavingProfile, setIsSavingProfile] = useState(false);
-  const [profile, setProfile] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    role: "",
-    organizationId: "",
-  });
+type UserProfileSource = {
+  firstName?: string;
+  first_name?: string;
+  lastName?: string;
+  last_name?: string;
+  email?: string;
+  phone?: string;
+  role?: string;
+  organizationId?: string | number;
+  organization?: string | number;
+};
 
-  const [notifications, setNotifications] = useState({
-    emailAlerts: true,
-    taskReminders: true,
-    dataQualityAlerts: true,
-    reportReady: true,
-    weeklyDigest: false,
-    projectUpdates: true,
-  });
+export default function SettingsPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { toast } = useToast();
+  const { user } = useAuth();
+  const { data: orgsData } = useAllOrganizations();
+  const { data: notificationsData, isLoading: notificationsLoading, mutate: mutateNotifications } = useNotifications();
+  const organizations = orgsData?.results || [];
+  const notifications = notificationsData?.results || [];
+  const defaultTab = searchParams.get("tab") || "profile";
+  const userProfile = useMemo(() => {
+    const source = (user ?? {}) as UserProfileSource;
+    return {
+      firstName: source.firstName || source.first_name || "",
+      lastName: source.lastName || source.last_name || "",
+      email: source.email || "",
+      phone: source.phone || "",
+      role: source.role || "",
+      organizationId: String(source.organizationId ?? source.organization ?? ""),
+    };
+  }, [user]);
+
+  const [profileOverrides, setProfileOverrides] = useState<Partial<typeof userProfile>>({});
+  const profile = {
+    ...userProfile,
+    ...profileOverrides,
+  };
 
   const [preferences, setPreferences] = useState({
     language: "en",
@@ -68,47 +83,29 @@ export default function SettingsPage() {
     defaultProject: "all",
   });
 
-  useEffect(() => {
-    if (!user) return;
-    setProfile({
-      firstName: (user as any)?.firstName || (user as any)?.first_name || "",
-      lastName: (user as any)?.lastName || (user as any)?.last_name || "",
-      email: (user as any)?.email || "",
-      phone: (user as any)?.phone || "",
-      role: (user as any)?.role || "",
-      organizationId: String((user as any)?.organizationId ?? (user as any)?.organization ?? ""),
-    });
-  }, [user]);
-
-  const handleSaveProfile = async () => {
-    if (!user) return;
-    setIsSavingProfile(true);
-    try {
-      await usersService.update(Number(user.id), {
-        first_name: profile.firstName || undefined,
-        last_name: profile.lastName || undefined,
-        email: profile.email || undefined,
-        role: profile.role ? (profile.role as any) : undefined,
-        organization: profile.organizationId ? Number(profile.organizationId) : undefined,
-      });
-      toast({
-        title: "Profile updated",
-        description: "Your profile information has been saved.",
-      });
-      await refreshUser();
-    } catch (err: any) {
-      toast({
-        title: "Error",
-        description: err?.message || "Failed to update profile.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSavingProfile(false);
-    }
+  const setProfileField = <K extends keyof typeof userProfile>(key: K, value: (typeof userProfile)[K]) => {
+    setProfileOverrides((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
   };
 
-  const currentOrgName =
-    organizations.find((org) => String(org.id) === profile.organizationId)?.name || "-";
+  const handleMarkAllNotificationsRead = async () => {
+    try {
+      await notificationsService.markAllRead();
+      await mutateNotifications();
+      toast({
+        title: "Notifications updated",
+        description: "All notifications have been marked as read.",
+      });
+    } catch {
+      toast({
+        title: "Unable to update notifications",
+        description: "Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -117,7 +114,7 @@ export default function SettingsPage() {
         description="Manage your account settings and preferences"
       />
 
-      <Tabs defaultValue="profile" className="space-y-6">
+      <Tabs defaultValue={defaultTab} className="space-y-6">
         <TabsList className="bg-secondary border border-border">
           <TabsTrigger value="profile" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             <User className="h-4 w-4 mr-2" />
@@ -177,7 +174,7 @@ export default function SettingsPage() {
                   <Input
                     id="firstName"
                     value={profile.firstName}
-                    onChange={(e) => setProfile({ ...profile, firstName: e.target.value })}
+                    onChange={(e) => setProfileField("firstName", e.target.value)}
                     className="bg-input border-border text-foreground"
                   />
                 </div>
@@ -186,7 +183,7 @@ export default function SettingsPage() {
                   <Input
                     id="lastName"
                     value={profile.lastName}
-                    onChange={(e) => setProfile({ ...profile, lastName: e.target.value })}
+                    onChange={(e) => setProfileField("lastName", e.target.value)}
                     className="bg-input border-border text-foreground"
                   />
                 </div>
@@ -196,7 +193,7 @@ export default function SettingsPage() {
                     id="email"
                     type="email"
                     value={profile.email}
-                    onChange={(e) => setProfile({ ...profile, email: e.target.value })}
+                    onChange={(e) => setProfileField("email", e.target.value)}
                     className="bg-input border-border text-foreground"
                   />
                 </div>
@@ -205,7 +202,7 @@ export default function SettingsPage() {
                   <Input
                     id="phone"
                     value={profile.phone}
-                    onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
+                    onChange={(e) => setProfileField("phone", e.target.value)}
                     className="bg-input border-border text-foreground"
                   />
                 </div>
@@ -228,7 +225,7 @@ export default function SettingsPage() {
                 <OrganizationSelect
                   organizations={organizations}
                   value={profile.organizationId}
-                  onChange={(value) => setProfile({ ...profile, organizationId: value })}
+                  onChange={(value) => setProfileField("organizationId", value)}
                   includeAll
                   allLabel="All organizations"
                   placeholder="Select organization"
@@ -290,6 +287,69 @@ export default function SettingsPage() {
                   Save Preferences
                 </Button>
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="notifications" className="space-y-6">
+          <Card className="bg-card border-border">
+            <CardHeader className="flex flex-row items-center justify-between gap-4">
+              <div>
+                <CardTitle className="text-foreground">Notifications</CardTitle>
+                <CardDescription>
+                  Review aggregate approvals, flagged corrections, and coordinator follow-up requests.
+                </CardDescription>
+              </div>
+              <Button variant="outline" onClick={() => void handleMarkAllNotificationsRead()}>
+                <Mail className="h-4 w-4 mr-2" />
+                Mark all read
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {notificationsLoading ? (
+                <div className="flex items-center gap-2 py-8 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Loading notifications...
+                </div>
+              ) : notifications.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-border px-4 py-8 text-sm text-muted-foreground">
+                  No notifications yet.
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {notifications.map((notification) => (
+                    <button
+                      key={notification.id}
+                      type="button"
+                      className="w-full rounded-xl border border-border bg-background px-4 py-3 text-left transition hover:border-primary/40 hover:bg-muted/30"
+                      onClick={async () => {
+                        if (!notification.is_read) {
+                          await notificationsService.markRead(Number(notification.id));
+                          await mutateNotifications();
+                        }
+                        router.push(notification.link || "/settings?tab=notifications");
+                      }}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="space-y-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="font-medium text-foreground">{notification.title}</p>
+                            {!notification.is_read ? (
+                              <Badge variant="outline" className="border-primary/30 text-primary">
+                                New
+                              </Badge>
+                            ) : null}
+                          </div>
+                          <p className="text-sm text-muted-foreground">{notification.content}</p>
+                        </div>
+                        <p className="shrink-0 text-xs text-muted-foreground">
+                          {new Date(notification.created_at).toLocaleString()}
+                        </p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -374,6 +434,3 @@ export default function SettingsPage() {
     </div>
   );
 }
-
-
-

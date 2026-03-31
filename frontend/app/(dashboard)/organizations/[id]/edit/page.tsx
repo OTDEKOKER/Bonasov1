@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { useEffect, useMemo, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
@@ -19,19 +19,32 @@ import { Switch } from "@/components/ui/switch"
 import { PageHeader } from "@/components/shared/page-header"
 import { OrganizationSelect } from "@/components/shared/organization-select"
 import { organizationsService } from "@/lib/api"
+import { useAuth } from "@/lib/contexts/auth-context"
 import { useOrganization, useAllOrganizations } from "@/lib/hooks/use-api"
+import { useSmartBack } from "@/lib/hooks/use-smart-back"
+import { canManageOrganizations } from "@/lib/permissions"
 import type { Organization } from "@/lib/types"
 import { useToast } from "@/hooks/use-toast"
+import {
+  canOrganizationBeParentForType,
+  getEffectiveOrganizationType,
+  ORGANIZATION_TYPE_OPTIONS,
+  organizationCanBeParent,
+  organizationCanHaveParent,
+} from "@/lib/organization-hierarchy"
 
 export default function OrganizationEditPage() {
   const router = useRouter()
   const { toast } = useToast()
+  const { user } = useAuth()
   const params = useParams()
   const id = Number(params?.id)
+  const handleBack = useSmartBack(Number.isFinite(id) ? `/organizations/${id}` : "/organizations")
 
   const { data: org, isLoading, error, mutate } = useOrganization(Number.isFinite(id) ? id : null)
   const { data: orgsData } = useAllOrganizations()
-  const organizations = orgsData?.results || []
+  const organizations = useMemo(() => orgsData?.results ?? [], [orgsData?.results])
+  const canManageOrgRecords = canManageOrganizations(user)
 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState({
@@ -47,16 +60,27 @@ export default function OrganizationEditPage() {
   })
 
   const parentOptions = useMemo(
-    () => organizations.filter((item) => item.id !== id),
-    [organizations, id],
+    () =>
+      organizations
+        .filter((entry) => String(entry.id) !== String(id))
+        .filter((entry) => organizationCanBeParent(getEffectiveOrganizationType(entry)))
+        .filter((entry) => canOrganizationBeParentForType(getEffectiveOrganizationType(entry), formData.type))
+        .sort((left, right) => (left.name || "").localeCompare(right.name || "")),
+    [formData.type, id, organizations],
   )
+
+  useEffect(() => {
+    if (!formData.parentId || formData.parentId === "none") return
+    if (parentOptions.some((entry) => String(entry.id) === formData.parentId)) return
+    setFormData((current) => ({ ...current, parentId: "none" }))
+  }, [formData.parentId, parentOptions])
 
   useEffect(() => {
     if (!org) return
     setFormData({
       name: org.name || "",
       code: org.code || "",
-      type: org.type || "",
+      type: getEffectiveOrganizationType(org),
       parentId: org.parentId ? String(org.parentId) : "none",
       contactEmail: org.contactEmail || "",
       contactPhone: org.contactPhone || "",
@@ -67,6 +91,16 @@ export default function OrganizationEditPage() {
   }, [org])
 
   const handleSave = async () => {
+    if (!canManageOrgRecords) {
+      toast({
+        title: "Read-only access",
+        description: "Only platform admins can edit organizations.",
+        variant: "destructive",
+      })
+      router.push(`/organizations/${id}`)
+      return
+    }
+
     if (!formData.name || !formData.type) {
       toast({
         title: "Validation Error",
@@ -123,6 +157,41 @@ export default function OrganizationEditPage() {
     )
   }
 
+  if (!canManageOrgRecords) {
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          title={org ? `Edit ${org.name}` : "Edit Organization"}
+          description="Editing is restricted to platform admins"
+          breadcrumbs={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Organizations", href: "/organizations" },
+            ...(org ? [{ label: org.name, href: `/organizations/${id}` }] : []),
+            { label: "Edit" },
+          ]}
+          actions={
+            <Button variant="outline" onClick={handleBack}>
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back
+            </Button>
+          }
+        />
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Read-only access</CardTitle>
+            <CardDescription>
+              Your account can view organization details, but only platform admins can update records.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={handleBack}>Return to Organization</Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -135,7 +204,7 @@ export default function OrganizationEditPage() {
           { label: "Edit" },
         ]}
         actions={
-          <Button variant="outline" onClick={() => router.push(`/organizations/${id}`)}>
+          <Button variant="outline" onClick={handleBack}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back
           </Button>
@@ -177,23 +246,26 @@ export default function OrganizationEditPage() {
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="headquarters">Headquarters</SelectItem>
-                  <SelectItem value="regional">Regional Office</SelectItem>
-                  <SelectItem value="district">District Office</SelectItem>
-                  <SelectItem value="partner">Partner Organization</SelectItem>
+                  {ORGANIZATION_TYPE_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-                            <Label htmlFor="parent">Parent Organization</Label>
+              <Label htmlFor="parent">Parent Organization</Label>
               <OrganizationSelect
-                organizations={organizations}
+                organizations={parentOptions}
                 value={formData.parentId}
                 onChange={(value) => setFormData({ ...formData, parentId: value === "none" ? "" : value })}
                 includeNone
                 noneLabel="No parent"
                 placeholder="Select parent"
-              /></div>
+                disabled={!organizationCanHaveParent(formData.type)}
+              />
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -257,5 +329,3 @@ export default function OrganizationEditPage() {
     </div>
   )
 }
-
-

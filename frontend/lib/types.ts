@@ -1,4 +1,5 @@
 ﻿import React from "react"
+import type { AggregateDisaggregationConfig } from "@/lib/indicators/disaggregation-presets"
 // User & Auth Types
 export type UserRole = 'admin' | 'manager' | 'officer' | 'collector' | 'client'
 
@@ -22,11 +23,30 @@ export interface Profile extends User {
   department?: string
 }
 
+export interface Notification {
+  id: string
+  title: string
+  content: string
+  link?: string
+  is_read: boolean
+  created_at: string
+}
+
 // Organization Types
 export interface Organization {
   id: string
   name: string
-  type: 'headquarters' | 'regional' | 'district' | 'partner'
+  type:
+    | 'funder'
+    | 'senior_coordinator'
+    | 'coordinator'
+    | 'subgrantee'
+    | 'headquarters'
+    | 'regional'
+    | 'district'
+    | 'partner'
+    | 'ngo'
+    | 'government'
   code?: string
   parentId?: string
   contactEmail?: string
@@ -38,7 +58,15 @@ export interface Organization {
 }
 
 // Indicator Types
-export type IndicatorCategory = 'hiv_prevention' | 'ncd' | 'events'
+export type IndicatorCategory =
+  | 'hiv_prevention'
+  | 'ncd'
+  | 'mental_health'
+  | 'gbv'
+  | 'sti'
+  | 'trainings'
+  | 'media'
+  | 'events'
 export type IndicatorType =
   | 'yes_no'
   | 'number'
@@ -52,6 +80,7 @@ export type IndicatorType =
 export interface Indicator {
   id: string
   name: string
+  short_name?: string
   code: string
   description?: string
   category: IndicatorCategory
@@ -59,11 +88,34 @@ export interface Indicator {
   unit?: string
   options?: Array<string | { label: string; value: string }>
   sub_labels?: string[]
+  aggregate_disaggregation_config?: AggregateDisaggregationConfig
   aggregation_method?: 'sum' | 'average' | 'count' | 'latest'
   is_active: boolean
   organizations?: string[]
   created_at: string
   updated_at: string
+  project_targets?: ProjectIndicatorTarget[]
+}
+
+export interface ProjectIndicatorTarget {
+  id: string
+  project: string
+  project_name?: string
+  project_code?: string
+  indicator: string
+  indicator_name?: string
+  indicator_code?: string
+  organization: string
+  organization_name?: string
+  organization_code?: string
+  q1_target?: number
+  q2_target?: number
+  q3_target?: number
+  q4_target?: number
+  target_value: number
+  current_value: number
+  baseline_value: number
+  progress: number
 }
 
 export interface IndicatorOption {
@@ -119,17 +171,8 @@ export interface Project {
   progress_percentage?: number
   created_at: string
   updated_at: string
-  project_indicators?: Array<{
-    id: string
-    project: string
-    indicator: string
-    indicator_name?: string
-    indicator_code?: string
-    target_value: number
-    current_value: number
-    baseline_value: number
-    progress: number
-  }>
+  project_indicators?: ProjectIndicatorTarget[]
+  organization_targets?: ProjectIndicatorTarget[]
 }
 
 export interface Task {
@@ -205,6 +248,8 @@ export interface Interaction {
   assessment_name?: string | null
   project?: string | null
   project_name?: string | null
+  event?: string | null
+  event_name?: string | null
   date: string
   notes?: string
   responses?: Response[]
@@ -259,8 +304,29 @@ export interface Aggregate {
   period_end: string
   value: unknown
   notes?: string
+  status: 'draft' | 'pending' | 'reviewed' | 'flagged' | 'approved' | 'rejected'
+  reviewed_at?: string | null
+  reviewed_by?: string | null
+  reviewed_by_name?: string
   created_at: string
   updated_at: string
+  history_entries?: AggregateHistoryEntry[]
+}
+
+export interface AggregateHistoryChange {
+  label?: string
+  from: unknown
+  to: unknown
+}
+
+export interface AggregateHistoryEntry {
+  id: string
+  action: 'submitted' | 'corrected' | 'reviewed' | 'flagged' | 'approved'
+  comment?: string
+  changes?: Record<string, AggregateHistoryChange>
+  created_at: string
+  changed_by?: string | null
+  changed_by_name?: string
 }
 
 // Event Types
@@ -318,6 +384,8 @@ export interface EventPhase {
 export interface SocialPost {
   id: string
   title: string
+  description?: string
+  post_date?: string
   indicator: string
   indicator_name?: string
   organization?: string | null
@@ -404,5 +472,7 @@ export interface Column<T> {
   sortable?: boolean
   render?: (item: T) => React.ReactNode
 }
+
+
 
 

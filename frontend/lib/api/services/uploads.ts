@@ -1,6 +1,4 @@
-﻿import api, { type PaginatedResponse } from '../client';
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
+﻿import api, { fetchWithAuth, normalizeApiError, type PaginatedResponse } from '../client';
 
 export interface UploadFilters {
   file_type?: string;
@@ -66,7 +64,7 @@ export interface ImportJob {
 
 export const uploadsService = {
   list: (filters?: UploadFilters) =>
-    api.get<PaginatedResponse<UploadRecord>>('/uploads/', filters),
+    api.get<PaginatedResponse<UploadRecord>>('/uploads/', filters as Record<string, string> | undefined),
 
   listAll: (filters?: UploadFilters) =>
     api.get<PaginatedResponse<UploadRecord>>('/uploads/', {
@@ -85,10 +83,8 @@ export const uploadsService = {
     if (data.content_type) form.append('content_type', data.content_type);
     if (data.object_id) form.append('object_id', String(data.object_id));
 
-    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
-    const response = await fetch(`${API_BASE_URL}/uploads/`, {
+    const response = await fetchWithAuth('/uploads/', {
       method: 'POST',
-      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       body: form,
     });
 
@@ -97,7 +93,11 @@ export const uploadsService = {
       const errorBody = contentType?.includes('application/json')
         ? await response.json()
         : await response.text();
-      throw errorBody;
+      throw normalizeApiError({
+        status: response.status,
+        payload: errorBody,
+        fallbackMessage: 'Failed to upload file',
+      });
     }
 
     return contentType?.includes('application/json') ? response.json() : {};
@@ -112,6 +112,33 @@ export const uploadsService = {
 
   listImports: (filters?: { status?: string; upload?: string }) =>
     api.get<PaginatedResponse<ImportJob>>('/uploads/imports/', filters),
+
+  listAllImports: async (filters?: { status?: string; upload?: string }) => {
+    const results: ImportJob[] = [];
+    let page = '1';
+
+    while (true) {
+      const response = await api.get<PaginatedResponse<ImportJob>>('/uploads/imports/', {
+        ...(filters || {}),
+        page,
+      });
+
+      results.push(...(response.data.results || []));
+
+      if (!response.data.next) break;
+
+      try {
+        const nextUrl = new URL(response.data.next);
+        const nextPage = nextUrl.searchParams.get('page');
+        if (!nextPage) break;
+        page = nextPage;
+      } catch {
+        break;
+      }
+    }
+
+    return results;
+  },
 };
 
 export default uploadsService;

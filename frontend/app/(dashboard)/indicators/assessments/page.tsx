@@ -67,41 +67,66 @@ export default function AssessmentsPage() {
   const assessments = data?.results || []
 
   const ensureIndicator = async (request: CreateIndicatorRequest): Promise<number> => {
-    const list = await indicatorsService.list({
+    const organizationFilter = request.organizations?.[0]
+      ? String(request.organizations[0])
+      : undefined
+
+    const listParams: { search: string; page_size: string; organizations?: string } = {
       search: request.code,
-      organizations: request.organizations?.[0] ? String(request.organizations[0]) : undefined,
       page_size: "100",
-    })
-    const exactMatch = (list.results || []).find((i) => {
-      if (i.code !== request.code) return false
-      if (!request.organizations?.length) return true
-      const orgId = String(request.organizations[0])
-      return Array.isArray(i.organizations) && i.organizations.some((org) => String(org) === orgId)
-    })
-    if (exactMatch?.id) return Number(exactMatch.id)
+    }
+    if (organizationFilter) {
+      listParams.organizations = organizationFilter
+    }
+
+    const findExactMatchId = (
+      results: Array<{ code?: string; id?: number | string; organizations?: unknown }>,
+    ) => {
+      const exactMatch = (results || []).find((indicator) => {
+        if (indicator.code !== request.code) return false
+        if (!request.organizations?.length) return true
+
+        const orgId = String(request.organizations[0])
+        if (!Array.isArray(indicator.organizations) || indicator.organizations.length === 0) {
+          return true
+        }
+
+        return indicator.organizations.some((org) => {
+          const orgValue =
+            typeof org === "object" && org !== null ? (org as { id?: string | number }).id : org
+          return String(orgValue) === orgId
+        })
+      })
+
+      return exactMatch?.id ? Number(exactMatch.id) : null
+    }
+
+    try {
+      const list = await indicatorsService.list(listParams)
+      const existingId = findExactMatchId(list.results || [])
+      if (existingId) return existingId
+    } catch (listError) {
+      console.warn("Indicator lookup failed; continuing with create attempt", listError)
+    }
 
     try {
       const created = await indicatorsService.create(request)
       return Number(created.id)
     } catch {
-      const retry = await indicatorsService.list({
-        search: request.code,
-        organizations: request.organizations?.[0] ? String(request.organizations[0]) : undefined,
-        page_size: "100",
-      })
-      const retryMatch = (retry.results || []).find((i) => {
-        if (i.code !== request.code) return false
-        if (!request.organizations?.length) return true
-        const orgId = String(request.organizations[0])
-        return Array.isArray(i.organizations) && i.organizations.some((org) => String(org) === orgId)
-      })
-      if (retryMatch?.id) return Number(retryMatch.id)
+      try {
+        const retry = await indicatorsService.list(listParams)
+        const retryMatchId = findExactMatchId(retry.results || [])
+        if (retryMatchId) return retryMatchId
+      } catch (retryError) {
+        console.warn("Indicator retry lookup failed", retryError)
+      }
 
-      const all = await indicatorsService.listAll({
-        organizations: request.organizations?.[0] ? String(request.organizations[0]) : undefined,
-      })
-      const allMatch = all.find((i) => i.code === request.code)
-      if (allMatch?.id) return Number(allMatch.id)
+      const all = await indicatorsService.listAll(
+        organizationFilter ? { organizations: organizationFilter } : undefined,
+      )
+      const allMatch = findExactMatchId(all)
+      if (allMatch) return allMatch
+
       throw new Error(`Failed to create indicator: ${request.code}`)
     }
   }
@@ -117,6 +142,7 @@ export default function AssessmentsPage() {
       })
 
       const category = "hiv_prevention"
+      const orgArray = organizationId ? [organizationId] : undefined
       const indicators: Array<{
         request: CreateIndicatorRequest
         order: number
@@ -132,7 +158,7 @@ export default function AssessmentsPage() {
             type: "text",
             category,
             is_active: true,
-            organizations: organizationId ? [organizationId] : undefined,
+            organizations: orgArray,
           },
         },
         {
@@ -144,7 +170,7 @@ export default function AssessmentsPage() {
             type: "date",
             category,
             is_active: true,
-            organizations: organizationId ? [organizationId] : undefined,
+            organizations: orgArray,
           },
         },
         {
@@ -157,7 +183,7 @@ export default function AssessmentsPage() {
             type: "text",
             category,
             is_active: true,
-            organizations: organizationId ? [organizationId] : undefined,
+            organizations: orgArray,
           },
         },
         {
@@ -170,7 +196,7 @@ export default function AssessmentsPage() {
             type: "multiselect",
             category,
             is_active: true,
-            organizations: organizationId ? [organizationId] : undefined,
+            organizations: orgArray,
             options: [
               { label: "HIV testing messages", value: "hiv_testing" },
               { label: "PEP messages", value: "pep" },
@@ -194,7 +220,7 @@ export default function AssessmentsPage() {
             type: "yes_no",
             category,
             is_active: true,
-            organizations: organizationId ? [organizationId] : undefined,
+            organizations: orgArray,
           },
         },
         {
@@ -206,7 +232,7 @@ export default function AssessmentsPage() {
             type: "select",
             category,
             is_active: true,
-            organizations: organizationId ? [organizationId] : undefined,
+            organizations: orgArray,
             options: [
               { label: "Yes", value: "yes" },
               { label: "No", value: "no" },
@@ -223,7 +249,7 @@ export default function AssessmentsPage() {
             type: "yes_no",
             category,
             is_active: true,
-            organizations: organizationId ? [organizationId] : undefined,
+            organizations: orgArray,
           },
         },
         {
@@ -235,7 +261,7 @@ export default function AssessmentsPage() {
             type: "yes_no",
             category,
             is_active: true,
-            organizations: organizationId ? [organizationId] : undefined,
+            organizations: orgArray,
           },
         },
         {
@@ -247,7 +273,7 @@ export default function AssessmentsPage() {
             type: "yes_no",
             category,
             is_active: true,
-            organizations: organizationId ? [organizationId] : undefined,
+            organizations: orgArray,
           },
         },
         {
@@ -259,7 +285,7 @@ export default function AssessmentsPage() {
             type: "yes_no",
             category,
             is_active: true,
-            organizations: organizationId ? [organizationId] : undefined,
+            organizations: orgArray,
           },
         },
       ]
@@ -300,7 +326,7 @@ export default function AssessmentsPage() {
 
     setIsSubmitting(true)
     try {
-      await assessmentsService.create({
+      const created = await assessmentsService.create({
         name: formData.name,
         description: formData.description || undefined,
         organizations: organizationId ? [organizationId] : undefined,
@@ -309,6 +335,7 @@ export default function AssessmentsPage() {
       setIsCreateOpen(false)
       setFormData({ name: "", description: "" })
       mutate()
+      router.push(`/indicators/assessments/${created.id}`)
     } catch {
       toast({ title: "Error", description: "Failed to create assessment", variant: "destructive" })
     } finally {

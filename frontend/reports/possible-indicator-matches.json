@@ -1,0 +1,1217 @@
+{
+  "exact_duplicate_groups": [
+    {
+      "canonical": "number of people linked to justice services",
+      "items": [
+        {
+          "id": 460,
+          "code": "NAHPA2025-26-19-NUMBER-OF-PEOPLE-LINKED-TO-JUSTICE",
+          "name": "Number of people linked to justice services.",
+          "is_active": true,
+          "aggregates": 1
+        },
+        {
+          "id": 474,
+          "code": "NAHPA2025-26-5-NUMBER-OF-PEOPLE-LINKED-TO-JUSTICE-",
+          "name": "Number of people linked to justice services.",
+          "is_active": true,
+          "aggregates": 1
+        },
+        {
+          "id": 341,
+          "code": "AUTO_NUMBER_OF_NUMBER_OF_PEOPLE_LINKED_",
+          "name": "Number of people linked to justice services.",
+          "is_active": true,
+          "aggregates": 1
+        }
+      ]
+    },
+    {
+      "canonical": "number of people provided with legal aid services",
+      "items": [
+        {
+          "id": 458,
+          "code": "NAHPA2025-26-17-NUMBER-OF-PEOPLE-PROVIDED-WITH-LEG",
+          "name": "Number of people provided with legal aid services.",
+          "is_active": true,
+          "aggregates": 1
+        },
+        {
+          "id": 473,
+          "code": "NAHPA2025-26-4-NUMBER-OF-PEOPLE-PROVIDED-WITH-LEGA",
+          "name": "Number of people provided with legal aid services.",
+          "is_active": true,
+          "aggregates": 1
+        },
+        {
+          "id": 340,
+          "code": "AUTO_NUMBER_OF_NUMBER_OF_PEOPLE_PROVIDE",
+          "name": "Number of people provided with legal aid services.",
+          "is_active": true,
+          "aggregates": 1
+        }
+      ]
+    },
+    {
+      "canonical": "number of community led monitoring conducted for quality of service and human rights",
+      "items": [
+        {
+          "id": 443,
+          "code": "NAHPA2025-26-17-NUMBER-OF-COMMUNITY-LED-MONITORING",
+          "name": "Number of Community led monitoring conducted for quality of service and human rights",
+          "is_active": true,
+          "aggregates": 15
+        },
+        {
+          "id": 364,
+          "code": "AUTO_NUMBER_OF_COMMUNITY_LED_MONITORING",
+          "name": "Number of community led monitoring conducted for quality of service and human rights.",
+          "is_active": true,
+          "aggregates": 4
+        }
+      ]
+    },
+    {
+      "canonical": "number of people referred for hiv testing",
+      "items": [
+        {
+          "id": 445,
+          "code": "NAHPA2025-26-3-NUMBER-OF-PEOPLE-REFERRED-FOR-HIV-T",
+          "name": "Number of people referred for HIV testing.",
+          "is_active": true,
+          "aggregates": 3
+        },
+        {
+          "id": 331,
+          "code": "AUTO_NUMBER_OF_PEOPLE_REFERRED_FOR_HIV_",
+          "name": "Number of people referred for HIV Testing.",
+          "is_active": true,
+          "aggregates": 14
+        }
+      ]
+    },
+    {
+      "canonical": "number of people referred for pep",
+      "items": [
+        {
+          "id": 446,
+          "code": "NAHPA2025-26-7-NUMBER-OF-PEOPLE-REFERRED-FOR-PEP",
+          "name": "Number of people referred for PEP.",
+          "is_active": true,
+          "aggregates": 14
+        },
+        {
+          "id": 339,
+          "code": "AUTO_NUMBER_OF_PEOPLE_REFERRED_FOR_PEP",
+          "name": "Number of people referred for PEP",
+          "is_active": true,
+          "aggregates": 2
+        }
+      ]
+    },
+    {
+      "canonical": "number of people eligible for clinical services for gbv",
+      "items": [
+        {
+          "id": 463,
+          "code": "NAHPA2025-26-23-NUMBER-OF-PEOPLE-ELLIGIBLE-FOR-CLI",
+          "name": "Number of people eligible for clinical services for GBV.",
+          "is_active": true,
+          "aggregates": 3
+        },
+        {
+          "id": 344,
+          "code": "AUTO_NUMBER_OF_NUMBER_ELIGIBLE_FOR_CLIN",
+          "name": "Number of people eligible for clinical services for GBV.",
+          "is_active": false,
+          "aggregates": 0
+        }
+      ]
+    },
+    {
+      "canonical": "number of people eligible for justice services for gbv",
+      "items": [
+        {
+          "id": 465,
+          "code": "NAHPA2025-26-25-NUMBER-OF-PEOPLE-ELLIGIBLE-FOR-JUS",
+          "name": "Number of people eligible for justice services for GBV.",
+          "is_active": true,
+          "aggregates": 3
+        },
+        {
+          "id": 346,
+          "code": "AUTO_NUMBER_OF_NUMBER_ELIGIBLE_FOR_JUST",
+          "name": "Number of people eligible for justice services for GBV.",
+          "is_active": false,
+          "aggregates": 0
+        }
+      ]
+    },
+    {
+      "canonical": "number of people eligible for psychosocial services for gbv",
+      "items": [
+        {
+          "id": 467,
+          "code": "NAHPA2025-26-27-NUMBER-OF-PEOPLE-ELLIGIBLE-FOR-PSY",
+          "name": "Number of people eligible for psychosocial support on GBV.",
+          "is_active": true,
+          "aggregates": 2
+        },
+        {
+          "id": 348,
+          "code": "AUTO_NUMBER_OF_NUMBER_ELIGIBLE_FOR_PYSC",
+          "name": "Number of people eligible for psychosocial support on GBV.",
+          "is_active": false,
+          "aggregates": 0
+        }
+      ]
+    },
+    {
+      "canonical": "number of people referred for clinical services for gbv",
+      "items": [
+        {
+          "id": 464,
+          "code": "NAHPA2025-26-24-NUMBER-OF-PEOPLE-REFFERED-FOR-CLIN",
+          "name": "Number of people referred for clinical services for GBV.",
+          "is_active": true,
+          "aggregates": 3
+        },
+        {
+          "id": 345,
+          "code": "AUTO_NUMBER_OF_NUMBER_REFERRED_FOR_CLIN",
+          "name": "Number of people referred for clinical services for GBV.",
+          "is_active": false,
+          "aggregates": 0
+        }
+      ]
+    },
+    {
+      "canonical": "number of people referred for justice services for gbv",
+      "items": [
+        {
+          "id": 466,
+          "code": "NAHPA2025-26-26-NUMBER-OF-PEOPLE-REFFERED-FOR-JUST",
+          "name": "Number of people referred for justice services for GBV.",
+          "is_active": true,
+          "aggregates": 4
+        },
+        {
+          "id": 347,
+          "code": "AUTO_NUMBER_OF_NUMBER_REFERRED_FOR_JUST",
+          "name": "Number of people referred for justice services for GBV.",
+          "is_active": false,
+          "aggregates": 0
+        }
+      ]
+    },
+    {
+      "canonical": "number of people referred for psychosocial services for gbv",
+      "items": [
+        {
+          "id": 479,
+          "code": "SC_NUMBER_OF_PEOPLE_REFERRED_FOR_PSYCHOSOCIAL_SUPP",
+          "name": "Number of people referred for psychosocial support on GBV.",
+          "is_active": true,
+          "aggregates": 1
+        },
+        {
+          "id": 349,
+          "code": "AUTO_NUMBER_OF_NUMBER_REFERRED_FOR_PYSC",
+          "name": "Number of people referred for psychosocial support on GBV.",
+          "is_active": false,
+          "aggregates": 0
+        }
+      ]
+    },
+    {
+      "canonical": "number of people screened positive for stis referred for services",
+      "items": [
+        {
+          "id": 468,
+          "code": "NAHPA2025-26-30-NUMBER-OF-PEOPLE-SCREENED-POSITIVE",
+          "name": "Number of people screened positive for STIs referred for services",
+          "is_active": true,
+          "aggregates": 3
+        },
+        {
+          "id": 352,
+          "code": "AUTO_NUMBER_OF_PEOPLE_SCREENED_POSITIVE",
+          "name": "Number of people screened positive for STIs referred for services",
+          "is_active": true,
+          "aggregates": 0
+        }
+      ]
+    },
+    {
+      "canonical": "number of people tested for hiv",
+      "items": [
+        {
+          "id": 451,
+          "code": "NAHPA2025-26-8-NUMBER-OF-PEOPLE-TESTED-FOR-HIV",
+          "name": "Number of people tested for HIV.",
+          "is_active": true,
+          "aggregates": 2
+        },
+        {
+          "id": 332,
+          "code": "AUTO_NUMBER_OF_NUMBER_OF_PEOPLE_TESTED_",
+          "name": "Number of people tested for HIV.",
+          "is_active": false,
+          "aggregates": 0
+        }
+      ]
+    },
+    {
+      "canonical": "number of people who tested positive for hiv",
+      "items": [
+        {
+          "id": 452,
+          "code": "NAHPA2025-26-9-NUMBER-OF-PEOPLE-WHO-TESTED-POSITIV",
+          "name": "Number of people who tested positive for HIV.",
+          "is_active": true,
+          "aggregates": 2
+        },
+        {
+          "id": 333,
+          "code": "AUTO_NUMBER_OF_PEOPLE_WHO_TESTED_POSITI",
+          "name": "Number of people who tested positive for HIV",
+          "is_active": true,
+          "aggregates": 0
+        }
+      ]
+    },
+    {
+      "canonical": "number of sti cases linked to care",
+      "items": [
+        {
+          "id": 469,
+          "code": "NAHPA2025-26-31-NUMBER-OF-STI-CASES-LINKED-TO-CARE",
+          "name": "Number of STI cases linked to care",
+          "is_active": true,
+          "aggregates": 3
+        },
+        {
+          "id": 353,
+          "code": "AUTO_NUMBER_OF_STI_CASES_LINKED_TO_CARE",
+          "name": "Number of STI cases linked to care",
+          "is_active": true,
+          "aggregates": 0
+        }
+      ]
+    },
+    {
+      "canonical": "number of sti cases referrals completed",
+      "items": [
+        {
+          "id": 470,
+          "code": "NAHPA2025-26-32-NUMBER-OF-STI-CASES-REFERRALS-COMP",
+          "name": "Number of STI cases referrals completed",
+          "is_active": true,
+          "aggregates": 2
+        },
+        {
+          "id": 354,
+          "code": "AUTO_NUMBER_OF_STI_CASES_REFERRALS_COMP",
+          "name": "Number of STI cases referrals completed",
+          "is_active": true,
+          "aggregates": 0
+        }
+      ]
+    },
+    {
+      "canonical": "total number of lubricants distributed",
+      "items": [
+        {
+          "id": 472,
+          "code": "NAHPA2025-26-35-TOTAL-NUMBER-OF-LUBRICANTS-DISTRIB",
+          "name": "Total number of lubricants distributed",
+          "is_active": true,
+          "aggregates": 15
+        },
+        {
+          "id": 357,
+          "code": "AUTO_NUMBER_OF_LUBRICANTS_DISTRIBUTED",
+          "name": "Total number of lubricants distributed",
+          "is_active": false,
+          "aggregates": 0
+        }
+      ]
+    }
+  ],
+  "fuzzy_candidates": [
+    {
+      "ratio": 0.992,
+      "left": {
+        "id": 371,
+        "code": "AUTO_NUMBER_OF_SUB_RECIPIENTS_SUBMITTIN_1",
+        "name": "Number OF Sub-recipients Submitting Quality Reports PER Month.",
+        "is_active": true,
+        "aggregates": 1
+      },
+      "right": {
+        "id": 320,
+        "code": "AUTO_NUMBER_OF_SUB_RECIPIENTS_SUBMITTIN",
+        "name": "Number of sub-recipients submitting quality reports per months.",
+        "is_active": true,
+        "aggregates": 16
+      },
+      "left_canonical": "number of sub recipients submitting quality reports per month",
+      "right_canonical": "number of sub recipients submitting quality reports per months"
+    },
+    {
+      "ratio": 0.991,
+      "left": {
+        "id": 456,
+        "code": "NAHPA2025-26-14-NUMBER-OF-PEOPLE-WHO-WERE-ASSESSED",
+        "name": "Number of people who were assessed for PEP eligibility",
+        "is_active": true,
+        "aggregates": 1
+      },
+      "right": {
+        "id": 455,
+        "code": "NAHPA2025-26-12-NUMBER-OF-PEOPLE-WHO-WERE-ASSESSED",
+        "name": "Number of people who were assessed for PrEP eligibility",
+        "is_active": true,
+        "aggregates": 1
+      },
+      "left_canonical": "number of people who were assessed for pep eligibility",
+      "right_canonical": "number of people who were assessed for prep eligibility"
+    },
+    {
+      "ratio": 0.99,
+      "left": {
+        "id": 322,
+        "code": "AUTO_NUMBER_OF_TOTAL_NUMBER_OF_PEOPLE_R_1",
+        "name": "Total Number of People Reached with PEP Messages",
+        "is_active": true,
+        "aggregates": 3
+      },
+      "right": {
+        "id": 323,
+        "code": "AUTO_NUMBER_OF_TOTAL_NUMBER_OF_PEOPLE_R_2",
+        "name": "Total Number of People Reached with PrEP Messages",
+        "is_active": true,
+        "aggregates": 2
+      },
+      "left_canonical": "total number of people reached with pep messages",
+      "right_canonical": "total number of people reached with prep messages"
+    },
+    {
+      "ratio": 0.985,
+      "left": {
+        "id": 338,
+        "code": "AUTO_NUMBER_OF_PEOPLE_ELIGIBLE_FOR_PEP",
+        "name": "Number of people eligible for PEP",
+        "is_active": true,
+        "aggregates": 15
+      },
+      "right": {
+        "id": 336,
+        "code": "AUTO_NUMBER_OF_PEOPLE_ELIGIBLE_FOR_PREP",
+        "name": "Number of people eligible for PrEP",
+        "is_active": true,
+        "aggregates": 15
+      },
+      "left_canonical": "number of people eligible for pep",
+      "right_canonical": "number of people eligible for prep"
+    },
+    {
+      "ratio": 0.985,
+      "left": {
+        "id": 446,
+        "code": "NAHPA2025-26-7-NUMBER-OF-PEOPLE-REFERRED-FOR-PEP",
+        "name": "Number of people referred for PEP.",
+        "is_active": true,
+        "aggregates": 14
+      },
+      "right": {
+        "id": 337,
+        "code": "AUTO_NUMBER_OF_PEOPLE_REFERRED_FOR_PREP",
+        "name": "Number of people referred for PrEP.",
+        "is_active": true,
+        "aggregates": 15
+      },
+      "left_canonical": "number of people referred for pep",
+      "right_canonical": "number of people referred for prep"
+    },
+    {
+      "ratio": 0.985,
+      "left": {
+        "id": 339,
+        "code": "AUTO_NUMBER_OF_PEOPLE_REFERRED_FOR_PEP",
+        "name": "Number of people referred for PEP",
+        "is_active": true,
+        "aggregates": 2
+      },
+      "right": {
+        "id": 337,
+        "code": "AUTO_NUMBER_OF_PEOPLE_REFERRED_FOR_PREP",
+        "name": "Number of people referred for PrEP.",
+        "is_active": true,
+        "aggregates": 15
+      },
+      "left_canonical": "number of people referred for pep",
+      "right_canonical": "number of people referred for prep"
+    },
+    {
+      "ratio": 0.958,
+      "left": {
+        "id": 324,
+        "code": "AUTO_NUMBER_OF_TOTAL_NUMBER_OF_PEOPLE_R_3",
+        "name": "Total Number of People Reached with GBV Messages",
+        "is_active": true,
+        "aggregates": 3
+      },
+      "right": {
+        "id": 329,
+        "code": "AUTO_NUMBER_OF_TOTAL_NUMBER_OF_PEOPLE_R_8",
+        "name": "Total Number of People Reached with HIV Messages",
+        "is_active": true,
+        "aggregates": 1
+      },
+      "left_canonical": "total number of people reached with gbv messages",
+      "right_canonical": "total number of people reached with hiv messages"
+    },
+    {
+      "ratio": 0.946,
+      "left": {
+        "id": 355,
+        "code": "AUTO_NUMBER_OF_CONDOMS_DISTRIBUTED_TO_A",
+        "name": "Number of condoms distributed to AYPs",
+        "is_active": true,
+        "aggregates": 1
+      },
+      "right": {
+        "id": 447,
+        "code": "NAHPA2025-26-10-NUMBER-OF-CONDOMS-DISTRIBUTED-TO-K",
+        "name": "Number of condoms distributed to KVPs.",
+        "is_active": true,
+        "aggregates": 13
+      },
+      "left_canonical": "number of condoms distributed to ayps",
+      "right_canonical": "number of condoms distributed to kvps"
+    },
+    {
+      "ratio": 0.944,
+      "left": {
+        "id": 425,
+        "code": "19",
+        "name": "Number of people screened for NCDs behavioural risk factors (Alcohol Use)",
+        "is_active": true,
+        "aggregates": 1
+      },
+      "right": {
+        "id": 420,
+        "code": "16",
+        "name": "Number of people screened for NCDs behavioural risk factors( Tobacco Use)",
+        "is_active": true,
+        "aggregates": 1
+      },
+      "left_canonical": "number of people screened for ncds behavioural risk factors alcohol use",
+      "right_canonical": "number of people screened for ncds behavioural risk factors tobacco use"
+    },
+    {
+      "ratio": 0.942,
+      "left": {
+        "id": 356,
+        "code": "AUTO_NUMBER_OF_PEOPLE_WHO_REPEATED_COLL",
+        "name": "Number of people who repeated collecting condoms for the repeated time",
+        "is_active": true,
+        "aggregates": 1
+      },
+      "right": {
+        "id": 449,
+        "code": "NAHPA2025-26-13-NUMBER-OF-PEOPLE-WHO-REPORTED-COLL",
+        "name": "Number of people who reported collecting condoms for a repeated time.",
+        "is_active": true,
+        "aggregates": 14
+      },
+      "left_canonical": "number of people who repeated collecting condoms for the repeated time",
+      "right_canonical": "number of people who reported collecting condoms for a repeated time"
+    },
+    {
+      "ratio": 0.939,
+      "left": {
+        "id": 322,
+        "code": "AUTO_NUMBER_OF_TOTAL_NUMBER_OF_PEOPLE_R_1",
+        "name": "Total Number of People Reached with PEP Messages",
+        "is_active": true,
+        "aggregates": 3
+      },
+      "right": {
+        "id": 328,
+        "code": "AUTO_NUMBER_OF_TOTAL_NUMBER_OF_PEOPLE_R_7",
+        "name": "Total Number of People Reached with eMTCT Messages",
+        "is_active": true,
+        "aggregates": 1
+      },
+      "left_canonical": "total number of people reached with pep messages",
+      "right_canonical": "total number of people reached with emtct messages"
+    },
+    {
+      "ratio": 0.938,
+      "left": {
+        "id": 324,
+        "code": "AUTO_NUMBER_OF_TOTAL_NUMBER_OF_PEOPLE_R_3",
+        "name": "Total Number of People Reached with GBV Messages",
+        "is_active": true,
+        "aggregates": 3
+      },
+      "right": {
+        "id": 322,
+        "code": "AUTO_NUMBER_OF_TOTAL_NUMBER_OF_PEOPLE_R_1",
+        "name": "Total Number of People Reached with PEP Messages",
+        "is_active": true,
+        "aggregates": 3
+      },
+      "left_canonical": "total number of people reached with gbv messages",
+      "right_canonical": "total number of people reached with pep messages"
+    },
+    {
+      "ratio": 0.938,
+      "left": {
+        "id": 329,
+        "code": "AUTO_NUMBER_OF_TOTAL_NUMBER_OF_PEOPLE_R_8",
+        "name": "Total Number of People Reached with HIV Messages",
+        "is_active": true,
+        "aggregates": 1
+      },
+      "right": {
+        "id": 322,
+        "code": "AUTO_NUMBER_OF_TOTAL_NUMBER_OF_PEOPLE_R_1",
+        "name": "Total Number of People Reached with PEP Messages",
+        "is_active": true,
+        "aggregates": 3
+      },
+      "left_canonical": "total number of people reached with hiv messages",
+      "right_canonical": "total number of people reached with pep messages"
+    },
+    {
+      "ratio": 0.938,
+      "left": {
+        "id": 475,
+        "code": "AUTO_NUMBER_ELIGIBLE_FOR_GBV_SERVICES_W",
+        "name": "Number eligible for GBV services who experienced PHYSICAL VIOLENCE",
+        "is_active": true,
+        "aggregates": 1
+      },
+      "right": {
+        "id": 476,
+        "code": "AUTO_NUMBER_ELIGIBLE_FOR_GBV_SERVICES_W_1",
+        "name": "Number eligible for GBV services who experienced SEXUAL VIOLENCE",
+        "is_active": true,
+        "aggregates": 1
+      },
+      "left_canonical": "number eligible for gbv services who experienced physical violence",
+      "right_canonical": "number eligible for gbv services who experienced sexual violence"
+    },
+    {
+      "ratio": 0.931,
+      "left": {
+        "id": 477,
+        "code": "AUTO_NUMBER_ELIGIBLE_FOR_GBV_SERVICES_W_2",
+        "name": "Number eligible for GBV services who experienced EMOTIONAL VIOLENCE",
+        "is_active": true,
+        "aggregates": 1
+      },
+      "right": {
+        "id": 476,
+        "code": "AUTO_NUMBER_ELIGIBLE_FOR_GBV_SERVICES_W_1",
+        "name": "Number eligible for GBV services who experienced SEXUAL VIOLENCE",
+        "is_active": true,
+        "aggregates": 1
+      },
+      "left_canonical": "number eligible for gbv services who experienced emotional violence",
+      "right_canonical": "number eligible for gbv services who experienced sexual violence"
+    },
+    {
+      "ratio": 0.93,
+      "left": {
+        "id": 321,
+        "code": "AUTO_NUMBER_OF_TOTAL_NUMBER_OF_PEOPLE_R",
+        "name": "Total Number of People Reached with HIV Testing Messages",
+        "is_active": true,
+        "aggregates": 3
+      },
+      "right": {
+        "id": 326,
+        "code": "AUTO_NUMBER_OF_TOTAL_NUMBER_OF_PEOPLE_R_5",
+        "name": "Total Number of People Reached with HIV Treatment Messages",
+        "is_active": true,
+        "aggregates": 1
+      },
+      "left_canonical": "total number of people reached with hiv testing messages",
+      "right_canonical": "total number of people reached with hiv treatment messages"
+    },
+    {
+      "ratio": 0.929,
+      "left": {
+        "id": 323,
+        "code": "AUTO_NUMBER_OF_TOTAL_NUMBER_OF_PEOPLE_R_2",
+        "name": "Total Number of People Reached with PrEP Messages",
+        "is_active": true,
+        "aggregates": 2
+      },
+      "right": {
+        "id": 328,
+        "code": "AUTO_NUMBER_OF_TOTAL_NUMBER_OF_PEOPLE_R_7",
+        "name": "Total Number of People Reached with eMTCT Messages",
+        "is_active": true,
+        "aggregates": 1
+      },
+      "left_canonical": "total number of people reached with prep messages",
+      "right_canonical": "total number of people reached with emtct messages"
+    },
+    {
+      "ratio": 0.928,
+      "left": {
+        "id": 324,
+        "code": "AUTO_NUMBER_OF_TOTAL_NUMBER_OF_PEOPLE_R_3",
+        "name": "Total Number of People Reached with GBV Messages",
+        "is_active": true,
+        "aggregates": 3
+      },
+      "right": {
+        "id": 323,
+        "code": "AUTO_NUMBER_OF_TOTAL_NUMBER_OF_PEOPLE_R_2",
+        "name": "Total Number of People Reached with PrEP Messages",
+        "is_active": true,
+        "aggregates": 2
+      },
+      "left_canonical": "total number of people reached with gbv messages",
+      "right_canonical": "total number of people reached with prep messages"
+    },
+    {
+      "ratio": 0.928,
+      "left": {
+        "id": 329,
+        "code": "AUTO_NUMBER_OF_TOTAL_NUMBER_OF_PEOPLE_R_8",
+        "name": "Total Number of People Reached with HIV Messages",
+        "is_active": true,
+        "aggregates": 1
+      },
+      "right": {
+        "id": 323,
+        "code": "AUTO_NUMBER_OF_TOTAL_NUMBER_OF_PEOPLE_R_2",
+        "name": "Total Number of People Reached with PrEP Messages",
+        "is_active": true,
+        "aggregates": 2
+      },
+      "left_canonical": "total number of people reached with hiv messages",
+      "right_canonical": "total number of people reached with prep messages"
+    },
+    {
+      "ratio": 0.923,
+      "left": {
+        "id": 329,
+        "code": "AUTO_NUMBER_OF_TOTAL_NUMBER_OF_PEOPLE_R_8",
+        "name": "Total Number of People Reached with HIV Messages",
+        "is_active": true,
+        "aggregates": 1
+      },
+      "right": {
+        "id": 321,
+        "code": "AUTO_NUMBER_OF_TOTAL_NUMBER_OF_PEOPLE_R",
+        "name": "Total Number of People Reached with HIV Testing Messages",
+        "is_active": true,
+        "aggregates": 3
+      },
+      "left_canonical": "total number of people reached with hiv messages",
+      "right_canonical": "total number of people reached with hiv testing messages"
+    },
+    {
+      "ratio": 0.92,
+      "left": {
+        "id": 465,
+        "code": "NAHPA2025-26-25-NUMBER-OF-PEOPLE-ELLIGIBLE-FOR-JUS",
+        "name": "Number of people eligible for justice services for GBV.",
+        "is_active": true,
+        "aggregates": 3
+      },
+      "right": {
+        "id": 459,
+        "code": "NAHPA2025-26-18-NUMBER-OF-PEOPLE-ELLIGIBLE-FOR-JUS",
+        "name": "Number of people eligible for justice services.",
+        "is_active": true,
+        "aggregates": 1
+      },
+      "left_canonical": "number of people eligible for justice services for gbv",
+      "right_canonical": "number of people eligible for justice services"
+    },
+    {
+      "ratio": 0.918,
+      "left": {
+        "id": 324,
+        "code": "AUTO_NUMBER_OF_TOTAL_NUMBER_OF_PEOPLE_R_3",
+        "name": "Total Number of People Reached with GBV Messages",
+        "is_active": true,
+        "aggregates": 3
+      },
+      "right": {
+        "id": 328,
+        "code": "AUTO_NUMBER_OF_TOTAL_NUMBER_OF_PEOPLE_R_7",
+        "name": "Total Number of People Reached with eMTCT Messages",
+        "is_active": true,
+        "aggregates": 1
+      },
+      "left_canonical": "total number of people reached with gbv messages",
+      "right_canonical": "total number of people reached with emtct messages"
+    },
+    {
+      "ratio": 0.918,
+      "left": {
+        "id": 329,
+        "code": "AUTO_NUMBER_OF_TOTAL_NUMBER_OF_PEOPLE_R_8",
+        "name": "Total Number of People Reached with HIV Messages",
+        "is_active": true,
+        "aggregates": 1
+      },
+      "right": {
+        "id": 328,
+        "code": "AUTO_NUMBER_OF_TOTAL_NUMBER_OF_PEOPLE_R_7",
+        "name": "Total Number of People Reached with eMTCT Messages",
+        "is_active": true,
+        "aggregates": 1
+      },
+      "left_canonical": "total number of people reached with hiv messages",
+      "right_canonical": "total number of people reached with emtct messages"
+    },
+    {
+      "ratio": 0.917,
+      "left": {
+        "id": 477,
+        "code": "AUTO_NUMBER_ELIGIBLE_FOR_GBV_SERVICES_W_2",
+        "name": "Number eligible for GBV services who experienced EMOTIONAL VIOLENCE",
+        "is_active": true,
+        "aggregates": 1
+      },
+      "right": {
+        "id": 475,
+        "code": "AUTO_NUMBER_ELIGIBLE_FOR_GBV_SERVICES_W",
+        "name": "Number eligible for GBV services who experienced PHYSICAL VIOLENCE",
+        "is_active": true,
+        "aggregates": 1
+      },
+      "left_canonical": "number eligible for gbv services who experienced emotional violence",
+      "right_canonical": "number eligible for gbv services who experienced physical violence"
+    },
+    {
+      "ratio": 0.912,
+      "left": {
+        "id": 397,
+        "code": "AUTO_NUMBER_OF_PEOPLE_WHO_ATTENDED_WORL_1",
+        "name": "Number OF People WHO Attended World Cancer DAY Activites.",
+        "is_active": true,
+        "aggregates": 1
+      },
+      "right": {
+        "id": 393,
+        "code": "AUTO_NUMBER_OF_PEOPLE_WHO_ATTENDED_WORL",
+        "name": "Number OF People WHO Attended World Diabetes DAY Activites.",
+        "is_active": true,
+        "aggregates": 1
+      },
+      "left_canonical": "number of people who attended world cancer day activites",
+      "right_canonical": "number of people who attended world diabetes day activites"
+    },
+    {
+      "ratio": 0.906,
+      "left": {
+        "id": 329,
+        "code": "AUTO_NUMBER_OF_TOTAL_NUMBER_OF_PEOPLE_R_8",
+        "name": "Total Number of People Reached with HIV Messages",
+        "is_active": true,
+        "aggregates": 1
+      },
+      "right": {
+        "id": 326,
+        "code": "AUTO_NUMBER_OF_TOTAL_NUMBER_OF_PEOPLE_R_5",
+        "name": "Total Number of People Reached with HIV Treatment Messages",
+        "is_active": true,
+        "aggregates": 1
+      },
+      "left_canonical": "total number of people reached with hiv messages",
+      "right_canonical": "total number of people reached with hiv treatment messages"
+    },
+    {
+      "ratio": 0.902,
+      "left": {
+        "id": 410,
+        "code": "20",
+        "name": "Number of people eligible for alcohol abuse cessation program",
+        "is_active": true,
+        "aggregates": 1
+      },
+      "right": {
+        "id": 411,
+        "code": "21",
+        "name": "Number of people referred for alcohol abuse cessation program",
+        "is_active": true,
+        "aggregates": 1
+      },
+      "left_canonical": "number of people eligible for alcohol abuse cessation program",
+      "right_canonical": "number of people referred for alcohol abuse cessation program"
+    },
+    {
+      "ratio": 0.899,
+      "left": {
+        "id": 464,
+        "code": "NAHPA2025-26-24-NUMBER-OF-PEOPLE-REFFERED-FOR-CLIN",
+        "name": "Number of people referred for clinical services for GBV.",
+        "is_active": true,
+        "aggregates": 3
+      },
+      "right": {
+        "id": 466,
+        "code": "NAHPA2025-26-26-NUMBER-OF-PEOPLE-REFFERED-FOR-JUST",
+        "name": "Number of people referred for justice services for GBV.",
+        "is_active": true,
+        "aggregates": 4
+      },
+      "left_canonical": "number of people referred for clinical services for gbv",
+      "right_canonical": "number of people referred for justice services for gbv"
+    },
+    {
+      "ratio": 0.899,
+      "left": {
+        "id": 463,
+        "code": "NAHPA2025-26-23-NUMBER-OF-PEOPLE-ELLIGIBLE-FOR-CLI",
+        "name": "Number of people eligible for clinical services for GBV.",
+        "is_active": true,
+        "aggregates": 3
+      },
+      "right": {
+        "id": 465,
+        "code": "NAHPA2025-26-25-NUMBER-OF-PEOPLE-ELLIGIBLE-FOR-JUS",
+        "name": "Number of people eligible for justice services for GBV.",
+        "is_active": true,
+        "aggregates": 3
+      },
+      "left_canonical": "number of people eligible for clinical services for gbv",
+      "right_canonical": "number of people eligible for justice services for gbv"
+    },
+    {
+      "ratio": 0.898,
+      "left": {
+        "id": 467,
+        "code": "NAHPA2025-26-27-NUMBER-OF-PEOPLE-ELLIGIBLE-FOR-PSY",
+        "name": "Number of people eligible for psychosocial support on GBV.",
+        "is_active": true,
+        "aggregates": 2
+      },
+      "right": {
+        "id": 479,
+        "code": "SC_NUMBER_OF_PEOPLE_REFERRED_FOR_PSYCHOSOCIAL_SUPP",
+        "name": "Number of people referred for psychosocial support on GBV.",
+        "is_active": true,
+        "aggregates": 1
+      },
+      "left_canonical": "number of people eligible for psychosocial services for gbv",
+      "right_canonical": "number of people referred for psychosocial services for gbv"
+    },
+    {
+      "ratio": 0.895,
+      "left": {
+        "id": 463,
+        "code": "NAHPA2025-26-23-NUMBER-OF-PEOPLE-ELLIGIBLE-FOR-CLI",
+        "name": "Number of people eligible for clinical services for GBV.",
+        "is_active": true,
+        "aggregates": 3
+      },
+      "right": {
+        "id": 467,
+        "code": "NAHPA2025-26-27-NUMBER-OF-PEOPLE-ELLIGIBLE-FOR-PSY",
+        "name": "Number of people eligible for psychosocial support on GBV.",
+        "is_active": true,
+        "aggregates": 2
+      },
+      "left_canonical": "number of people eligible for clinical services for gbv",
+      "right_canonical": "number of people eligible for psychosocial services for gbv"
+    },
+    {
+      "ratio": 0.895,
+      "left": {
+        "id": 464,
+        "code": "NAHPA2025-26-24-NUMBER-OF-PEOPLE-REFFERED-FOR-CLIN",
+        "name": "Number of people referred for clinical services for GBV.",
+        "is_active": true,
+        "aggregates": 3
+      },
+      "right": {
+        "id": 479,
+        "code": "SC_NUMBER_OF_PEOPLE_REFERRED_FOR_PSYCHOSOCIAL_SUPP",
+        "name": "Number of people referred for psychosocial support on GBV.",
+        "is_active": true,
+        "aggregates": 1
+      },
+      "left_canonical": "number of people referred for clinical services for gbv",
+      "right_canonical": "number of people referred for psychosocial services for gbv"
+    },
+    {
+      "ratio": 0.893,
+      "left": {
+        "id": 325,
+        "code": "AUTO_NUMBER_OF_TOTAL_NUMBER_OF_PEOPLE_R_4",
+        "name": "Total Number of People Reached with Condom Use Messages",
+        "is_active": true,
+        "aggregates": 1
+      },
+      "right": {
+        "id": 322,
+        "code": "AUTO_NUMBER_OF_TOTAL_NUMBER_OF_PEOPLE_R_1",
+        "name": "Total Number of People Reached with PEP Messages",
+        "is_active": true,
+        "aggregates": 3
+      },
+      "left_canonical": "total number of people reached with condom use messages",
+      "right_canonical": "total number of people reached with pep messages"
+    },
+    {
+      "ratio": 0.893,
+      "left": {
+        "id": 410,
+        "code": "20",
+        "name": "Number of people eligible for alcohol abuse cessation program",
+        "is_active": true,
+        "aggregates": 1
+      },
+      "right": {
+        "id": 422,
+        "code": "22",
+        "name": "Number of people on alcohol abuse cessation program",
+        "is_active": true,
+        "aggregates": 1
+      },
+      "left_canonical": "number of people eligible for alcohol abuse cessation program",
+      "right_canonical": "number of people on alcohol abuse cessation program"
+    },
+    {
+      "ratio": 0.893,
+      "left": {
+        "id": 422,
+        "code": "22",
+        "name": "Number of people on alcohol abuse cessation program",
+        "is_active": true,
+        "aggregates": 1
+      },
+      "right": {
+        "id": 411,
+        "code": "21",
+        "name": "Number of people referred for alcohol abuse cessation program",
+        "is_active": true,
+        "aggregates": 1
+      },
+      "left_canonical": "number of people on alcohol abuse cessation program",
+      "right_canonical": "number of people referred for alcohol abuse cessation program"
+    },
+    {
+      "ratio": 0.891,
+      "left": {
+        "id": 463,
+        "code": "NAHPA2025-26-23-NUMBER-OF-PEOPLE-ELLIGIBLE-FOR-CLI",
+        "name": "Number of people eligible for clinical services for GBV.",
+        "is_active": true,
+        "aggregates": 3
+      },
+      "right": {
+        "id": 464,
+        "code": "NAHPA2025-26-24-NUMBER-OF-PEOPLE-REFFERED-FOR-CLIN",
+        "name": "Number of people referred for clinical services for GBV.",
+        "is_active": true,
+        "aggregates": 3
+      },
+      "left_canonical": "number of people eligible for clinical services for gbv",
+      "right_canonical": "number of people referred for clinical services for gbv"
+    },
+    {
+      "ratio": 0.891,
+      "left": {
+        "id": 382,
+        "code": "AUTO_NUMBER_OF_PEOPLE_ON_ALCOHOL_ABUSE_",
+        "name": "Number OF People ON Alcohol Abuse Program.",
+        "is_active": true,
+        "aggregates": 1
+      },
+      "right": {
+        "id": 422,
+        "code": "22",
+        "name": "Number of people on alcohol abuse cessation program",
+        "is_active": true,
+        "aggregates": 1
+      },
+      "left_canonical": "number of people on alcohol abuse program",
+      "right_canonical": "number of people on alcohol abuse cessation program"
+    },
+    {
+      "ratio": 0.891,
+      "left": {
+        "id": 421,
+        "code": "17",
+        "name": "Number of people eligible for tobacco cessation program",
+        "is_active": true,
+        "aggregates": 1
+      },
+      "right": {
+        "id": 424,
+        "code": "18",
+        "name": "Number of people referred for tobacco cessation program",
+        "is_active": true,
+        "aggregates": 1
+      },
+      "left_canonical": "number of people eligible for tobacco cessation program",
+      "right_canonical": "number of people referred for tobacco cessation program"
+    },
+    {
+      "ratio": 0.889,
+      "left": {
+        "id": 465,
+        "code": "NAHPA2025-26-25-NUMBER-OF-PEOPLE-ELLIGIBLE-FOR-JUS",
+        "name": "Number of people eligible for justice services for GBV.",
+        "is_active": true,
+        "aggregates": 3
+      },
+      "right": {
+        "id": 466,
+        "code": "NAHPA2025-26-26-NUMBER-OF-PEOPLE-REFFERED-FOR-JUST",
+        "name": "Number of people referred for justice services for GBV.",
+        "is_active": true,
+        "aggregates": 4
+      },
+      "left_canonical": "number of people eligible for justice services for gbv",
+      "right_canonical": "number of people referred for justice services for gbv"
+    },
+    {
+      "ratio": 0.889,
+      "left": {
+        "id": 335,
+        "code": "AUTO_NUMBER_OF_AYP_INITIATED_ON_ART",
+        "name": "Number of AYP initiated on ART",
+        "is_active": true,
+        "aggregates": 1
+      },
+      "right": {
+        "id": 454,
+        "code": "NAHPA2025-26-11-NUMBER-OF-PEOPLE-INITIATED-ON-ART",
+        "name": "Number of people initiated on ART",
+        "is_active": true,
+        "aggregates": 1
+      },
+      "left_canonical": "number of ayp initiated on art",
+      "right_canonical": "number of people initiated on art"
+    },
+    {
+      "ratio": 0.887,
+      "left": {
+        "id": 321,
+        "code": "AUTO_NUMBER_OF_TOTAL_NUMBER_OF_PEOPLE_R",
+        "name": "Total Number of People Reached with HIV Testing Messages",
+        "is_active": true,
+        "aggregates": 3
+      },
+      "right": {
+        "id": 328,
+        "code": "AUTO_NUMBER_OF_TOTAL_NUMBER_OF_PEOPLE_R_7",
+        "name": "Total Number of People Reached with eMTCT Messages",
+        "is_active": true,
+        "aggregates": 1
+      },
+      "left_canonical": "total number of people reached with hiv testing messages",
+      "right_canonical": "total number of people reached with emtct messages"
+    },
+    {
+      "ratio": 0.885,
+      "left": {
+        "id": 321,
+        "code": "AUTO_NUMBER_OF_TOTAL_NUMBER_OF_PEOPLE_R",
+        "name": "Total Number of People Reached with HIV Testing Messages",
+        "is_active": true,
+        "aggregates": 3
+      },
+      "right": {
+        "id": 322,
+        "code": "AUTO_NUMBER_OF_TOTAL_NUMBER_OF_PEOPLE_R_1",
+        "name": "Total Number of People Reached with PEP Messages",
+        "is_active": true,
+        "aggregates": 3
+      },
+      "left_canonical": "total number of people reached with hiv testing messages",
+      "right_canonical": "total number of people reached with pep messages"
+    },
+    {
+      "ratio": 0.885,
+      "left": {
+        "id": 324,
+        "code": "AUTO_NUMBER_OF_TOTAL_NUMBER_OF_PEOPLE_R_3",
+        "name": "Total Number of People Reached with GBV Messages",
+        "is_active": true,
+        "aggregates": 3
+      },
+      "right": {
+        "id": 321,
+        "code": "AUTO_NUMBER_OF_TOTAL_NUMBER_OF_PEOPLE_R",
+        "name": "Total Number of People Reached with HIV Testing Messages",
+        "is_active": true,
+        "aggregates": 3
+      },
+      "left_canonical": "total number of people reached with gbv messages",
+      "right_canonical": "total number of people reached with hiv testing messages"
+    },
+    {
+      "ratio": 0.885,
+      "left": {
+        "id": 325,
+        "code": "AUTO_NUMBER_OF_TOTAL_NUMBER_OF_PEOPLE_R_4",
+        "name": "Total Number of People Reached with Condom Use Messages",
+        "is_active": true,
+        "aggregates": 1
+      },
+      "right": {
+        "id": 323,
+        "code": "AUTO_NUMBER_OF_TOTAL_NUMBER_OF_PEOPLE_R_2",
+        "name": "Total Number of People Reached with PrEP Messages",
+        "is_active": true,
+        "aggregates": 2
+      },
+      "left_canonical": "total number of people reached with condom use messages",
+      "right_canonical": "total number of people reached with prep messages"
+    },
+    {
+      "ratio": 0.881,
+      "left": {
+        "id": 350,
+        "code": "AUTO_NUMBER_OF_PEOPLE_WHO_RECEIVED_PSYC",
+        "name": "Number of people who received psychosocial support on GBV",
+        "is_active": true,
+        "aggregates": 3
+      },
+      "right": {
+        "id": 479,
+        "code": "SC_NUMBER_OF_PEOPLE_REFERRED_FOR_PSYCHOSOCIAL_SUPP",
+        "name": "Number of people referred for psychosocial support on GBV.",
+        "is_active": true,
+        "aggregates": 1
+      },
+      "left_canonical": "number of people who received psychosocial services for gbv",
+      "right_canonical": "number of people referred for psychosocial services for gbv"
+    },
+    {
+      "ratio": 0.881,
+      "left": {
+        "id": 334,
+        "code": "AUTO_NUMBER_OF_AYP_LINKED_TO_CARE",
+        "name": "Number of AYP linked to care.",
+        "is_active": true,
+        "aggregates": 1
+      },
+      "right": {
+        "id": 453,
+        "code": "NAHPA2025-26-10-NUMBER-OF-PEOPLE-LINKED-TO-CARE",
+        "name": "Number of people linked to care.",
+        "is_active": true,
+        "aggregates": 1
+      },
+      "left_canonical": "number of ayp linked to care",
+      "right_canonical": "number of people linked to care"
+    }
+  ]
+}

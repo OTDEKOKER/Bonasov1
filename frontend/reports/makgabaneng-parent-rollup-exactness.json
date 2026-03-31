@@ -1,0 +1,284 @@
+{
+  "organization": {
+    "id": 5,
+    "name": "MAKGABANENG"
+  },
+  "project": {
+    "id": 2,
+    "code": "NAHPA2025/26",
+    "name": "NAHPA Social Contracting"
+  },
+  "period_start": "2025-10-01",
+  "period_end": "2025-12-31",
+  "summary": {
+    "parent_aggregate_count": 44,
+    "exact_matches": 44,
+    "mismatches": 0
+  },
+  "details": [
+    {
+      "aggregate_id": 10797,
+      "indicator_id": 317,
+      "indicator_name": "Number of service providers receiving training",
+      "exact": true
+    },
+    {
+      "aggregate_id": 10798,
+      "indicator_id": 318,
+      "indicator_name": "Number of sub recipients mentored per month.",
+      "exact": true
+    },
+    {
+      "aggregate_id": 10799,
+      "indicator_id": 319,
+      "indicator_name": "Number of CSOs trained and equipped to provide comprehensive psychosocial and practical support, including HIV-related support.",
+      "exact": true
+    },
+    {
+      "aggregate_id": 10804,
+      "indicator_id": 363,
+      "indicator_name": "Number of media platforms used per quarter",
+      "exact": true
+    },
+    {
+      "aggregate_id": 10803,
+      "indicator_id": 365,
+      "indicator_name": "Number of advocacy activities conducted per quarter.",
+      "exact": true
+    },
+    {
+      "aggregate_id": 10805,
+      "indicator_id": 366,
+      "indicator_name": "Number of target specific demand creation activities conducted",
+      "exact": true
+    },
+    {
+      "aggregate_id": 10806,
+      "indicator_id": 367,
+      "indicator_name": "Number of media engagements conducted",
+      "exact": true
+    },
+    {
+      "aggregate_id": 10800,
+      "indicator_id": 371,
+      "indicator_name": "Number OF Sub-recipients Submitting Quality Reports PER Month.",
+      "exact": true
+    },
+    {
+      "aggregate_id": 10801,
+      "indicator_id": 372,
+      "indicator_name": "Number OF People Reached With NCD Prevention AND Control Messages.",
+      "exact": true
+    },
+    {
+      "aggregate_id": 10802,
+      "indicator_id": 373,
+      "indicator_name": "Number of people engaged with NCD prevention and control messages through social media.",
+      "exact": true
+    },
+    {
+      "aggregate_id": 10807,
+      "indicator_id": 374,
+      "indicator_name": "Number OF People Reached With Self-breast Cancer Examination Education",
+      "exact": true
+    },
+    {
+      "aggregate_id": 10810,
+      "indicator_id": 375,
+      "indicator_name": "Number OF People Reached With Prostate Cancer Education.",
+      "exact": true
+    },
+    {
+      "aggregate_id": 10811,
+      "indicator_id": 376,
+      "indicator_name": "Number OF People Reached With Cervical Cancer Education.",
+      "exact": true
+    },
+    {
+      "aggregate_id": 10809,
+      "indicator_id": 380,
+      "indicator_name": "Number OF People Screened FOR Breast Cancer.",
+      "exact": true
+    },
+    {
+      "aggregate_id": 10821,
+      "indicator_id": 383,
+      "indicator_name": "Number OF People Suspected OF Having NCDs Risk Factors (blood Glucose, Blood Pressure, BMI) Referred FOR Further Health Services",
+      "exact": true
+    },
+    {
+      "aggregate_id": 10824,
+      "indicator_id": 387,
+      "indicator_name": "Number OF Counselling Sessions Conducted",
+      "exact": true
+    },
+    {
+      "aggregate_id": 10825,
+      "indicator_id": 390,
+      "indicator_name": "Number OF People Utilizing Community Based Physical Activity Clubs.",
+      "exact": true
+    },
+    {
+      "aggregate_id": 10826,
+      "indicator_id": 391,
+      "indicator_name": "Number OF Functional Cancer Support Groups.",
+      "exact": true
+    },
+    {
+      "aggregate_id": 10834,
+      "indicator_id": 392,
+      "indicator_name": "Number OF People WHO Attended SADC Healthy Lifestyle Commemoration Activities.",
+      "exact": true
+    },
+    {
+      "aggregate_id": 10835,
+      "indicator_id": 393,
+      "indicator_name": "Number OF People WHO Attended World Diabetes DAY Activites.",
+      "exact": true
+    },
+    {
+      "aggregate_id": 10836,
+      "indicator_id": 394,
+      "indicator_name": "Number OF People WHO Attended THE Breast Cancer Month Activities.",
+      "exact": true
+    },
+    {
+      "aggregate_id": 10837,
+      "indicator_id": 395,
+      "indicator_name": "Number OF People WHO Attended Cervical Cancer Awareness Activities.",
+      "exact": true
+    },
+    {
+      "aggregate_id": 10838,
+      "indicator_id": 396,
+      "indicator_name": "Number OF People WHO Attended Mental Health DAY Activities.",
+      "exact": true
+    },
+    {
+      "aggregate_id": 10839,
+      "indicator_id": 397,
+      "indicator_name": "Number OF People WHO Attended World Cancer DAY Activites.",
+      "exact": true
+    },
+    {
+      "aggregate_id": 10840,
+      "indicator_id": 398,
+      "indicator_name": "Number OF People WHO Attended Mo-Vember DAY Activities.",
+      "exact": true
+    },
+    {
+      "aggregate_id": 10808,
+      "indicator_id": 409,
+      "indicator_name": "Number of people eligible for breast cancer screening",
+      "exact": true
+    },
+    {
+      "aggregate_id": 10817,
+      "indicator_id": 410,
+      "indicator_name": "Number of people eligible for alcohol abuse cessation program",
+      "exact": true
+    },
+    {
+      "aggregate_id": 10818,
+      "indicator_id": 411,
+      "indicator_name": "Number of people referred for alcohol abuse cessation program",
+      "exact": true
+    },
+    {
+      "aggregate_id": 10820,
+      "indicator_id": 412,
+      "indicator_name": "Number of people screened for NCDs risk factors",
+      "exact": true
+    },
+    {
+      "aggregate_id": 10827,
+      "indicator_id": 413,
+      "indicator_name": "Number of support group meetings held",
+      "exact": true
+    },
+    {
+      "aggregate_id": 10828,
+      "indicator_id": 414,
+      "indicator_name": "Total number of established cancer groups within the same area",
+      "exact": true
+    },
+    {
+      "aggregate_id": 10829,
+      "indicator_id": 415,
+      "indicator_name": "Number of new members/continuing",
+      "exact": true
+    },
+    {
+      "aggregate_id": 10831,
+      "indicator_id": 417,
+      "indicator_name": "Number of support group meetings held (tobacco/alcohol)",
+      "exact": true
+    },
+    {
+      "aggregate_id": 10832,
+      "indicator_id": 418,
+      "indicator_name": "Number of established tobacco cessation and alcohol abuse groups within the same area",
+      "exact": true
+    },
+    {
+      "aggregate_id": 10833,
+      "indicator_id": 419,
+      "indicator_name": "Number of new members/continuing (tobacco/alcohol)",
+      "exact": true
+    },
+    {
+      "aggregate_id": 10812,
+      "indicator_id": 420,
+      "indicator_name": "Number of people screened for NCDs behavioural risk factors( Tobacco Use)",
+      "exact": true
+    },
+    {
+      "aggregate_id": 10813,
+      "indicator_id": 421,
+      "indicator_name": "Number of people eligible for tobacco cessation program",
+      "exact": true
+    },
+    {
+      "aggregate_id": 10819,
+      "indicator_id": 422,
+      "indicator_name": "Number of people on alcohol abuse cessation program",
+      "exact": true
+    },
+    {
+      "aggregate_id": 10823,
+      "indicator_id": 423,
+      "indicator_name": "Number of people reached with psychoeducation",
+      "exact": true
+    },
+    {
+      "aggregate_id": 10814,
+      "indicator_id": 424,
+      "indicator_name": "Number of people referred for tobacco cessation program",
+      "exact": true
+    },
+    {
+      "aggregate_id": 10816,
+      "indicator_id": 425,
+      "indicator_name": "Number of people screened for NCDs behavioural risk factors (Alcohol Use)",
+      "exact": true
+    },
+    {
+      "aggregate_id": 10815,
+      "indicator_id": 487,
+      "indicator_name": "Number of people on tobacco cessation program",
+      "exact": true
+    },
+    {
+      "aggregate_id": 10822,
+      "indicator_id": 520,
+      "indicator_name": "Number of peoples referred for diabetes treatment/management services",
+      "exact": true
+    },
+    {
+      "aggregate_id": 10830,
+      "indicator_id": 521,
+      "indicator_name": "Number of functional tobacco cessation and alcohol abuse support group",
+      "exact": true
+    }
+  ]
+}

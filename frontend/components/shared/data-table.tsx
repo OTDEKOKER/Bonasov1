@@ -19,12 +19,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { ChevronLeft, ChevronRight, MoreHorizontal, Search, Filter, ArrowUpDown } from "lucide-react"
+import { ChevronLeft, ChevronRight, MoreHorizontal, Search, ArrowUpDown } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-interface Column<T> {
+export interface Column<T> {
   key: string
-  label: string
+  label?: string
+  header?: string
   sortable?: boolean
   render?: (item: T) => React.ReactNode
 }
@@ -32,34 +33,47 @@ interface Column<T> {
 interface DataTableProps<T> {
   data: T[]
   columns: Column<T>[]
+  searchable?: boolean
   searchPlaceholder?: string
   searchKey?: string
+  searchKeys?: string[]
+  searchValue?: string
+  onSearchChange?: (value: string) => void
   onRowClick?: (item: T) => void
   actions?: (item: T) => { label: string; onClick: () => void; destructive?: boolean }[]
+  toolbarActions?: React.ReactNode
 }
 
 export function DataTable<T extends { id: string }>({
   data,
   columns,
+  searchable = true,
   searchPlaceholder = "Search...",
   searchKey = "name",
+  searchKeys,
+  searchValue,
+  onSearchChange,
   onRowClick,
   actions,
+  toolbarActions,
 }: DataTableProps<T>) {
-  const [search, setSearch] = useState("")
-  const [currentPage, setCurrentPage] = useState(1)
+  const [internalSearch, setInternalSearch] = useState("")
+  const [requestedPage, setRequestedPage] = useState(1)
   const [sortKey, setSortKey] = useState<string | null>(null)
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc")
   const pageSize = 10
+  const effectiveSearchKeys = searchKeys && searchKeys.length > 0 ? searchKeys : [searchKey]
+  const search = searchValue !== undefined ? searchValue : internalSearch
 
   // Filter data
   const filteredData = data.filter((item) => {
     if (!search) return true
-    const value = (item as Record<string, unknown>)[searchKey]
-    if (typeof value === "string") {
-      return value.toLowerCase().includes(search.toLowerCase())
-    }
-    return true
+    const query = search.toLowerCase()
+    return effectiveSearchKeys.some((key) => {
+      const value = (item as Record<string, unknown>)[key]
+      if (value === null || value === undefined) return false
+      return String(value).toLowerCase().includes(query)
+    })
   })
 
   // Sort data
@@ -80,6 +94,7 @@ export function DataTable<T extends { id: string }>({
 
   // Paginate data
   const totalPages = Math.ceil(sortedData.length / pageSize)
+  const currentPage = totalPages === 0 ? 1 : Math.min(requestedPage, totalPages)
   const paginatedData = sortedData.slice(
     (currentPage - 1) * pageSize,
     currentPage * pageSize
@@ -98,24 +113,25 @@ export function DataTable<T extends { id: string }>({
     <div className="space-y-4">
       {/* Toolbar */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder={searchPlaceholder}
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value)
-              setCurrentPage(1)
-            }}
-            className="w-full bg-input pl-9 sm:w-64"
-          />
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm">
-            <Filter className="mr-2 h-4 w-4" />
-            Filter
-          </Button>
-        </div>
+        {searchable ? (
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder={searchPlaceholder}
+              value={search}
+              onChange={(e) => {
+                const nextValue = e.target.value
+                if (searchValue === undefined) {
+                  setInternalSearch(nextValue)
+                }
+                onSearchChange?.(nextValue)
+                setRequestedPage(1)
+              }}
+              className="w-full bg-input pl-9 sm:w-64"
+            />
+          </div>
+        ) : <div />}
+        {toolbarActions ? <div className="flex gap-2">{toolbarActions}</div> : null}
       </div>
 
       {/* Table */}
@@ -133,7 +149,7 @@ export function DataTable<T extends { id: string }>({
                   onClick={() => column.sortable && handleSort(column.key)}
                 >
                   <div className="flex items-center gap-1">
-                    {column.label}
+                    {column.label || column.header || column.key}
                     {column.sortable && (
                       <ArrowUpDown className={cn(
                         "h-3 w-3",
@@ -224,7 +240,7 @@ export function DataTable<T extends { id: string }>({
             <Button
               variant="outline"
               size="icon"
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              onClick={() => setRequestedPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
             >
               <ChevronLeft className="h-4 w-4" />
@@ -235,7 +251,7 @@ export function DataTable<T extends { id: string }>({
             <Button
               variant="outline"
               size="icon"
-              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              onClick={() => setRequestedPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
             >
               <ChevronRight className="h-4 w-4" />
