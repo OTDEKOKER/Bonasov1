@@ -40,7 +40,7 @@ import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/lib/contexts/auth-context";
 import {
   useAllIndicators,
-  useAggregates,
+  useAllAggregates,
   useDashboardStats,
   useDeadlines,
   useOrganizations,
@@ -66,44 +66,231 @@ type ScreeningStageDefinition = {
   id: string;
   label: string;
   color: string;
+  codes?: string[];
+  categories?: string[];
   anyPatterns?: string[];
   allPatterns?: string[];
   excludePatterns?: string[];
 };
 
+type ServicePathwayDefinition = {
+  id: string;
+  title: string;
+  stages: ScreeningStageDefinition[];
+};
+
 const screeningStageDefinitions = [
-  { id: "screened", label: "Screened", anyPatterns: ["screened", "screening"], color: "#22C55E" },
-  { id: "eligible", label: "Eligible", anyPatterns: ["eligible"], color: "#0EA5E9" },
-  { id: "referred", label: "Referred", anyPatterns: ["referred", "referral"], color: "#F59E0B" },
+  {
+    id: "screened",
+    label: "Screened for HIV",
+    categories: ["hiv_prevention"],
+    anyPatterns: ["screened for hiv", "hivpm hiv screened"],
+    excludePatterns: ["message", "tb"],
+    color: "#22C55E",
+  },
+  {
+    id: "eligible",
+    label: "Eligible for PrEP/PEP",
+    categories: ["hiv_prevention"],
+    anyPatterns: [
+      "eligible for prep",
+      "eligible for pep",
+      "assessed for prep eligibility",
+      "assessed for pep eligibility",
+    ],
+    excludePatterns: ["breast cancer screening", "counselling"],
+    color: "#0EA5E9",
+  },
+  {
+    id: "referred",
+    label: "Referred for Services",
+    categories: ["hiv_prevention"],
+    anyPatterns: [
+      "referred for hiv testing",
+      "referred for prep",
+      "referred for pep",
+      "referred for further screening service",
+    ],
+    excludePatterns: ["psychosocial", "justice"],
+    color: "#F59E0B",
+  },
   {
     id: "linked-hiv",
-    label: "Linked HIV care",
-    anyPatterns: ["linked", "linkage"],
-    allPatterns: ["hiv"],
+    label: "Linked to Care/ART",
+    categories: ["hiv_prevention"],
+    anyPatterns: ["linked to care", "initiated on art", "re initiated on art"],
+    excludePatterns: ["justice"],
     color: "#A855F7",
   },
-  {
-    id: "linked-prep",
-    label: "Linked PrEP",
-    anyPatterns: ["linked", "linkage"],
-    allPatterns: ["prep"],
-    color: "#14B8A6",
-  },
-  {
-    id: "linked-pep",
-    label: "Linked PEP",
-    anyPatterns: ["linked", "linkage"],
-    allPatterns: ["pep"],
-    color: "#F97316",
-  },
-  {
-    id: "linked-other",
-    label: "Linked (Other)",
-    anyPatterns: ["linked", "linkage"],
-    excludePatterns: ["hiv", "prep", "pep"],
-    color: "#64748B",
-  },
 ] as const satisfies readonly ScreeningStageDefinition[];
+
+const servicePathwayDefinitions: ServicePathwayDefinition[] = [
+  {
+    id: "hiv",
+    title: "HIV",
+    stages: [
+      {
+        id: "tested",
+        label: "Tested",
+        color: "#22C55E",
+        codes: [
+          "AUTO_NUMBER_OF_NUMBER_OF_PEOPLE_TESTED_",
+          "HIVPM_HIV_TESTED",
+          "NAHPA2025-26-8-NUMBER-OF-PEOPLE-TESTED-FOR-HIV",
+          "SC_NUMBER_OF_KVPS_TESTED_FOR_HIV",
+        ],
+        anyPatterns: ["tested for hiv", "hivpm hiv tested", "kvps tested for hiv"],
+      },
+      {
+        id: "positive",
+        label: "Positive",
+        color: "#EF4444",
+        codes: [
+          "AUTO_NUMBER_OF_PEOPLE_WHO_TESTED_POSITI",
+          "NAHPA2025-26-9-NUMBER-OF-PEOPLE-WHO-TESTED-POSITIV",
+        ],
+        anyPatterns: ["tested positive for hiv"],
+      },
+      {
+        id: "referred",
+        label: "Referred",
+        color: "#F59E0B",
+        codes: [
+          "AUTO_NUMBER_OF_PEOPLE_REFERRED_FOR_HIV_",
+          "NAHPA2025-26-3-NUMBER-OF-PEOPLE-REFERRED-FOR-HIV-T",
+        ],
+        anyPatterns: ["referred for hiv testing"],
+      },
+      {
+        id: "linked",
+        label: "Linked to care",
+        color: "#A855F7",
+        codes: [
+          "AUTO_NUMBER_OF_AYP_LINKED_TO_CARE",
+          "AUTO_NUMBER_OF_AYP_INITIATED_ON_ART",
+          "HIVPM_LINKED_TO_CARE",
+          "NAHPA2025-26-10-NUMBER-OF-PEOPLE-LINKED-TO-CARE",
+          "NAHPA2025-26-11-NUMBER-OF-PEOPLE-INITIATED-ON-ART",
+          "SC_NUMBER_OF_ART_INTERRUPTORS_REINITIATED_ON_ART",
+          "AUTO_NUMBER_OF_PEOPLE_WHO_LTFU_90_DAYS_",
+        ],
+        anyPatterns: ["linked to care", "initiated on art", "re initiated on art"],
+        excludePatterns: ["justice"],
+      },
+    ],
+  },
+  {
+    id: "prep",
+    title: "PrEP",
+    stages: [
+      {
+        id: "eligible",
+        label: "Eligible",
+        color: "#0EA5E9",
+        codes: [
+          "AUTO_NUMBER_OF_PEOPLE_ELIGIBLE_FOR_PREP",
+          "HIVPM_PREP_ELIGIBLE",
+          "NAHPA2025-26-12-NUMBER-OF-PEOPLE-WHO-WERE-ASSESSED",
+        ],
+        anyPatterns: ["eligible for prep", "assessed for prep eligibility"],
+      },
+      {
+        id: "referred",
+        label: "Referred",
+        color: "#F59E0B",
+        codes: ["AUTO_NUMBER_OF_PEOPLE_REFERRED_FOR_PREP"],
+        anyPatterns: ["referred for prep"],
+      },
+      {
+        id: "linked",
+        label: "Linked",
+        color: "#A855F7",
+        categories: ["hiv_prevention"],
+        anyPatterns: ["linked to prep", "initiated on prep", "started prep"],
+      },
+    ],
+  },
+  {
+    id: "pep",
+    title: "PEP",
+    stages: [
+      {
+        id: "eligible",
+        label: "Eligible",
+        color: "#0EA5E9",
+        codes: [
+          "AUTO_NUMBER_OF_PEOPLE_ELIGIBLE_FOR_PEP",
+          "HIVPM_PEP_ELIGIBLE",
+          "NAHPA2025-26-14-NUMBER-OF-PEOPLE-WHO-WERE-ASSESSED",
+        ],
+        anyPatterns: ["eligible for pep", "assessed for pep eligibility"],
+      },
+      {
+        id: "referred",
+        label: "Referred",
+        color: "#F59E0B",
+        codes: [
+          "AUTO_NUMBER_OF_PEOPLE_REFERRED_FOR_PEP",
+          "NAHPA2025-26-7-NUMBER-OF-PEOPLE-REFERRED-FOR-PEP",
+        ],
+        anyPatterns: ["referred for pep"],
+      },
+      {
+        id: "linked",
+        label: "Linked",
+        color: "#A855F7",
+        categories: ["hiv_prevention"],
+        anyPatterns: ["linked to pep", "started pep"],
+      },
+    ],
+  },
+  {
+    id: "gbv",
+    title: "GBV",
+    stages: [
+      {
+        id: "screened",
+        label: "Screened",
+        color: "#22C55E",
+        codes: ["AUTO_NUMBER_OF_INDIVIDUALS_SCREENED_FOR"],
+        anyPatterns: ["screened for gbv", "gbv screening"],
+      },
+      {
+        id: "eligible",
+        label: "Eligible",
+        color: "#0EA5E9",
+        codes: [
+          "AUTO_NUMBER_OF_NUMBER_ELIGIBLE_FOR_CLIN",
+          "AUTO_NUMBER_OF_NUMBER_ELIGIBLE_FOR_JUST",
+          "AUTO_NUMBER_OF_NUMBER_ELIGIBLE_FOR_PYSC",
+          "NAHPA2025-26-20-NUMBER-OF-INDIVIDUALS-ELIGIBLE-FOR",
+          "NAHPA2025-26-22-NUMBER-ELIGIBLE-FOR-GBV-SERVICES",
+          "AUTO_NUMBER_OF_INDIVIDUALS_ELIGIBLE_FOR",
+        ],
+        anyPatterns: ["eligible for gbv services", "eligible for clinical services for gbv", "eligible for justice services for gbv", "eligible for pyschosocial services for gbv"],
+        excludePatterns: ["experienced physical violence", "experienced sexual violence", "experienced emotional violence"],
+      },
+      {
+        id: "referred",
+        label: "Referred",
+        color: "#F59E0B",
+        codes: [
+          "AUTO_NUMBER_OF_NUMBER_REFERRED_FOR_CLIN",
+          "AUTO_NUMBER_OF_NUMBER_REFERRED_FOR_JUST",
+          "AUTO_NUMBER_OF_NUMBER_REFERRED_FOR_PYSC",
+        ],
+        anyPatterns: ["referred for clinical services for gbv", "referred for justice services for gbv", "referred for pyschosocial services for gbv"],
+      },
+      {
+        id: "linked",
+        label: "Linked",
+        color: "#A855F7",
+        codes: ["AUTO_NUMBER_OF_PEOPLE_WHO_RECEIVED_PSYC"],
+        anyPatterns: ["linked to justice services", "received psychosocial support on gbv"],
+      },
+    ],
+  },
+];
 
 const dashboardQuickLinks = [
   {
@@ -289,7 +476,22 @@ function fallsWithinDateRange(value?: string | null, fromDate?: string, toDate?:
   return true;
 }
 
-function matchesScreeningStage(matchText: string, stage: ScreeningStageDefinition) {
+function matchesScreeningStage(
+  matchText: string,
+  category: string | undefined,
+  indicatorCode: string | undefined,
+  stage: ScreeningStageDefinition,
+) {
+  const normalizedCategory = String(category || "").trim().toLowerCase();
+  const normalizedCode = String(indicatorCode || "").trim().toUpperCase();
+  const codeAllowed =
+    !stage.codes || stage.codes.length === 0
+      ? true
+      : stage.codes.includes(normalizedCode);
+  const categoryAllowed =
+    !stage.categories || stage.categories.length === 0
+      ? true
+      : stage.categories.includes(normalizedCategory);
   const hasAny =
     !stage.anyPatterns || stage.anyPatterns.length === 0
       ? true
@@ -301,16 +503,20 @@ function matchesScreeningStage(matchText: string, stage: ScreeningStageDefinitio
   const hasExcluded =
     !!stage.excludePatterns && stage.excludePatterns.some((pattern) => matchText.includes(pattern));
 
-  return hasAny && hasAll && !hasExcluded;
+  return codeAllowed && categoryAllowed && hasAny && hasAll && !hasExcluded;
 }
 
 function getHivTestingComparisonKey(matchText: string): HivTestingComparisonKey | null {
-  const hasHiv = matchText.includes("hiv");
-  const hasTesting = matchText.includes("test");
-  if (!hasHiv || !hasTesting) return null;
-
-  const hasPositive = matchText.includes("positive");
-  return hasPositive ? "tested-positive" : "tested-total";
+  if (matchText.includes("tested positive for hiv")) return "tested-positive";
+  if (
+    matchText.includes("tested for hiv") ||
+    matchText.includes("hivpm hiv tested") ||
+    matchText.includes("kvps tested for hiv") ||
+    matchText.includes("number of people tested for hiv")
+  ) {
+    return "tested-total";
+  }
+  return null;
 }
 
 function buildEmptyScreeningInsights(isLoading: boolean, hasError: boolean): ScreeningDashboardInsights {
@@ -321,6 +527,18 @@ function buildEmptyScreeningInsights(isLoading: boolean, hasError: boolean): Scr
     indicatorCount: 0,
     reportingOrganizationsCount: 0,
     activeProjectsCount: 0,
+    servicePathways: servicePathwayDefinitions.map((pathway) => ({
+      id: pathway.id,
+      title: pathway.title,
+      total: 0,
+      stages: pathway.stages.map((stage) => ({
+        id: stage.id,
+        color: stage.color,
+        label: stage.label,
+        value: 0,
+      })),
+      indicatorDetails: [],
+    })),
     topIndicators: [],
     organizations: [],
     projects: [],
@@ -462,12 +680,11 @@ function DashboardPageContent({
     upcoming: "true",
     project: selectedProjectId,
   });
-  const { data: aggregatesData, isLoading: aggregatesLoading, error: aggregatesError } = useAggregates({
+  const { data: aggregatesData, isLoading: aggregatesLoading, error: aggregatesError } = useAllAggregates({
     project: selectedProjectId,
     organization: selectedOrganizationId,
     date_from: dashboardFilters.dateFrom || undefined,
     date_to: dashboardFilters.dateTo || undefined,
-    page_size: "300",
   });
   const { data: indicatorsData, isLoading: indicatorsLoading } = useAllIndicators();
 
@@ -505,15 +722,20 @@ function DashboardPageContent({
     );
   }, [dashboardFilters.dateFrom, dashboardFilters.dateTo, dashboardStats]);
   const screeningInsights = useMemo<ScreeningDashboardInsights>(() => {
-    if (!aggregatesData?.results) {
+    if (!aggregatesData) {
       return buildEmptyScreeningInsights(aggregatesLoading || indicatorsLoading, Boolean(aggregatesError));
     }
-    const aggregateRows = aggregatesData.results;
+    const aggregateRows = aggregatesData;
 
-    const indicatorMetaById = new Map<string, { code?: string; name: string; short_name?: string }>(
+    const indicatorMetaById = new Map<string, { code?: string; name: string; short_name?: string; category?: string }>(
       (indicatorsData ?? []).map((indicator) => [
         String(indicator.id),
-        { code: indicator.code, name: indicator.name, short_name: indicator.short_name },
+        {
+          code: indicator.code,
+          name: indicator.name,
+          short_name: indicator.short_name,
+          category: indicator.category,
+        },
       ]),
     );
     const organizationNameById = new Map(
@@ -531,6 +753,16 @@ function DashboardPageContent({
     const organizationTotals = new Map<string, { label: string; target: number; total: number }>();
     const projectTotals = new Map<string, { label: string; target: number; total: number }>();
     const stageTotals = new Map(screeningStageDefinitions.map((stage) => [stage.id, 0]));
+    const servicePathwayTotals = new Map(
+      servicePathwayDefinitions.map((pathway) => [
+        pathway.id,
+        {
+          title: pathway.title,
+          stages: new Map(pathway.stages.map((stage) => [stage.id, { ...stage, value: 0 }])),
+          indicatorDetails: new Map<string, { stageId: string; stageLabel: string; code: string; name: string; value: number }>(),
+        },
+      ]),
+    );
     const hivTestingTotals = new Map<string, { actual: number; label: string; target: number }>(
       hivTestingComparisonDefinitions.map((definition) => [
         definition.id,
@@ -546,6 +778,7 @@ function DashboardPageContent({
       const indicatorMeta = indicatorMetaById.get(indicatorId);
       const indicatorName = aggregate.indicator_name || indicatorMeta?.name || "Indicator";
       const indicatorCode = aggregate.indicator_code || indicatorMeta?.code || "";
+      const indicatorCategory = indicatorMeta?.category;
       const indicatorLabel = getIndicatorChartLabel(
         {
           code: indicatorCode,
@@ -556,7 +789,7 @@ function DashboardPageContent({
       );
       const matchText = normalizeDashboardText(`${indicatorCode} ${indicatorName}`);
       const matchedStage = screeningStageDefinitions.find((stage) =>
-        matchesScreeningStage(matchText, stage),
+        matchesScreeningStage(matchText, indicatorCategory, indicatorCode, stage),
       );
       const total = getAggregateTotal(aggregate);
       if (total <= 0) continue;
@@ -568,6 +801,29 @@ function DashboardPageContent({
           hivTestingEntry.actual += total;
           hivTestingTotals.set(hivTestingKey, hivTestingEntry);
         }
+      }
+
+      for (const pathway of servicePathwayDefinitions) {
+        const matchedPathwayStage = pathway.stages.find((stage) =>
+          matchesScreeningStage(matchText, indicatorCategory, indicatorCode, stage),
+        );
+        if (!matchedPathwayStage) continue;
+        const pathwayEntry = servicePathwayTotals.get(pathway.id);
+        const stageEntry = pathwayEntry?.stages.get(matchedPathwayStage.id);
+        if (!pathwayEntry || !stageEntry) continue;
+        stageEntry.value += total;
+        pathwayEntry.stages.set(matchedPathwayStage.id, stageEntry);
+        const detailKey = `${matchedPathwayStage.id}::${indicatorCode.trim()}::${indicatorName.trim()}`;
+        const detailEntry = pathwayEntry.indicatorDetails.get(detailKey) ?? {
+          stageId: matchedPathwayStage.id,
+          stageLabel: matchedPathwayStage.label,
+          code: indicatorCode.trim(),
+          name: indicatorName.trim() || "Indicator",
+          value: 0,
+        };
+        detailEntry.value += total;
+        pathwayEntry.indicatorDetails.set(detailKey, detailEntry);
+        servicePathwayTotals.set(pathway.id, pathwayEntry);
       }
 
       if (!matchedStage) continue;
@@ -642,7 +898,9 @@ function DashboardPageContent({
       const indicatorCode = indicator.code || "";
       const indicatorName = indicator.name || "Indicator";
       const matchText = normalizeDashboardText(`${indicatorCode} ${indicatorName}`);
-      const matchedStage = screeningStageDefinitions.find((stage) => matchesScreeningStage(matchText, stage));
+      const matchedStage = screeningStageDefinitions.find((stage) =>
+        matchesScreeningStage(matchText, indicator.category, indicatorCode, stage),
+      );
       const hivTestingKey = getHivTestingComparisonKey(matchText);
       const indicatorKey = indicatorCode.trim() || indicatorName.trim() || indicatorId;
       for (const targetRow of indicator.project_targets || []) {
@@ -742,6 +1000,22 @@ function DashboardPageContent({
       indicatorCount: screeningIndicatorTotals.size,
       reportingOrganizationsCount: Array.from(organizationTotals.values()).filter((entry) => entry.total > 0).length,
       activeProjectsCount: Array.from(projectTotals.values()).filter((entry) => entry.total > 0).length,
+      servicePathways: servicePathwayDefinitions.map((pathway) => {
+        const pathwayEntry = servicePathwayTotals.get(pathway.id);
+        const stages = pathway.stages.map((stage) => ({
+          id: stage.id,
+          color: stage.color,
+          label: stage.label,
+          value: pathwayEntry?.stages.get(stage.id)?.value || 0,
+        }));
+        return {
+          id: pathway.id,
+          title: pathway.title,
+          total: stages.reduce((sum, stage) => sum + stage.value, 0),
+          stages,
+          indicatorDetails: Array.from(pathwayEntry?.indicatorDetails.values() || []),
+        };
+      }),
       topIndicators,
       organizations: Array.from(organizationTotals.values())
         .sort((left, right) => right.total - left.total)

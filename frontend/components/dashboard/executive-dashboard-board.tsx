@@ -1,8 +1,25 @@
 "use client";
 
-import type { ReactNode } from "react";
-import { type LucideIcon, ArrowRight, Clock3 } from "lucide-react";
-import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { useMemo, useState, type ReactNode } from "react";
+import { type LucideIcon, ArrowRight, CircleHelp, Clock3 } from "lucide-react";
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Project, ProjectDeadline } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -38,6 +55,19 @@ export type ScreeningDashboardInsights = {
   indicatorCount: number;
   reportingOrganizationsCount: number;
   activeProjectsCount: number;
+  servicePathways: Array<{
+    id: string;
+    title: string;
+    stages: Array<{ id: string; color: string; label: string; value: number }>;
+    total: number;
+    indicatorDetails: Array<{
+      stageId: string;
+      stageLabel: string;
+      code: string;
+      name: string;
+      value: number;
+    }>;
+  }>;
   topIndicators: Array<{ label: string; percentage: number; target: number; value: number }>;
   organizations: Array<{ label: string; percentage: number; target: number; value: number }>;
   projects: Array<{ label: string; percentage: number; target: number; value: number }>;
@@ -267,6 +297,186 @@ function MetricBarsPanel({
   );
 }
 
+function ServicePathwayCardsPanel({
+  chartPreferences,
+  hasError,
+  isLoading,
+  items,
+}: {
+  chartPreferences: DashboardChartPreferences;
+  hasError: boolean;
+  isLoading: boolean;
+  items: ScreeningDashboardInsights["servicePathways"];
+}) {
+  const [activePathwayId, setActivePathwayId] = useState<string | null>(null);
+  const [selectedStageByPathway, setSelectedStageByPathway] = useState<Record<string, string>>({});
+  const activePathway = items.find((item) => item.id === activePathwayId) || null;
+  const selectedStageFilter = activePathway ? selectedStageByPathway[activePathway.id] || "all" : "all";
+  const visibleIndicatorDetails = useMemo(() => {
+    if (!activePathway) return [];
+    const filtered =
+      selectedStageFilter === "all"
+        ? activePathway.indicatorDetails
+        : activePathway.indicatorDetails.filter((item) => item.stageId === selectedStageFilter);
+    return [...filtered].sort((left, right) => right.value - left.value);
+  }, [activePathway, selectedStageFilter]);
+
+  return (
+    <>
+      <DashboardPanel eyebrow="Pathways" title="Service pathway cards">
+        {isLoading ? (
+          <div className="rounded-[1.1rem] border border-dashed border-border bg-card px-4 py-10 text-sm text-muted-foreground">
+            Loading service pathway cards.
+          </div>
+        ) : hasError ? (
+          <div className="rounded-[1.1rem] border border-dashed border-border bg-card px-4 py-10 text-sm text-muted-foreground">
+            Service pathway cards are temporarily unavailable.
+          </div>
+        ) : items.every((item) => item.total === 0) ? (
+          <div className="rounded-[1.1rem] border border-dashed border-border bg-card px-4 py-10 text-sm text-muted-foreground">
+            Service pathway cards will appear once matching indicator data is available.
+          </div>
+        ) : (
+          <div className="grid gap-3 md:grid-cols-2">
+            {items.map((item) => {
+              const maxStageValue = Math.max(...item.stages.map((stage) => stage.value), 1);
+              return (
+                <div
+                  key={item.id}
+                  className={cn(
+                    "border border-border bg-card p-4",
+                    chartPreferences.pathwayStyle === "donut" ? "rounded-[1.1rem]" : "rounded-lg",
+                  )}
+                >
+                  <div className="mb-4 flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                        {item.title}
+                      </p>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="h-9 w-9 shrink-0 rounded-full border-border bg-card text-muted-foreground hover:bg-muted"
+                      onClick={() => setActivePathwayId(item.id)}
+                    >
+                      <CircleHelp className="h-4 w-4" />
+                    </Button>
+                  </div>
+
+                  <div className="space-y-3">
+                    {item.stages.map((stage) => {
+                      const width = stage.value <= 0 ? 0 : Math.max(8, Math.round((stage.value / maxStageValue) * 100));
+                      return (
+                        <div key={`${item.id}-${stage.label}`} className="space-y-1.5">
+                          <div className="flex items-center justify-between gap-3 text-xs">
+                            <span className="font-medium text-foreground">{stage.label}</span>
+                            <span className="text-muted-foreground">{formatWholeNumber(stage.value)}</span>
+                          </div>
+                          <div className="h-2.5 rounded-full bg-muted">
+                            <div
+                              className="h-full rounded-full"
+                              style={{ width: `${width}%`, backgroundColor: stage.color }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </DashboardPanel>
+
+      <Dialog open={Boolean(activePathway)} onOpenChange={(open) => !open && setActivePathwayId(null)}>
+        <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>{activePathway ? `${activePathway.title} pathway details` : "Pathway details"}</DialogTitle>
+            <DialogDescription>
+              Review the full matched indicator names behind this card and filter them by stage.
+            </DialogDescription>
+          </DialogHeader>
+
+          {activePathway ? (
+            <div className="space-y-5">
+              <div className="grid gap-3 sm:grid-cols-[220px_minmax(0,1fr)] sm:items-end">
+                <div className="space-y-2">
+                  <Label htmlFor="pathway-stage-filter">Stage filter</Label>
+                  <Select
+                    value={selectedStageFilter}
+                    onValueChange={(value) =>
+                      setSelectedStageByPathway((current) => ({
+                        ...current,
+                        [activePathway.id]: value,
+                      }))
+                    }
+                  >
+                    <SelectTrigger id="pathway-stage-filter">
+                      <SelectValue placeholder="All stages" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All stages</SelectItem>
+                      {activePathway.stages.map((stage) => (
+                        <SelectItem key={`${activePathway.id}-${stage.id}`} value={stage.id}>
+                          {stage.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="rounded-xl border border-border bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
+                  Total matched indicators: {formatWholeNumber(visibleIndicatorDetails.length)}
+                </div>
+              </div>
+
+              <div className="grid gap-3 md:grid-cols-2">
+                {activePathway.stages.map((stage) => (
+                  <div key={`${activePathway.id}-summary-${stage.id}`} className="rounded-xl border border-border bg-card px-4 py-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-sm font-medium text-foreground">{stage.label}</span>
+                      <span className="text-sm text-muted-foreground">{formatWholeNumber(stage.value)}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <ScrollArea className="max-h-[45vh] rounded-xl border border-border">
+                <div className="divide-y divide-border">
+                  {visibleIndicatorDetails.length === 0 ? (
+                    <div className="px-4 py-6 text-sm text-muted-foreground">No indicators matched this filter.</div>
+                  ) : (
+                    visibleIndicatorDetails.map((indicator, index) => (
+                      <div key={`${indicator.stageId}-${indicator.code}-${index}`} className="px-4 py-4">
+                        <div className="flex items-start justify-between gap-4">
+                          <div>
+                            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                              {indicator.stageLabel}
+                            </p>
+                            <p className="mt-1 text-sm font-medium text-foreground">
+                              {indicator.name}
+                            </p>
+                            <p className="mt-1 text-xs text-muted-foreground">{indicator.code || "No code"}</p>
+                          </div>
+                          <div className="text-right text-sm text-muted-foreground">
+                            {formatWholeNumber(indicator.value)}
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </ScrollArea>
+            </div>
+          ) : null}
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+
 export function DashboardExecutiveBoard({
   activeProjects,
   activeUpdatesTab,
@@ -459,72 +669,12 @@ export function DashboardExecutiveBoard({
                       )}
                     </DashboardPanel>
 
-                    <DashboardPanel eyebrow="Pathway" title="Screening pathway mix">
-                      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_140px]">
-                        {screeningInsights.isLoading ? (
-                          <div className="rounded-[1.1rem] border border-dashed border-border bg-card px-4 py-10 text-sm text-muted-foreground lg:col-span-2">
-                            Loading pathway totals from screening aggregates.
-                          </div>
-                        ) : screeningInsights.hasError ? (
-                          <div className="rounded-[1.1rem] border border-dashed border-border bg-card px-4 py-10 text-sm text-muted-foreground lg:col-span-2">
-                            Screening pathway totals are temporarily unavailable.
-                          </div>
-                        ) : screeningInsights.stages.every((item) => item.value === 0) ? (
-                          <div className="rounded-[1.1rem] border border-dashed border-border bg-card px-4 py-10 text-sm text-muted-foreground lg:col-span-2">
-                            Screening stages will appear here once screened, eligible, referred, or linked indicators are reported.
-                          </div>
-                        ) : (
-                          <>
-                            <div className="h-[180px] md:h-[200px]">
-                              <ResponsiveContainer width="100%" height="100%">
-                                <PieChart>
-                                  <Pie
-                                    cx="50%"
-                                    cy="50%"
-                                    data={screeningInsights.stages}
-                                    dataKey="value"
-                                    innerRadius={chartPreferences.pathwayStyle === "donut" ? 54 : 0}
-                                    outerRadius={78}
-                                    paddingAngle={2}
-                                  >
-                                    {screeningInsights.stages.map((entry) => (
-                                      <Cell key={entry.label} fill={entry.color} />
-                                    ))}
-                                  </Pie>
-                                  <Tooltip
-                                    contentStyle={{
-                                      backgroundColor: "hsl(var(--card))",
-                                      border: "1px solid hsl(var(--border))",
-                                      borderRadius: "16px",
-                                      color: "hsl(var(--foreground))",
-                                    }}
-                                    formatter={(value: number) => [formatWholeNumber(value), "Reported total"]}
-                                  />
-                                </PieChart>
-                              </ResponsiveContainer>
-                            </div>
-
-                            <div className="max-h-[170px] space-y-1.5 overflow-y-auto pr-1">
-                              {screeningInsights.stages.map((item) => (
-                                <div key={item.label} className="rounded-md border border-border bg-card px-2 py-1.5">
-                                  <div className="flex items-center gap-1.5">
-                                    <span className="h-2 w-2 rounded-full" style={{ backgroundColor: item.color }} />
-                                    <div className="flex-1">
-                                      <p className="text-[9px] font-semibold uppercase tracking-[0.06em] text-muted-foreground">
-                                        {item.label}
-                                      </p>
-                                      <p className="mt-0.5 text-base font-semibold leading-tight text-foreground">
-                                        {formatWholeNumber(item.value)}
-                                      </p>
-                                    </div>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    </DashboardPanel>
+                    <ServicePathwayCardsPanel
+                      chartPreferences={chartPreferences}
+                      hasError={screeningInsights.hasError}
+                      isLoading={screeningInsights.isLoading}
+                      items={screeningInsights.servicePathways}
+                    />
                   </div>
 
                   <div className="grid gap-4 xl:grid-cols-4">
