@@ -1,0 +1,582 @@
+[
+  {
+    "sheetName": "BOTSWANA ASSOCIATION FOR THE BL",
+    "duplicateGroups": [
+      {
+        "total": 1,
+        "male": 2,
+        "female": 0,
+        "indicators": [
+          {
+            "code": "8b",
+            "name": "Number eligible for GBV services who experienced PHYSICAL VIOLENCE"
+          },
+          {
+            "code": "8d",
+            "name": "Number eligible for GBV services who experienced EMOTIONAL VIOLENCE"
+          },
+          {
+            "code": "8e",
+            "name": "Number of People who received psychosocial support on GBV"
+          },
+          {
+            "code": "9a",
+            "name": "Number of people screened for STIs"
+          },
+          {
+            "code": "15",
+            "name": "Number of lubricants distributed"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "sheetName": "BOTSWANA ASSOCIATION OF THE DEA",
+    "duplicateGroups": [
+      {
+        "total": 1,
+        "male": 1,
+        "female": 0,
+        "indicators": [
+          {
+            "code": "18a",
+            "name": "Number of people who report that their rights were violated"
+          },
+          {
+            "code": "18b",
+            "name": "Number of people who sought redress."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "sheetName": "BOTSWANA COUNCIL OF THE DISABLE",
+    "duplicateGroups": [
+      {
+        "total": 1,
+        "male": 1,
+        "female": 0,
+        "indicators": [
+          {
+            "code": "18a",
+            "name": "Number of people who report that their rights were violated"
+          },
+          {
+            "code": "18b",
+            "name": "Number of people who sought redress."
+          }
+        ]
+      },
+      {
+        "total": 237,
+        "male": 152,
+        "female": 85,
+        "indicators": [
+          {
+            "code": "8a",
+            "name": "Number of individuals screened for GBV."
+          },
+          {
+            "code": "9a",
+            "name": "Number of people screened for STIs"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "sheetName": "BOTSWANA TRANS INITIATIVE",
+    "duplicateGroups": [
+      {
+        "total": 33,
+        "male": 13,
+        "female": 20,
+        "indicators": [
+          {
+            "code": "1a",
+            "name": "Total Number of Key and Vulnerable Populations Reached with HIV TESTING Messages"
+          },
+          {
+            "code": "1b",
+            "name": "Total Number of Key and Vulnerable Populations Reached with PEP Messages"
+          },
+          {
+            "code": "1c",
+            "name": "Total Number of Key and Vulnerable Populations Reached with PREP Messages"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "sheetName": "CAPTIVE EYE ORG.",
+    "duplicateGroups": [
+      {
+        "total": 260,
+        "male": 173,
+        "female": 87,
+        "indicators": [
+          {
+            "code": "1a",
+            "name": "Total Number of Key and Vulnerable Populations Reached with HIV TESTING Messages"
+          },
+          {
+            "code": "1b",
+            "name": "Total Number of Key and Vulnerable Populations Reached with PEP Messages"
+          },
+          {
+            "code": "1c",
+            "name": "Total Number of Key and Vulnerable Populations Reached with PREP Messages"
+          },
+          {
+            "code": "1d",
+            "name": "Total Number of Key and Vulnerable Populations Reached with GBV Messages"
+          }
+        ]
+      },
+      {
+        "total": 260,
+        "male": 173,
+        "female": 87,
+        "indicators": [
+          {
+            "code": "8a",
+            "name": "Number of individuals screened for GBV."
+          },
+          {
+            "code": "9a",
+            "name": "Number of people screened for STIs"
+          },
+          {
+            "code": "16",
+            "name": "Number of people sensitised on basic human rights and HIV."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "sheetName": "BOTSWANA SOCIETY FOR THE DISABL",
+    "duplicateGroups": [
+      {
+        "total": 130,
+        "male": 72,
+        "female": 58,
+        "indicators": [
+          {
+            "code": "1a",
+            "name": "Total Number of Key and Vulnerable Populations Reached with HIV TESTING Messages"
+          },
+          {
+            "code": "1b",
+            "name": "Total Number of Key and Vulnerable Populations Reached with PEP Messages"
+          },
+          {
+            "code": "1c",
+            "name": "Total Number of Key and Vulnerable Populations Reached with PREP Messages"
+          }
+        ]
+      },
+      {
+        "total": 175,
+        "male": 97,
+        "female": 78,
+        "indicators": [
+          {
+            "code": "8a",
+            "name": "Number of individuals screened for GBV."
+          },
+          {
+            "code": "9a",
+            "name": "Number of people screened for STIs"
+          },
+          {
+            "code": "16",
+            "name": "Number of people sensitised on basic human rights and HIV."
+          }
+        ]
+      },
+      {
+        "total": 3,
+        "male": 3,
+        "female": 8,
+        "indicators": [
+          {
+            "code": "18a",
+            "name": "Number of people who report that their rights were violated"
+          },
+          {
+            "code": "18b",
+            "name": "Number of people who sought redress."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "sheetName": "LESBIANS, GAYS & BISEXUALS OF B",
+    "duplicateGroups": [
+      {
+        "total": 240,
+        "male": 147,
+        "female": 93,
+        "indicators": [
+          {
+            "code": "1a",
+            "name": "Total Number of Key and Vulnerable Populations Reached with HIV TESTING Messages"
+          },
+          {
+            "code": "1b",
+            "name": "Total Number of Key and Vulnerable Populations Reached with PEP Messages"
+          },
+          {
+            "code": "1c",
+            "name": "Total Number of Key and Vulnerable Populations Reached with PREP Messages"
+          },
+          {
+            "code": "1d",
+            "name": "Total Number of Key and Vulnerable Populations Reached with GBV Messages"
+          }
+        ]
+      },
+      {
+        "total": 240,
+        "male": 147,
+        "female": 93,
+        "indicators": [
+          {
+            "code": "2",
+            "name": "Number of people reached with stigma reduction messages."
+          },
+          {
+            "code": "8a",
+            "name": "Number of individuals screened for GBV."
+          },
+          {
+            "code": "9a",
+            "name": "Number of people screened for STIs"
+          },
+          {
+            "code": "16",
+            "name": "Number of people sensitised on basic human rights and HIV."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "sheetName": "MADIKWE COMMUNITY TRUST",
+    "duplicateGroups": [
+      {
+        "total": 76,
+        "male": 43,
+        "female": 33,
+        "indicators": [
+          {
+            "code": "1a",
+            "name": "Total Number of Key and Vulnerable Populations Reached with HIV TESTING Messages"
+          },
+          {
+            "code": "1b",
+            "name": "Total Number of Key and Vulnerable Populations Reached with PEP Messages"
+          },
+          {
+            "code": "1c",
+            "name": "Total Number of Key and Vulnerable Populations Reached with PREP Messages"
+          },
+          {
+            "code": "1d",
+            "name": "Total Number of Key and Vulnerable Populations Reached with GBV Messages"
+          }
+        ]
+      },
+      {
+        "total": 76,
+        "male": 43,
+        "female": 33,
+        "indicators": [
+          {
+            "code": "2",
+            "name": "Number of people reached with stigma reduction messages."
+          },
+          {
+            "code": "8a",
+            "name": "Number of individuals screened for GBV."
+          },
+          {
+            "code": "9a",
+            "name": "Number of people screened for STIs"
+          },
+          {
+            "code": "16",
+            "name": "Number of people sensitised on basic human rights and HIV."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "sheetName": "MEN FOR HEALTH & GENDER JUSTICE",
+    "duplicateGroups": [
+      {
+        "total": 149,
+        "male": 149,
+        "female": 0,
+        "indicators": [
+          {
+            "code": "2",
+            "name": "Number of people reached with stigma reduction messages."
+          },
+          {
+            "code": "3",
+            "name": "Number of people referred for HIV testing."
+          },
+          {
+            "code": "8a",
+            "name": "Number of individuals screened for GBV."
+          },
+          {
+            "code": "9a",
+            "name": "Number of people screened for STIs"
+          },
+          {
+            "code": "16",
+            "name": "Number of people sensitised on basic human rights and HIV."
+          }
+        ]
+      },
+      {
+        "total": 45,
+        "male": 344,
+        "female": 0,
+        "indicators": [
+          {
+            "code": "1a",
+            "name": "Total Number of Key and Vulnerable Populations Reached with HIV TESTING Messages"
+          },
+          {
+            "code": "1b",
+            "name": "Total Number of Key and Vulnerable Populations Reached with PEP Messages"
+          },
+          {
+            "code": "1c",
+            "name": "Total Number of Key and Vulnerable Populations Reached with PREP Messages"
+          },
+          {
+            "code": "1d",
+            "name": "Total Number of Key and Vulnerable Populations Reached with GBV Messages"
+          }
+        ]
+      },
+      {
+        "total": 135,
+        "male": 135,
+        "female": 0,
+        "indicators": [
+          {
+            "code": "4",
+            "name": "Number of people eligible for PrEP"
+          },
+          {
+            "code": "5",
+            "name": "Number of people referred for PrEP."
+          }
+        ]
+      },
+      {
+        "total": 30,
+        "male": 30,
+        "female": 0,
+        "indicators": [
+          {
+            "code": "6",
+            "name": "Number of people eligible for PEP"
+          },
+          {
+            "code": "7",
+            "name": "Number of people referred for PEP."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "sheetName": "MWATUMWAYA REHABILITATION CENTR",
+    "duplicateGroups": [
+      {
+        "total": 79,
+        "male": 46,
+        "female": 33,
+        "indicators": [
+          {
+            "code": "8a",
+            "name": "Number of individuals screened for GBV."
+          },
+          {
+            "code": "9a",
+            "name": "Number of people screened for STIs"
+          },
+          {
+            "code": "16",
+            "name": "Number of people sensitised on basic human rights and HIV."
+          }
+        ]
+      },
+      {
+        "total": 5,
+        "male": 2,
+        "female": 3,
+        "indicators": [
+          {
+            "code": "4",
+            "name": "Number of people eligible for PrEP"
+          },
+          {
+            "code": "5",
+            "name": "Number of people referred for PrEP."
+          }
+        ]
+      },
+      {
+        "total": 1,
+        "male": 0,
+        "female": 1,
+        "indicators": [
+          {
+            "code": "6",
+            "name": "Number of people eligible for PEP"
+          },
+          {
+            "code": "7",
+            "name": "Number of people referred for PEP."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "sheetName": "NKAIKELA YOUTH GROUP",
+    "duplicateGroups": [
+      {
+        "total": 233,
+        "male": 0,
+        "female": 233,
+        "indicators": [
+          {
+            "code": "2",
+            "name": "Number of people reached with stigma reduction messages."
+          },
+          {
+            "code": "8a",
+            "name": "Number of individuals screened for GBV."
+          },
+          {
+            "code": "9a",
+            "name": "Number of people screened for STIs"
+          }
+        ]
+      },
+      {
+        "total": 233,
+        "male": 0,
+        "female": 233,
+        "indicators": [
+          {
+            "code": "1a",
+            "name": "Total Number of Key and Vulnerable Populations Reached with HIV TESTING Messages"
+          },
+          {
+            "code": "1d",
+            "name": "Total Number of Key and Vulnerable Populations Reached with GBV Messages"
+          }
+        ]
+      },
+      {
+        "total": 2,
+        "male": 0,
+        "female": 2,
+        "indicators": [
+          {
+            "code": "8d",
+            "name": "Number eligible for GBV services who experienced EMOTIONAL VIOLENCE"
+          },
+          {
+            "code": "8e",
+            "name": "Number of People who received psychosocial support on GBV"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "sheetName": "SILENCE KILLS SUPPORT GROUP",
+    "duplicateGroups": [
+      {
+        "total": 135,
+        "male": 0,
+        "female": 135,
+        "indicators": [
+          {
+            "code": "8a",
+            "name": "Number of individuals screened for GBV."
+          },
+          {
+            "code": "9a",
+            "name": "Number of people screened for STIs"
+          },
+          {
+            "code": "16",
+            "name": "Number of people sensitised on basic human rights and HIV."
+          }
+        ]
+      },
+      {
+        "total": 130,
+        "male": 0,
+        "female": 130,
+        "indicators": [
+          {
+            "code": "2",
+            "name": "Number of people reached with stigma reduction messages."
+          },
+          {
+            "code": "3",
+            "name": "Number of people referred for HIV testing."
+          }
+        ]
+      },
+      {
+        "total": 4,
+        "male": 0,
+        "female": 4,
+        "indicators": [
+          {
+            "code": "4",
+            "name": "Number of people eligible for PrEP"
+          },
+          {
+            "code": "5",
+            "name": "Number of people referred for PrEP."
+          }
+        ]
+      },
+      {
+        "total": 1,
+        "male": 0,
+        "female": 1,
+        "indicators": [
+          {
+            "code": "8e",
+            "name": "Number of people reffered for clinical services for GBV"
+          },
+          {
+            "code": "8f",
+            "name": "Number of people reffered for justice services for GBV."
+          }
+        ]
+      }
+    ]
+  }
+]

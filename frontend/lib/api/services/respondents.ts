@@ -5,8 +5,8 @@
  * Django endpoint base: /api/record/
  */
 
-import { api, type PaginatedResponse } from '../client';
-import type { Respondent, Interaction } from '@/lib/types';
+import { api, fetchWithAuth, normalizeApiError, type PaginatedResponse } from '../client';
+import type { Respondent, Interaction, Response as InteractionResponse } from '@/lib/types';
 
 // ============================================================================
 // Types
@@ -34,6 +34,7 @@ export interface CreateRespondentRequest {
   phone?: string;
   email?: string;
   address?: string;
+  demographics?: Record<string, unknown>;
   organization: number;
 }
 
@@ -51,10 +52,18 @@ export interface InteractionFilters {
   page_size?: string;
 }
 
+export interface ResponseFilters {
+  interaction?: string;
+  indicator?: string;
+  page?: string;
+  page_size?: string;
+}
+
 export interface CreateInteractionRequest {
   respondent: number;
-  assessment?: number;
-  project?: number;
+  assessment?: number | null;
+  project?: number | null;
+  event?: number | null;
   date: string;
   notes?: string;
   responses?: Array<{
@@ -63,7 +72,15 @@ export interface CreateInteractionRequest {
   }>;
 }
 
-export interface UpdateInteractionRequest extends Partial<CreateInteractionRequest> {}
+export type UpdateInteractionRequest = Partial<CreateInteractionRequest>
+
+export interface CreateResponseRequest {
+  interaction: number;
+  indicator: number;
+  value: unknown;
+}
+
+export type UpdateResponseRequest = Partial<CreateResponseRequest>
 
 export interface RespondentImportRequest {
   file: File;
@@ -161,18 +178,27 @@ export const respondentsService = {
     if (request.project_id) {
       formData.append('project_id', request.project_id.toString());
     }
-    
-    const token = localStorage.getItem('access_token');
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/record/respondents/import/`,
-      {
-        method: 'POST',
-        body: formData,
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      }
-    );
-    
-    return response.json();
+
+    const response = await fetchWithAuth('/record/respondents/import/', {
+      method: 'POST',
+      body: formData,
+    });
+
+    const contentType = response.headers.get('content-type');
+    if (!response.ok) {
+      const payload = contentType?.includes('application/json')
+        ? await response.json()
+        : await response.text();
+      throw normalizeApiError({
+        status: response.status,
+        payload,
+        fallbackMessage: 'Failed to import respondents',
+      });
+    }
+
+    return contentType?.includes('application/json')
+      ? response.json()
+      : { imported: 0, skipped: 0, errors: [] };
   },
 
   /**
@@ -184,15 +210,22 @@ export const respondentsService = {
       format: request.format,
       ...(request.filters as Record<string, string>),
     };
-    
-    const token = localStorage.getItem('access_token');
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/record/respondents/export/?${new URLSearchParams(params)}`,
-      {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      }
+
+    const response = await fetchWithAuth(
+      `/record/respondents/export/?${new URLSearchParams(params)}`,
     );
-    
+    if (!response.ok) {
+      const contentType = response.headers.get('content-type');
+      const payload = contentType?.includes('application/json')
+        ? await response.json()
+        : await response.text();
+      throw normalizeApiError({
+        status: response.status,
+        payload,
+        fallbackMessage: 'Failed to export respondents',
+      });
+    }
+
     return response.blob();
   },
 
@@ -207,7 +240,13 @@ export const respondentsService = {
     by_location: Record<string, number>;
     new_this_month: number;
   }> {
-    const { data } = await api.get('/record/respondents/stats/');
+    const { data } = await api.get<{
+      total: number;
+      active: number;
+      by_gender: Record<string, number>;
+      by_location: Record<string, number>;
+      new_this_month: number;
+    }>('/record/respondents/stats/');
     return data;
   },
 };
@@ -249,7 +288,7 @@ export const interactionsService = {
    * Update an interaction
    * Django endpoint: PATCH /api/record/interactions/:id/
    */
-  async update(id: number, request: UpdateInteractionRequest): Promise<Interaction> {
+  async update(id: number | string, request: UpdateInteractionRequest): Promise<Interaction> {
     const { data } = await api.patch<Interaction>(`/record/interactions/${id}/`, request);
     return data;
   },
@@ -258,7 +297,7 @@ export const interactionsService = {
    * Delete an interaction
    * Django endpoint: DELETE /api/record/interactions/:id/
    */
-  async delete(id: number): Promise<void> {
+  async delete(id: number | string): Promise<void> {
     await api.delete(`/record/interactions/${id}/`);
   },
 
@@ -268,6 +307,48 @@ export const interactionsService = {
    */
   async getTypes(): Promise<string[]> {
     return [];
+  },
+};
+
+// ============================================================================
+// Responses Service
+// ============================================================================
+
+export const responsesService = {
+  /**
+   * List responses with optional filters
+   * Django endpoint: GET /api/record/responses/
+   */
+  async list(filters?: ResponseFilters): Promise<PaginatedResponse<InteractionResponse>> {
+    const params = filters as Record<string, string> | undefined;
+    const { data } = await api.get<PaginatedResponse<InteractionResponse>>('/record/responses/', params);
+    return data;
+  },
+
+  /**
+   * Update a response value
+   * Django endpoint: PATCH /api/record/responses/:id/
+   */
+  async update(id: number | string, request: UpdateResponseRequest): Promise<InteractionResponse> {
+    const { data } = await api.patch<InteractionResponse>(`/record/responses/${id}/`, request);
+    return data;
+  },
+
+  /**
+   * Create a response
+   * Django endpoint: POST /api/record/responses/
+   */
+  async create(request: CreateResponseRequest): Promise<InteractionResponse> {
+    const { data } = await api.post<InteractionResponse>('/record/responses/', request);
+    return data;
+  },
+
+  /**
+   * Delete a response
+   * Django endpoint: DELETE /api/record/responses/:id/
+   */
+  async delete(id: number | string): Promise<void> {
+    await api.delete(`/record/responses/${id}/`);
   },
 };
 

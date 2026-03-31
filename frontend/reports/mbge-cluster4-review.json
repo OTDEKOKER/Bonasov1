@@ -1,0 +1,16 @@
+{
+  "workbook": "C:\\Users\\dekok\\Downloads\\Q3 REPORTS (1)\\Q3 REPORTS\\Q3 MEN AND BOYS\\Cluster 4- Q3 Statistics report.xlsx",
+  "organization": "MBGE",
+  "project_code": "NAHPA2025/26",
+  "sheet": "TOTALS",
+  "period_start": "2025-10-01",
+  "period_end": "2025-12-31",
+  "summary": {
+    "sections_importable": 51,
+    "exact_matches": 51,
+    "missing_aggregates": 0,
+    "mismatches": 0,
+    "skipped": 10
+  },
+  "skipped_note": "Workbook index 7 (Number of people referred for HIV testing.) was skipped on user instruction. Remaining skipped rows were structural headers."
+}

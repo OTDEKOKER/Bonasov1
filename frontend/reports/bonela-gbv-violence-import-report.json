@@ -1,0 +1,68 @@
+{
+  "workbook": "C:\\Users\\dekok\\Downloads\\2026 FINAL ANALYSIS May-March 03.02.2025 (1) (3).xlsx",
+  "sheet": "BONELA",
+  "organization": {
+    "id": 137,
+    "name": "BONELA"
+  },
+  "project": {
+    "id": 2,
+    "code": "NAHPA2025/26",
+    "name": "NAHPA Social Contracting"
+  },
+  "period_start": "2025-10-01",
+  "period_end": "2025-12-31",
+  "dry_run": false,
+  "summary": {
+    "created_indicators": [
+      {
+        "id": 475,
+        "code": "AUTO_NUMBER_ELIGIBLE_FOR_GBV_SERVICES_W",
+        "name": "Number eligible for GBV services who experienced PHYSICAL VIOLENCE"
+      },
+      {
+        "id": 476,
+        "code": "AUTO_NUMBER_ELIGIBLE_FOR_GBV_SERVICES_W_1",
+        "name": "Number eligible for GBV services who experienced SEXUAL VIOLENCE"
+      },
+      {
+        "id": 477,
+        "code": "AUTO_NUMBER_ELIGIBLE_FOR_GBV_SERVICES_W_2",
+        "name": "Number eligible for GBV services who experienced EMOTIONAL VIOLENCE"
+      }
+    ],
+    "updated_indicators": [],
+    "created_project_assignments": [
+      {
+        "indicator_id": 475,
+        "indicator_name": "Number eligible for GBV services who experienced PHYSICAL VIOLENCE"
+      },
+      {
+        "indicator_id": 476,
+        "indicator_name": "Number eligible for GBV services who experienced SEXUAL VIOLENCE"
+      },
+      {
+        "indicator_id": 477,
+        "indicator_name": "Number eligible for GBV services who experienced EMOTIONAL VIOLENCE"
+      }
+    ],
+    "created_aggregates": [
+      {
+        "id": 4069,
+        "indicator_id": 475,
+        "indicator_name": "Number eligible for GBV services who experienced PHYSICAL VIOLENCE"
+      },
+      {
+        "id": 4070,
+        "indicator_id": 476,
+        "indicator_name": "Number eligible for GBV services who experienced SEXUAL VIOLENCE"
+      },
+      {
+        "id": 4071,
+        "indicator_id": 477,
+        "indicator_name": "Number eligible for GBV services who experienced EMOTIONAL VIOLENCE"
+      }
+    ],
+    "updated_aggregates": []
+  }
+}

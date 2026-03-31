@@ -1,0 +1,648 @@
+[
+  {
+    "code": "1",
+    "title": "Number of service providers receiving training",
+    "indicator_id": 317,
+    "indicator_name": "Number of service providers receiving training",
+    "workbook_total": 3,
+    "system_total": 26,
+    "match": false
+  },
+  {
+    "code": "2",
+    "title": "Number of sub recipients mentored per month. (Number of sub-recipients visited )",
+    "indicator_id": 439,
+    "indicator_name": "Number of sub recipients mentored per month. (Number of sub-recipients visited )",
+    "workbook_total": 0,
+    "system_total": 9,
+    "match": false
+  },
+  {
+    "code": "3",
+    "title": "Number of CSOs trained and equipped to provide comprehensive psychosocial and practical support, including HIV-related support",
+    "indicator_id": 319,
+    "indicator_name": "Number of CSOs trained and equipped to provide comprehensive psychosocial and practical support, including HIV-related support.",
+    "workbook_total": 0,
+    "system_total": 2,
+    "match": false
+  },
+  {
+    "code": "4",
+    "title": "Number of sub-recipients submitting quality reports per months",
+    "indicator_id": 320,
+    "indicator_name": "Number of sub-recipients submitting quality reports per months.",
+    "workbook_total": 0,
+    "system_total": 0,
+    "match": true
+  },
+  {
+    "code": "5a",
+    "title": "Number of PLWH reached with HIV TESTING Messages",
+    "status": "unresolved"
+  },
+  {
+    "code": "5b",
+    "title": "Number of PLWH reached with PEP Messages",
+    "status": "unresolved"
+  },
+  {
+    "code": "5c",
+    "title": "Number of PLWH reached with with PrEP Messages",
+    "indicator_id": 522,
+    "indicator_name": "Number of PLWH reached with with PREP Messages",
+    "workbook_total": 15168,
+    "system_total": 15168,
+    "match": true
+  },
+  {
+    "code": "5d",
+    "title": "Number of PLWH reached with Consistent, correct condom use messages",
+    "indicator_id": 523,
+    "indicator_name": "Number of PLWH reached with Consistent, correct condom use messages",
+    "workbook_total": 14770,
+    "system_total": 14770,
+    "match": true
+  },
+  {
+    "code": "5e",
+    "title": "Number of PLWH reached with GBV Messages",
+    "status": "unresolved"
+  },
+  {
+    "code": "5f",
+    "title": "Number of health talks conducted on PHDP held at IDCC",
+    "indicator_id": 500,
+    "indicator_name": "Number of health talks conducted on PHDP held at IDCC",
+    "workbook_total": 2466,
+    "system_total": 2466,
+    "match": true
+  },
+  {
+    "code": "5g",
+    "title": "Number of people reached at health talks conducted on PHDP held at IDCC",
+    "indicator_id": 524,
+    "indicator_name": "Number of people reached at health talks conducted on PHDP held at IDCC",
+    "workbook_total": 16920,
+    "system_total": 16920,
+    "match": true
+  },
+  {
+    "code": "5h",
+    "title": "Number of people reached with stigma reduction messages",
+    "indicator_id": 330,
+    "indicator_name": "Number of people reached with stigma reduction messages.",
+    "workbook_total": 12815,
+    "system_total": 12815,
+    "match": true
+  },
+  {
+    "code": "5i",
+    "title": "Number of PLWHs provided with treatment literacy",
+    "indicator_id": 481,
+    "indicator_name": "Number of PLWHs provided with treatment literacy",
+    "workbook_total": 12458,
+    "system_total": 0,
+    "match": false
+  },
+  {
+    "code": "6a",
+    "title": "Number of PLWH who tested positive for TB and are on treatment",
+    "indicator_id": 525,
+    "indicator_name": "Number of PLWH who tested positive for TB and are on treatment",
+    "workbook_total": 30431,
+    "system_total": 28,
+    "match": false
+  },
+  {
+    "code": "6b",
+    "title": "Number of PLHIV screened for TB",
+    "indicator_id": 526,
+    "indicator_name": "Number of PLHIV screened for TB",
+    "workbook_total": 11460,
+    "system_total": 11460,
+    "match": true
+  },
+  {
+    "code": "6c",
+    "title": "Number of PLHIV symptomatic for TB referred for testing",
+    "indicator_id": 527,
+    "indicator_name": "Number of PLHIV symptomatic for TB referred for testing",
+    "workbook_total": 68,
+    "system_total": 68,
+    "match": true
+  },
+  {
+    "code": "6d",
+    "title": "Number of TB testing referrals completed",
+    "indicator_id": 501,
+    "indicator_name": "Number of TB testing referrals completed",
+    "workbook_total": 68,
+    "system_total": 68,
+    "match": true
+  },
+  {
+    "code": "6e",
+    "title": "Number of PLHIV on TB treatment",
+    "indicator_id": 528,
+    "indicator_name": "Number of PLHIV on TB treatment",
+    "workbook_total": 241,
+    "system_total": 241,
+    "match": true
+  },
+  {
+    "code": "6f",
+    "title": "Number of PLHIV on TB treatment interrupting treatment",
+    "indicator_id": 529,
+    "indicator_name": "Number of PLHIV on TB treatment interrupting treatment",
+    "workbook_total": 11,
+    "system_total": 11,
+    "match": true
+  },
+  {
+    "code": "6g",
+    "title": "Number of PLHIV TB treatment interrupters reinitiated on treatment",
+    "indicator_id": 530,
+    "indicator_name": "Number of PLHIV TB treatment interrupters reinitiated on treatment",
+    "workbook_total": 2,
+    "system_total": 2,
+    "match": true
+  },
+  {
+    "code": "7",
+    "title": "ART Treatment Interrupters",
+    "indicator_id": 429,
+    "indicator_name": "ART Treatment Interrupters",
+    "workbook_total": 10,
+    "system_total": 300,
+    "match": false
+  },
+  {
+    "code": "7a",
+    "title": "Number of Missed appointments (1-13 days) given by facility for tracing",
+    "indicator_id": 502,
+    "indicator_name": "Number of Missed appointments (1-13 days) given by facility for tracing",
+    "workbook_total": 2306,
+    "system_total": 2306,
+    "match": true
+  },
+  {
+    "code": "7b",
+    "title": "Number of Missed appointments (1-13 days) followed",
+    "indicator_id": 531,
+    "indicator_name": "Number of Missed appointments (1-13 days) followed",
+    "workbook_total": 2280,
+    "system_total": 2280,
+    "match": true
+  },
+  {
+    "code": "7c",
+    "title": "Number of Missed appointments (1-13 days) reinitiated to treatment",
+    "indicator_id": 532,
+    "indicator_name": "Number of Missed appointments (1-13 days) reinitiated to treatment",
+    "workbook_total": 1530,
+    "system_total": 1530,
+    "match": true
+  },
+  {
+    "code": "7d",
+    "title": "Number of ART defaulters (14-89 days) given by facility for tracing",
+    "indicator_id": 533,
+    "indicator_name": "Number of ART defaulters (14-89 days) given by facility for tracing",
+    "workbook_total": 2190,
+    "system_total": 2190,
+    "match": true
+  },
+  {
+    "code": "7e",
+    "title": "Number of ART defaulters (14-89 days) followed",
+    "indicator_id": 503,
+    "indicator_name": "Number of ART defaulters (14-89 days) followed",
+    "workbook_total": 2137,
+    "system_total": 2137,
+    "match": true
+  },
+  {
+    "code": "7f",
+    "title": "Number of ART defaulters (14-89 days) reinitiated to treatment",
+    "indicator_id": 534,
+    "indicator_name": "Number of ART defaulters (14-89 days) reinitiated to treatment",
+    "workbook_total": 809,
+    "system_total": 809,
+    "match": true
+  },
+  {
+    "code": "7g",
+    "title": "Number of LTFU(90+ days) given by facility for tracing",
+    "indicator_id": 535,
+    "indicator_name": "Number of LTFU(90+ days) given by facility for tracing",
+    "workbook_total": 3035,
+    "system_total": 3035,
+    "match": true
+  },
+  {
+    "code": "7h",
+    "title": "Number of LTFU(90+ days) followed",
+    "indicator_id": 504,
+    "indicator_name": "Number of LTFU(90+ days) followed",
+    "workbook_total": 2642,
+    "system_total": 2642,
+    "match": true
+  },
+  {
+    "code": "7i",
+    "title": "Number of people who LTFU (90+ days) Re-initiated on ART",
+    "indicator_id": 536,
+    "indicator_name": "Number of people who LTFU (90+ days) Re-initiated on ART",
+    "workbook_total": 444,
+    "system_total": 444,
+    "match": true
+  },
+  {
+    "code": "8",
+    "title": "Human Rights",
+    "indicator_id": 430,
+    "indicator_name": "Human Rights",
+    "workbook_total": 10,
+    "system_total": 300,
+    "match": false
+  },
+  {
+    "code": "8a",
+    "title": "Number of people sensitised on basic human rights and HIV",
+    "indicator_id": 358,
+    "indicator_name": "Number of people sensitised on basic human rights and HIV.",
+    "workbook_total": 8261,
+    "system_total": 8261,
+    "match": true
+  },
+  {
+    "code": "8b",
+    "title": "Number of individuals reached with messaging on equality and human rights",
+    "indicator_id": 537,
+    "indicator_name": "Number of individuals reached with messaging on equality and human rights",
+    "workbook_total": 7185,
+    "system_total": 7185,
+    "match": true
+  },
+  {
+    "code": "8c",
+    "title": "Number of PLHIV referred to seek legal services",
+    "indicator_id": 505,
+    "indicator_name": "Number of PLHIV referred to seek legal services",
+    "workbook_total": 8,
+    "system_total": 8,
+    "match": true
+  },
+  {
+    "code": "8d",
+    "title": "Number of people who report that their rights were violated and who sought redness",
+    "indicator_id": 361,
+    "indicator_name": "Number of people who sought redress.",
+    "workbook_total": 6,
+    "system_total": 6,
+    "match": true
+  },
+  {
+    "code": "8e",
+    "title": "Number of documented human rights violation cases",
+    "indicator_id": 506,
+    "indicator_name": "Number of documented human rights violation cases",
+    "workbook_total": 5,
+    "system_total": 5,
+    "match": true
+  },
+  {
+    "code": "9",
+    "title": "Human Rights & Stigma Sensitization",
+    "indicator_id": 441,
+    "indicator_name": "Human Rights & Stigma Sensitization",
+    "workbook_total": 10,
+    "system_total": 300,
+    "match": false
+  },
+  {
+    "code": "9a",
+    "title": "Number of community leaders sensitised on human rights, stigma and descrimination",
+    "indicator_id": 362,
+    "indicator_name": "Number of community leaders sensitised on human rights, stigma and descrimination.",
+    "workbook_total": 980,
+    "system_total": 980,
+    "match": true
+  },
+  {
+    "code": "10a",
+    "title": "Number of individuals screened for GBV",
+    "indicator_id": 343,
+    "indicator_name": "Number of individuals screened for GBV.",
+    "workbook_total": 8004,
+    "system_total": 8004,
+    "match": true
+  },
+  {
+    "code": "10b",
+    "title": "Number of individuals eligible for GBV services",
+    "indicator_id": 539,
+    "indicator_name": "Number of individuals eligible for GBV services",
+    "workbook_total": 81,
+    "system_total": 81,
+    "match": true
+  },
+  {
+    "code": "10c",
+    "title": "Number of people eligible for Clinical services for GBV",
+    "indicator_id": 463,
+    "indicator_name": "Number of people elligible for clinical services for GBV.",
+    "workbook_total": 15,
+    "system_total": 15,
+    "match": true
+  },
+  {
+    "code": "10d",
+    "title": "Number of People referred for Clinical Services for GBV",
+    "indicator_id": 464,
+    "indicator_name": "Number of people reffered for clinical services for GBV.",
+    "workbook_total": 5,
+    "system_total": 5,
+    "match": true
+  },
+  {
+    "code": "10e",
+    "title": "Number of people eligible for Justice Services for GBV",
+    "indicator_id": 465,
+    "indicator_name": "Number of people elligible for justice services for GBV.",
+    "workbook_total": 28,
+    "system_total": 28,
+    "match": true
+  },
+  {
+    "code": "10f",
+    "title": "Number of people referred for Justice Services for GBV",
+    "indicator_id": 466,
+    "indicator_name": "Number of people reffered for justice services for GBV.",
+    "workbook_total": 11,
+    "system_total": 11,
+    "match": true
+  },
+  {
+    "code": "10g",
+    "title": "Number of people eligible for Psychosocial Support for GBV",
+    "indicator_id": 540,
+    "indicator_name": "Number of people elligible for Psychosocial Support for GBV",
+    "workbook_total": 34,
+    "system_total": 34,
+    "match": true
+  },
+  {
+    "code": "10h",
+    "title": "Number of people referred for Psychosocial Support for GBV",
+    "indicator_id": 541,
+    "indicator_name": "Number of people reffered for Psychosocial Support for GBV",
+    "workbook_total": 23,
+    "system_total": 23,
+    "match": true
+  },
+  {
+    "code": "11a",
+    "title": "Number of Male Condoms distributed",
+    "indicator_id": 471,
+    "indicator_name": "Number of condoms distributed",
+    "workbook_total": 15196,
+    "system_total": 158791,
+    "match": false
+  },
+  {
+    "code": "11b",
+    "title": "Number of People who reported collecting condoms for the repeated time",
+    "indicator_id": 449,
+    "indicator_name": "Number of people who reported collecting condoms for a repeated time.",
+    "workbook_total": 29221,
+    "system_total": 29221,
+    "match": true
+  },
+  {
+    "code": "11c",
+    "title": "Number of Lubricants distributed to PLHIV",
+    "indicator_id": 509,
+    "indicator_name": "Number of Lubricants distributed to PLHIV",
+    "workbook_total": 8772,
+    "system_total": 13172,
+    "match": false
+  },
+  {
+    "code": "12a",
+    "title": "Number of people screened for STIs",
+    "indicator_id": 351,
+    "indicator_name": "Number of people screened for STIs",
+    "workbook_total": 10436,
+    "system_total": 10436,
+    "match": true
+  },
+  {
+    "code": "12b",
+    "title": "Number of people screened positive for STIs referred for Services",
+    "indicator_id": 468,
+    "indicator_name": "Number of  people screened positive for STIs referred for services",
+    "workbook_total": 4682,
+    "system_total": 4682,
+    "match": true
+  },
+  {
+    "code": "12c",
+    "title": "Number of STIs referrals completed",
+    "indicator_id": 470,
+    "indicator_name": "Number of  STI cases referrals completed",
+    "workbook_total": 140,
+    "system_total": 140,
+    "match": true
+  },
+  {
+    "code": "13",
+    "title": "AYP",
+    "indicator_id": 512,
+    "indicator_name": "AYP",
+    "workbook_total": 10,
+    "system_total": 300,
+    "match": false
+  },
+  {
+    "code": "13",
+    "title": "Number of AYPLHIV engaged in teen and youth club activities",
+    "indicator_id": 435,
+    "indicator_name": "Number of AYPLHIV engaged in teen and youth club activities",
+    "workbook_total": 1050,
+    "system_total": 1050,
+    "match": true
+  },
+  {
+    "code": "14a",
+    "title": "Number of people reached with NCD prevention messages",
+    "indicator_id": 544,
+    "indicator_name": "Number of people reached with NCD prevention messages",
+    "workbook_total": 12678,
+    "system_total": 12678,
+    "match": true
+  },
+  {
+    "code": "14b",
+    "title": "Number of people screened for NCDs",
+    "indicator_id": 545,
+    "indicator_name": "Number of people screened for NCDs",
+    "workbook_total": 10581,
+    "system_total": 10581,
+    "match": true
+  },
+  {
+    "code": "14c",
+    "title": "Number of people referred for NCD services",
+    "indicator_id": 546,
+    "indicator_name": "Number of people referred for NCD services",
+    "workbook_total": 752,
+    "system_total": 752,
+    "match": true
+  },
+  {
+    "code": "15",
+    "title": "Psychosocial Support & Counselling",
+    "indicator_id": 437,
+    "indicator_name": "Psychosocial Support & Counselling",
+    "workbook_total": 10,
+    "system_total": 300,
+    "match": false
+  },
+  {
+    "code": "15a",
+    "title": "Number of trauma-informed counselling sessions delivered to PLHIV, GBV survivors, adolescents, and youth",
+    "indicator_id": 514,
+    "indicator_name": "Number of trauma-informed counselling sessions delivered to PLHIV, GBV survivors, adolescents, and youth",
+    "workbook_total": 352,
+    "system_total": 352,
+    "match": true
+  },
+  {
+    "code": "15b",
+    "title": "Number of complex/high-risk cases managed and referred",
+    "indicator_id": 515,
+    "indicator_name": "Number of complex/high-risk cases managed and referred",
+    "workbook_total": 19,
+    "system_total": 19,
+    "match": true
+  },
+  {
+    "code": "15c",
+    "title": "Number of documented success stories and client outcomes",
+    "indicator_id": 516,
+    "indicator_name": "Number of documented success stories and client outcomes",
+    "workbook_total": 158,
+    "system_total": 158,
+    "match": true
+  },
+  {
+    "code": "15d",
+    "title": "Number of community youth dialogues, health campaigns, and youth forums attended",
+    "indicator_id": 517,
+    "indicator_name": "Number of community youth dialogues, health campaigns, and youth forums attended",
+    "workbook_total": 1349,
+    "system_total": 1349,
+    "match": true
+  },
+  {
+    "code": "15e",
+    "title": "Number of group counselling sessions conducted for youth and vulnerable groups (support group meetings)",
+    "indicator_id": 518,
+    "indicator_name": "Number of group counselling sessions conducted for youth and vulnerable groups (support group meetings)",
+    "workbook_total": 658,
+    "system_total": 658,
+    "match": true
+  },
+  {
+    "code": "15f",
+    "title": "Number of individual counselling sessions conducted for youth and vulnerable groups",
+    "status": "unresolved"
+  },
+  {
+    "code": "15g",
+    "title": "Number of disclosure and mental health support sessions delivered",
+    "indicator_id": 548,
+    "indicator_name": "Number of disclosure and mental health support sessions delivered",
+    "workbook_total": 308,
+    "system_total": 308,
+    "match": true
+  },
+  {
+    "code": "15h",
+    "title": "Number of individual counselling sessions conducted for youth and vulnerable groups",
+    "status": "unresolved"
+  },
+  {
+    "code": "15i",
+    "title": "Number of referrals made for complex cases to appropriate services (health, police, social welfare)",
+    "indicator_id": 519,
+    "indicator_name": "Number of referrals made for complex cases to appropriate services (health, police, social welfare)",
+    "workbook_total": 23,
+    "system_total": 23,
+    "match": true
+  },
+  {
+    "code": "16",
+    "title": "Number of Support groups mentored for Sustainability activities",
+    "indicator_id": 442,
+    "indicator_name": "Number of Support groups mentored for Sustainability activities",
+    "workbook_total": 46,
+    "system_total": 55,
+    "match": false
+  },
+  {
+    "code": "17",
+    "title": "Number of Community led monitoring conducted for quality of service and human rights",
+    "indicator_id": 443,
+    "indicator_name": "Number of Community led monitoring conducted for quality of service and human rights",
+    "workbook_total": 9,
+    "system_total": 113,
+    "match": false
+  },
+  {
+    "code": "18",
+    "title": "Number of advocacy activities conducted per quarter",
+    "indicator_id": 365,
+    "indicator_name": "Number of advocacy activities conducted per quarter.",
+    "workbook_total": 18,
+    "system_total": 18,
+    "match": true
+  },
+  {
+    "code": "19a",
+    "title": "Number of media platforms used per quarter",
+    "indicator_id": 363,
+    "indicator_name": "Number of media platforms used per quarter",
+    "workbook_total": 21,
+    "system_total": 22,
+    "match": false
+  },
+  {
+    "code": "19b",
+    "title": "Number of media engagements conducted",
+    "indicator_id": 367,
+    "indicator_name": "Number of media engagements conducted",
+    "workbook_total": 14,
+    "system_total": 20,
+    "match": false
+  },
+  {
+    "code": "20",
+    "title": "Number of target specific demand creation activities conducted",
+    "indicator_id": 366,
+    "indicator_name": "Number of target specific demand creation activities conducted",
+    "workbook_total": 0,
+    "system_total": 3,
+    "match": false
+  },
+  {
+    "code": "21",
+    "title": "Number of stigma reduction campaigns conducted during the project",
+    "indicator_id": 368,
+    "indicator_name": "Number of stigma reduction campaigns conducted during the project.",
+    "workbook_total": 10,
+    "system_total": 10,
+    "match": true
+  }
+]

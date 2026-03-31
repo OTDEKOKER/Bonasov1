@@ -1,0 +1,24 @@
+﻿{
+  "admin_user_id": 5,
+  "queued_pending_before": 884,
+  "queued_reviewed_before": 0,
+  "aggregates_updated": 884,
+  "review_logs_created": 884,
+  "approval_logs_created": 884,
+  "status_counts_before": [
+    {
+      "status": "approved",
+      "c": 3229
+    },
+    {
+      "status": "pending",
+      "c": 884
+    }
+  ],
+  "status_counts_after": [
+    {
+      "status": "approved",
+      "c": 4113
+    }
+  ]
+}

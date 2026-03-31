@@ -1,0 +1,547 @@
+{
+  "workbook": "C:\\Users\\dekok\\Downloads\\Q3 REPORTS (1)\\Q3 REPORTS\\BONELQ Q3 2026\\BONELA- NAHPA REPORTING TEMPLATE 2025-26   Q3 report (1).xlsx",
+  "totalSheet": "TOTAL",
+  "organizationSheets": [
+    "DROP DOWN",
+    "BONELA",
+    "BOTSWANA ASSOCIATION FOR THE BL",
+    "BOTSWANA ASSOCIATION OF THE DEA",
+    "BOTSWANA COUNCIL OF THE DISABLE",
+    "BOTSWANA TRANS INITIATIVE",
+    "CAPTIVE EYE ORG.",
+    "BOTSWANA SOCIETY FOR THE DISABL",
+    "LESBIANS, GAYS & BISEXUALS OF B",
+    "MADIKWE COMMUNITY TRUST",
+    "MEN FOR HEALTH & GENDER JUSTICE",
+    "MWATUMWAYA REHABILITATION CENTR",
+    "NKAIKELA YOUTH GROUP",
+    "SILENCE KILLS SUPPORT GROUP",
+    "SISONKE"
+  ],
+  "totalIndicatorsOnTotalSheet": 42,
+  "mismatchedIndicators": 10,
+  "mismatches": [
+    {
+      "code": "10",
+      "name": "Number of condoms distributed to KVPs",
+      "totalSheetRowTotal": 52170,
+      "totalSheetDerivedTotal": 52170,
+      "sumOfOrgRowTotals": 51784,
+      "sumOfOrgDerivedTotals": 51784,
+      "totalSheetMatchesOrgDerived": false,
+      "totalSheetRowMatchesOrgDerived": false
+    },
+    {
+      "code": "11",
+      "name": "Number of braille labelled condoms distributed to PWDs",
+      "totalSheetRowTotal": 218,
+      "totalSheetDerivedTotal": 218,
+      "sumOfOrgRowTotals": 411,
+      "sumOfOrgDerivedTotals": 411,
+      "totalSheetMatchesOrgDerived": false,
+      "totalSheetRowMatchesOrgDerived": false
+    },
+    {
+      "code": "13",
+      "name": "Number of people who reported collecting condoms for a repeated time",
+      "totalSheetRowTotal": 3368,
+      "totalSheetDerivedTotal": 3368,
+      "sumOfOrgRowTotals": 1148,
+      "sumOfOrgDerivedTotals": 1148,
+      "totalSheetMatchesOrgDerived": false,
+      "totalSheetRowMatchesOrgDerived": false
+    },
+    {
+      "code": "14",
+      "name": "Number of condoms distributed through the non-traditional sites",
+      "totalSheetRowTotal": 45063,
+      "totalSheetDerivedTotal": 47995,
+      "sumOfOrgRowTotals": 44841,
+      "sumOfOrgDerivedTotals": 54125,
+      "totalSheetMatchesOrgDerived": false,
+      "totalSheetRowMatchesOrgDerived": false
+    },
+    {
+      "code": "15",
+      "name": "Number of lubricants distributed",
+      "totalSheetRowTotal": 16225,
+      "totalSheetDerivedTotal": 16225,
+      "sumOfOrgRowTotals": 16390,
+      "sumOfOrgDerivedTotals": 16390,
+      "totalSheetMatchesOrgDerived": false,
+      "totalSheetRowMatchesOrgDerived": false
+    },
+    {
+      "code": "16",
+      "name": "Number of people sensitised on basic human rights and HIV",
+      "totalSheetRowTotal": 3313,
+      "totalSheetDerivedTotal": 3313,
+      "sumOfOrgRowTotals": 3703,
+      "sumOfOrgDerivedTotals": 3703,
+      "totalSheetMatchesOrgDerived": false,
+      "totalSheetRowMatchesOrgDerived": false
+    },
+    {
+      "code": "17",
+      "name": "Number of healthcare workers trained on medical ethics and human rights",
+      "totalSheetRowTotal": 2,
+      "totalSheetDerivedTotal": 2,
+      "sumOfOrgRowTotals": 0,
+      "sumOfOrgDerivedTotals": 0,
+      "totalSheetMatchesOrgDerived": false,
+      "totalSheetRowMatchesOrgDerived": false
+    },
+    {
+      "code": "18b",
+      "name": "Number of people who sought redress",
+      "totalSheetRowTotal": 23,
+      "totalSheetDerivedTotal": 23,
+      "sumOfOrgRowTotals": 25,
+      "sumOfOrgDerivedTotals": 25,
+      "totalSheetMatchesOrgDerived": false,
+      "totalSheetRowMatchesOrgDerived": false
+    },
+    {
+      "code": "23",
+      "name": "Number of target specific demand creation activities conducted",
+      "totalSheetRowTotal": 63,
+      "totalSheetDerivedTotal": 63,
+      "sumOfOrgRowTotals": 45,
+      "sumOfOrgDerivedTotals": 45,
+      "totalSheetMatchesOrgDerived": false,
+      "totalSheetRowMatchesOrgDerived": false
+    },
+    {
+      "code": "25",
+      "name": "Number of stigma reduction campaigns conducted during the project",
+      "totalSheetRowTotal": 18,
+      "totalSheetDerivedTotal": 18,
+      "sumOfOrgRowTotals": 24,
+      "sumOfOrgDerivedTotals": 24,
+      "totalSheetMatchesOrgDerived": false,
+      "totalSheetRowMatchesOrgDerived": false
+    }
+  ],
+  "comparison": [
+    {
+      "code": "1",
+      "name": "Number of service providers receiving training",
+      "totalSheetRowTotal": 0,
+      "totalSheetDerivedTotal": 0,
+      "sumOfOrgRowTotals": 0,
+      "sumOfOrgDerivedTotals": 0,
+      "totalSheetMatchesOrgDerived": true,
+      "totalSheetRowMatchesOrgDerived": true
+    },
+    {
+      "code": "2",
+      "name": "Number of sub recipients mentored per month",
+      "totalSheetRowTotal": 0,
+      "totalSheetDerivedTotal": 0,
+      "sumOfOrgRowTotals": 0,
+      "sumOfOrgDerivedTotals": 0,
+      "totalSheetMatchesOrgDerived": true,
+      "totalSheetRowMatchesOrgDerived": true
+    },
+    {
+      "code": "3",
+      "name": "Number of CSOs trained and equipped to provide comprehensive psychosocial and practical support, including HIV-related support",
+      "totalSheetRowTotal": 0,
+      "totalSheetDerivedTotal": 0,
+      "sumOfOrgRowTotals": 0,
+      "sumOfOrgDerivedTotals": 0,
+      "totalSheetMatchesOrgDerived": true,
+      "totalSheetRowMatchesOrgDerived": true
+    },
+    {
+      "code": "4",
+      "name": "Number of sub-recipients submitting quality reports per months",
+      "totalSheetRowTotal": 0,
+      "totalSheetDerivedTotal": 0,
+      "sumOfOrgRowTotals": 0,
+      "sumOfOrgDerivedTotals": 0,
+      "totalSheetMatchesOrgDerived": true,
+      "totalSheetRowMatchesOrgDerived": true
+    },
+    {
+      "code": "5",
+      "name": "Number of service providers trained on sign language",
+      "totalSheetRowTotal": 0,
+      "totalSheetDerivedTotal": 0,
+      "sumOfOrgRowTotals": 0,
+      "sumOfOrgDerivedTotals": 0,
+      "totalSheetMatchesOrgDerived": true,
+      "totalSheetRowMatchesOrgDerived": true
+    },
+    {
+      "code": "1a",
+      "name": "Total Number of Key and Vulnerable Populations Reached with HIV TESTING Messages",
+      "totalSheetRowTotal": 3448,
+      "totalSheetDerivedTotal": 3448,
+      "sumOfOrgRowTotals": 3448,
+      "sumOfOrgDerivedTotals": 3448,
+      "totalSheetMatchesOrgDerived": true,
+      "totalSheetRowMatchesOrgDerived": true
+    },
+    {
+      "code": "1b",
+      "name": "Total Number of Key and Vulnerable Populations Reached with PEP Messages",
+      "totalSheetRowTotal": 2494,
+      "totalSheetDerivedTotal": 2494,
+      "sumOfOrgRowTotals": 2494,
+      "sumOfOrgDerivedTotals": 2494,
+      "totalSheetMatchesOrgDerived": true,
+      "totalSheetRowMatchesOrgDerived": true
+    },
+    {
+      "code": "1c",
+      "name": "Total Number of Key and Vulnerable Populations Reached with PrEP Messages",
+      "totalSheetRowTotal": 3041,
+      "totalSheetDerivedTotal": 3041,
+      "sumOfOrgRowTotals": 3041,
+      "sumOfOrgDerivedTotals": 3041,
+      "totalSheetMatchesOrgDerived": true,
+      "totalSheetRowMatchesOrgDerived": true
+    },
+    {
+      "code": "1d",
+      "name": "Total Number of Key and Vulnerable Populations Reached with GBV Messages",
+      "totalSheetRowTotal": 3617,
+      "totalSheetDerivedTotal": 3617,
+      "sumOfOrgRowTotals": 3617,
+      "sumOfOrgDerivedTotals": 3617,
+      "totalSheetMatchesOrgDerived": true,
+      "totalSheetRowMatchesOrgDerived": true
+    },
+    {
+      "code": "2",
+      "name": "Number of people reached with stigma reduction messages",
+      "totalSheetRowTotal": 2851,
+      "totalSheetDerivedTotal": 2851,
+      "sumOfOrgRowTotals": 2851,
+      "sumOfOrgDerivedTotals": 2851,
+      "totalSheetMatchesOrgDerived": true,
+      "totalSheetRowMatchesOrgDerived": true
+    },
+    {
+      "code": "3",
+      "name": "Number of people referred for HIV testing",
+      "totalSheetRowTotal": 1623,
+      "totalSheetDerivedTotal": 1623,
+      "sumOfOrgRowTotals": 1623,
+      "sumOfOrgDerivedTotals": 1623,
+      "totalSheetMatchesOrgDerived": true,
+      "totalSheetRowMatchesOrgDerived": true
+    },
+    {
+      "code": "4",
+      "name": "Number of people eligible for PrEP",
+      "totalSheetRowTotal": 834,
+      "totalSheetDerivedTotal": 834,
+      "sumOfOrgRowTotals": 834,
+      "sumOfOrgDerivedTotals": 834,
+      "totalSheetMatchesOrgDerived": true,
+      "totalSheetRowMatchesOrgDerived": true
+    },
+    {
+      "code": "5",
+      "name": "Number of people referred for PrEP",
+      "totalSheetRowTotal": 420,
+      "totalSheetDerivedTotal": 420,
+      "sumOfOrgRowTotals": 420,
+      "sumOfOrgDerivedTotals": 420,
+      "totalSheetMatchesOrgDerived": true,
+      "totalSheetRowMatchesOrgDerived": true
+    },
+    {
+      "code": "6",
+      "name": "Number of people eligible for PEP",
+      "totalSheetRowTotal": 31,
+      "totalSheetDerivedTotal": 31,
+      "sumOfOrgRowTotals": 31,
+      "sumOfOrgDerivedTotals": 31,
+      "totalSheetMatchesOrgDerived": true,
+      "totalSheetRowMatchesOrgDerived": true
+    },
+    {
+      "code": "7",
+      "name": "Number of people referred for PEP",
+      "totalSheetRowTotal": 31,
+      "totalSheetDerivedTotal": 31,
+      "sumOfOrgRowTotals": 31,
+      "sumOfOrgDerivedTotals": 31,
+      "totalSheetMatchesOrgDerived": true,
+      "totalSheetRowMatchesOrgDerived": true
+    },
+    {
+      "code": "8a",
+      "name": "Number of individuals screened for GBV",
+      "totalSheetRowTotal": 4140,
+      "totalSheetDerivedTotal": 4140,
+      "sumOfOrgRowTotals": 4140,
+      "sumOfOrgDerivedTotals": 4140,
+      "totalSheetMatchesOrgDerived": true,
+      "totalSheetRowMatchesOrgDerived": true
+    },
+    {
+      "code": "8b",
+      "name": "Number of people eligible for GBV services who experienced PHYSICAL VIOLENCE",
+      "totalSheetRowTotal": 24,
+      "totalSheetDerivedTotal": 24,
+      "sumOfOrgRowTotals": 24,
+      "sumOfOrgDerivedTotals": 24,
+      "totalSheetMatchesOrgDerived": true,
+      "totalSheetRowMatchesOrgDerived": true
+    },
+    {
+      "code": "8c",
+      "name": "Number of people eligible for GBV services who experienced SEXUAL VIOLENCE",
+      "totalSheetRowTotal": 5,
+      "totalSheetDerivedTotal": 5,
+      "sumOfOrgRowTotals": 5,
+      "sumOfOrgDerivedTotals": 5,
+      "totalSheetMatchesOrgDerived": true,
+      "totalSheetRowMatchesOrgDerived": true
+    },
+    {
+      "code": "8d",
+      "name": "Number of people eligible for GBV services who experienced EMOTIONAL VIOLENCE",
+      "totalSheetRowTotal": 28,
+      "totalSheetDerivedTotal": 28,
+      "sumOfOrgRowTotals": 28,
+      "sumOfOrgDerivedTotals": 28,
+      "totalSheetMatchesOrgDerived": true,
+      "totalSheetRowMatchesOrgDerived": true
+    },
+    {
+      "code": "8e",
+      "name": "Number of people referred for clinical services for GBV",
+      "totalSheetRowTotal": 18,
+      "totalSheetDerivedTotal": 18,
+      "sumOfOrgRowTotals": 18,
+      "sumOfOrgDerivedTotals": 18,
+      "totalSheetMatchesOrgDerived": true,
+      "totalSheetRowMatchesOrgDerived": true
+    },
+    {
+      "code": "8f",
+      "name": "Number of people referred for justice services for GBV",
+      "totalSheetRowTotal": 5,
+      "totalSheetDerivedTotal": 5,
+      "sumOfOrgRowTotals": 5,
+      "sumOfOrgDerivedTotals": 5,
+      "totalSheetMatchesOrgDerived": true,
+      "totalSheetRowMatchesOrgDerived": true
+    },
+    {
+      "code": "8e",
+      "name": "Number of People who received psychosocial support on GBV",
+      "totalSheetRowTotal": 28,
+      "totalSheetDerivedTotal": 28,
+      "sumOfOrgRowTotals": 28,
+      "sumOfOrgDerivedTotals": 28,
+      "totalSheetMatchesOrgDerived": true,
+      "totalSheetRowMatchesOrgDerived": true
+    },
+    {
+      "code": "9a",
+      "name": "Number of people screened for STIs",
+      "totalSheetRowTotal": 4038,
+      "totalSheetDerivedTotal": 4038,
+      "sumOfOrgRowTotals": 4038,
+      "sumOfOrgDerivedTotals": 4038,
+      "totalSheetMatchesOrgDerived": true,
+      "totalSheetRowMatchesOrgDerived": true
+    },
+    {
+      "code": "9b",
+      "name": "Number of people referred for STIs for services",
+      "totalSheetRowTotal": 111,
+      "totalSheetDerivedTotal": 111,
+      "sumOfOrgRowTotals": 111,
+      "sumOfOrgDerivedTotals": 111,
+      "totalSheetMatchesOrgDerived": true,
+      "totalSheetRowMatchesOrgDerived": true
+    },
+    {
+      "code": "9c",
+      "name": "Number of STI cases linked to care",
+      "totalSheetRowTotal": 8,
+      "totalSheetDerivedTotal": 8,
+      "sumOfOrgRowTotals": 8,
+      "sumOfOrgDerivedTotals": 8,
+      "totalSheetMatchesOrgDerived": true,
+      "totalSheetRowMatchesOrgDerived": true
+    },
+    {
+      "code": "10",
+      "name": "Number of condoms distributed to KVPs",
+      "totalSheetRowTotal": 52170,
+      "totalSheetDerivedTotal": 52170,
+      "sumOfOrgRowTotals": 51784,
+      "sumOfOrgDerivedTotals": 51784,
+      "totalSheetMatchesOrgDerived": false,
+      "totalSheetRowMatchesOrgDerived": false
+    },
+    {
+      "code": "11",
+      "name": "Number of braille labelled condoms distributed to PWDs",
+      "totalSheetRowTotal": 218,
+      "totalSheetDerivedTotal": 218,
+      "sumOfOrgRowTotals": 411,
+      "sumOfOrgDerivedTotals": 411,
+      "totalSheetMatchesOrgDerived": false,
+      "totalSheetRowMatchesOrgDerived": false
+    },
+    {
+      "code": "12",
+      "name": "Number of promotions on braille labelled condoms held",
+      "totalSheetRowTotal": 0,
+      "totalSheetDerivedTotal": 0,
+      "sumOfOrgRowTotals": 0,
+      "sumOfOrgDerivedTotals": 0,
+      "totalSheetMatchesOrgDerived": true,
+      "totalSheetRowMatchesOrgDerived": true
+    },
+    {
+      "code": "13",
+      "name": "Number of people who reported collecting condoms for a repeated time",
+      "totalSheetRowTotal": 3368,
+      "totalSheetDerivedTotal": 3368,
+      "sumOfOrgRowTotals": 1148,
+      "sumOfOrgDerivedTotals": 1148,
+      "totalSheetMatchesOrgDerived": false,
+      "totalSheetRowMatchesOrgDerived": false
+    },
+    {
+      "code": "14",
+      "name": "Number of condoms distributed through the non-traditional sites",
+      "totalSheetRowTotal": 45063,
+      "totalSheetDerivedTotal": 47995,
+      "sumOfOrgRowTotals": 44841,
+      "sumOfOrgDerivedTotals": 54125,
+      "totalSheetMatchesOrgDerived": false,
+      "totalSheetRowMatchesOrgDerived": false
+    },
+    {
+      "code": "15",
+      "name": "Number of lubricants distributed",
+      "totalSheetRowTotal": 16225,
+      "totalSheetDerivedTotal": 16225,
+      "sumOfOrgRowTotals": 16390,
+      "sumOfOrgDerivedTotals": 16390,
+      "totalSheetMatchesOrgDerived": false,
+      "totalSheetRowMatchesOrgDerived": false
+    },
+    {
+      "code": "16",
+      "name": "Number of people sensitised on basic human rights and HIV",
+      "totalSheetRowTotal": 3313,
+      "totalSheetDerivedTotal": 3313,
+      "sumOfOrgRowTotals": 3703,
+      "sumOfOrgDerivedTotals": 3703,
+      "totalSheetMatchesOrgDerived": false,
+      "totalSheetRowMatchesOrgDerived": false
+    },
+    {
+      "code": "17",
+      "name": "Number of healthcare workers trained on medical ethics and human rights",
+      "totalSheetRowTotal": 2,
+      "totalSheetDerivedTotal": 2,
+      "sumOfOrgRowTotals": 0,
+      "sumOfOrgDerivedTotals": 0,
+      "totalSheetMatchesOrgDerived": false,
+      "totalSheetRowMatchesOrgDerived": false
+    },
+    {
+      "code": "18a",
+      "name": "Number of people who report that their rights were violated",
+      "totalSheetRowTotal": 31,
+      "totalSheetDerivedTotal": 31,
+      "sumOfOrgRowTotals": 31,
+      "sumOfOrgDerivedTotals": 31,
+      "totalSheetMatchesOrgDerived": true,
+      "totalSheetRowMatchesOrgDerived": true
+    },
+    {
+      "code": "18b",
+      "name": "Number of people who sought redress",
+      "totalSheetRowTotal": 23,
+      "totalSheetDerivedTotal": 23,
+      "sumOfOrgRowTotals": 25,
+      "sumOfOrgDerivedTotals": 25,
+      "totalSheetMatchesOrgDerived": false,
+      "totalSheetRowMatchesOrgDerived": false
+    },
+    {
+      "code": "19",
+      "name": "Number of community leaders sensitised on human rights, stigma and descrimination",
+      "totalSheetRowTotal": 158,
+      "totalSheetDerivedTotal": 198,
+      "sumOfOrgRowTotals": 158,
+      "sumOfOrgDerivedTotals": 198,
+      "totalSheetMatchesOrgDerived": true,
+      "totalSheetRowMatchesOrgDerived": false
+    },
+    {
+      "code": "20",
+      "name": "Number of community led monitoring conducted for quality of service and human rights",
+      "totalSheetRowTotal": 16,
+      "totalSheetDerivedTotal": 16,
+      "sumOfOrgRowTotals": 16,
+      "sumOfOrgDerivedTotals": 16,
+      "totalSheetMatchesOrgDerived": true,
+      "totalSheetRowMatchesOrgDerived": true
+    },
+    {
+      "code": "21",
+      "name": "Number of advocacy activities conducted per quarter",
+      "totalSheetRowTotal": 24,
+      "totalSheetDerivedTotal": 24,
+      "sumOfOrgRowTotals": 24,
+      "sumOfOrgDerivedTotals": 24,
+      "totalSheetMatchesOrgDerived": true,
+      "totalSheetRowMatchesOrgDerived": true
+    },
+    {
+      "code": "22",
+      "name": "Number of media platforms used per quarter",
+      "totalSheetRowTotal": 30,
+      "totalSheetDerivedTotal": 30,
+      "sumOfOrgRowTotals": 30,
+      "sumOfOrgDerivedTotals": 30,
+      "totalSheetMatchesOrgDerived": true,
+      "totalSheetRowMatchesOrgDerived": true
+    },
+    {
+      "code": "23",
+      "name": "Number of target specific demand creation activities conducted",
+      "totalSheetRowTotal": 63,
+      "totalSheetDerivedTotal": 63,
+      "sumOfOrgRowTotals": 45,
+      "sumOfOrgDerivedTotals": 45,
+      "totalSheetMatchesOrgDerived": false,
+      "totalSheetRowMatchesOrgDerived": false
+    },
+    {
+      "code": "24",
+      "name": "Number of media engagements conducted",
+      "totalSheetRowTotal": 17,
+      "totalSheetDerivedTotal": 17,
+      "sumOfOrgRowTotals": 17,
+      "sumOfOrgDerivedTotals": 17,
+      "totalSheetMatchesOrgDerived": true,
+      "totalSheetRowMatchesOrgDerived": true
+    },
+    {
+      "code": "25",
+      "name": "Number of stigma reduction campaigns conducted during the project",
+      "totalSheetRowTotal": 18,
+      "totalSheetDerivedTotal": 18,
+      "sumOfOrgRowTotals": 24,
+      "sumOfOrgDerivedTotals": 24,
+      "totalSheetMatchesOrgDerived": false,
+      "totalSheetRowMatchesOrgDerived": false
+    }
+  ]
+}

@@ -1,0 +1,85 @@
+{
+  "dry_run": false,
+  "source_indicator": {
+    "id": 364,
+    "code": "AUTO_NUMBER_OF_COMMUNITY_LED_MONITORING",
+    "name": "Number of community led monitoring conducted for quality of service and human rights.",
+    "is_active": true
+  },
+  "target_indicator": {
+    "id": 443,
+    "code": "NAHPA2025-26-17-NUMBER-OF-COMMUNITY-LED-MONITORING",
+    "name": "Number of Community led monitoring conducted for quality of service and human rights",
+    "is_active": true
+  },
+  "moved_aggregates": [
+    {
+      "aggregate_id": 3936,
+      "organization_id": 137,
+      "project_id": 2,
+      "period_start": "2025-10-01",
+      "period_end": "2025-12-31",
+      "status": "approved"
+    },
+    {
+      "aggregate_id": 3985,
+      "organization_id": 140,
+      "project_id": 2,
+      "period_start": "2025-10-01",
+      "period_end": "2025-12-31",
+      "status": "approved"
+    },
+    {
+      "aggregate_id": 4000,
+      "organization_id": 1,
+      "project_id": 2,
+      "period_start": "2025-10-01",
+      "period_end": "2025-12-31",
+      "status": "approved"
+    },
+    {
+      "aggregate_id": 4054,
+      "organization_id": 112,
+      "project_id": 2,
+      "period_start": "2025-10-01",
+      "period_end": "2025-12-31",
+      "status": "approved"
+    }
+  ],
+  "replaced_placeholders": [
+    {
+      "source_aggregate_id": 3936,
+      "target_aggregate_id": 4075,
+      "organization_id": 137,
+      "project_id": 2,
+      "period_start": "2025-10-01",
+      "period_end": "2025-12-31",
+      "forced": false
+    },
+    {
+      "source_aggregate_id": 3985,
+      "target_aggregate_id": 4274,
+      "organization_id": 140,
+      "project_id": 2,
+      "period_start": "2025-10-01",
+      "period_end": "2025-12-31",
+      "forced": false
+    },
+    {
+      "source_aggregate_id": 4054,
+      "target_aggregate_id": 3911,
+      "organization_id": 112,
+      "project_id": 2,
+      "period_start": "2025-10-01",
+      "period_end": "2025-12-31",
+      "forced": true
+    }
+  ],
+  "deleted_placeholder_aggregates": [
+    4075,
+    4274,
+    3911
+  ],
+  "unresolved_conflicts": [],
+  "retired_source_indicator": true
+}

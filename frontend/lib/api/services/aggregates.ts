@@ -5,7 +5,7 @@
  * Django endpoint base: /api/aggregates/
  */
 
-import { api, type PaginatedResponse } from '../client';
+import { api, fetchWithAuth, normalizeApiError, type PaginatedResponse } from '../client';
 import type { Aggregate } from '@/lib/types';
 
 // ============================================================================
@@ -20,6 +20,7 @@ export interface AggregateFilters {
   date_from?: string;
   date_to?: string;
   organization?: string;
+  status?: string;
   page?: string;
   page_size?: string;
 }
@@ -34,7 +35,7 @@ export interface CreateAggregateRequest {
   notes?: string;
 }
 
-export interface UpdateAggregateRequest extends Partial<CreateAggregateRequest> {}
+export type UpdateAggregateRequest = Partial<CreateAggregateRequest>
 
 export interface BulkAggregateRequest {
   project: number;
@@ -44,6 +45,7 @@ export interface BulkAggregateRequest {
   data: Array<{
     indicator: number;
     value: unknown;
+    notes?: string;
   }>;
 }
 
@@ -79,6 +81,16 @@ export interface GenerateFromInteractionsResponse {
   aggregate?: Aggregate | null;
 }
 
+export interface AggregateReviewRequest {
+  notes?: string;
+}
+
+export interface AggregateFlagRequest {
+  reason: 'duplicate' | 'incorrect_data' | 'suspicious' | 'incomplete' | 'other';
+  description?: string;
+  severity?: 'low' | 'medium' | 'high';
+}
+
 export interface DerivationRule {
   id: number;
   output_indicator: number;
@@ -110,6 +122,55 @@ const cleanParams = (filters?: Record<string, string | undefined | null>) => {
 // Aggregates Service
 // ============================================================================
 
+const LIST_ALL_PAGE_SIZE = '500';
+
+async function listAllAggregatePages(filters?: AggregateFilters): Promise<{
+  count: number;
+  results: Aggregate[];
+}> {
+  const results: Aggregate[] = [];
+  const seenIds = new Set<string>();
+  const startPage = Math.max(1, Number(filters?.page || 1));
+  const baseFilters = cleanParams({ ...(filters || {}) } as Record<string, string | undefined>) || {};
+  delete baseFilters.page;
+  if (!baseFilters.page_size) {
+    baseFilters.page_size = LIST_ALL_PAGE_SIZE;
+  }
+
+  const appendPageResults = (items: Aggregate[]) => {
+    items.forEach((item) => {
+      const id = String(item?.id ?? "");
+      if (!id || seenIds.has(id)) return;
+      seenIds.add(id);
+      results.push(item);
+    });
+  };
+
+  const { data: firstPage } = await api.get<PaginatedResponse<Aggregate>>('/aggregates/', {
+    ...baseFilters,
+    page: String(startPage),
+  });
+
+  appendPageResults(firstPage.results || []);
+
+  let nextUrl: string | null = firstPage.next;
+  const visitedPages = new Set<string>();
+
+  while (nextUrl) {
+    if (visitedPages.has(nextUrl)) break;
+    visitedPages.add(nextUrl);
+
+    const { data } = await api.get<PaginatedResponse<Aggregate>>(nextUrl);
+    appendPageResults(data.results || []);
+    nextUrl = data.next;
+  }
+
+  return {
+    count: Number(firstPage.count || results.length),
+    results,
+  };
+}
+
 export const aggregatesService = {
   /**
    * List all aggregates with optional filters
@@ -124,27 +185,7 @@ export const aggregatesService = {
    * List all aggregates across all pages
    */
   async listAll(filters?: AggregateFilters): Promise<Aggregate[]> {
-    const results: Aggregate[] = [];
-    let page = filters?.page ? String(filters.page) : "1";
-    const baseFilters = cleanParams({ ...(filters || {}) } as Record<string, string | undefined>) || {}
-    delete (baseFilters as any).page;
-
-    while (true) {
-      const { data } = await api.get<PaginatedResponse<Aggregate>>('/aggregates/', {
-        ...baseFilters,
-        page,
-      });
-      results.push(...(data.results || []));
-      if (!data.next) break;
-      try {
-        const nextUrl = new URL(data.next);
-        const nextPage = nextUrl.searchParams.get("page");
-        if (!nextPage) break;
-        page = nextPage;
-      } catch {
-        break;
-      }
-    }
+    const { results } = await listAllAggregatePages(filters);
     return results;
   },
 
@@ -192,6 +233,26 @@ export const aggregatesService = {
     return data.results || [];
   },
 
+  async review(id: number, request?: AggregateReviewRequest): Promise<Aggregate> {
+    const { data } = await api.post<Aggregate>(`/aggregates/${id}/review/`, request || {});
+    return data;
+  },
+
+  async approve(id: number, request?: AggregateReviewRequest): Promise<Aggregate> {
+    const { data } = await api.post<Aggregate>(`/aggregates/${id}/approve/`, request || {});
+    return data;
+  },
+
+  async flag(id: number, request: AggregateFlagRequest): Promise<Aggregate> {
+    const { data } = await api.post<Aggregate>(`/aggregates/${id}/flag/`, request);
+    return data;
+  },
+
+  async reject(id: number, request?: AggregateFlagRequest): Promise<Aggregate> {
+    const { data } = await api.post<Aggregate>(`/aggregates/${id}/reject/`, request || {});
+    return data;
+  },
+
   /**
    * Get aggregate templates (predefined indicator sets)
    * Django endpoint: GET /api/aggregates/templates/
@@ -236,10 +297,18 @@ export const aggregatesService = {
   async export(filters?: AggregateFilters & { format?: 'csv' | 'excel' }): Promise<Blob> {
     const params = cleanParams(filters as Record<string, string | undefined>);
     const qs = params ? `?${new URLSearchParams(params).toString()}` : '';
-    const token = localStorage.getItem('access_token');
-    const response = await fetch(`/api/aggregates/export/${qs}`, {
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-    });
+    const response = await fetchWithAuth(`/aggregates/export/${qs}`);
+    if (!response.ok) {
+      const contentType = response.headers.get('content-type');
+      const payload = contentType?.includes('application/json')
+        ? await response.json()
+        : await response.text();
+      throw normalizeApiError({
+        status: response.status,
+        payload,
+        fallbackMessage: 'Failed to export aggregates',
+      });
+    }
     return response.blob();
   },
 
@@ -278,6 +347,3 @@ export const aggregatesService = {
 };
 
 export default aggregatesService;
-
-
-
