@@ -1,9 +1,11 @@
-export const getUserOrganizationId = (user: unknown): number | null => {
-  if (!user || typeof user !== "object") return null
+type UserLike = {
+  organizationId?: string | number | null
+  organization?: string | number | null
+} | null | undefined
 
-  const candidate = user as { organizationId?: unknown; organization?: unknown }
-  const raw = candidate.organizationId ?? candidate.organization
+export function getUserOrganizationId(user: UserLike): number | null {
+  const raw = user?.organizationId ?? user?.organization
+  if (raw === null || raw === undefined || raw === "") return null
   const parsed = Number(raw)
-
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : null
+  return Number.isFinite(parsed) ? parsed : null
 }

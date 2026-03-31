@@ -1,0 +1,1392 @@
+﻿[
+  {
+    "id": 9819,
+    "indicator_id": 317,
+    "indicator__name": "Number of service providers receiving training",
+    "project_id": 2,
+    "project__code": "NAHPA2025/26",
+    "project__name": "NAHPA Social Contracting",
+    "period_start": "2025-10-01",
+    "period_end": "2025-12-31",
+    "status": "pending",
+    "value": {
+      "total": 0
+    },
+    "notes": "Imported from final-analysis-q3.xlsx | sheet=MAKGABANENG | code=1"
+  },
+  {
+    "id": 9820,
+    "indicator_id": 318,
+    "indicator__name": "Number of sub recipients mentored per month.",
+    "project_id": 2,
+    "project__code": "NAHPA2025/26",
+    "project__name": "NAHPA Social Contracting",
+    "period_start": "2025-10-01",
+    "period_end": "2025-12-31",
+    "status": "pending",
+    "value": {
+      "total": 0
+    },
+    "notes": "Imported from final-analysis-q3.xlsx | sheet=MAKGABANENG | code=2"
+  },
+  {
+    "id": 9821,
+    "indicator_id": 319,
+    "indicator__name": "Number of CSOs trained and equipped to provide comprehensive psychosocial and practical support, including HIV-related support.",
+    "project_id": 2,
+    "project__code": "NAHPA2025/26",
+    "project__name": "NAHPA Social Contracting",
+    "period_start": "2025-10-01",
+    "period_end": "2025-12-31",
+    "status": "pending",
+    "value": {
+      "total": 0
+    },
+    "notes": "Imported from final-analysis-q3.xlsx | sheet=MAKGABANENG | code=3"
+  },
+  {
+    "id": 9822,
+    "indicator_id": 371,
+    "indicator__name": "Number OF Sub-recipients Submitting Quality Reports PER Month.",
+    "project_id": 2,
+    "project__code": "NAHPA2025/26",
+    "project__name": "NAHPA Social Contracting",
+    "period_start": "2025-10-01",
+    "period_end": "2025-12-31",
+    "status": "pending",
+    "value": {
+      "total": 0
+    },
+    "notes": "Imported from final-analysis-q3.xlsx | sheet=MAKGABANENG | code=4"
+  },
+  {
+    "id": 9823,
+    "indicator_id": 372,
+    "indicator__name": "Number OF People Reached With NCD Prevention AND Control Messages.",
+    "project_id": 2,
+    "project__code": "NAHPA2025/26",
+    "project__name": "NAHPA Social Contracting",
+    "period_start": "2025-10-01",
+    "period_end": "2025-12-31",
+    "status": "pending",
+    "value": {
+      "male": 77874,
+      "total": 297064,
+      "female": 219190,
+      "disaggregates": {
+        "TOTAL": {
+          "Female": {
+            "10 -14": 109595
+          }
+        },
+        "Healthy Diet messages": {
+          "Male": {
+            "65+": 393,
+            "50-54": 507,
+            "55-59": 348,
+            "10 -14": 320,
+            "15 -19": 804,
+            "25 -29": 1070,
+            "30 -34": 1000,
+            "40 -44": 806,
+            "45 -49": 655,
+            "60 -64": 248,
+            "20 - 24": 1477,
+            "35 - 39": 911
+          },
+          "Female": {
+            "65+": 764,
+            "50-54": 835,
+            "55-59": 668,
+            "10 -14": 319,
+            "15 -19": 846,
+            "25 -29": 1363,
+            "30 -34": 1377,
+            "40 -44": 1416,
+            "45 -49": 1117,
+            "60 -64": 445,
+            "20 - 24": 2063,
+            "35 - 39": 1322
+          }
+        },
+        "Blood glucose messages": {
+          "Male": {
+            "65+": 178,
+            "50-54": 339,
+            "55-59": 217,
+            "10 -14": 263,
+            "15 -19": 649,
+            "25 -29": 705,
+            "30 -34": 705,
+            "40 -44": 573,
+            "45 -49": 453,
+            "60 -64": 145,
+            "20 - 24": 1109,
+            "35 - 39": 675
+          },
+          "Female": {
+            "65+": 369,
+            "50-54": 521,
+            "55-59": 357,
+            "10 -14": 244,
+            "15 -19": 667,
+            "25 -29": 843,
+            "30 -34": 869,
+            "40 -44": 862,
+            "45 -49": 672,
+            "60 -64": 236,
+            "20 - 24": 1447,
+            "35 - 39": 818
+          }
+        },
+        "Blood Pressure messages": {
+          "Male": {
+            "65+": 192,
+            "50-54": 363,
+            "55-59": 251,
+            "10 -14": 309,
+            "15 -19": 728,
+            "25 -29": 856,
+            "30 -34": 831,
+            "40 -44": 610,
+            "45 -49": 475,
+            "60 -64": 175,
+            "20 - 24": 1332,
+            "35 - 39": 749
+          },
+          "Female": {
+            "65+": 364,
+            "50-54": 530,
+            "55-59": 358,
+            "10 -14": 311,
+            "15 -19": 724,
+            "25 -29": 952,
+            "30 -34": 981,
+            "40 -44": 927,
+            "45 -49": 737,
+            "60 -64": 267,
+            "20 - 24": 1722,
+            "35 - 39": 904
+          }
+        },
+        "Tobacco Control mssages": {
+          "Male": {
+            "65+": 776,
+            "50-54": 944,
+            "55-59": 605,
+            "10 -14": 2818,
+            "15 -19": 2689,
+            "25 -29": 1850,
+            "30 -34": 1787,
+            "40 -44": 1613,
+            "45 -49": 1286,
+            "60 -64": 394,
+            "20 - 24": 2463,
+            "35 - 39": 1814
+          },
+          "Female": {
+            "65+": 1242,
+            "50-54": 1364,
+            "55-59": 1007,
+            "10 -14": 3369,
+            "15 -19": 3032,
+            "25 -29": 2455,
+            "30 -34": 2554,
+            "40 -44": 2415,
+            "45 -49": 1745,
+            "60 -64": 723,
+            "20 - 24": 3293,
+            "35 - 39": 2363
+          }
+        },
+        "Alcohol Reduction messages": {
+          "Male": {
+            "65+": 677,
+            "50-54": 819,
+            "55-59": 540,
+            "10 -14": 1353,
+            "15 -19": 2090,
+            "25 -29": 1326,
+            "30 -34": 1336,
+            "40 -44": 1251,
+            "45 -49": 1048,
+            "60 -64": 349,
+            "20 - 24": 1643,
+            "35 - 39": 1345
+          },
+          "Female": {
+            "65+": 1266,
+            "50-54": 1178,
+            "55-59": 917,
+            "10 -14": 2180,
+            "15 -19": 2525,
+            "25 -29": 1829,
+            "30 -34": 1993,
+            "40 -44": 1976,
+            "45 -49": 1535,
+            "60 -64": 650,
+            "20 - 24": 2342,
+            "35 - 39": 1857
+          }
+        },
+        "Physical Activity messages": {
+          "Male": {
+            "65+": 519,
+            "50-54": 559,
+            "55-59": 401,
+            "10 -14": 320,
+            "15 -19": 840,
+            "25 -29": 1161,
+            "30 -34": 1110,
+            "40 -44": 888,
+            "45 -49": 711,
+            "60 -64": 283,
+            "20 - 24": 1546,
+            "35 - 39": 1002
+          },
+          "Female": {
+            "65+": 1073,
+            "50-54": 981,
+            "55-59": 775,
+            "10 -14": 320,
+            "15 -19": 920,
+            "25 -29": 1628,
+            "30 -34": 1646,
+            "40 -44": 1632,
+            "45 -49": 1280,
+            "60 -64": 543,
+            "20 - 24": 2231,
+            "35 - 39": 1562
+          }
+        },
+        "Weight Management messages": {
+          "Male": {
+            "65+": 391,
+            "50-54": 506,
+            "55-59": 344,
+            "10 -14": 320,
+            "15 -19": 804,
+            "25 -29": 1068,
+            "30 -34": 992,
+            "40 -44": 806,
+            "45 -49": 654,
+            "60 -64": 248,
+            "20 - 24": 1472,
+            "35 - 39": 905
+          },
+          "Female": {
+            "65+": 755,
+            "50-54": 833,
+            "55-59": 667,
+            "10 -14": 319,
+            "15 -19": 846,
+            "25 -29": 1355,
+            "30 -34": 1365,
+            "40 -44": 1408,
+            "45 -49": 1114,
+            "60 -64": 443,
+            "20 - 24": 2063,
+            "35 - 39": 1308
+          }
+        },
+        "Waist circumference messages": {
+          "Male": {
+            "65+": 167,
+            "50-54": 320,
+            "55-59": 187,
+            "10 -14": 263,
+            "15 -19": 635,
+            "25 -29": 677,
+            "30 -34": 677,
+            "40 -44": 543,
+            "45 -49": 421,
+            "60 -64": 133,
+            "20 - 24": 1108,
+            "35 - 39": 656
+          },
+          "Female": {
+            "65+": 303,
+            "50-54": 471,
+            "55-59": 315,
+            "10 -14": 244,
+            "15 -19": 659,
+            "25 -29": 809,
+            "30 -34": 828,
+            "40 -44": 807,
+            "45 -49": 633,
+            "60 -64": 205,
+            "20 - 24": 1448,
+            "35 - 39": 779
+          }
+        }
+      }
+    },
+    "notes": "Imported from final-analysis-q3.xlsx | sheet=MAKGABANENG | code=5"
+  },
+  {
+    "id": 9824,
+    "indicator_id": 373,
+    "indicator__name": "Number of people engaged with NCD prevention and control messages through social media.",
+    "project_id": 2,
+    "project__code": "NAHPA2025/26",
+    "project__name": "NAHPA Social Contracting",
+    "period_start": "2025-10-01",
+    "period_end": "2025-12-31",
+    "status": "pending",
+    "value": {
+      "total": 7985
+    },
+    "notes": "Imported from final-analysis-q3.xlsx | sheet=MAKGABANENG | code=6"
+  },
+  {
+    "id": 9825,
+    "indicator_id": 365,
+    "indicator__name": "Number of advocacy activities conducted per quarter.",
+    "project_id": 2,
+    "project__code": "NAHPA2025/26",
+    "project__name": "NAHPA Social Contracting",
+    "period_start": "2025-10-01",
+    "period_end": "2025-12-31",
+    "status": "pending",
+    "value": {
+      "total": 23
+    },
+    "notes": "Imported from final-analysis-q3.xlsx | sheet=MAKGABANENG | code=7"
+  },
+  {
+    "id": 9826,
+    "indicator_id": 363,
+    "indicator__name": "Number of media platforms used per quarter",
+    "project_id": 2,
+    "project__code": "NAHPA2025/26",
+    "project__name": "NAHPA Social Contracting",
+    "period_start": "2025-10-01",
+    "period_end": "2025-12-31",
+    "status": "pending",
+    "value": {
+      "total": 64
+    },
+    "notes": "Imported from final-analysis-q3.xlsx | sheet=MAKGABANENG | code=8"
+  },
+  {
+    "id": 9827,
+    "indicator_id": 366,
+    "indicator__name": "Number of target specific demand creation activities conducted",
+    "project_id": 2,
+    "project__code": "NAHPA2025/26",
+    "project__name": "NAHPA Social Contracting",
+    "period_start": "2025-10-01",
+    "period_end": "2025-12-31",
+    "status": "pending",
+    "value": {
+      "total": 197
+    },
+    "notes": "Imported from final-analysis-q3.xlsx | sheet=MAKGABANENG | code=9"
+  },
+  {
+    "id": 9828,
+    "indicator_id": 367,
+    "indicator__name": "Number of media engagements conducted",
+    "project_id": 2,
+    "project__code": "NAHPA2025/26",
+    "project__name": "NAHPA Social Contracting",
+    "period_start": "2025-10-01",
+    "period_end": "2025-12-31",
+    "status": "pending",
+    "value": {
+      "total": 54
+    },
+    "notes": "Imported from final-analysis-q3.xlsx | sheet=MAKGABANENG | code=10"
+  },
+  {
+    "id": 9829,
+    "indicator_id": 374,
+    "indicator__name": "Number OF People Reached With Self-breast Cancer Examination Education",
+    "project_id": 2,
+    "project__code": "NAHPA2025/26",
+    "project__name": "NAHPA Social Contracting",
+    "period_start": "2025-10-01",
+    "period_end": "2025-12-31",
+    "status": "pending",
+    "value": {
+      "total": 2108
+    },
+    "notes": "Imported from final-analysis-q3.xlsx | sheet=MAKGABANENG | code=11"
+  },
+  {
+    "id": 9830,
+    "indicator_id": 409,
+    "indicator__name": "Number of people eligible for breast cancer screening",
+    "project_id": 2,
+    "project__code": "NAHPA2025/26",
+    "project__name": "NAHPA Social Contracting",
+    "period_start": "2025-10-01",
+    "period_end": "2025-12-31",
+    "status": "pending",
+    "value": {
+      "total": 157
+    },
+    "notes": "Imported from final-analysis-q3.xlsx | sheet=MAKGABANENG | code=12"
+  },
+  {
+    "id": 9831,
+    "indicator_id": 380,
+    "indicator__name": "Number OF People Screened FOR Breast Cancer.",
+    "project_id": 2,
+    "project__code": "NAHPA2025/26",
+    "project__name": "NAHPA Social Contracting",
+    "period_start": "2025-10-01",
+    "period_end": "2025-12-31",
+    "status": "pending",
+    "value": {
+      "total": 157
+    },
+    "notes": "Imported from final-analysis-q3.xlsx | sheet=MAKGABANENG | code=13"
+  },
+  {
+    "id": 9832,
+    "indicator_id": 375,
+    "indicator__name": "Number OF People Reached With Prostate Cancer Education.",
+    "project_id": 2,
+    "project__code": "NAHPA2025/26",
+    "project__name": "NAHPA Social Contracting",
+    "period_start": "2025-10-01",
+    "period_end": "2025-12-31",
+    "status": "pending",
+    "value": {
+      "total": 659
+    },
+    "notes": "Imported from final-analysis-q3.xlsx | sheet=MAKGABANENG | code=14"
+  },
+  {
+    "id": 9833,
+    "indicator_id": 376,
+    "indicator__name": "Number OF People Reached With Cervical Cancer Education.",
+    "project_id": 2,
+    "project__code": "NAHPA2025/26",
+    "project__name": "NAHPA Social Contracting",
+    "period_start": "2025-10-01",
+    "period_end": "2025-12-31",
+    "status": "pending",
+    "value": {
+      "total": 243
+    },
+    "notes": "Imported from final-analysis-q3.xlsx | sheet=MAKGABANENG | code=15"
+  },
+  {
+    "id": 9834,
+    "indicator_id": 421,
+    "indicator__name": "Number of people eligible for tobacco cessation program",
+    "project_id": 2,
+    "project__code": "NAHPA2025/26",
+    "project__name": "NAHPA Social Contracting",
+    "period_start": "2025-10-01",
+    "period_end": "2025-12-31",
+    "status": "pending",
+    "value": {
+      "male": 891,
+      "total": 382,
+      "female": 405,
+      "disaggregates": {
+        "Tobacco use": {
+          "Male": {
+            "65+": 15,
+            "50-54": 57,
+            "55-59": 27,
+            "10 -14": 2,
+            "15 -19": 74,
+            "25 -29": 199,
+            "30 -34": 108,
+            "40 -44": 71,
+            "45 -49": 50,
+            "60 -64": 6,
+            "20 - 24": 199,
+            "35 - 39": 83
+          },
+          "Female": {
+            "65+": 23,
+            "50-54": 31,
+            "55-59": 14,
+            "10 -14": 6,
+            "15 -19": 39,
+            "25 -29": 52,
+            "30 -34": 29,
+            "40 -44": 34,
+            "45 -49": 31,
+            "60 -64": 15,
+            "20 - 24": 62,
+            "35 - 39": 69
+          }
+        }
+      }
+    },
+    "notes": "Imported from final-analysis-q3.xlsx | sheet=MAKGABANENG | code=17"
+  },
+  {
+    "id": 9835,
+    "indicator_id": 487,
+    "indicator__name": "Number of people on tobacco cessation program",
+    "project_id": 2,
+    "project__code": "NAHPA2025/26",
+    "project__name": "NAHPA Social Contracting",
+    "period_start": "2025-10-01",
+    "period_end": "2025-12-31",
+    "status": "pending",
+    "value": {
+      "male": 27,
+      "total": 21,
+      "female": 5,
+      "disaggregates": {
+        "Tobacco use": {
+          "Male": {
+            "65+": 0,
+            "50-54": 0,
+            "55-59": 2,
+            "10 -14": 0,
+            "15 -19": 18,
+            "25 -29": 1,
+            "30 -34": 0,
+            "40 -44": 4,
+            "45 -49": 0,
+            "60 -64": 1,
+            "20 - 24": 1,
+            "35 - 39": 0
+          },
+          "Female": {
+            "65+": 0,
+            "50-54": 1,
+            "55-59": 1,
+            "10 -14": 0,
+            "15 -19": 1,
+            "25 -29": 0,
+            "30 -34": 1,
+            "40 -44": 0,
+            "45 -49": 0,
+            "60 -64": 0,
+            "20 - 24": 1,
+            "35 - 39": 0
+          }
+        }
+      }
+    },
+    "notes": "Imported from final-analysis-q3.xlsx | sheet=MAKGABANENG | code=18"
+  },
+  {
+    "id": 9836,
+    "indicator_id": 410,
+    "indicator__name": "Number of people eligible for alcohol abuse cessation program",
+    "project_id": 2,
+    "project__code": "NAHPA2025/26",
+    "project__name": "NAHPA Social Contracting",
+    "period_start": "2025-10-01",
+    "period_end": "2025-12-31",
+    "status": "pending",
+    "value": {
+      "male": 548,
+      "total": 133,
+      "female": 317,
+      "disaggregates": {
+        "Alcohol use": {
+          "Male": {
+            "65+": 23,
+            "50-54": 42,
+            "55-59": 24,
+            "10 -14": 1,
+            "15 -19": 35,
+            "25 -29": 70,
+            "30 -34": 66,
+            "40 -44": 71,
+            "45 -49": 76,
+            "60 -64": 19,
+            "20 - 24": 40,
+            "35 - 39": 81
+          },
+          "Female": {
+            "65+": 22,
+            "50-54": 18,
+            "55-59": 11,
+            "10 -14": 3,
+            "15 -19": 20,
+            "25 -29": 32,
+            "30 -34": 51,
+            "40 -44": 39,
+            "45 -49": 40,
+            "60 -64": 9,
+            "20 - 24": 34,
+            "35 - 39": 38
+          }
+        }
+      }
+    },
+    "notes": "Imported from final-analysis-q3.xlsx | sheet=MAKGABANENG | code=20"
+  },
+  {
+    "id": 9837,
+    "indicator_id": 411,
+    "indicator__name": "Number of people referred for alcohol abuse cessation program",
+    "project_id": 2,
+    "project__code": "NAHPA2025/26",
+    "project__name": "NAHPA Social Contracting",
+    "period_start": "2025-10-01",
+    "period_end": "2025-12-31",
+    "status": "pending",
+    "value": {
+      "male": 433,
+      "total": 124,
+      "female": 286,
+      "disaggregates": {
+        "Alcohol use": {
+          "Male": {
+            "65+": 22,
+            "50-54": 38,
+            "55-59": 22,
+            "10 -14": 1,
+            "15 -19": 26,
+            "25 -29": 54,
+            "30 -34": 59,
+            "40 -44": 63,
+            "45 -49": 34,
+            "60 -64": 14,
+            "20 - 24": 38,
+            "35 - 39": 62
+          },
+          "Female": {
+            "65+": 22,
+            "50-54": 17,
+            "55-59": 8,
+            "10 -14": 3,
+            "15 -19": 20,
+            "25 -29": 32,
+            "30 -34": 51,
+            "40 -44": 35,
+            "45 -49": 15,
+            "60 -64": 9,
+            "20 - 24": 36,
+            "35 - 39": 38
+          }
+        }
+      }
+    },
+    "notes": "Imported from final-analysis-q3.xlsx | sheet=MAKGABANENG | code=21"
+  },
+  {
+    "id": 9838,
+    "indicator_id": 422,
+    "indicator__name": "Number of people on alcohol abuse cessation program",
+    "project_id": 2,
+    "project__code": "NAHPA2025/26",
+    "project__name": "NAHPA Social Contracting",
+    "period_start": "2025-10-01",
+    "period_end": "2025-12-31",
+    "status": "pending",
+    "value": {
+      "male": 49,
+      "total": 8,
+      "female": 2,
+      "disaggregates": {
+        "Alcohol use": {
+          "Male": {
+            "65+": 0,
+            "50-54": 3,
+            "55-59": 3,
+            "10 -14": 0,
+            "15 -19": 6,
+            "25 -29": 5,
+            "30 -34": 12,
+            "40 -44": 4,
+            "45 -49": 6,
+            "60 -64": 0,
+            "20 - 24": 0,
+            "35 - 39": 10
+          },
+          "Female": {
+            "65+": 0,
+            "50-54": 0,
+            "55-59": 0,
+            "10 -14": 0,
+            "15 -19": 0,
+            "25 -29": 0,
+            "30 -34": 0,
+            "40 -44": 0,
+            "45 -49": 0,
+            "60 -64": 0,
+            "20 - 24": 2,
+            "35 - 39": 0
+          }
+        }
+      }
+    },
+    "notes": "Imported from final-analysis-q3.xlsx | sheet=MAKGABANENG | code=22"
+  },
+  {
+    "id": 9839,
+    "indicator_id": 412,
+    "indicator__name": "Number of people screened for NCDs risk factors",
+    "project_id": 2,
+    "project__code": "NAHPA2025/26",
+    "project__name": "NAHPA Social Contracting",
+    "period_start": "2025-10-01",
+    "period_end": "2025-12-31",
+    "status": "pending",
+    "value": {
+      "male": 1642,
+      "total": 7324,
+      "female": 5682,
+      "disaggregates": {
+        "BP": {
+          "Male": {
+            "65+": 21,
+            "50-54": 40,
+            "55-59": 33,
+            "10 -14": 2,
+            "15 -19": 28,
+            "25 -29": 57,
+            "30 -34": 79,
+            "40 -44": 72,
+            "45 -49": 64,
+            "60 -64": 13,
+            "20 - 24": 107,
+            "35 - 39": 93
+          },
+          "Female": {
+            "65+": 37,
+            "50-54": 60,
+            "55-59": 38,
+            "10 -14": 1,
+            "15 -19": 63,
+            "25 -29": 123,
+            "30 -34": 125,
+            "40 -44": 108,
+            "45 -49": 90,
+            "60 -64": 25,
+            "20 - 24": 244,
+            "35 - 39": 95
+          }
+        },
+        "BMI": {
+          "Male": {
+            "65+": 1,
+            "50-54": 3,
+            "55-59": 1,
+            "10 -14": 0,
+            "15 -19": 19,
+            "25 -29": 7,
+            "30 -34": 12,
+            "40 -44": 6,
+            "45 -49": 1,
+            "60 -64": 0,
+            "20 - 24": 46,
+            "35 - 39": 10
+          },
+          "Female": {
+            "65+": 0,
+            "50-54": 9,
+            "55-59": 2,
+            "10 -14": 0,
+            "15 -19": 18,
+            "25 -29": 34,
+            "30 -34": 27,
+            "40 -44": 11,
+            "45 -49": 11,
+            "60 -64": 1,
+            "20 - 24": 37,
+            "35 - 39": 19
+          }
+        },
+        "TOTAL": {
+          "Female": {
+            "10 -14": 2841
+          }
+        },
+        "Blood Glucose": {
+          "Male": {
+            "65+": 46,
+            "50-54": 67,
+            "55-59": 92,
+            "10 -14": 1,
+            "15 -19": 36,
+            "25 -29": 81,
+            "30 -34": 102,
+            "40 -44": 102,
+            "45 -49": 80,
+            "60 -64": 29,
+            "20 - 24": 118,
+            "35 - 39": 121
+          },
+          "Female": {
+            "65+": 91,
+            "50-54": 126,
+            "55-59": 86,
+            "10 -14": 11,
+            "15 -19": 69,
+            "25 -29": 167,
+            "30 -34": 176,
+            "40 -44": 171,
+            "45 -49": 149,
+            "60 -64": 82,
+            "20 - 24": 283,
+            "35 - 39": 154
+          }
+        },
+        "Waist circumference": {
+          "Male": {
+            "65+": 0,
+            "50-54": 1,
+            "55-59": 1,
+            "10 -14": 3,
+            "15 -19": 9,
+            "25 -29": 0,
+            "30 -34": 4,
+            "40 -44": 6,
+            "45 -49": 3,
+            "60 -64": 0,
+            "20 - 24": 21,
+            "35 - 39": 4
+          },
+          "Female": {
+            "65+": 1,
+            "50-54": 7,
+            "55-59": 1,
+            "10 -14": 2,
+            "15 -19": 8,
+            "25 -29": 7,
+            "30 -34": 11,
+            "40 -44": 10,
+            "45 -49": 6,
+            "60 -64": 2,
+            "20 - 24": 27,
+            "35 - 39": 16
+          }
+        }
+      }
+    },
+    "notes": "Imported from final-analysis-q3.xlsx | sheet=MAKGABANENG | code=23"
+  },
+  {
+    "id": 9840,
+    "indicator_id": 383,
+    "indicator__name": "Number OF People Suspected OF Having NCDs Risk Factors (blood Glucose, Blood Pressure, BMI) Referred FOR Further Health Services",
+    "project_id": 2,
+    "project__code": "NAHPA2025/26",
+    "project__name": "NAHPA Social Contracting",
+    "period_start": "2025-10-01",
+    "period_end": "2025-12-31",
+    "status": "pending",
+    "value": {
+      "male": 88,
+      "total": 388,
+      "female": 300,
+      "disaggregates": {
+        "BP": {
+          "Male": {
+            "65+": 1,
+            "50-54": 1,
+            "55-59": 2,
+            "10 -14": 0,
+            "15 -19": 0,
+            "25 -29": 1,
+            "30 -34": 1,
+            "40 -44": 1,
+            "45 -49": 0,
+            "60 -64": 0,
+            "20 - 24": 0,
+            "35 - 39": 3
+          },
+          "Female": {
+            "65+": 0,
+            "50-54": 1,
+            "55-59": 1,
+            "10 -14": 0,
+            "15 -19": 0,
+            "25 -29": 2,
+            "30 -34": 3,
+            "40 -44": 1,
+            "45 -49": 0,
+            "60 -64": 0,
+            "20 - 24": 0,
+            "35 - 39": 3
+          }
+        },
+        "BMI": {
+          "Male": {
+            "65+": 0,
+            "50-54": 1,
+            "55-59": 1,
+            "10 -14": 0,
+            "15 -19": 2,
+            "25 -29": 11,
+            "30 -34": 8,
+            "40 -44": 3,
+            "45 -49": 3,
+            "60 -64": 0,
+            "20 - 24": 1,
+            "35 - 39": 3
+          },
+          "Female": {
+            "65+": 0,
+            "50-54": 7,
+            "55-59": 0,
+            "10 -14": 0,
+            "15 -19": 0,
+            "25 -29": 19,
+            "30 -34": 17,
+            "40 -44": 9,
+            "45 -49": 7,
+            "60 -64": 1,
+            "20 - 24": 5,
+            "35 - 39": 12
+          }
+        },
+        "TOTAL": {
+          "Female": {
+            "10 -14": 150
+          }
+        },
+        "Blood Glucose": {
+          "Male": {
+            "65+": 4,
+            "50-54": 3,
+            "55-59": 3,
+            "10 -14": 0,
+            "15 -19": 0,
+            "25 -29": 1,
+            "30 -34": 2,
+            "40 -44": 5,
+            "45 -49": 3,
+            "60 -64": 2,
+            "20 - 24": 0,
+            "35 - 39": 3
+          },
+          "Female": {
+            "65+": 2,
+            "50-54": 0,
+            "55-59": 6,
+            "10 -14": 0,
+            "15 -19": 0,
+            "25 -29": 0,
+            "30 -34": 2,
+            "40 -44": 2,
+            "45 -49": 0,
+            "60 -64": 5,
+            "20 - 24": 0,
+            "35 - 39": 1
+          }
+        },
+        "Waist circumference": {
+          "Male": {
+            "65+": 0,
+            "50-54": 1,
+            "55-59": 0,
+            "10 -14": 0,
+            "15 -19": 0,
+            "25 -29": 10,
+            "30 -34": 3,
+            "40 -44": 2,
+            "45 -49": 0,
+            "60 -64": 0,
+            "20 - 24": 1,
+            "35 - 39": 2
+          },
+          "Female": {
+            "65+": 0,
+            "50-54": 4,
+            "55-59": 1,
+            "10 -14": 0,
+            "15 -19": 0,
+            "25 -29": 5,
+            "30 -34": 7,
+            "40 -44": 8,
+            "45 -49": 4,
+            "60 -64": 2,
+            "20 - 24": 5,
+            "35 - 39": 8
+          }
+        }
+      }
+    },
+    "notes": "Imported from final-analysis-q3.xlsx | sheet=MAKGABANENG | code=24"
+  },
+  {
+    "id": 9841,
+    "indicator_id": 423,
+    "indicator__name": "Number of people reached with psychoeducation",
+    "project_id": 2,
+    "project__code": "NAHPA2025/26",
+    "project__name": "NAHPA Social Contracting",
+    "period_start": "2025-10-01",
+    "period_end": "2025-12-31",
+    "status": "pending",
+    "value": {
+      "total": 1416
+    },
+    "notes": "Imported from final-analysis-q3.xlsx | sheet=MAKGABANENG | code=26"
+  },
+  {
+    "id": 9842,
+    "indicator_id": 387,
+    "indicator__name": "Number OF Counselling Sessions Conducted",
+    "project_id": 2,
+    "project__code": "NAHPA2025/26",
+    "project__name": "NAHPA Social Contracting",
+    "period_start": "2025-10-01",
+    "period_end": "2025-12-31",
+    "status": "pending",
+    "value": {
+      "total": 504
+    },
+    "notes": "Imported from final-analysis-q3.xlsx | sheet=MAKGABANENG | code=30"
+  },
+  {
+    "id": 9843,
+    "indicator_id": 390,
+    "indicator__name": "Number OF People Utilizing Community Based Physical Activity Clubs.",
+    "project_id": 2,
+    "project__code": "NAHPA2025/26",
+    "project__name": "NAHPA Social Contracting",
+    "period_start": "2025-10-01",
+    "period_end": "2025-12-31",
+    "status": "pending",
+    "value": {
+      "total": 0
+    },
+    "notes": "Imported from final-analysis-q3.xlsx | sheet=MAKGABANENG | code=35"
+  },
+  {
+    "id": 9844,
+    "indicator_id": 391,
+    "indicator__name": "Number OF Functional Cancer Support Groups.",
+    "project_id": 2,
+    "project__code": "NAHPA2025/26",
+    "project__name": "NAHPA Social Contracting",
+    "period_start": "2025-10-01",
+    "period_end": "2025-12-31",
+    "status": "pending",
+    "value": {
+      "total": 6
+    },
+    "notes": "Imported from final-analysis-q3.xlsx | sheet=MAKGABANENG | code=36a"
+  },
+  {
+    "id": 9845,
+    "indicator_id": 413,
+    "indicator__name": "Number of support group meetings held",
+    "project_id": 2,
+    "project__code": "NAHPA2025/26",
+    "project__name": "NAHPA Social Contracting",
+    "period_start": "2025-10-01",
+    "period_end": "2025-12-31",
+    "status": "pending",
+    "value": {
+      "total": 3
+    },
+    "notes": "Imported from final-analysis-q3.xlsx | sheet=MAKGABANENG | code=36b"
+  },
+  {
+    "id": 9846,
+    "indicator_id": 414,
+    "indicator__name": "Total number of established cancer groups within the same area",
+    "project_id": 2,
+    "project__code": "NAHPA2025/26",
+    "project__name": "NAHPA Social Contracting",
+    "period_start": "2025-10-01",
+    "period_end": "2025-12-31",
+    "status": "pending",
+    "value": {
+      "total": 3
+    },
+    "notes": "Imported from final-analysis-q3.xlsx | sheet=MAKGABANENG | code=36c"
+  },
+  {
+    "id": 9847,
+    "indicator_id": 415,
+    "indicator__name": "Number of new members/continuing",
+    "project_id": 2,
+    "project__code": "NAHPA2025/26",
+    "project__name": "NAHPA Social Contracting",
+    "period_start": "2025-10-01",
+    "period_end": "2025-12-31",
+    "status": "pending",
+    "value": {
+      "total": 23
+    },
+    "notes": "Imported from final-analysis-q3.xlsx | sheet=MAKGABANENG | code=36d"
+  },
+  {
+    "id": 9848,
+    "indicator_id": 418,
+    "indicator__name": "Number of established tobacco cessation and alcohol abuse groups within the same area",
+    "project_id": 2,
+    "project__code": "NAHPA2025/26",
+    "project__name": "NAHPA Social Contracting",
+    "period_start": "2025-10-01",
+    "period_end": "2025-12-31",
+    "status": "pending",
+    "value": {
+      "total": 5
+    },
+    "notes": "Imported from final-analysis-q3.xlsx | sheet=MAKGABANENG | code=37c"
+  },
+  {
+    "id": 9849,
+    "indicator_id": 392,
+    "indicator__name": "Number OF People WHO Attended SADC Healthy Lifestyle Commemoration Activities.",
+    "project_id": 2,
+    "project__code": "NAHPA2025/26",
+    "project__name": "NAHPA Social Contracting",
+    "period_start": "2025-10-01",
+    "period_end": "2025-12-31",
+    "status": "pending",
+    "value": {
+      "total": 0
+    },
+    "notes": "Imported from final-analysis-q3.xlsx | sheet=MAKGABANENG | code=38"
+  },
+  {
+    "id": 9850,
+    "indicator_id": 393,
+    "indicator__name": "Number OF People WHO Attended World Diabetes DAY Activites.",
+    "project_id": 2,
+    "project__code": "NAHPA2025/26",
+    "project__name": "NAHPA Social Contracting",
+    "period_start": "2025-10-01",
+    "period_end": "2025-12-31",
+    "status": "pending",
+    "value": {
+      "total": 631
+    },
+    "notes": "Imported from final-analysis-q3.xlsx | sheet=MAKGABANENG | code=39"
+  },
+  {
+    "id": 9851,
+    "indicator_id": 394,
+    "indicator__name": "Number OF People WHO Attended THE Breast Cancer Month Activities.",
+    "project_id": 2,
+    "project__code": "NAHPA2025/26",
+    "project__name": "NAHPA Social Contracting",
+    "period_start": "2025-10-01",
+    "period_end": "2025-12-31",
+    "status": "pending",
+    "value": {
+      "total": 1114
+    },
+    "notes": "Imported from final-analysis-q3.xlsx | sheet=MAKGABANENG | code=40"
+  },
+  {
+    "id": 9852,
+    "indicator_id": 395,
+    "indicator__name": "Number OF People WHO Attended Cervical Cancer Awareness Activities.",
+    "project_id": 2,
+    "project__code": "NAHPA2025/26",
+    "project__name": "NAHPA Social Contracting",
+    "period_start": "2025-10-01",
+    "period_end": "2025-12-31",
+    "status": "pending",
+    "value": {
+      "total": 53
+    },
+    "notes": "Imported from final-analysis-q3.xlsx | sheet=MAKGABANENG | code=41"
+  },
+  {
+    "id": 9853,
+    "indicator_id": 396,
+    "indicator__name": "Number OF People WHO Attended Mental Health DAY Activities.",
+    "project_id": 2,
+    "project__code": "NAHPA2025/26",
+    "project__name": "NAHPA Social Contracting",
+    "period_start": "2025-10-01",
+    "period_end": "2025-12-31",
+    "status": "pending",
+    "value": {
+      "total": 53
+    },
+    "notes": "Imported from final-analysis-q3.xlsx | sheet=MAKGABANENG | code=42"
+  },
+  {
+    "id": 9854,
+    "indicator_id": 397,
+    "indicator__name": "Number OF People WHO Attended World Cancer DAY Activites.",
+    "project_id": 2,
+    "project__code": "NAHPA2025/26",
+    "project__name": "NAHPA Social Contracting",
+    "period_start": "2025-10-01",
+    "period_end": "2025-12-31",
+    "status": "pending",
+    "value": {
+      "total": 22
+    },
+    "notes": "Imported from final-analysis-q3.xlsx | sheet=MAKGABANENG | code=43"
+  },
+  {
+    "id": 9855,
+    "indicator_id": 398,
+    "indicator__name": "Number OF People WHO Attended Mo-Vember DAY Activities.",
+    "project_id": 2,
+    "project__code": "NAHPA2025/26",
+    "project__name": "NAHPA Social Contracting",
+    "period_start": "2025-10-01",
+    "period_end": "2025-12-31",
+    "status": "pending",
+    "value": {
+      "total": 791
+    },
+    "notes": "Imported from final-analysis-q3.xlsx | sheet=MAKGABANENG | code=44"
+  },
+  {
+    "id": 9914,
+    "indicator_id": 417,
+    "indicator__name": "Number of support group meetings held (tobacco/alcohol)",
+    "project_id": 2,
+    "project__code": "NAHPA2025/26",
+    "project__name": "NAHPA Social Contracting",
+    "period_start": "2025-10-01",
+    "period_end": "2025-12-31",
+    "status": "pending",
+    "value": {
+      "total": 18
+    },
+    "notes": "Imported from final-analysis-q3.xlsx | sheet=MAKGABANENG | code=37b"
+  },
+  {
+    "id": 9915,
+    "indicator_id": 419,
+    "indicator__name": "Number of new members/continuing (tobacco/alcohol)",
+    "project_id": 2,
+    "project__code": "NAHPA2025/26",
+    "project__name": "NAHPA Social Contracting",
+    "period_start": "2025-10-01",
+    "period_end": "2025-12-31",
+    "status": "pending",
+    "value": {
+      "total": 100
+    },
+    "notes": "Imported from final-analysis-q3.xlsx | sheet=MAKGABANENG | code=37d"
+  },
+  {
+    "id": 9916,
+    "indicator_id": 420,
+    "indicator__name": "Number of people screened for NCDs behavioural risk factors( Tobacco Use)",
+    "project_id": 2,
+    "project__code": "NAHPA2025/26",
+    "project__name": "NAHPA Social Contracting",
+    "period_start": "2025-10-01",
+    "period_end": "2025-12-31",
+    "status": "pending",
+    "value": {
+      "male": 4275,
+      "total": 4490,
+      "female": 4573,
+      "disaggregates": {
+        "Tobacco use": {
+          "Male": {
+            "65+": 161,
+            "50-54": 164,
+            "55-59": 122,
+            "10 -14": 818,
+            "15 -19": 671,
+            "25 -29": 398,
+            "30 -34": 344,
+            "40 -44": 288,
+            "45 -49": 225,
+            "60 -64": 65,
+            "20 - 24": 691,
+            "35 - 39": 328
+          },
+          "Female": {
+            "65+": 157,
+            "50-54": 209,
+            "55-59": 121,
+            "10 -14": 899,
+            "15 -19": 673,
+            "25 -29": 380,
+            "30 -34": 366,
+            "40 -44": 348,
+            "45 -49": 253,
+            "60 -64": 102,
+            "20 - 24": 738,
+            "35 - 39": 327
+          }
+        }
+      }
+    },
+    "notes": "Imported from final-analysis-q3.xlsx | sheet=MAKGABANENG | code=16"
+  },
+  {
+    "id": 9917,
+    "indicator_id": 425,
+    "indicator__name": "Number of people screened for NCDs behavioural risk factors (Alcohol Use)",
+    "project_id": 2,
+    "project__code": "NAHPA2025/26",
+    "project__name": "NAHPA Social Contracting",
+    "period_start": "2025-10-01",
+    "period_end": "2025-12-31",
+    "status": "pending",
+    "value": {
+      "male": 2661,
+      "total": 2834,
+      "female": 3058,
+      "disaggregates": {
+        "Alcohol use": {
+          "Male": {
+            "65+": 144,
+            "50-54": 125,
+            "55-59": 99,
+            "10 -14": 816,
+            "15 -19": 381,
+            "25 -29": 179,
+            "30 -34": 177,
+            "40 -44": 201,
+            "45 -49": 142,
+            "60 -64": 50,
+            "20 - 24": 173,
+            "35 - 39": 174
+          },
+          "Female": {
+            "65+": 150,
+            "50-54": 176,
+            "55-59": 107,
+            "10 -14": 888,
+            "15 -19": 374,
+            "25 -29": 203,
+            "30 -34": 226,
+            "40 -44": 229,
+            "45 -49": 192,
+            "60 -64": 88,
+            "20 - 24": 202,
+            "35 - 39": 223
+          }
+        }
+      }
+    },
+    "notes": "Imported from final-analysis-q3.xlsx | sheet=MAKGABANENG | code=19"
+  },
+  {
+    "id": 9918,
+    "indicator_id": 520,
+    "indicator__name": "Number of peoples referred for diabetes treatment/management services",
+    "project_id": 2,
+    "project__code": "NAHPA2025/26",
+    "project__name": "NAHPA Social Contracting",
+    "period_start": "2025-10-01",
+    "period_end": "2025-12-31",
+    "status": "pending",
+    "value": {
+      "total": 10
+    },
+    "notes": "Imported from final-analysis-q3.xlsx | sheet=MAKGABANENG | code=25"
+  },
+  {
+    "id": 9919,
+    "indicator_id": 521,
+    "indicator__name": "Number of functional tobacco cessation and alcohol abuse support group",
+    "project_id": 2,
+    "project__code": "NAHPA2025/26",
+    "project__name": "NAHPA Social Contracting",
+    "period_start": "2025-10-01",
+    "period_end": "2025-12-31",
+    "status": "pending",
+    "value": {
+      "total": 6
+    },
+    "notes": "Imported from final-analysis-q3.xlsx | sheet=MAKGABANENG | code=37a"
+  }
+]

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { PageHeader } from "@/components/shared/page-header";
 import { DataTable, type Column } from "@/components/shared/data-table";
 import { Button } from "@/components/ui/button";
@@ -61,6 +62,7 @@ const typeLabels: Record<string, string> = {
 };
 
 export default function FlagsPage() {
+  const router = useRouter();
   const { toast } = useToast();
   const { data: flagsData, isLoading, error, mutate } = useFlags();
   const { data: statsData } = useFlagStats();
@@ -71,7 +73,7 @@ export default function FlagsPage() {
   const [filterPriority, setFilterPriority] = useState<string>("all");
   const [isUpdating, setIsUpdating] = useState(false);
 
-  const flags = flagsData?.results || [];
+  const flags = useMemo(() => flagsData?.results ?? [], [flagsData?.results]);
 
   const filteredFlags = useMemo(() => {
     return flags.filter((flag) => {
@@ -124,6 +126,13 @@ export default function FlagsPage() {
       });
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  const openFlagRecord = (flag: Flag) => {
+    if (flag.content_type === "aggregate") {
+      router.push(`/aggregates?reviewAggregateId=${flag.object_id}`);
+      return;
     }
   };
 
@@ -186,6 +195,11 @@ export default function FlagsPage() {
           <Button variant="ghost" size="sm" onClick={() => setSelectedFlag(flag)}>
             <Eye className="h-4 w-4" />
           </Button>
+          {flag.content_type === "aggregate" ? (
+            <Button variant="ghost" size="sm" onClick={() => openFlagRecord(flag)}>
+              Open
+            </Button>
+          ) : null}
           {flag.status === "open" && (
             <Button
               variant="ghost"
@@ -326,7 +340,7 @@ export default function FlagsPage() {
         open={!!selectedFlag && !isResolveDialogOpen}
         onOpenChange={() => setSelectedFlag(null)}
       >
-        <DialogContent className="bg-card border-border">
+        <DialogContent className="bg-card border-border max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-foreground">Flag Details</DialogTitle>
             <DialogDescription>
@@ -394,6 +408,11 @@ export default function FlagsPage() {
             </div>
           )}
           <DialogFooter>
+            {selectedFlag?.content_type === "aggregate" ? (
+              <Button variant="outline" onClick={() => openFlagRecord(selectedFlag)}>
+                Open Aggregate
+              </Button>
+            ) : null}
             {selectedFlag?.status === "open" && (
               <Button
                 onClick={() => setIsResolveDialogOpen(true)}
@@ -413,7 +432,7 @@ export default function FlagsPage() {
           if (!open) setResolution("");
         }}
       >
-        <DialogContent className="bg-card border-border">
+        <DialogContent className="bg-card border-border max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-foreground">Resolve Flag</DialogTitle>
             <DialogDescription>

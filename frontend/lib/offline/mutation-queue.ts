@@ -169,6 +169,24 @@ export async function getQueuedMutationCount(): Promise<number> {
   }
 }
 
+export async function clearQueuedMutations(): Promise<number> {
+  let removed = 0
+
+  await withStore<void>(STORE_NAME, "readwrite", (store, resolve, reject) => {
+    const countRequest = store.count()
+    countRequest.onerror = () => reject(countRequest.error || new Error("Failed to count queued mutations"))
+    countRequest.onsuccess = () => {
+      removed = Number(countRequest.result || 0)
+      const clearRequest = store.clear()
+      clearRequest.onsuccess = () => resolve()
+      clearRequest.onerror = () => reject(clearRequest.error || new Error("Failed to clear queued mutations"))
+    }
+  })
+
+  emitSyncState({ pending: 0, historyUpdated: false })
+  return removed
+}
+
 async function getQueuedMutations(): Promise<QueuedMutation[]> {
   return withStore<QueuedMutation[]>(STORE_NAME, "readonly", (store, resolve, reject) => {
     const request = store.getAll()

@@ -153,8 +153,18 @@ export const usersService = {
    * Django endpoint: GET /api/users/permissions/
    */
   async listPermissions(): Promise<UserPermissionOption[]> {
-    const { data } = await api.get<UserPermissionOption[]>('/users/permissions/');
-    return data;
+    try {
+      const { data } = await api.get<UserPermissionOption[]>('/users/permissions/');
+      return data;
+    } catch (err) {
+      const status = (err as { status?: number })?.status;
+      // Permissions list is optional in some deployments.
+      // Keep user create/edit usable by falling back to no explicit permissions.
+      if (status !== 401) {
+        return [];
+      }
+      throw err;
+    }
   },
 
   /**

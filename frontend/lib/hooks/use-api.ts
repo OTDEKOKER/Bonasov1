@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 /**
  * SWR Hooks for API Data Fetching
@@ -24,10 +24,15 @@ import {
   socialPostsService,
   uploadsService,
   aggregatesService,
+  notificationsService,
   reportsService,
   analysisService,
   flagsService,
   dashboardChartsService,
+  dashboardSettingsService,
+  pivotTablesService,
+  lineListsService,
+  coordinatorTargetsService,
   type ProjectFilters,
   type TaskFilters,
   type DeadlineFilters,
@@ -41,14 +46,24 @@ import {
   type SocialPostFilters,
   type UploadFilters,
   type AggregateFilters,
+  type NotificationFilters,
   type ReportFilters,
   type FlagFilters,
+  type DashboardSettingsFilters,
+  type PivotTableFilters,
+  type LineListFilters,
+  type CoordinatorTargetFilters,
 } from '@/lib/api';
 
 // Default SWR config
 const defaultConfig: SWRConfiguration = {
   revalidateOnFocus: false,
+  revalidateOnReconnect: false,
+  revalidateIfStale: false,
   shouldRetryOnError: false,
+  dedupingInterval: 60_000,
+  focusThrottleInterval: 60_000,
+  keepPreviousData: true,
 };
 
 // ============================================================================
@@ -110,9 +125,9 @@ export function useUser(id: number | null, config?: SWRConfiguration) {
   );
 }
 
-export function useUserPermissions(config?: SWRConfiguration) {
+export function useUserPermissions(enabled: boolean = true, config?: SWRConfiguration) {
   return useSWR(
-    'user-permissions',
+    enabled ? 'user-permissions' : null,
     () => usersService.listPermissions(),
     { ...defaultConfig, ...config }
   );
@@ -144,6 +159,20 @@ export function useAllProjects(filters?: ProjectFilters, config?: SWRConfigurati
     async () => {
       const results = await projectsService.listAll(filters);
       return { count: results.length, next: null, previous: null, results };
+    },
+    { ...defaultConfig, ...config }
+  );
+}
+
+export function useAllProjectDetails(filters?: ProjectFilters, config?: SWRConfiguration) {
+  return useSWR(
+    ['projects-all-details', filters],
+    async () => {
+      const projects = await projectsService.listAll(filters);
+      const detailedProjects = await Promise.all(
+        projects.map((project) => projectsService.get(Number(project.id))),
+      );
+      return { count: detailedProjects.length, next: null, previous: null, results: detailedProjects };
     },
     { ...defaultConfig, ...config }
   );
@@ -244,7 +273,7 @@ export function useAssessments(filters?: AssessmentFilters, config?: SWRConfigur
   );
 }
 
-export function useAssessment(id: number | null, config?: SWRConfiguration) {
+export function useAssessment(id: number | string | null, config?: SWRConfiguration) {
   return useSWR(
     id ? ['assessment', id] : null,
     () => assessmentsService.get(id!),
@@ -375,6 +404,17 @@ export function useImportJobs(filters?: { status?: string; upload?: string }, co
     { ...defaultConfig, ...config }
   );
 }
+
+export function useAllImportJobs(filters?: { status?: string; upload?: string }, config?: SWRConfiguration) {
+  return useSWR(
+    ['import-jobs-all', filters],
+    async () => {
+      const results = await uploadsService.listAllImports(filters);
+      return { count: results.length, next: null, previous: null, results };
+    },
+    { ...defaultConfig, ...config }
+  );
+}
 // ============================================================================
 // Aggregates Hooks
 // ============================================================================
@@ -387,10 +427,18 @@ export function useAggregates(filters?: AggregateFilters, config?: SWRConfigurat
   );
 }
 
-export function useAllAggregates(filters?: AggregateFilters, config?: SWRConfiguration) {
+export function useAllAggregates(filters?: AggregateFilters | null, config?: SWRConfiguration) {
   return useSWR(
-    ['aggregates-all', filters],
-    () => aggregatesService.listAll(filters),
+    filters === null ? null : ['aggregates-all', filters],
+    () => aggregatesService.listAll(filters || undefined),
+    { ...defaultConfig, ...config }
+  );
+}
+
+export function useNotifications(filters?: NotificationFilters | null, config?: SWRConfiguration) {
+  return useSWR(
+    filters === null ? null : ['notifications', filters],
+    () => notificationsService.list(filters || undefined),
     { ...defaultConfig, ...config }
   );
 }
@@ -423,6 +471,105 @@ export function useDashboardCharts(config?: SWRConfiguration) {
     'dashboard-charts',
     () => dashboardChartsService.list(),
     { ...defaultConfig, ...config }
+  );
+}
+
+export function useDashboardSettings(filters?: DashboardSettingsFilters, config?: SWRConfiguration) {
+  return useSWR(
+    ['dashboard-settings', filters],
+    () => dashboardSettingsService.list(filters),
+    { ...defaultConfig, ...config }
+  );
+}
+
+export function useDashboardSetting(id: number | null, config?: SWRConfiguration) {
+  return useSWR(
+    id ? ['dashboard-setting', id] : null,
+    () => dashboardSettingsService.get(id!),
+    { ...defaultConfig, ...config }
+  );
+}
+
+export function useDashboardMeta(config?: SWRConfiguration) {
+  return useSWR(
+    'dashboard-meta',
+    () => dashboardSettingsService.getMeta(),
+    { ...defaultConfig, ...config }
+  );
+}
+
+export function useDashboardBreakdowns(config?: SWRConfiguration) {
+  return useSWR(
+    'dashboard-breakdowns',
+    () => dashboardSettingsService.getBreakdowns(),
+    { ...defaultConfig, ...config }
+  );
+}
+
+export function usePivotTables(filters?: PivotTableFilters, config?: SWRConfiguration) {
+  return useSWR(
+    ['pivot-tables', filters],
+    () => pivotTablesService.list(filters),
+    { ...defaultConfig, ...config }
+  );
+}
+
+export function usePivotTable(id: number | null, config?: SWRConfiguration) {
+  return useSWR(
+    id ? ['pivot-table', id] : null,
+    () => pivotTablesService.get(id!),
+    { ...defaultConfig, ...config }
+  );
+}
+
+export function useLineLists(filters?: LineListFilters, config?: SWRConfiguration) {
+  return useSWR(
+    ['line-lists', filters],
+    () => lineListsService.list(filters),
+    { ...defaultConfig, ...config }
+  );
+}
+
+export function useLineList(id: number | null, config?: SWRConfiguration) {
+  return useSWR(
+    id ? ['line-list', id] : null,
+    () => lineListsService.get(id!),
+    { ...defaultConfig, ...config }
+  );
+}
+
+export function useCoordinatorTargets(filters?: CoordinatorTargetFilters, config?: SWRConfiguration) {
+  return useSWR(
+    ['coordinator-targets', filters],
+    () => coordinatorTargetsService.list(filters),
+    { ...defaultConfig, ...config },
+  );
+}
+
+export function useAllCoordinatorTargets(filters?: CoordinatorTargetFilters, config?: SWRConfiguration) {
+  return useSWR(
+    ['coordinator-targets-all', filters],
+    async () => {
+      const results = await coordinatorTargetsService.listAll(filters);
+      return { count: results.length, next: null, previous: null, results };
+    },
+    { ...defaultConfig, ...config },
+  );
+}
+
+export function useCoordinatorTarget(id: number | null, config?: SWRConfiguration) {
+  return useSWR(
+    id ? ['coordinator-target', id] : null,
+    () => coordinatorTargetsService.get(id!),
+    { ...defaultConfig, ...config },
+  );
+}
+
+export function useCoordinatorTargetPerformance(filters?: CoordinatorTargetFilters, config?: SWRConfiguration) {
+  return useSWR(
+    ['coordinator-target-performance', filters],
+    () => coordinatorTargetsService.getPerformance(filters),
+    { ...defaultConfig, ...config },
   );
 }
 
@@ -501,13 +648,4 @@ export function useFlagStats(config?: SWRConfiguration) {
     { ...defaultConfig, ...config }
   );
 }
-
-
-
-
-
-
-
-
-
 
