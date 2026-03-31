@@ -2,7 +2,7 @@
 
 import React, { useMemo, useRef, useState, Suspense } from "react";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
-import * as XLSX from "xlsx";
+import * as XLSX from "xlsx-js-style";
 import {
   Plus,
   Search,
@@ -283,18 +283,28 @@ export default function AggregatesPage() {
     [organizations],
   );
   const parentOrganizations = useMemo(
-    () => organizations.filter((org: { parent?: number | null }) => !org.parent),
+    () =>
+      organizations.filter(
+        (org: { parent?: number | string | null; parentId?: number | string | null }) =>
+          !(org.parent ?? org.parentId),
+      ),
     [organizations],
   );
   const childOrganizations = useMemo(() => {
     if (parentOrgFilter === "all") return organizations;
-    return organizations.filter((org: { parent?: number | null }) =>
-      String(org.parent ?? "") === parentOrgFilter || String(org.id) === parentOrgFilter
+    return organizations.filter(
+      (org: {
+        id?: number | string;
+        parent?: number | string | null;
+        parentId?: number | string | null;
+      }) =>
+        String(org.parent ?? org.parentId ?? "") === parentOrgFilter ||
+        String(org.id ?? "") === parentOrgFilter,
     );
   }, [organizations, parentOrgFilter]);
 
-  const periods = useMemo(
-    () => Array.from(new Set(aggregates.map(getPeriodLabel))),
+  const periods = useMemo<string[]>(
+    () => Array.from(new Set(aggregates.map((aggregate) => String(getPeriodLabel(aggregate))))),
     [aggregates],
   );
 
@@ -341,14 +351,21 @@ export default function AggregatesPage() {
       if (!match) return { num: Number.POSITIVE_INFINITY, suffix: code };
       return { num: Number(match[1]), suffix: (match[2] || "").toLowerCase() };
     };
-    const entries = Array.from(groups.entries()).map(([key, items]) => {
+    const entries: Array<{
+      key: string;
+      indicatorName: string;
+      organizationName: string;
+      items: Aggregate[];
+      code: string;
+    }> = Array.from(groups.entries()).map(([key, items]) => {
       const indicatorName = key.split("||")[0];
       const organizationName = key.split("||")[1];
       const first = items[0];
-      const code =
+      const code = String(
         first?.indicator_code ||
-        indicatorCodeById.get(String(first?.indicator)) ||
-        "";
+          indicatorCodeById.get(String(first?.indicator)) ||
+          "",
+      );
       return { key, indicatorName, organizationName, items, code };
     });
     return entries.sort((a, b) => {
@@ -1562,7 +1579,7 @@ export default function AggregatesPage() {
                           <p className="text-sm text-muted-foreground">Indicator</p>
                           <p className="text-base font-semibold">{group.indicatorName}</p>
                           <p className="text-sm text-muted-foreground">
-                            {group.organizationName} ? {projectName} ? {periodLabel}
+                            {String(group.organizationName)} ? {String(projectName)} ? {String(periodLabel)}
                           </p>
                         </div>
                         <div className="text-right">
@@ -1617,7 +1634,7 @@ export default function AggregatesPage() {
                           {indicatorCode ? `${indicatorCode} â€” ` : ""}{group.indicatorName}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          {group.organizationName} ? {projectName} ? {periodLabel}
+                          {String(group.organizationName)} ? {String(projectName)} ? {String(periodLabel)}
                         </p>
                       </div>
                       <Badge variant="outline">Total {Number(totalValue).toLocaleString()}</Badge>
