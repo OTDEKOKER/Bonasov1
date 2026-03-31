@@ -670,25 +670,25 @@ export function DashboardAnalyticsSurface(props: DashboardAnalyticsSurfaceProps)
 
   const userOrgId = useMemo(() => String(getUserOrganizationId(user) ?? ""), [user]);
 
-    const scope = useMemo(
-      () =>
-        resolveOrgScope({
-          organizations,
-          scopeMode: filters.scopeMode,
-          currentUserOrgId: userOrgId || null,
-          currentUserRole: user?.role || null,
-          parentOrgId: filters.parentOrgId || null,
-          selectedOrgIds: filters.selectedOrgIds,
-        }),
-      [
-        filters.parentOrgId,
-        filters.scopeMode,
-        filters.selectedOrgIds,
+  const scope = useMemo(
+    () =>
+      resolveOrgScope({
         organizations,
-        user?.role,
-        userOrgId,
-      ],
-    );
+        scopeMode: filters.scopeMode,
+        currentUserOrgId: userOrgId || null,
+        currentUserRole: user?.role || null,
+        parentOrgId: filters.parentOrgId || null,
+        selectedOrgIds: filters.selectedOrgIds,
+      }),
+    [
+      filters.parentOrgId,
+      filters.scopeMode,
+      filters.selectedOrgIds,
+      organizations,
+      user?.role,
+      userOrgId,
+    ],
+  );
 
   const scopedOrganizations = useMemo(
     () =>

@@ -29,6 +29,22 @@ interface HeaderSearchProps {
   onSubmit: (query: string) => void
 }
 
+const resolveUserName = (user: unknown): { first: string; last: string } => {
+  if (!user || typeof user !== "object") return { first: "", last: "" }
+
+  const candidate = user as {
+    firstName?: unknown
+    lastName?: unknown
+    first_name?: unknown
+    last_name?: unknown
+  }
+
+  return {
+    first: String(candidate.firstName ?? candidate.first_name ?? "").trim(),
+    last: String(candidate.lastName ?? candidate.last_name ?? "").trim(),
+  }
+}
+
 function HeaderSearch({ initialValue, onSubmit }: HeaderSearchProps) {
   const [searchValue, setSearchValue] = useState(initialValue)
 
@@ -70,15 +86,11 @@ export function AppHeader({ onMenuClick }: AppHeaderProps) {
         : null,
     )
   const currentUser = user
-  const userRecord = (currentUser ?? {}) as Record<string, unknown>
-  const firstName = String(
-    (userRecord.firstName ?? userRecord.first_name ?? "") as string
-  ).trim()
-  const lastName = String(
-    (userRecord.lastName ?? userRecord.last_name ?? "") as string
-  ).trim()
-  const displayName = [firstName, lastName].filter(Boolean).join(" ") || String(currentUser?.email || "My Account")
-  const initials = `${(firstName[0] || String(currentUser?.email || "U")[0] || "U").toUpperCase()}${(lastName[0] || "").toUpperCase()}`
+  const userName = resolveUserName(currentUser)
+  const displayName =
+    [userName.first, userName.last].filter(Boolean).join(" ") ||
+    String(currentUser?.email || "My Account")
+  const initials = `${(userName.first[0] || String(currentUser?.email || "U")[0] || "U").toUpperCase()}${(userName.last[0] || "").toUpperCase()}`
   const searchQuery = pathname === "/search" ? (searchParams.get("q") ?? "") : ""
 
   const navigate = (href: string) => {

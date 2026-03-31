@@ -89,6 +89,11 @@ type PivotTableDialogProps = {
 };
 
 type PivotMatrixCell = string | number | null;
+type PivotBreakdownOption = {
+  value: unknown;
+  label?: string;
+};
+type PivotBreakdownMap = Record<string, PivotBreakdownOption[]>;
 
 type PivotTableFormState = {
   name: string;

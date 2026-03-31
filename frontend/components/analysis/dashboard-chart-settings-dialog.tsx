@@ -154,6 +154,22 @@ function buildExistingCustomState(
       existingDraft.indicator_ids ??
         existingDraft.indicators?.map(extractIndicatorReferenceId),
     ),
+    showAs:
+      existingDraft.chart_type === "line"
+        ? "line"
+        : existingDraft.chart_type === "pie"
+          ? "donut"
+          : existingDraft.stack
+            ? "stacked-bar"
+            : "bar",
+    calculateUsing: existingDraft.average ? "average" : "sum",
+    compareBy: "none",
+    breakDownBy: existingDraft.legend ?? "none",
+    secondaryBreakdown: existingDraft.stack ?? "none",
+    compareWith: Boolean(existingDraft.target ?? existingDraft.use_target) ? "target" : "none",
+    includeDataTable: Boolean(existingDraft.tabular),
+    targetLine: Boolean(existingDraft.target ?? existingDraft.use_target),
+    trendLine: Boolean(existingDraft.trendline),
     dateFrom: existingDraft.date_from ?? "",
     dateTo: existingDraft.date_to ?? "",
   };
