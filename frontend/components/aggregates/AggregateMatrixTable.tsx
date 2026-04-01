@@ -4,10 +4,8 @@ import React from "react";
 import { BarChart3, Table2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   AYP_BAND_LABEL,
-  buildAggregateWorkbookTopicSections,
   buildDisplayMatrix,
   computeAyp,
   getAggregateEntryMatrixConfig,
@@ -79,24 +77,23 @@ function renderSimpleGroupCard(
   onViewChart: (group: AggregateIndicatorGroup) => void,
 ) {
   return (
-    <div key={group.key} className="min-w-full rounded-lg border border-border p-3">
-      <div className="flex flex-wrap items-center justify-between gap-2">
+    <div key={group.key} className="min-w-full rounded-[1.6rem] border border-[#d8dde6] bg-white p-4 shadow-sm">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-sm text-muted-foreground">Indicator</p>
-          <p className="text-base font-semibold">{group.indicatorName}</p>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs text-[#6b7280]">Indicator</p>
+          <p className="text-[1.05rem] font-semibold text-[#0f172a]">{group.indicatorName}</p>
+          <p className="text-sm text-[#64748b]">
             {context.organizationLabel} | {context.projectLabel} | {context.periodLabel}
           </p>
         </div>
-        <div className="text-right">
-          <p className="text-sm text-muted-foreground">Total</p>
-          <p className="text-xl font-semibold text-primary">
-            {Number(context.totalValue).toLocaleString()}
-          </p>
+        <div className="flex items-center gap-3">
+          <Badge variant="outline" className="rounded-full border-[#d8dde6] px-4 py-1 text-base font-semibold text-[#0f172a]">
+            Total {Number(context.totalValue).toLocaleString()}
+          </Badge>
           <Button
             variant="outline"
             size="sm"
-            className="mt-2"
+            className="rounded-full border-[#d8dde6] px-4"
             onClick={() => onViewChart(group)}
           >
             <BarChart3 className="mr-2 h-4 w-4" />
@@ -168,40 +165,40 @@ function renderMatrixGroupCard(
   const combinedTotal = sumBands(combinedTotals, totalBands);
 
   return (
-    <div key={group.key} className="w-full rounded-lg border border-border p-2">
-      <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+    <div key={group.key} className="w-full rounded-[1.6rem] border border-[#d8dde6] bg-white p-3 shadow-sm">
+      <div className="mb-2 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-xs text-muted-foreground">Indicator</p>
-          <p className="text-sm font-semibold">{group.indicatorName}</p>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-[#6b7280]">Indicator</p>
+          <p className="text-[1.05rem] font-semibold text-[#0f172a]">{group.indicatorName}</p>
+          <p className="text-sm text-[#64748b]">
             {context.organizationLabel} | {context.projectLabel} | {context.periodLabel}
           </p>
         </div>
-        <Badge variant="outline" className="px-2 py-0 text-[11px]">
+        <Badge variant="outline" className="rounded-full border-[#d8dde6] px-4 py-1 text-base font-semibold text-[#0f172a]">
           Total {Number(context.totalValue).toLocaleString()}
         </Badge>
         <Button
           variant="outline"
           size="sm"
+          className="rounded-full border-[#d8dde6] px-4"
           onClick={() => onViewChart(group)}
         >
           <BarChart3 className="mr-2 h-4 w-4" />
           Chart
         </Button>
       </div>
-
-      <div className="max-h-[68vh] overflow-auto rounded-lg border border-border">
-        <table className="w-full min-w-[860px] table-fixed border-separate border-spacing-0 text-[11px]">
+      <div className="max-h-[68vh] overflow-auto rounded-[1.25rem] border border-[#d8dde6]">
+        <table className="w-full min-w-[860px] table-fixed border-separate border-spacing-0 text-sm text-[#1f2937]">
           <thead>
             <tr>
               <th
-                className="sticky top-0 z-40 border-b border-r border-border bg-muted/90 px-1 py-0.75 text-left font-semibold"
+                className="sticky top-0 z-40 border-b border-r border-[#d8dde6] bg-[#f4f5f7] px-1.5 py-1 text-left font-semibold"
                 style={{ minWidth: matrixColumnWidths.keyPopulation, width: matrixColumnWidths.keyPopulation }}
               >
                 {primaryDisaggregateLabel}
               </th>
               <th
-                className="sticky top-0 z-40 border-b border-r border-border bg-muted/90 px-1 py-0.75 text-left font-semibold"
+                className="sticky top-0 z-40 border-b border-r border-[#d8dde6] bg-[#f4f5f7] px-1.5 py-1 text-left font-semibold"
                 style={{ minWidth: matrixColumnWidths.ageSex, width: matrixColumnWidths.ageSex }}
               >
                 {matrixConfig.secondaryLabel || "Category"}
@@ -209,21 +206,21 @@ function renderMatrixGroupCard(
               {safeAgeBands.map((band) => (
                 <th
                   key={band}
-                  className="sticky top-0 z-30 border-b border-r border-border bg-muted/90 px-0.5 py-0.75 text-center font-semibold whitespace-nowrap"
+                  className="sticky top-0 z-30 border-b border-r border-[#d8dde6] bg-[#f4f5f7] px-1 py-1 text-center font-semibold whitespace-nowrap"
                   style={{ minWidth: matrixColumnWidths.metric, width: matrixColumnWidths.metric }}
                 >
                   {band}
                 </th>
               ))}
               <th
-                className="sticky top-0 z-30 border-b border-r border-border bg-muted/90 px-0.5 py-0.75 text-center font-semibold whitespace-nowrap"
+                className="sticky top-0 z-30 border-b border-r border-[#d8dde6] bg-[#f4f5f7] px-1 py-1 text-center font-semibold whitespace-nowrap"
                 style={{ minWidth: matrixColumnWidths.metric, width: matrixColumnWidths.metric }}
               >
                 TOTAL
               </th>
               {showAypColumn ? (
                 <th
-                  className="sticky top-0 z-30 border-b border-r border-border bg-muted/90 px-0.5 py-0.75 text-center font-semibold whitespace-nowrap"
+                  className="sticky top-0 z-30 border-b border-r border-[#d8dde6] bg-[#f4f5f7] px-1 py-1 text-center font-semibold whitespace-nowrap"
                   style={{ minWidth: matrixColumnWidths.metric, width: matrixColumnWidths.metric }}
                 >
                   {AYP_BAND_LABEL}
@@ -242,13 +239,13 @@ function renderMatrixGroupCard(
                     const total = sumBands(values, totalBands);
                     const ayp = showAypColumn ? computeAyp(values) : 0;
                     const rowIndex = kpIndex * safeDimensions.length + dimensionIndex;
-                    const rowBaseClass = rowIndex % 2 === 0 ? "bg-background" : "bg-muted/10";
+                    const rowBaseClass = rowIndex % 2 === 0 ? "bg-white" : "bg-[#fbfcfd]";
 
                     return (
                       <tr key={`${kp}-${dimension}`} className={rowBaseClass}>
                         {dimensionIndex === 0 ? (
                           <td
-                            className={`border-b border-r border-border px-1 py-0.75 align-top font-medium whitespace-normal break-words ${rowBaseClass}`}
+                            className={`border-b border-r border-[#d8dde6] px-1.5 py-1.5 align-top font-semibold whitespace-normal break-words ${rowBaseClass}`}
                             rowSpan={safeDimensions.length}
                             style={{
                               minWidth: matrixColumnWidths.keyPopulation,
@@ -260,7 +257,7 @@ function renderMatrixGroupCard(
                         ) : null}
 
                         <td
-                          className={`border-b border-r border-border px-1 py-0.75 whitespace-normal break-words ${rowBaseClass}`}
+                          className={`border-b border-r border-[#d8dde6] px-1.5 py-1.5 whitespace-normal break-words ${rowBaseClass}`}
                           style={{ minWidth: matrixColumnWidths.ageSex, width: matrixColumnWidths.ageSex }}
                         >
                           {dimension}
@@ -269,21 +266,21 @@ function renderMatrixGroupCard(
                         {safeAgeBands.map((band) => (
                           <td
                             key={`${kp}-${dimension}-${band}`}
-                            className={`border-b border-r border-border px-0.5 py-0.5 text-center ${rowBaseClass}`}
+                            className={`border-b border-r border-[#d8dde6] px-1 py-1.5 text-center ${rowBaseClass}`}
                           >
                             {toSafeNumber(values[band]).toLocaleString()}
                           </td>
                         ))}
 
                         <td
-                          className={`border-b border-r border-border px-0.5 py-0.75 text-center font-semibold ${rowBaseClass}`}
+                          className={`border-b border-r border-[#d8dde6] px-1 py-1.5 text-center font-semibold ${rowBaseClass}`}
                         >
                           {total.toLocaleString()}
                         </td>
 
                         {showAypColumn ? (
                           <td
-                            className={`border-b border-r border-border px-0.5 py-0.5 text-center ${rowBaseClass}`}
+                            className={`border-b border-r border-[#d8dde6] px-1 py-1.5 text-center ${rowBaseClass}`}
                           >
                             {ayp.toLocaleString()}
                           </td>
@@ -295,9 +292,9 @@ function renderMatrixGroupCard(
               );
             })}
 
-            <tr className="bg-muted/20 font-semibold">
+            <tr className="bg-[#f5f7fa] font-semibold">
               <td
-                className="border-b border-r border-border bg-muted/20 px-1 py-0.75 whitespace-normal break-words"
+                className="border-b border-r border-[#d8dde6] bg-[#f5f7fa] px-1.5 py-1.5 whitespace-normal break-words"
                 style={{
                   minWidth: matrixColumnWidths.keyPopulation,
                   width: matrixColumnWidths.keyPopulation,
@@ -306,21 +303,21 @@ function renderMatrixGroupCard(
                 All
               </td>
               <td
-                className="border-b border-r border-border bg-muted/20 px-1 py-0.75 whitespace-normal break-words"
+                className="border-b border-r border-[#d8dde6] bg-[#f5f7fa] px-1.5 py-1.5 whitespace-normal break-words"
                 style={{ minWidth: matrixColumnWidths.ageSex, width: matrixColumnWidths.ageSex }}
               >
                 -
               </td>
               {safeAgeBands.map((band) => (
-                <td key={`total-all-${band}`} className="border-b border-r border-border px-0.5 py-0.5 text-center">
+                <td key={`total-all-${band}`} className="border-b border-r border-[#d8dde6] px-1 py-1.5 text-center">
                   {combinedTotals[band].toLocaleString()}
                 </td>
               ))}
-              <td className="border-b border-r border-border px-0.5 py-0.75 text-center">
+              <td className="border-b border-r border-[#d8dde6] px-1 py-1.5 text-center">
                 {combinedTotal.toLocaleString()}
               </td>
               {showAypColumn ? (
-                <td className="border-b border-r border-border px-0.5 py-0.5 text-center">
+                <td className="border-b border-r border-[#d8dde6] px-1 py-1.5 text-center">
                   {toSafeNumber(combinedTotals[AYP_BAND_LABEL]).toLocaleString()}
                 </td>
               ) : null}
@@ -332,9 +329,9 @@ function renderMatrixGroupCard(
               const ayp = toSafeNumber(values[AYP_BAND_LABEL]);
 
               return (
-                <tr key={`total-${dimension}`} className="bg-muted/30 font-semibold">
+                <tr key={`total-${dimension}`} className="bg-[#eef2f7] font-semibold">
                   <td
-                    className="border-b border-r border-border bg-muted/30 px-1 py-0.75 whitespace-normal break-words"
+                    className="border-b border-r border-[#d8dde6] bg-[#eef2f7] px-1.5 py-1.5 whitespace-normal break-words"
                     style={{
                       minWidth: matrixColumnWidths.keyPopulation,
                       width: matrixColumnWidths.keyPopulation,
@@ -343,21 +340,21 @@ function renderMatrixGroupCard(
                     All
                   </td>
                   <td
-                    className="border-b border-r border-border bg-muted/30 px-1 py-0.75 whitespace-normal break-words"
+                    className="border-b border-r border-[#d8dde6] bg-[#eef2f7] px-1.5 py-1.5 whitespace-normal break-words"
                     style={{ minWidth: matrixColumnWidths.ageSex, width: matrixColumnWidths.ageSex }}
                   >
                     {dimension}
                   </td>
                   {safeAgeBands.map((band) => (
-                    <td key={`total-${dimension}-${band}`} className="border-b border-r border-border px-0.5 py-0.5 text-center">
+                    <td key={`total-${dimension}-${band}`} className="border-b border-r border-[#d8dde6] px-1 py-1.5 text-center">
                       {toSafeNumber(values[band]).toLocaleString()}
                     </td>
                   ))}
-                  <td className="border-b border-r border-border px-0.5 py-0.75 text-center">
+                  <td className="border-b border-r border-[#d8dde6] px-1 py-1.5 text-center">
                     {total.toLocaleString()}
                   </td>
                   {showAypColumn ? (
-                    <td className="border-b border-r border-border px-0.5 py-0.5 text-center">
+                    <td className="border-b border-r border-[#d8dde6] px-1 py-1.5 text-center">
                       {ayp.toLocaleString()}
                     </td>
                   ) : null}
@@ -373,79 +370,33 @@ function renderMatrixGroupCard(
 
 export function AggregateMatrixTable(props: AggregateMatrixTableProps) {
   const { aggregateGroups, projectNameById, indicatorById, onViewChart } = props;
-  const topicSections = React.useMemo(
-    () => buildAggregateWorkbookTopicSections(aggregateGroups),
-    [aggregateGroups],
-  );
 
   return (
-    <Card className="overflow-hidden">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <Table2 className="h-5 w-5" /> Aggregate Data
-            </CardTitle>
-            <CardDescription>Tabular view of all aggregate entries</CardDescription>
-          </div>
+    <div className="space-y-6">
+      {aggregateGroups.length === 0 ? (
+        <div className="flex flex-col items-center justify-center rounded-[1.6rem] border border-[#d8dde6] bg-white py-12 text-center shadow-sm">
+          <Table2 className="mb-4 h-12 w-12 text-muted-foreground/50" />
+          <h3 className="text-lg font-semibold">No data found</h3>
+          <p className="mt-1 text-muted-foreground">Try adjusting your filters or add new entries</p>
         </div>
-      </CardHeader>
+      ) : (
+        aggregateGroups.map((group) => {
+          const disaggregates = mergeDisaggregatesForGroup(group.items);
+          const context = summarizeGroupContext(group, projectNameById);
 
-      <CardContent className="overflow-x-auto pt-0">
-        {aggregateGroups.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <Table2 className="mb-4 h-12 w-12 text-muted-foreground/50" />
-            <h3 className="text-lg font-semibold">No data found</h3>
-            <p className="mt-1 text-muted-foreground">Try adjusting your filters or add new entries</p>
-          </div>
-        ) : (
-          <div className="min-w-full space-y-8">
-            {topicSections.map((section) => (
-              <section key={section.id} className="space-y-4">
-                <div className="rounded-xl border border-border bg-muted/20 px-4 py-4">
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div className="space-y-1">
-                      <p className="text-sm font-semibold tracking-wide text-foreground">
-                        {section.label}
-                      </p>
-                      <p className="max-w-3xl text-sm text-muted-foreground">
-                        {section.description}
-                      </p>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Badge variant="secondary">
-                        {section.groups.length} indicator{section.groups.length === 1 ? "" : "s"}
-                      </Badge>
-                      <Badge variant="outline">
-                        Topic total {section.totalValue.toLocaleString()}
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
+          if (!disaggregates) {
+            return renderSimpleGroupCard(group, context, onViewChart);
+          }
 
-                <div className="space-y-4">
-                  {section.groups.map((group) => {
-                    const disaggregates = mergeDisaggregatesForGroup(group.items);
-                    const context = summarizeGroupContext(group, projectNameById);
-
-                    if (!disaggregates) {
-                      return renderSimpleGroupCard(group, context, onViewChart);
-                    }
-
-                    return renderMatrixGroupCard(
-                      group,
-                      context,
-                      disaggregates,
-                      indicatorById,
-                      onViewChart,
-                    );
-                  })}
-                </div>
-              </section>
-            ))}
-          </div>
-        )}
-      </CardContent>
-    </Card>
+          return renderMatrixGroupCard(
+            group,
+            context,
+            disaggregates,
+            indicatorById,
+            onViewChart,
+          );
+        })
+      )}
+    </div>
   );
 }
