@@ -10,12 +10,17 @@ npm install
 ### 2. Configure environment
 Create `frontend/.env.local` with:
 ```
-NEXT_PUBLIC_API_URL=http://localhost:8000/api
+NEXT_PUBLIC_API_URL=/api
+BACKEND_API_URL=http://localhost:8000/api
 ```
 
 Alternative supported keys:
 - `BACKEND_API_URL` for the Next.js `/api/*` rewrite target
 - `NEXT_PUBLIC_API_BASE_URL` as a legacy alias for `NEXT_PUBLIC_API_URL`
+
+Do not point `NEXT_PUBLIC_API_URL` at the same frontend host's `/api` URL in production
+without also setting `BACKEND_API_URL`. If the `/api` proxy targets itself, requests will
+recurse and eventually time out.
 
 ### 3. Start development server
 ```bash
@@ -147,7 +152,8 @@ Relations are resolved client-side using IDs from the API.
 ## Deployment
 1. Set production API URL:
 ```
-NEXT_PUBLIC_API_URL=https://your-api-domain/api
+NEXT_PUBLIC_API_URL=/api
+BACKEND_API_URL=https://your-api-domain/api
 ```
 2. Build:
 ```bash
@@ -160,11 +166,16 @@ npm run start
 
 `npm run build` now validates environment configuration and runs lint before the production build.
 
-If you deploy in Docker behind the Next.js rewrite proxy, prefer:
+If you deploy behind the Next.js `/api` proxy, prefer:
 ```
 NEXT_PUBLIC_API_URL=/api
 BACKEND_API_URL=http://backend:8000/api
 ```
+
+If you intentionally bypass the Next.js proxy and call Django directly from the browser, set
+`NEXT_PUBLIC_API_URL` to the Django API origin and ensure CORS is configured there. Do not use
+the frontend host's `/api` URL as the browser API base unless `BACKEND_API_URL` points to a
+different upstream.
 
 `NEXT_PUBLIC_*` values are baked into the Next.js build, so rebuild the image when those change.
 

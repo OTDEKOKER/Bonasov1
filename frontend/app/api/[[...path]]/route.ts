@@ -51,6 +51,15 @@ function getForwardedHost(targetUrl: URL) {
   return targetUrl.host
 }
 
+function isSelfProxyLoop(request: NextRequest, targetUrl: URL) {
+  const incomingOrigin = request.nextUrl.origin
+  const incomingPath = request.nextUrl.pathname.replace(/\/+$/, '')
+  const targetOrigin = targetUrl.origin
+  const targetPath = targetUrl.pathname.replace(/\/+$/, '')
+
+  return incomingOrigin === targetOrigin && incomingPath === targetPath
+}
+
 function buildRequestHeaders(request: NextRequest, targetUrl: URL, bodyLength: number) {
   const headers = new Map<string, string>()
 
@@ -101,6 +110,21 @@ async function handleRequest(request: NextRequest) {
     request.method === 'GET' || request.method === 'HEAD'
       ? undefined
       : Buffer.from(await request.arrayBuffer())
+
+  if (isSelfProxyLoop(request, targetUrl)) {
+    return NextResponse.json(
+      {
+        detail:
+          'API proxy misconfiguration: the Next.js /api route is targeting itself and would recurse indefinitely.',
+        hint:
+          'Set BACKEND_API_URL to the real Django upstream, and keep NEXT_PUBLIC_API_URL=/api for browser requests.',
+        configured_backend_api_url: backendApiBase,
+        request_url: request.nextUrl.toString(),
+        target_url: targetUrl.toString(),
+      },
+      { status: 500 },
+    )
+  }
 
   return new Promise<Response>((resolve) => {
     const transport = targetUrl.protocol === 'https:' ? https : http
