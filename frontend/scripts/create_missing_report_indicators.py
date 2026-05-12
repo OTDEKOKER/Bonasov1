@@ -27,7 +27,6 @@ from import_selected_q3_workbook import (  # noqa: E402
     DEFAULT_PERIOD_END,
     DEFAULT_PERIOD_START,
     DEFAULT_PROJECT_CODE,
-    DEFAULT_SHEETS,
     DEFAULT_WORKBOOK,
     canonical_indicator_key,
     clean_title,
@@ -36,6 +35,7 @@ from import_selected_q3_workbook import (  # noqa: E402
     normalize_indicator_title,
     parse_sheet,
     resolve_indicator,
+    resolve_sheet_organization,
 )
 
 
@@ -304,7 +304,7 @@ def build_args():
     parser.add_argument("--project-code", default=DEFAULT_PROJECT_CODE)
     parser.add_argument("--period-start", default=DEFAULT_PERIOD_START)
     parser.add_argument("--period-end", default=DEFAULT_PERIOD_END)
-    parser.add_argument("--sheets", nargs="+", default=DEFAULT_SHEETS)
+    parser.add_argument("--sheets", nargs="+", default=None)
     parser.add_argument("--username", default="admin")
     parser.add_argument("--only-codes", nargs="+", default=[])
     parser.add_argument("--report-path", default="")
@@ -326,15 +326,32 @@ def main():
     if admin_user is None:
         raise SystemExit(f"User not found: {args.username}")
 
-    organizations = {
-        organization.name.upper(): organization
-        for organization in Organization.objects.filter(name__in=args.sheets)
-    }
-    missing_orgs = [sheet for sheet in args.sheets if sheet.upper() not in organizations]
-    if missing_orgs:
-        raise SystemExit(f"Organizations not found for sheets: {', '.join(missing_orgs)}")
-
     workbook = load_workbook(workbook_path, data_only=True)
+    organizations = list(Organization.objects.only("id", "name"))
+    candidate_sheets = args.sheets or [
+        sheet_name
+        for sheet_name in workbook.sheetnames
+        if resolve_sheet_organization(sheet_name, organizations) is not None
+    ]
+    selected_sheets = []
+    missing_sheets = []
+    missing_orgs = []
+    for sheet_name in candidate_sheets:
+        if sheet_name not in workbook.sheetnames:
+            missing_sheets.append(sheet_name)
+            continue
+        if resolve_sheet_organization(sheet_name, organizations) is None:
+            missing_orgs.append(sheet_name)
+            continue
+        selected_sheets.append(sheet_name)
+
+    if args.sheets and missing_sheets:
+        raise SystemExit(f"Sheets not found in workbook: {', '.join(missing_sheets)}")
+    if args.sheets and missing_orgs:
+        raise SystemExit(f"Organizations not found for sheets: {', '.join(missing_orgs)}")
+    if not selected_sheets:
+        raise SystemExit("No organization sheets found in workbook.")
+
     indicators = list(Indicator.objects.all())
     indicator_by_key = {}
     for indicator in indicators:
@@ -370,8 +387,10 @@ def main():
     process_existing_matches = bool(only_codes)
 
     with transaction.atomic():
-        for sheet_name in args.sheets:
-            organization = organizations[sheet_name.upper()]
+        for sheet_name in selected_sheets:
+            organization = resolve_sheet_organization(sheet_name, organizations)
+            if organization is None:
+                raise SystemExit(f"Organization not found for sheet: {sheet_name}")
             for item in parse_sheet(workbook[sheet_name]):
                 item_code = str(item["code"]).strip().lower()
                 if only_codes and item_code not in only_codes:

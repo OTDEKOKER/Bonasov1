@@ -7,17 +7,17 @@ services:
       context: .
       args:
         NEXT_PUBLIC_API_URL: /api
-        BACKEND_API_URL: http://backend:8000/api
+        BACKEND_API_URL: http://backend:18000/api
     environment:
       NODE_ENV: production
-      PORT: 3000
+      PORT: 13000
       NEXT_PUBLIC_API_URL: /api
-      BACKEND_API_URL: http://backend:8000/api
+      BACKEND_API_URL: http://backend:18000/api
     depends_on:
       backend:
         condition: service_started
     ports:
-      - "3000:3000"
+      - "13000:13000"
 
   backend:
     image: your-registry/bonaso-backend:latest
@@ -41,7 +41,7 @@ services:
       postgres:
         condition: service_healthy
     ports:
-      - "8000:8000"
+      - "18000:18000"
 
   postgres:
     image: postgres:16-alpine

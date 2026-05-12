@@ -83,6 +83,19 @@ function buildTargetValuesFromTarget(target: ProjectIndicatorTarget): Organizati
   }
 }
 
+function resolveOrganizationToken(value: unknown): string {
+  if (value === null || value === undefined) return ""
+  if (typeof value === "string" || typeof value === "number") return String(value).trim()
+  if (typeof value === "object") {
+    const source = value as Record<string, unknown>
+    const nestedId = source.id ?? source.pk ?? source.value
+    if (typeof nestedId === "string" || typeof nestedId === "number") {
+      return String(nestedId).trim()
+    }
+  }
+  return ""
+}
+
 function syncOrganizationTargets(args: {
   organizationIds: string[]
   currentTargetsByOrganizationId: Record<string, OrganizationTargetValues>
@@ -160,15 +173,32 @@ export function QuarterlyTargetsSection({
     [projectTargets],
   )
 
+  const selectedProjectOrganizationIds = useMemo(() => {
+    if (!selectedProject) return []
+    const rawValues = Array.isArray((selectedProject as { organizations?: unknown[] }).organizations)
+      ? ((selectedProject as { organizations?: unknown[] }).organizations || [])
+      : []
+
+    return rawValues
+      .map((value) => resolveOrganizationToken(value))
+      .filter((value) => value.length > 0)
+  }, [selectedProject])
+
   const availableOrganizations = useMemo(() => {
     if (!selectedProject) return []
 
-    const allowedOrganizationIds = new Set((selectedProject.organizations || []).map((value) => String(value)))
+    const allowedOrganizationIds = new Set(selectedProjectOrganizationIds)
+    const filteredOrganizations =
+      allowedOrganizationIds.size > 0
+        ? organizations.filter((organization) =>
+            allowedOrganizationIds.has(resolveOrganizationToken(organization.id)),
+          )
+        : organizations
 
-    return organizations
-      .filter((organization) => allowedOrganizationIds.has(String(organization.id)))
-      .sort((left, right) => String(left.name || "").localeCompare(String(right.name || "")))
-  }, [organizations, selectedProject])
+    return filteredOrganizations.sort((left, right) =>
+      String(left.name || "").localeCompare(String(right.name || "")),
+    )
+  }, [organizations, selectedProject, selectedProjectOrganizationIds])
 
   useEffect(() => {
     if (editingTarget || !form.projectId || form.organizationIds.length > 0 || availableOrganizations.length !== 1) {

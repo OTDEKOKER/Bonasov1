@@ -39,6 +39,7 @@ import {
   getIndicatorDisaggregateGroups,
   getPeriodLabel,
   getPrimaryDisaggregateLabel,
+  normalizeMatrixDisaggregatesForIndicator,
   parseAggregateValue,
   sumBands,
   toSafeNumber,
@@ -65,6 +66,7 @@ type AggregateReviewQueueProps = {
       severity: "low" | "medium" | "high";
     },
   ) => Promise<void>;
+  onApproveAll: (aggregateIds: string[]) => Promise<void>;
   onUpdate: (
     aggregateId: string,
     payload: {
@@ -79,10 +81,11 @@ type AggregateReviewQueueProps = {
   ) => Promise<Aggregate>;
   onDelete: (aggregateId: string) => Promise<void>;
   actingAggregateId: string | null;
-  actingReviewAction: "review" | "approve" | "flag" | "delete" | null;
+  actingReviewAction: "review" | "approve" | "bulk_approve" | "flag" | "delete" | null;
   mode?: "review" | "correction";
   embedded?: boolean;
   initialReviewAggregateId?: string | null;
+  canBulkApproveAll?: boolean;
 };
 
 const statusLabelMap: Record<Aggregate["status"], string> = {
@@ -200,6 +203,7 @@ export function AggregateReviewQueue(props: AggregateReviewQueueProps) {
     indicators,
     onReview,
     onApprove,
+    onApproveAll,
     onFlag,
     onUpdate,
     onDelete,
@@ -208,6 +212,7 @@ export function AggregateReviewQueue(props: AggregateReviewQueueProps) {
     mode = "review",
     embedded = false,
     initialReviewAggregateId = null,
+    canBulkApproveAll = false,
   } = props;
 
   const initialReviewAggregate =
@@ -298,6 +303,11 @@ export function AggregateReviewQueue(props: AggregateReviewQueueProps) {
 
   const hasActiveFilters =
     searchQuery.trim().length > 0 || projectFilter !== "all" || organizationFilter !== "all";
+  const bulkApproveableItems = filteredItems.filter(
+    (item) => item.status === "pending" || item.status === "reviewed",
+  );
+  const canShowBulkApproveAll =
+    Boolean(canBulkApproveAll) && mode === "review" && bulkApproveableItems.length > 0;
 
   const activeCorrectionConfig = useMemo(() => {
     if (!reviewingAggregate) return null;
@@ -435,8 +445,12 @@ export function AggregateReviewQueue(props: AggregateReviewQueueProps) {
 
     const indicatorGroups = getIndicatorDisaggregateGroups(indicator);
     const primaryDisaggregateLabel = getPrimaryDisaggregateLabel(indicator);
+    const alignedDisaggregates = normalizeMatrixDisaggregatesForIndicator(
+      disaggregates,
+      indicator,
+    );
     const { matrix, keyPops, secondDimensionValues, ageBands, showAypColumn } =
-      buildDisplayMatrix(disaggregates, indicatorGroups);
+      buildDisplayMatrix(alignedDisaggregates, indicatorGroups, indicator);
     const safeDimensions = secondDimensionValues.length ? secondDimensionValues : ["All"];
     const safeAgeBands = ageBands.length ? ageBands : ["Value"];
     const totalBands = getBandsForTotals(safeAgeBands);
@@ -731,20 +745,45 @@ export function AggregateReviewQueue(props: AggregateReviewQueueProps) {
                   {filteredItems.length} of {items.length} queued
                 </p>
               </div>
-              {hasActiveFilters ? (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 px-2 text-muted-foreground"
-                  onClick={() => {
-                    setSearchQuery("");
-                    setProjectFilter("all");
-                    setOrganizationFilter("all");
-                  }}
-                >
-                  Clear filters
-                </Button>
-              ) : null}
+              <div className="flex flex-wrap items-center gap-2">
+                {canShowBulkApproveAll ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 border-border bg-background px-3 text-foreground hover:bg-muted"
+                    disabled={Boolean(actingAggregateId)}
+                    onClick={async () => {
+                      const ids = bulkApproveableItems.map((item) => String(item.id));
+                      const confirmed = window.confirm(
+                        `Approve all ${ids.length} queued aggregate${ids.length === 1 ? "" : "s"}? ` +
+                          "Pending and reviewed rows will be approved. Flagged rows are skipped.",
+                      );
+                      if (!confirmed) return;
+
+                      await onApproveAll(ids);
+                    }}
+                  >
+                    {actingReviewAction === "bulk_approve"
+                      ? "Approving..."
+                      : `Approve all (${bulkApproveableItems.length})`}
+                  </Button>
+                ) : null}
+
+                {hasActiveFilters ? (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 px-2 text-muted-foreground"
+                    onClick={() => {
+                      setSearchQuery("");
+                      setProjectFilter("all");
+                      setOrganizationFilter("all");
+                    }}
+                  >
+                    Clear filters
+                  </Button>
+                ) : null}
+              </div>
             </div>
 
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">

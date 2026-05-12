@@ -7,12 +7,17 @@ from import_selected_q3_workbook import (  # noqa: E402
     DEFAULT_PERIOD_END,
     DEFAULT_PERIOD_START,
     DEFAULT_PROJECT_CODE,
-    DEFAULT_SHEETS,
     DEFAULT_WORKBOOK,
+    Indicator,
+    IndicatorAlias,
     Organization,
     Project,
+    canonical_indicator_key,
+    canonical_resolution_aliases,
+    get_indicator_resolution_priority,
     load_workbook,
     parse_sheet,
+    resolve_sheet_organization,
     resolve_indicator,
 )
 
@@ -85,7 +90,7 @@ def build_args():
     parser.add_argument("--project-code", default=DEFAULT_PROJECT_CODE)
     parser.add_argument("--period-start", default=DEFAULT_PERIOD_START)
     parser.add_argument("--period-end", default=DEFAULT_PERIOD_END)
-    parser.add_argument("--sheets", nargs="+", default=DEFAULT_SHEETS)
+    parser.add_argument("--sheets", nargs="+", default=None)
     parser.add_argument("--report-path", default="")
     return parser.parse_args()
 
@@ -98,19 +103,42 @@ def main():
     if not project:
         raise SystemExit(f"Project not found: {args.project_code}")
 
-    organizations = {
-        organization.name.upper(): organization
-        for organization in Organization.objects.only("id", "name").filter(name__in=args.sheets)
-    }
+    organizations = list(Organization.objects.only("id", "name"))
+    candidate_sheets = args.sheets or [
+        sheet_name
+        for sheet_name in workbook.sheetnames
+        if resolve_sheet_organization(sheet_name, organizations) is not None
+    ]
+    selected_sheets = []
+    missing_sheets = []
+    for sheet_name in candidate_sheets:
+        if sheet_name in workbook.sheetnames:
+            selected_sheets.append(sheet_name)
+        else:
+            missing_sheets.append(sheet_name)
 
-    from import_selected_q3_workbook import Indicator  # noqa: E402
+    if args.sheets and missing_sheets:
+        raise SystemExit(f"Sheets not found in workbook: {', '.join(missing_sheets)}")
 
-    indicators = list(Indicator.objects.only("id", "name"))
+    indicators = list(Indicator.objects.only("id", "name", "code", "is_active"))
     indicator_by_key = {}
     for indicator in indicators:
-        key = __import__("import_selected_q3_workbook").canonical_indicator_key(indicator.name)
-        if key and key not in indicator_by_key:
-            indicator_by_key[key] = indicator
+        for candidate in [indicator.name, *canonical_resolution_aliases(indicator.name)]:
+            key = canonical_indicator_key(candidate)
+            if not key:
+                continue
+            existing = indicator_by_key.get(key)
+            if existing is None or get_indicator_resolution_priority(indicator) < get_indicator_resolution_priority(existing):
+                indicator_by_key[key] = indicator
+    for alias in IndicatorAlias.objects.select_related("indicator").filter(is_active=True):
+        indicator = alias.indicator
+        for candidate in [alias.name, *canonical_resolution_aliases(alias.name)]:
+            key = canonical_indicator_key(candidate)
+            if not key:
+                continue
+            existing = indicator_by_key.get(key)
+            if existing is None or get_indicator_resolution_priority(indicator) < get_indicator_resolution_priority(existing):
+                indicator_by_key[key] = indicator
 
     report = {
         "workbook": str(args.workbook),
@@ -128,9 +156,9 @@ def main():
     unmatched_indicators = 0
     mismatched_rows = 0
 
-    for sheet_name in args.sheets:
+    for sheet_name in selected_sheets:
         sheet_items = parse_sheet(workbook[sheet_name])
-        organization = organizations.get(sheet_name.upper())
+        organization = resolve_sheet_organization(sheet_name, organizations)
         if not organization:
             report["findings"].append(
                 {

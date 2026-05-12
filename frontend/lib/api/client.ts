@@ -31,6 +31,9 @@ const API_BASE_URL = normalizeApiBaseUrl(
   process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '/api',
 );
 const API_REQUEST_TIMEOUT_MS = 15_000;
+type ApiRequestOptions = RequestInit & {
+  timeoutMs?: number;
+};
 
 type ApiMeta = Record<string, unknown>;
 
@@ -422,22 +425,24 @@ async function refreshAccessToken(): Promise<string | null> {
  */
 export async function fetchWithAuth(
   endpoint: string,
-  options: RequestInit = {},
+  options: ApiRequestOptions = {},
   retry: boolean = true
 ): Promise<Response> {
-  const { requestUrl, headers } = buildRequestConfig(endpoint, options);
+  const { timeoutMs, ...requestOptions } = options;
+  const { requestUrl, headers } = buildRequestConfig(endpoint, requestOptions);
+  const requestTimeoutMs = timeoutMs ?? API_REQUEST_TIMEOUT_MS;
 
   const doFetch = async (overrideHeaders?: HeadersInit) => {
     let timeoutId: ReturnType<typeof setTimeout> | null = null;
     const timeoutPromise = new Promise<Response>((_, reject) => {
       timeoutId = setTimeout(() => {
-        reject(new Error(`Request timed out after ${Math.round(API_REQUEST_TIMEOUT_MS / 1000)}s`));
-      }, API_REQUEST_TIMEOUT_MS);
+        reject(new Error(`Request timed out after ${Math.round(requestTimeoutMs / 1000)}s`));
+      }, requestTimeoutMs);
     });
 
     try {
       const fetchPromise = fetch(requestUrl, {
-        ...options,
+        ...requestOptions,
         headers: overrideHeaders ?? headers,
       });
       return await Promise.race([fetchPromise, timeoutPromise]);
@@ -469,7 +474,7 @@ export async function fetchWithAuth(
  */
 async function apiRequest<T>(
   endpoint: string,
-  options: RequestInit = {},
+  options: ApiRequestOptions = {},
   retry: boolean = true
 ): Promise<ApiResponse<T>> {
   const method = (options.method || 'GET').toUpperCase();
@@ -551,7 +556,8 @@ async function apiRequest<T>(
       const tokenInvalid =
         code === 'token_not_valid' ||
         String(detail || '').toLowerCase().includes('token not valid');
-      if (tokenInvalid) {
+      const shouldResetSession = shouldAttachAuthHeader(endpoint) && (tokenInvalid || response.status === 401);
+      if (shouldResetSession) {
         clearAuthTokens();
         if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
           window.location.href = '/login';
@@ -572,7 +578,11 @@ async function apiRequest<T>(
  * API Client with typed methods
  */
 export const api = {
-  get: <T>(endpoint: string, params?: Record<string, string | number | boolean | null | undefined>) => {
+  get: <T>(
+    endpoint: string,
+    params?: Record<string, string | number | boolean | null | undefined>,
+    requestOptions?: { timeoutMs?: number },
+  ) => {
     const searchParams = new URLSearchParams();
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
@@ -585,29 +595,44 @@ export const api = {
 
     const query = searchParams.toString();
     const url = query ? `${endpoint}?${query}` : endpoint;
-    return apiRequest<T>(url, { method: 'GET' });
+    return apiRequest<T>(url, { method: 'GET', timeoutMs: requestOptions?.timeoutMs });
   },
   
-  post: <T>(endpoint: string, body?: unknown) => 
+  post: <T>(
+    endpoint: string,
+    body?: unknown,
+    requestOptions?: { timeoutMs?: number },
+  ) => 
     apiRequest<T>(endpoint, {
       method: 'POST',
       body: body ? JSON.stringify(body) : undefined,
+      timeoutMs: requestOptions?.timeoutMs,
     }),
   
-  put: <T>(endpoint: string, body?: unknown) =>
+  put: <T>(
+    endpoint: string,
+    body?: unknown,
+    requestOptions?: { timeoutMs?: number },
+  ) =>
     apiRequest<T>(endpoint, {
       method: 'PUT',
       body: body ? JSON.stringify(body) : undefined,
+      timeoutMs: requestOptions?.timeoutMs,
     }),
   
-  patch: <T>(endpoint: string, body?: unknown) =>
+  patch: <T>(
+    endpoint: string,
+    body?: unknown,
+    requestOptions?: { timeoutMs?: number },
+  ) =>
     apiRequest<T>(endpoint, {
       method: 'PATCH',
       body: body ? JSON.stringify(body) : undefined,
+      timeoutMs: requestOptions?.timeoutMs,
     }),
   
-  delete: <T>(endpoint: string) =>
-    apiRequest<T>(endpoint, { method: 'DELETE' }),
+  delete: <T>(endpoint: string, requestOptions?: { timeoutMs?: number }) =>
+    apiRequest<T>(endpoint, { method: 'DELETE', timeoutMs: requestOptions?.timeoutMs }),
 };
 
 export default api;

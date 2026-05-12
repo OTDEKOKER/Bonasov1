@@ -21,12 +21,7 @@ import {
 import { ChevronDown, ChevronUp, FileImage, FileSpreadsheet, Loader2, Maximize2, Menu, RotateCw, Settings, Trash2 } from "lucide-react";
 import * as XLSX from "xlsx-js-style";
 
-import {
-  cleanLabel,
-  normalizeBreakdownLabel,
-  triggerBlobDownload,
-  type BreakdownMap,
-} from "@/components/analysis/analytics-utils";
+import { cleanLabel, normalizeBreakdownLabel, triggerBlobDownload, type BreakdownMap } from "@/components/analysis/analytics-utils";
 import { ChartHeader } from "@/components/analysis/chart-header";
 import { ConsolidatedMatrixTable } from "@/components/analysis/consolidated-matrix-table";
 import { Button } from "@/components/ui/button";
@@ -46,6 +41,7 @@ import {
 import { dashboardSettingsService, type DashboardSetting, type IndicatorChartSetting } from "@/lib/api";
 import { useAllAggregates, useAllOrganizations, useIndicatorTrendsBulk } from "@/lib/hooks/use-api";
 import { getIndicatorChartLabel } from "@/lib/indicators/display-name";
+import { resolveIndicatorId } from "@/lib/indicators/id-aliases";
 import { getEffectiveOrganizationType } from "@/lib/organization-hierarchy";
 import { buildConsolidatedMatrix, type AnalyticsFact } from "@/lib/analytics/query-builder";
 import { formatDate } from "@/lib/date-utils";
@@ -88,7 +84,7 @@ type DashboardChartCardProps = {
   dashboard: DashboardSetting;
   onEdit: (chart: IndicatorChartSetting) => void;
   onDelete: (chart: IndicatorChartSetting) => Promise<void> | void;
-  onRefresh?: () => Promise<void> | void;
+  onRefresh: () => Promise<void> | void;
   deleteDisabled?: boolean;
   zoomable?: boolean;
   zoomedView?: boolean;
@@ -201,19 +197,55 @@ type DisaggregateSecondLevel = Record<string, DisaggregateEntry | number | strin
 type DisaggregateCategoryMap = Record<string, DisaggregateSecondLevel>;
 
 const AGE_ORDER: Record<string, number> = {
-  "10_14": 1,
-  "15_19": 2,
-  "20_24": 3,
-  "25_29": 4,
-  "30_34": 5,
-  "35_39": 6,
-  "40_44": 7,
-  "45_49": 8,
-  "50_54": 9,
-  "55_59": 10,
-  "60_64": 11,
-  "65_plus": 12,
+  "10 14": 1,
+  "15 19": 2,
+  "20 24": 3,
+  "25 29": 4,
+  "30 34": 5,
+  "35 39": 6,
+  "40 44": 7,
+  "45 49": 8,
+  "50 54": 9,
+  "55 59": 10,
+  "60 64": 11,
+  "65+": 12,
 };
+
+function getAgeBandSortOrder(value: string): number | undefined {
+  const normalized = normalizeOptionKey(value);
+  const direct = AGE_ORDER[normalized];
+  if (direct !== undefined) return direct;
+
+  const rangeMatch = normalized.match(/^(\d{1,2})\s+(\d{1,2})$/);
+  if (rangeMatch) {
+    const start = Number(rangeMatch[1]);
+    const end = Number(rangeMatch[2]);
+    if (!Number.isFinite(start) || !Number.isFinite(end)) return undefined;
+    if (start >= 65 || end >= 65) return AGE_ORDER["65+"];
+    if (end <= 14) return AGE_ORDER["10 14"];
+    if (end <= 19) return AGE_ORDER["15 19"];
+    if (end <= 24) return AGE_ORDER["20 24"];
+    if (end <= 29) return AGE_ORDER["25 29"];
+    if (end <= 34) return AGE_ORDER["30 34"];
+    if (end <= 39) return AGE_ORDER["35 39"];
+    if (end <= 44) return AGE_ORDER["40 44"];
+    if (end <= 49) return AGE_ORDER["45 49"];
+    if (end <= 54) return AGE_ORDER["50 54"];
+    if (end <= 59) return AGE_ORDER["55 59"];
+    if (end <= 64) return AGE_ORDER["60 64"];
+    return AGE_ORDER["65+"];
+  }
+
+  const plusMatch = normalized.match(/^(\d{1,2})\+$/);
+  if (plusMatch) {
+    const start = Number(plusMatch[1]);
+    if (!Number.isFinite(start)) return undefined;
+    if (start >= 65) return AGE_ORDER["65+"];
+    if (start >= 60) return AGE_ORDER["60 64"];
+  }
+
+  return undefined;
+}
 
 const BIOLOGICAL_FACTOR_SEQUENCE = ["Blood Glucose", "BMI", "BP", "Waist Circumference"] as const;
 const BIOLOGICAL_FACTOR_HEADERS: Record<(typeof BIOLOGICAL_FACTOR_SEQUENCE)[number], string> = {
@@ -1056,10 +1088,23 @@ function buildIndicatorComparisonChartFromAggregates(input: {
   const organizationLookup = new Map<string, LightweightOrganization>(
     organizations.map((organization) => [String(organization.id), organization]),
   );
+  const normalizedIndicatorOrder = indicatorOrder
+    .map((indicatorId) => resolveIndicatorId(indicatorId))
+    .filter((indicatorId) => Number.isFinite(indicatorId));
   const indicatorOrderByKey = new Map<string, number>(
-    indicatorOrder.map((indicatorId, index) => [`indicator_${indicatorId}`, index]),
+    normalizedIndicatorOrder.map((indicatorId, index) => [`indicator_${indicatorId}`, index]),
   );
-  const indicatorIdSet = new Set(indicatorOrder);
+  const indicatorIdSet = new Set(normalizedIndicatorOrder);
+  const indicatorLabelByNormalizedId = new Map<number, string>();
+  indicatorOrder.forEach((indicatorId) => {
+    const normalizedIndicatorId = resolveIndicatorId(indicatorId);
+    if (!Number.isFinite(normalizedIndicatorId)) return;
+    const label =
+      indicatorDisplayNameById.get(indicatorId) ||
+      indicatorDisplayNameById.get(normalizedIndicatorId);
+    if (!label || indicatorLabelByNormalizedId.has(normalizedIndicatorId)) return;
+    indicatorLabelByNormalizedId.set(normalizedIndicatorId, label);
+  });
   const normalizedFilters = Object.entries(filters).reduce<Record<string, Set<string>>>((accumulator, [fieldName, values]) => {
     const normalizedField = normalizeOptionKey(fieldName);
     if (!normalizedField) return accumulator;
@@ -1093,7 +1138,7 @@ function buildIndicatorComparisonChartFromAggregates(input: {
   };
 
   aggregates.forEach((aggregate) => {
-    const indicatorId = Number(aggregate.indicator ?? Number.NaN);
+    const indicatorId = resolveIndicatorId(aggregate.indicator ?? Number.NaN);
     if (!indicatorIdSet.has(indicatorId)) return;
 
     const periodLabel = formatAggregatePeriodLabel(aggregate, axis);
@@ -1108,6 +1153,7 @@ function buildIndicatorComparisonChartFromAggregates(input: {
     if (compareByMode === "coordinator" && coordinatorLabel === "Unassigned coordinator") return;
 
     const indicatorLabel =
+      indicatorLabelByNormalizedId.get(indicatorId) ||
       indicatorDisplayNameById.get(indicatorId) ||
       resolveChartIndicatorNameLabel(aggregate.indicator_name, `Indicator ${indicatorId}`);
     const filterValues = {
@@ -1326,7 +1372,7 @@ function WrappedXAxisTick({
 
 function buildFilterGroups(
   chart: IndicatorChartSetting,
-  dashboardBreakdowns: BreakdownMap | undefined,
+  dashboardBreakdowns: Record<string, unknown> | undefined,
 ): ChartFilterGroup[] {
   const groups = new Map<string, ChartFilterGroup>();
   const isSocialChart = (chart.indicator_details ?? []).some((indicator) => indicator.category === "social");
@@ -1674,8 +1720,11 @@ function splitLegacyChartData(
     if (effectiveLegend === "indicator" && typeof row.order === "number") {
       sortMap.set(legendValue, row.order);
     }
-    if (effectiveLegend === "age_range" && AGE_ORDER[legendValue] !== undefined) {
-      sortMap.set(legendValue, AGE_ORDER[legendValue]);
+    if (effectiveLegend === "age_range") {
+      const ageOrder = getAgeBandSortOrder(legendValue);
+      if (ageOrder !== undefined) {
+        sortMap.set(legendValue, ageOrder);
+      }
     }
   });
 
@@ -1873,16 +1922,7 @@ async function renderElementToBlob(
 }
 
 export function DashboardChartCard(props: DashboardChartCardProps) {
-  const {
-    chart,
-    dashboard,
-    onEdit,
-    onDelete,
-    onRefresh,
-    deleteDisabled = false,
-    zoomable = true,
-    zoomedView = false,
-  } = props;
+  const { chart, dashboard, onEdit, onDelete, onRefresh, zoomable = true, zoomedView = false } = props;
   const { toast } = useToast();
   const cardRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<HTMLDivElement | null>(null);
@@ -1902,7 +1942,7 @@ export function DashboardChartCard(props: DashboardChartCardProps) {
   const [activeFilters, setActiveFilters] = useState<Record<string, string[]>>(() => groupChartFilters(chart.filters));
   const [expandedFilterGroups, setExpandedFilterGroups] = useState<Record<string, boolean>>({});
   const usingDemoDashboard = isDemoAnalysisId(dashboard.id);
-  const dashboardBreakdowns: BreakdownMap | undefined = undefined;
+  const dashboardBreakdowns = undefined;
   const hasLegacyChartData = !usingDemoDashboard && normalizeLegacyRows(chart.chart_data).length > 0;
   const primaryIndicator = chart.indicator_details?.[0];
   const indicatorShortNameById = useMemo(() => {
@@ -2070,6 +2110,7 @@ export function DashboardChartCard(props: DashboardChartCardProps) {
                 : undefined,
             date_from: chart.start || undefined,
             date_to: chart.end || undefined,
+            status: "approved",
           }
         : null,
     [
@@ -2090,10 +2131,16 @@ export function DashboardChartCard(props: DashboardChartCardProps) {
     },
   );
   const indicatorAggregates = useMemo(
-    () =>
-      loadedIndicatorAggregates.filter((aggregate) =>
-        chart.indicators.includes(Number(aggregate.indicator)),
-      ),
+    () => {
+      const normalizedIndicatorSet = new Set(
+        chart.indicators
+          .map((indicatorId) => resolveIndicatorId(indicatorId))
+          .filter((indicatorId) => Number.isFinite(indicatorId)),
+      );
+      return loadedIndicatorAggregates.filter((aggregate) =>
+        normalizedIndicatorSet.has(resolveIndicatorId(aggregate.indicator)),
+      );
+    },
     [chart.indicators, loadedIndicatorAggregates],
   );
   const coordinatorOptions = useMemo<ChartFilterOption[]>(() => {
@@ -2517,9 +2564,7 @@ export function DashboardChartCard(props: DashboardChartCardProps) {
   const pieChartHeight = zoomedView ? 204 : 148;
   const pieLegendMaxHeight = zoomedView ? 204 : 148;
   const pieLegendColumnWidth = zoomedView ? 208 : 172;
-  const pieInnerRadius = shouldUsePieFallbackBreakdown
-    ? (zoomedView ? 52 : 40)
-    : (zoomedView ? 44 : 32);
+  const pieInnerRadius = 0;
   const pieOuterRadius = zoomedView ? 84 : 66;
 
   const renderedSeries = useMemo<RenderedSeries[]>(
@@ -2805,13 +2850,13 @@ export function DashboardChartCard(props: DashboardChartCardProps) {
     const periodLabel = (() => {
       if (selectedDate) {
         const formattedSelectedDate = formatDate(selectedDate);
-        return formattedSelectedDate !== "â€”" ? formattedSelectedDate : selectedDate;
+        return formattedSelectedDate !== "—" ? formattedSelectedDate : selectedDate;
       }
       if (selectedPeriod !== "all") return selectedPeriod;
       if (chart.start && chart.end) {
         const formattedStart = formatDate(chart.start);
         const formattedEnd = formatDate(chart.end);
-        if (formattedStart !== "â€”" && formattedEnd !== "â€”") {
+        if (formattedStart !== "—" && formattedEnd !== "—") {
           return `${formattedStart} - ${formattedEnd}`;
         }
       }
@@ -3076,7 +3121,6 @@ export function DashboardChartCard(props: DashboardChartCardProps) {
     setRemoving(true);
     try {
       await onDelete(chart);
-      await onRefresh?.();
     } catch (errorCaught) {
       console.error("Failed to delete chart", errorCaught);
       toast({
@@ -3273,7 +3317,7 @@ export function DashboardChartCard(props: DashboardChartCardProps) {
                   <FileSpreadsheet className="h-4 w-4" />
                   Download Excel (.xlsx)
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleDelete} disabled={removing || deleteDisabled} variant="destructive">
+                <DropdownMenuItem onClick={handleDelete} disabled={removing} variant="destructive">
                   {removing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
                   Delete
                 </DropdownMenuItem>

@@ -145,6 +145,7 @@ export default function ReportsPage() {
     project: formProject !== "all" ? formProject : undefined,
     date_from: formDateFrom || undefined,
     date_to: formDateTo || undefined,
+    status: "approved",
   });
 
   const reports = useMemo(

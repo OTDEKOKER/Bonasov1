@@ -51,22 +51,4 @@ if (resolvedEnv.NEXT_PUBLIC_API_BASE_URL && !resolvedEnv.NEXT_PUBLIC_API_URL) {
   );
 }
 
-const browserApiBase = resolvedEnv.NEXT_PUBLIC_API_URL || resolvedEnv.NEXT_PUBLIC_API_BASE_URL || "";
-const backendApiBase = resolvedEnv.BACKEND_API_URL || "";
-
-if (
-  !backendApiBase &&
-  browserApiBase &&
-  /^https?:\/\/.+\/api\/?$/i.test(browserApiBase)
-) {
-  console.warn(
-    [
-      "BACKEND_API_URL is not set.",
-      `Browser API base is ${browserApiBase}.`,
-      "If that host is the same Next.js frontend host, /api requests will proxy back to themselves and time out.",
-      "For production behind the Next.js proxy, prefer NEXT_PUBLIC_API_URL=/api and BACKEND_API_URL=https://your-django-host/api.",
-    ].join(" "),
-  );
-}
-
 console.log(`Environment validation passed. API base is configured via ${apiBase}.`);

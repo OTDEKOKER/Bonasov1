@@ -25,7 +25,7 @@ import {
 const matrixColumnWidths = {
   keyPopulation: 96,
   ageSex: 72,
-  metric: 42,
+  metric: 56,
 };
 
 type AggregateMatrixTableProps = {
@@ -118,10 +118,12 @@ function renderMatrixGroupCard(
   const primaryDisaggregateLabel = getPrimaryDisaggregateLabel(indicator);
   const alignedDisaggregates = normalizeMatrixDisaggregatesForIndicator(disaggregates, indicator);
   const { matrix, keyPops, secondDimensionValues, ageBands, showAypColumn } =
-    buildDisplayMatrix(alignedDisaggregates, indicatorGroups);
+    buildDisplayMatrix(alignedDisaggregates, indicatorGroups, indicator);
 
   const safeDimensions = secondDimensionValues.length ? secondDimensionValues : ["All"];
   const safeAgeBands = ageBands.length ? ageBands : ["Value"];
+  const visibleAgeBands = safeAgeBands.filter((band) => String(band).toLowerCase() !== "value");
+  const showDimensionSummaryRows = keyPops.length > 1 && safeDimensions.length > 1;
   const totalBands = getBandsForTotals(safeAgeBands);
   const dimensionTotals: Record<string, Record<string, number>> = {};
   safeDimensions.forEach((dimension) => {
@@ -175,7 +177,7 @@ function renderMatrixGroupCard(
           </p>
         </div>
         <Badge variant="outline" className="rounded-full border-[#d8dde6] px-4 py-1 text-base font-semibold text-[#0f172a]">
-          Total {Number(context.totalValue).toLocaleString()}
+          Total {Number(combinedTotal).toLocaleString()}
         </Badge>
         <Button
           variant="outline"
@@ -188,7 +190,7 @@ function renderMatrixGroupCard(
         </Button>
       </div>
       <div className="max-h-[68vh] overflow-auto rounded-[1.25rem] border border-[#d8dde6]">
-        <table className="w-full min-w-[860px] table-fixed border-separate border-spacing-0 text-sm text-[#1f2937]">
+        <table className="w-max min-w-full table-auto border-separate border-spacing-0 text-sm text-[#1f2937]">
           <thead>
             <tr>
               <th
@@ -203,25 +205,25 @@ function renderMatrixGroupCard(
               >
                 {matrixConfig.secondaryLabel || "Category"}
               </th>
-              {safeAgeBands.map((band) => (
+              {visibleAgeBands.map((band) => (
                 <th
                   key={band}
                   className="sticky top-0 z-30 border-b border-r border-[#d8dde6] bg-[#f4f5f7] px-1 py-1 text-center font-semibold whitespace-nowrap"
-                  style={{ minWidth: matrixColumnWidths.metric, width: matrixColumnWidths.metric }}
+                  style={{ minWidth: matrixColumnWidths.metric }}
                 >
                   {band}
                 </th>
               ))}
               <th
                 className="sticky top-0 z-30 border-b border-r border-[#d8dde6] bg-[#f4f5f7] px-1 py-1 text-center font-semibold whitespace-nowrap"
-                style={{ minWidth: matrixColumnWidths.metric, width: matrixColumnWidths.metric }}
+                style={{ minWidth: matrixColumnWidths.metric }}
               >
                 TOTAL
               </th>
               {showAypColumn ? (
                 <th
-                  className="sticky top-0 z-30 border-b border-r border-[#d8dde6] bg-[#f4f5f7] px-1 py-1 text-center font-semibold whitespace-nowrap"
-                  style={{ minWidth: matrixColumnWidths.metric, width: matrixColumnWidths.metric }}
+                  className="sticky top-0 z-30 border-b border-r border-[#d8dde6] bg-[#f4f5f7] px-1 py-1 text-center font-semibold whitespace-normal break-words leading-tight"
+                  style={{ minWidth: matrixColumnWidths.metric }}
                 >
                   {AYP_BAND_LABEL}
                 </th>
@@ -263,24 +265,24 @@ function renderMatrixGroupCard(
                           {dimension}
                         </td>
 
-                        {safeAgeBands.map((band) => (
+                        {visibleAgeBands.map((band) => (
                           <td
                             key={`${kp}-${dimension}-${band}`}
-                            className={`border-b border-r border-[#d8dde6] px-1 py-1.5 text-center ${rowBaseClass}`}
+                            className={`border-b border-r border-[#d8dde6] px-1 py-1.5 text-center whitespace-nowrap tabular-nums ${rowBaseClass}`}
                           >
                             {toSafeNumber(values[band]).toLocaleString()}
                           </td>
                         ))}
 
                         <td
-                          className={`border-b border-r border-[#d8dde6] px-1 py-1.5 text-center font-semibold ${rowBaseClass}`}
+                          className={`border-b border-r border-[#d8dde6] px-1 py-1.5 text-center font-semibold whitespace-nowrap tabular-nums ${rowBaseClass}`}
                         >
                           {total.toLocaleString()}
                         </td>
 
                         {showAypColumn ? (
                           <td
-                            className={`border-b border-r border-[#d8dde6] px-1 py-1.5 text-center ${rowBaseClass}`}
+                            className={`border-b border-r border-[#d8dde6] px-1 py-1.5 text-center whitespace-nowrap tabular-nums ${rowBaseClass}`}
                           >
                             {ayp.toLocaleString()}
                           </td>
@@ -308,59 +310,61 @@ function renderMatrixGroupCard(
               >
                 -
               </td>
-              {safeAgeBands.map((band) => (
-                <td key={`total-all-${band}`} className="border-b border-r border-[#d8dde6] px-1 py-1.5 text-center">
+              {visibleAgeBands.map((band) => (
+                <td key={`total-all-${band}`} className="border-b border-r border-[#d8dde6] px-1 py-1.5 text-center whitespace-nowrap tabular-nums">
                   {combinedTotals[band].toLocaleString()}
                 </td>
               ))}
-              <td className="border-b border-r border-[#d8dde6] px-1 py-1.5 text-center">
+              <td className="border-b border-r border-[#d8dde6] px-1 py-1.5 text-center whitespace-nowrap tabular-nums">
                 {combinedTotal.toLocaleString()}
               </td>
               {showAypColumn ? (
-                <td className="border-b border-r border-[#d8dde6] px-1 py-1.5 text-center">
+                <td className="border-b border-r border-[#d8dde6] px-1 py-1.5 text-center whitespace-nowrap tabular-nums">
                   {toSafeNumber(combinedTotals[AYP_BAND_LABEL]).toLocaleString()}
                 </td>
               ) : null}
             </tr>
 
-            {safeDimensions.map((dimension) => {
-              const values = dimensionTotals[dimension] || {};
-              const total = sumBands(values, totalBands);
-              const ayp = toSafeNumber(values[AYP_BAND_LABEL]);
+            {showDimensionSummaryRows
+              ? safeDimensions.map((dimension) => {
+                  const values = dimensionTotals[dimension] || {};
+                  const total = sumBands(values, totalBands);
+                  const ayp = toSafeNumber(values[AYP_BAND_LABEL]);
 
-              return (
-                <tr key={`total-${dimension}`} className="bg-[#eef2f7] font-semibold">
-                  <td
-                    className="border-b border-r border-[#d8dde6] bg-[#eef2f7] px-1.5 py-1.5 whitespace-normal break-words"
-                    style={{
-                      minWidth: matrixColumnWidths.keyPopulation,
-                      width: matrixColumnWidths.keyPopulation,
-                    }}
-                  >
-                    All
-                  </td>
-                  <td
-                    className="border-b border-r border-[#d8dde6] bg-[#eef2f7] px-1.5 py-1.5 whitespace-normal break-words"
-                    style={{ minWidth: matrixColumnWidths.ageSex, width: matrixColumnWidths.ageSex }}
-                  >
-                    {dimension}
-                  </td>
-                  {safeAgeBands.map((band) => (
-                    <td key={`total-${dimension}-${band}`} className="border-b border-r border-[#d8dde6] px-1 py-1.5 text-center">
-                      {toSafeNumber(values[band]).toLocaleString()}
-                    </td>
-                  ))}
-                  <td className="border-b border-r border-[#d8dde6] px-1 py-1.5 text-center">
-                    {total.toLocaleString()}
-                  </td>
-                  {showAypColumn ? (
-                    <td className="border-b border-r border-[#d8dde6] px-1 py-1.5 text-center">
-                      {ayp.toLocaleString()}
-                    </td>
-                  ) : null}
-                </tr>
-              );
-            })}
+                  return (
+                    <tr key={`total-${dimension}`} className="bg-[#eef2f7] font-semibold">
+                      <td
+                        className="border-b border-r border-[#d8dde6] bg-[#eef2f7] px-1.5 py-1.5 whitespace-normal break-words"
+                        style={{
+                          minWidth: matrixColumnWidths.keyPopulation,
+                          width: matrixColumnWidths.keyPopulation,
+                        }}
+                      >
+                        All
+                      </td>
+                      <td
+                        className="border-b border-r border-[#d8dde6] bg-[#eef2f7] px-1.5 py-1.5 whitespace-normal break-words"
+                        style={{ minWidth: matrixColumnWidths.ageSex, width: matrixColumnWidths.ageSex }}
+                      >
+                        {dimension}
+                      </td>
+                      {visibleAgeBands.map((band) => (
+                        <td key={`total-${dimension}-${band}`} className="border-b border-r border-[#d8dde6] px-1 py-1.5 text-center whitespace-nowrap tabular-nums">
+                          {toSafeNumber(values[band]).toLocaleString()}
+                        </td>
+                      ))}
+                      <td className="border-b border-r border-[#d8dde6] px-1 py-1.5 text-center whitespace-nowrap tabular-nums">
+                        {total.toLocaleString()}
+                      </td>
+                      {showAypColumn ? (
+                        <td className="border-b border-r border-[#d8dde6] px-1 py-1.5 text-center whitespace-nowrap tabular-nums">
+                          {ayp.toLocaleString()}
+                        </td>
+                      ) : null}
+                    </tr>
+                  );
+                })
+              : null}
           </tbody>
         </table>
       </div>

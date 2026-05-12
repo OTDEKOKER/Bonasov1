@@ -10,6 +10,7 @@ export interface User {
   lastName: string
   role: UserRole
   permissions?: string[]
+  home_dashboard_preferences?: unknown
   organizationId: string
   clientOrganizationId?: string
   avatar?: string
@@ -126,27 +127,45 @@ export interface IndicatorOption {
   order: number
 }
 
+export interface AssessmentQuestionOption {
+  label: string
+  value: string
+}
+
+export interface AssessmentQuestion {
+  id: string
+  assessment: string
+  indicator: string
+  indicator_detail?: {
+    id: string
+    name: string
+    code: string
+    type: IndicatorType
+    category: IndicatorCategory
+  }
+  question_text?: string
+  question_text_display?: string
+  help_text?: string
+  response_type?: IndicatorType | ""
+  response_type_display?: IndicatorType
+  response_options?: Array<string | AssessmentQuestionOption>
+  response_options_display?: Array<string | AssessmentQuestionOption>
+  response_sub_labels?: string[]
+  response_sub_labels_display?: string[]
+  aggregate_mode?: "none" | "count_all" | "count_selected" | "sum_numeric"
+  aggregate_match_values?: unknown[]
+  order: number
+  is_required: boolean
+  depends_on?: string | null
+  condition_value?: unknown
+}
+
 export interface Assessment {
   id: string
   name: string
   description?: string
   indicators: string[]
-  indicators_detail?: Array<{
-    id: string
-    assessment: string
-    indicator: string
-    indicator_detail?: {
-      id: string
-      name: string
-      code: string
-      type: IndicatorType
-      category: IndicatorCategory
-    }
-    order: number
-    is_required: boolean
-    depends_on?: string | null
-    condition_value?: unknown
-  }>
+  indicators_detail?: AssessmentQuestion[]
   indicators_count?: number
   logic_rules?: Record<string, unknown>
   is_active: boolean

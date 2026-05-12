@@ -62,6 +62,10 @@ export interface DeadlineFilters {
   indicator?: string;
   status?: string;
   upcoming?: string;
+  coordinator?: string;
+  organization?: string;
+  date_from?: string;
+  date_to?: string;
   page?: string;
   page_size?: string;
 }

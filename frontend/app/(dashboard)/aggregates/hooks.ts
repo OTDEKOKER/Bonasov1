@@ -17,7 +17,11 @@ import {
   type AggregateIndicatorGroup,
   type IndicatorDisaggregationInput,
 } from "@/lib/aggregates/aggregate-helpers";
-import { isBonasoOrganizationName, isSeedCoordinatorOrganizationName } from "@/lib/organization-hierarchy";
+import {
+  getEffectiveOrganizationType,
+  isBonasoOrganizationName,
+  isSeedCoordinatorOrganizationName,
+} from "@/lib/organization-hierarchy";
 import { isPlatformAdmin } from "@/lib/permissions";
 import type { Aggregate, User } from "@/lib/types";
 import { getUserOrganizationId } from "@/lib/utils/organization";
@@ -50,6 +54,18 @@ const coordinatorOrganizationTypes = new Set([
   "regional",
   "district",
 ]);
+
+function isCoordinatorPortfolioOrganization(organization: OrganizationWithParent): boolean {
+  const organizationName = String(organization.name || "");
+  return (
+    getEffectiveOrganizationType(organization) === "coordinator" ||
+    isSeedCoordinatorOrganizationName(organizationName)
+  );
+}
+
+function isBonasoRootOrganization(organization: OrganizationWithParent): boolean {
+  return isBonasoOrganizationName(String(organization.name || ""));
+}
 
 function collectDescendantOrganizationIds(
   rootId: string,
@@ -107,16 +123,18 @@ export function useAggregateVisibilityScope(args: AggregateVisibilityScopeArgs) 
 
   const isCoordinatorUser = useMemo(() => {
     if (!ownOrganizationId || !ownOrganization) return false;
+    const effectiveType = getEffectiveOrganizationType(ownOrganization);
+    if (coordinatorOrganizationTypes.has(effectiveType)) return true;
     if (coordinatorOrganizationTypes.has(String(ownOrganization.type || "").toLowerCase())) return true;
     return ownDescendantIds.size > 1;
   }, [ownDescendantIds, ownOrganization, ownOrganizationId]);
 
   const visibleOrganizationIds = useMemo(() => {
-    if (canReportAcrossOrganizations || canReviewAggregates) {
+    if (canReportAcrossOrganizations) {
       return new Set(organizations.map((organization) => String(organization.id)));
     }
     if (!ownOrganizationId) return new Set<string>();
-    if (isCoordinatorUser) return ownDescendantIds;
+    if (canReviewAggregates || isCoordinatorUser) return ownDescendantIds;
     return new Set<string>([ownOrganizationId]);
   }, [
     canReportAcrossOrganizations,
@@ -140,28 +158,29 @@ export function useAggregateVisibilityScope(args: AggregateVisibilityScopeArgs) 
     if (!canReportAcrossOrganizations && !canReviewAggregates && !isCoordinatorUser) {
       return [];
     }
-    if (!canReportAcrossOrganizations && !canReviewAggregates && isCoordinatorUser && ownOrganization) {
+
+    const coordinatorOptions = visibleOrganizations.filter(isCoordinatorPortfolioOrganization);
+
+    if (
+      !canReportAcrossOrganizations &&
+      !canReviewAggregates &&
+      isCoordinatorUser &&
+      ownOrganization &&
+      isCoordinatorPortfolioOrganization(ownOrganization)
+    ) {
       return [ownOrganization];
     }
-    return visibleOrganizations.filter((organization) => {
-      const organizationId = String(organization.id);
-      const parentId = resolveParentOrganizationId(organization);
-      const hasVisibleChildren = (childrenByParentId.get(organizationId) || []).some((childId) =>
-        visibleOrganizationIds.has(childId),
-      );
-      const organizationName = String(organization.name || "");
-      const isRecognizedCoordinator =
-        isSeedCoordinatorOrganizationName(organizationName) ||
-        isBonasoOrganizationName(organizationName);
-      return isRecognizedCoordinator || !parentId || !visibleOrganizationIds.has(parentId) || hasVisibleChildren;
-    });
+
+    if (ownOrganization && isBonasoRootOrganization(ownOrganization)) {
+      return coordinatorOptions;
+    }
+
+    return coordinatorOptions;
   }, [
     canReportAcrossOrganizations,
     canReviewAggregates,
-    childrenByParentId,
     isCoordinatorUser,
     ownOrganization,
-    visibleOrganizationIds,
     visibleOrganizations,
   ]);
 
@@ -241,6 +260,7 @@ export function useAggregateFilters(args: AggregateFiltersArgs) {
       return visibleOrganizations;
     }
     const scopedIds = collectDescendantOrganizationIds(effectiveParentOrgFilter, childrenByParentId);
+    scopedIds.add(effectiveParentOrgFilter);
     return visibleOrganizations
       .filter((organization) => scopedIds.has(String(organization.id)))
       .slice()
@@ -384,13 +404,14 @@ export function useAggregateEntryForm() {
 
 type AggregateReviewActionsArgs = {
   mutate: () => Promise<unknown>;
+  mutateQueue?: () => Promise<unknown>;
   toast: ToastFn;
 };
 
 export function useAggregateReviewActions(args: AggregateReviewActionsArgs) {
-  const { mutate, toast } = args;
+  const { mutate, mutateQueue, toast } = args;
   const [actingAggregateId, setActingAggregateId] = useState<string | null>(null);
-  const [actingReviewAction, setActingReviewAction] = useState<"review" | "approve" | "flag" | "delete" | null>(null);
+  const [actingReviewAction, setActingReviewAction] = useState<"review" | "approve" | "bulk_approve" | "flag" | "delete" | null>(null);
 
   const handleReviewAggregate = useCallback(
     async (aggregateId: string, notes: string) => {
@@ -399,6 +420,7 @@ export function useAggregateReviewActions(args: AggregateReviewActionsArgs) {
       try {
         await aggregatesService.review(Number(aggregateId), { notes });
         await mutate();
+        void mutateQueue?.();
         toast({
           title: "Aggregate reviewed",
           description: "The aggregate has been reviewed and is now ready for approval.",
@@ -415,7 +437,7 @@ export function useAggregateReviewActions(args: AggregateReviewActionsArgs) {
         setActingReviewAction(null);
       }
     },
-    [mutate, toast],
+    [mutate, mutateQueue, toast],
   );
 
   const handleApproveAggregate = useCallback(
@@ -425,6 +447,7 @@ export function useAggregateReviewActions(args: AggregateReviewActionsArgs) {
       try {
         await aggregatesService.approve(Number(aggregateId));
         await mutate();
+        void mutateQueue?.();
         toast({
           title: "Aggregate approved",
           description: "The aggregate entry is now approved.",
@@ -441,7 +464,43 @@ export function useAggregateReviewActions(args: AggregateReviewActionsArgs) {
         setActingReviewAction(null);
       }
     },
-    [mutate, toast],
+    [mutate, mutateQueue, toast],
+  );
+
+  const handleBulkApproveAggregates = useCallback(
+    async (aggregateIds: string[]) => {
+      const ids = aggregateIds
+        .map((aggregateId) => Number(aggregateId))
+        .filter((aggregateId) => Number.isFinite(aggregateId));
+
+      if (ids.length === 0) return;
+
+      setActingAggregateId("bulk");
+      setActingReviewAction("bulk_approve");
+      try {
+        const result = await aggregatesService.bulkApprove(ids);
+        await mutate();
+        void mutateQueue?.();
+        toast({
+          title: "Aggregates approved",
+          description:
+            result.skipped > 0
+              ? `${result.approved} aggregate(s) approved. ${result.skipped} skipped because they were not ready for bulk approval.`
+              : `${result.approved} aggregate(s) approved successfully.`,
+        });
+      } catch (error) {
+        console.error("Failed to bulk approve aggregates", error);
+        toast({
+          title: "Bulk approval failed",
+          description: error instanceof Error ? error.message : "Unable to approve these aggregates.",
+          variant: "destructive",
+        });
+      } finally {
+        setActingAggregateId(null);
+        setActingReviewAction(null);
+      }
+    },
+    [mutate, mutateQueue, toast],
   );
 
   const handleFlagAggregate = useCallback(
@@ -458,6 +517,7 @@ export function useAggregateReviewActions(args: AggregateReviewActionsArgs) {
       try {
         await aggregatesService.flag(Number(aggregateId), payload);
         await mutate();
+        void mutateQueue?.();
         toast({
           title: "Aggregate flagged",
           description: "The aggregate was flagged for correction and a data-quality flag was created.",
@@ -474,7 +534,7 @@ export function useAggregateReviewActions(args: AggregateReviewActionsArgs) {
         setActingReviewAction(null);
       }
     },
-    [mutate, toast],
+    [mutate, mutateQueue, toast],
   );
 
   const handleUpdateAggregate = useCallback(
@@ -495,6 +555,7 @@ export function useAggregateReviewActions(args: AggregateReviewActionsArgs) {
       try {
         const updated = await aggregatesService.update(Number(aggregateId), payload);
         await mutate();
+        void mutateQueue?.();
         toast({
           title: "Corrections saved",
           description: "The aggregate was updated and sent back for review.",
@@ -513,7 +574,7 @@ export function useAggregateReviewActions(args: AggregateReviewActionsArgs) {
         setActingReviewAction(null);
       }
     },
-    [mutate, toast],
+    [mutate, mutateQueue, toast],
   );
 
   const handleDeleteAggregate = useCallback(
@@ -523,6 +584,7 @@ export function useAggregateReviewActions(args: AggregateReviewActionsArgs) {
       try {
         await aggregatesService.delete(Number(aggregateId));
         await mutate();
+        void mutateQueue?.();
         toast({
           title: "Aggregate deleted",
           description: "The aggregate record was deleted successfully.",
@@ -540,13 +602,14 @@ export function useAggregateReviewActions(args: AggregateReviewActionsArgs) {
         setActingReviewAction(null);
       }
     },
-    [mutate, toast],
+    [mutate, mutateQueue, toast],
   );
 
   return {
     actingAggregateId,
     actingReviewAction,
     handleApproveAggregate,
+    handleBulkApproveAggregates,
     handleDeleteAggregate,
     handleFlagAggregate,
     handleReviewAggregate,
@@ -637,6 +700,7 @@ export function useAggregateChartState(args: AggregateChartStateArgs) {
       const { matrix, keyPops, secondDimensionValues, ageBands } = buildDisplayMatrix(
         alignedDisaggregates,
         indicatorGroups,
+        indicator,
       );
       const totalBands = getBandsForTotals(ageBands);
       const hasSecondDimensionView =
@@ -757,6 +821,7 @@ export function useAggregateChartState(args: AggregateChartStateArgs) {
     const { keyPops, secondDimensionValues, ageBands } = buildDisplayMatrix(
       alignedDisaggregates,
       indicatorGroups,
+      indicator,
     );
     const hasKeyPopulationView = keyPops.length > 1 || (keyPops.length === 1 && keyPops[0] !== "All");
     const hasSecondDimensionView =

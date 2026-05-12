@@ -101,7 +101,7 @@ const SHOW_AS_OPTIONS: Array<{ value: CustomAnalysisShowAs; label: string }> = [
   { value: "stacked-bar", label: "Stacked Bar" },
   { value: "line", label: "Line Chart" },
   { value: "area", label: "Area Chart" },
-  { value: "donut", label: "Donut Chart" },
+  { value: "donut", label: "Pie Chart" },
   { value: "table", label: "Table" },
   { value: "matrix", label: "Matrix" },
   { value: "heatmap", label: "Heatmap" },
@@ -277,7 +277,7 @@ export function validateCustomAnalysisState(
       (dimension) => String(dimension.key) === state.breakDownBy,
     );
     if ((matching?.values?.length || 0) > 8) {
-      issues.push({ level: "warning", message: "Donut charts become hard to read with many categories. Consider a bar chart or Top N." });
+      issues.push({ level: "warning", message: "Pie charts become hard to read with many categories. Consider a bar chart or Top N." });
     }
   }
   if (state.breakDownBy !== "none" && breakdownFields && !breakdownFields.some((field) => field.value === state.breakDownBy)) {

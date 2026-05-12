@@ -27,6 +27,18 @@ export interface UpdateUploadRequest {
   object_id?: number;
 }
 
+export interface StartImportRequest {
+  queue_aggregate_review?: boolean;
+  project_id?: number;
+  reporting_period?: string;
+  period_start?: string;
+  period_end?: string;
+  sheet_names?: string[];
+  dry_run?: boolean;
+  indicator_overrides?: Record<string, number | string>;
+  sheet_org_overrides?: Record<string, number | string>;
+}
+
 export interface UploadRecord {
   id: number;
   name: string;
@@ -49,7 +61,16 @@ export interface ImportJob {
   id: number;
   upload: number;
   upload_name?: string;
-  status: 'pending' | 'processing' | 'completed' | 'failed';
+  status:
+    | 'pending'
+    | 'uploaded'
+    | 'analyzing'
+    | 'ready_for_review'
+    | 'processing'
+    | 'validated'
+    | 'completed'
+    | 'imported'
+    | 'failed';
   total_rows: number;
   processed_rows: number;
   successful_rows: number;
@@ -60,6 +81,21 @@ export interface ImportJob {
   completed_at?: string | null;
   created_at: string;
   created_by?: number | null;
+  aggregate_review_queued?: boolean;
+  dry_run?: boolean;
+  aggregate_import_summary?: {
+    matched_rows?: number;
+    unknown_rows?: number;
+    unique_unknown_titles?: number;
+    updated_indicator_count?: number;
+    project_assignments_created?: number;
+    aggregate_upserts?: number;
+    unknown_titles?: Record<string, number>;
+    indicator_override_count?: number;
+    sheet_org_override_count?: number;
+    [key: string]: unknown;
+  };
+  aggregate_import_report?: Record<string, unknown>;
 }
 
 export const uploadsService = {
@@ -108,7 +144,8 @@ export const uploadsService = {
 
   delete: (id: number) => api.delete(`/uploads/${id}/`),
 
-  startImport: (id: number) => api.post<ImportJob>(`/uploads/${id}/start_import/`),
+  startImport: (id: number, request?: StartImportRequest) =>
+    api.post<ImportJob>(`/uploads/${id}/start_import/`, request || {}),
 
   listImports: (filters?: { status?: string; upload?: string }) =>
     api.get<PaginatedResponse<ImportJob>>('/uploads/imports/', filters),

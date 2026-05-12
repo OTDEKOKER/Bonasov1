@@ -77,7 +77,7 @@ export function AnalyticsChartPanel(props: AnalyticsChartPanelProps) {
 
         {children}
 
-        {footerText ? <ChartInsightFooter>{footerText}</ChartInsightFooter> : null}
+        {footerText ? <ChartInsightFooter text={footerText} /> : null}
       </CardContent>
     </Card>
   );

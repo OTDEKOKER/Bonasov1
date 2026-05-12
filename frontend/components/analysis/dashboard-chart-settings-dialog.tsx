@@ -22,7 +22,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import {
   dashboardSettingsService,
-  type DashboardChartRequest,
   type DashboardSetting,
   type IndicatorChartSetting,
 } from "@/lib/api";
@@ -32,7 +31,6 @@ import {
   useAllProjects,
   useDashboardMeta,
 } from "@/lib/hooks/use-api";
-import type { Indicator, Organization, Project } from "@/lib/types";
 
 type AnalysisTemplateMode = "standard" | "custom";
 type LegacyChartType = "bar" | "line" | "pie";
@@ -51,50 +49,30 @@ type FieldOption = {
   label: string;
 };
 
-type SelectOption = {
-  value: string;
-  label: string;
+type LegacyIndicatorReference = { id?: string | number | null } | string | number | null | undefined;
+type IndicatorDimension = { key?: string | null; label?: string | null };
+type IndicatorLike = {
+  id?: string | number | null;
+  name?: string | null;
+  type?: string | null;
+  aggregate_disaggregation_config?: { dimensions?: IndicatorDimension[] | null } | null;
 };
-
-type LegacyIndicatorReference =
-  | number
-  | string
-  | {
-      id?: number | string | null;
-    };
-
-type DashboardChartSettingDraft = IndicatorChartSetting & {
+type SelectOption = { value: string; label: string };
+type EntityWithId = { id?: string | number | null };
+type LegacyExistingChart = IndicatorChartSetting & {
   template_mode?: AnalysisTemplateMode;
-  indicator_ids?: Array<number | string>;
+  indicator_ids?: Array<string | number> | null;
   indicators?: LegacyIndicatorReference[];
-  date_from?: string | null;
-  date_to?: string | null;
   target?: boolean;
   trendline?: boolean;
-  custom_analysis?: Partial<CustomAnalysisState> | Record<string, unknown> | null;
-  project_ids?: Array<number | string>;
-  organization_ids?: Array<number | string>;
-  dashboard_breakdowns?: unknown;
-};
-
-type DashboardWithBreakdowns = DashboardSetting & {
-  breakdowns?: unknown[];
-};
-
-type ExtendedDashboardChartRequest = DashboardChartRequest & {
-  template_mode?: AnalysisTemplateMode;
-  custom_analysis?: Record<string, unknown>;
-  dashboard_breakdowns?: unknown;
-  project_ids?: Array<number | string>;
-  organization_ids?: Array<number | string>;
-  indicator_ids?: number[];
   date_from?: string | null;
   date_to?: string | null;
-  target?: boolean;
-  trendline?: boolean;
+  filters?: unknown[];
 };
+type DashboardWithBreakdowns = DashboardSetting & { breakdowns?: unknown[] };
 
-const EMPTY_ITEMS: never[] = [];
+const EMPTY_ITEMS: IndicatorLike[] = [];
+const EMPTY_ENTITIES: EntityWithId[] = [];
 const DEFAULT_CHART_TYPES: Array<{ value: LegacyChartType; label: string }> = [
   { value: "bar", label: "Bar" },
   { value: "line", label: "Line" },
@@ -105,24 +83,18 @@ const DEFAULT_AXES = [
   { value: "month", label: "Month" },
 ];
 
-function extractIndicatorReferenceId(indicator: LegacyIndicatorReference): string | number {
-  if (typeof indicator === "object" && indicator !== null) {
-    return indicator.id ?? "";
-  }
-  if (typeof indicator === "string" || typeof indicator === "number") {
-    return indicator;
-  }
-  return "";
-}
-
-function normalizeNumberArray(values?: Array<string | number> | null): number[] {
+function normalizeArray(values?: Array<string | number> | null): number[] {
   return (values ?? [])
     .map((value) => Number(value))
     .filter((value) => Number.isFinite(value));
 }
 
-function normalizeStringArray(values?: Array<string | number> | null): string[] {
-  return (values ?? []).map((value) => String(value)).filter((value) => value.length > 0);
+function toLegacyIndicatorId(value: LegacyIndicatorReference): string | number | null {
+  if (value === null || value === undefined) return null;
+  if (typeof value === "object") {
+    return value.id ?? null;
+  }
+  return value;
 }
 
 function inferExistingMode(
@@ -130,7 +102,7 @@ function inferExistingMode(
   initialCustomAnalysis?: Partial<CustomAnalysisState> | null,
 ): AnalysisTemplateMode {
   if (initialCustomAnalysis) return "custom";
-  const explicitMode = (existing as DashboardChartSettingDraft | null | undefined)?.template_mode;
+  const explicitMode = (existing as LegacyExistingChart | null | undefined)?.template_mode;
   if (explicitMode === "custom" || explicitMode === "standard") return explicitMode;
   return "standard";
 }
@@ -147,37 +119,37 @@ function buildExistingCustomState(
     return {};
   }
 
-  const existingDraft = existing as DashboardChartSettingDraft;
+  const existingChart = existing as LegacyExistingChart;
+  const rawChartType = String(existingChart.chart_type ?? "bar");
+  const showAs: CustomAnalysisState["showAs"] =
+    rawChartType === "line"
+      ? "line"
+      : rawChartType === "pie"
+        ? "donut"
+        : Boolean(existingChart.tabular)
+          ? "table"
+          : "bar";
 
   return {
-    indicatorIds: normalizeStringArray(
-      existingDraft.indicator_ids ??
-        existingDraft.indicators?.map(extractIndicatorReferenceId),
-    ),
-    showAs:
-      existingDraft.chart_type === "line"
-        ? "line"
-        : existingDraft.chart_type === "pie"
-          ? "donut"
-          : existingDraft.stack
-            ? "stacked-bar"
-            : "bar",
-    calculateUsing: existingDraft.average ? "average" : "sum",
-    compareBy: "none",
-    breakDownBy: existingDraft.legend ?? "none",
-    secondaryBreakdown: existingDraft.stack ?? "none",
-    compareWith: Boolean(existingDraft.target ?? existingDraft.use_target) ? "target" : "none",
-    includeDataTable: Boolean(existingDraft.tabular),
-    targetLine: Boolean(existingDraft.target ?? existingDraft.use_target),
-    trendLine: Boolean(existingDraft.trendline),
-    dateFrom: existingDraft.date_from ?? "",
-    dateTo: existingDraft.date_to ?? "",
+    indicatorIds: normalizeArray(
+      existingChart.indicator_ids ??
+        existingChart.indicators?.map((indicator) => toLegacyIndicatorId(indicator)).filter(
+          (indicator): indicator is string | number => indicator !== null,
+        ),
+    ).map((value) => String(value)),
+    showAs,
+    calculateUsing: Boolean(existingChart.average) ? "average" : "sum",
+    breakDownBy: existingChart.legend ?? "none",
+    secondaryBreakdown: existingChart.stack ?? "none",
+    targetLine: Boolean(existingChart.target),
+    includeDataTable: Boolean(existingChart.tabular),
+    trendLine: Boolean(existingChart.trendline),
+    dateFrom: existingChart.date_from ?? "",
+    dateTo: existingChart.date_to ?? "",
   };
 }
 
-function buildFieldOptions(
-  selectedIndicators: Array<Pick<Indicator, "aggregate_disaggregation_config">>,
-): FieldOption[] {
+function buildFieldOptions(selectedIndicators: IndicatorLike[]): FieldOption[] {
   const seen = new Map<string, string>();
 
   for (const indicator of selectedIndicators) {
@@ -198,32 +170,22 @@ export function DashboardChartSettingsDialog(
 ) {
   const { open, onOpenChange, dashboard, existing, initialCustomAnalysis, onSaved } = props;
   const { toast } = useToast();
-  const existingDraft = existing as DashboardChartSettingDraft | null;
-  const dashboardWithBreakdowns = dashboard as DashboardWithBreakdowns | null;
 
   const { data: indicatorsData } = useAllIndicators();
   const { data: projectsData } = useAllProjects();
   const { data: organizationsData } = useAllOrganizations();
   const { data: dashboardMeta } = useDashboardMeta();
-  const dashboardMetaDraft = dashboardMeta as
-    | {
-        chart_types?: SelectOption[];
-        axes?: SelectOption[];
-        dashboard_breakdowns?: unknown;
-        breakdowns?: unknown;
-      }
-    | null
-    | undefined;
 
-  const indicators: Indicator[] = indicatorsData ?? EMPTY_ITEMS;
-  const projects: Project[] = projectsData?.results ?? EMPTY_ITEMS;
-  const organizations: Organization[] = organizationsData?.results ?? EMPTY_ITEMS;
-  const chartTypes: SelectOption[] = dashboardMetaDraft?.chart_types ?? DEFAULT_CHART_TYPES;
-  const axes: SelectOption[] = dashboardMetaDraft?.axes ?? DEFAULT_AXES;
+  const indicators = indicatorsData ?? EMPTY_ITEMS;
+  const projects: EntityWithId[] = (projectsData?.results as EntityWithId[] | undefined) ?? EMPTY_ENTITIES;
+  const organizations: EntityWithId[] =
+    (organizationsData?.results as EntityWithId[] | undefined) ?? EMPTY_ENTITIES;
+  const chartTypes: SelectOption[] = (dashboardMeta?.chart_types as SelectOption[] | undefined) ?? DEFAULT_CHART_TYPES;
+  const axes: SelectOption[] = (dashboardMeta?.axes as SelectOption[] | undefined) ?? DEFAULT_AXES;
   const dashboardBreakdowns =
-    dashboardMetaDraft?.dashboard_breakdowns ??
-    dashboardMetaDraft?.breakdowns ??
-    dashboardWithBreakdowns?.breakdowns ??
+    dashboardMeta?.dashboard_breakdowns ??
+    dashboardMeta?.breakdowns ??
+    (dashboard as DashboardWithBreakdowns | null)?.breakdowns ??
     [];
 
   const [saving, setSaving] = useState(false);
@@ -249,28 +211,31 @@ export function DashboardChartSettingsDialog(
 
     const mode = inferExistingMode(existing, initialCustomAnalysis);
     const customState = buildExistingCustomState(existing, initialCustomAnalysis);
+    const existingChart = existing as LegacyExistingChart | null | undefined;
 
     setAnalysisTemplate(mode);
-    setName(existingDraft?.name ?? "");
+    setName(existingChart?.name ?? "");
     setSelectedIndicatorIds(
-      normalizeNumberArray(
-        existingDraft?.indicator_ids ??
-          existingDraft?.indicators?.map(extractIndicatorReferenceId),
+      normalizeArray(
+        existingChart?.indicator_ids ??
+          existingChart?.indicators?.map((indicator) => toLegacyIndicatorId(indicator)).filter(
+            (indicator): indicator is string | number => indicator !== null,
+          ),
       ),
     );
-    setChartType(existingDraft?.chart_type ?? "bar");
-    setAxis(existingDraft?.axis ?? "quarter");
-    setLegend(existingDraft?.legend ?? "none");
-    setStack(existingDraft?.stack ?? "none");
-    setUseTarget(Boolean(existingDraft?.target ?? existingDraft?.use_target));
-    setAverage(Boolean(existingDraft?.average));
-    setTabular(Boolean(existingDraft?.tabular));
-    setUseTrendLine(Boolean(existingDraft?.trendline));
-    setStart(existingDraft?.date_from ?? existingDraft?.start ?? "");
-    setEnd(existingDraft?.date_to ?? existingDraft?.end ?? "");
+    setChartType(existingChart?.chart_type ?? "bar");
+    setAxis((existingChart?.axis as "quarter" | "month" | undefined) ?? "quarter");
+    setLegend(existingChart?.legend ?? "none");
+    setStack(existingChart?.stack ?? "none");
+    setUseTarget(Boolean(existingChart?.target));
+    setAverage(Boolean(existingChart?.average));
+    setTabular(Boolean(existingChart?.tabular));
+    setUseTrendLine(Boolean(existingChart?.trendline));
+    setStart(existingChart?.date_from ?? "");
+    setEnd(existingChart?.date_to ?? "");
     setIndicatorSearch("");
     setCustomJson(JSON.stringify(customState, null, 2));
-  }, [existing, existingDraft, initialCustomAnalysis, open]);
+  }, [existing, initialCustomAnalysis, open]);
 
   const filteredIndicators = useMemo(() => {
     const query = indicatorSearch.trim().toLowerCase();
@@ -351,25 +316,6 @@ export function DashboardChartSettingsDialog(
     );
   };
 
-  const persistedIndicatorIds = useMemo(
-    () =>
-      selectedIndicatorIds.length > 0
-        ? selectedIndicatorIds
-        : normalizeNumberArray(
-            existingDraft?.indicator_ids ??
-              existingDraft?.indicators?.map(extractIndicatorReferenceId),
-          ),
-    [existingDraft?.indicator_ids, existingDraft?.indicators, selectedIndicatorIds],
-  );
-
-  const saveDashboardChart = async (payload: ExtendedDashboardChartRequest) => {
-    if (!dashboard?.id) return;
-    await dashboardSettingsService.saveChart(dashboard.id, {
-      ...payload,
-      id: existing?.id ?? payload.id,
-    } as DashboardChartRequest);
-  };
-
   const handleSave = async () => {
     if (saving || !dashboard?.id) return;
 
@@ -407,6 +353,11 @@ export function DashboardChartSettingsDialog(
 
     setSaving(true);
     try {
+      const chartService = dashboardSettingsService as unknown as {
+        updateChart: (dashboardId: number, chartId: number, request: Record<string, unknown>) => Promise<unknown>;
+        saveChart: (dashboardId: number, request: Record<string, unknown>) => Promise<unknown>;
+      };
+
       if (analysisTemplate === "custom") {
         let parsedCustomState: Record<string, unknown>;
         try {
@@ -422,48 +373,43 @@ export function DashboardChartSettingsDialog(
         }
 
         const payload = {
-          id: existing?.id,
-          name: name.trim() || existingDraft?.name || "Custom analysis",
-          indicators: persistedIndicatorIds,
-          chart_type: existingDraft?.chart_type ?? "bar",
-          axis: existingDraft?.axis ?? null,
-          legend: existingDraft?.legend ?? null,
-          stack: existingDraft?.stack ?? null,
-          use_target: Boolean(existingDraft?.target ?? existingDraft?.use_target),
-          average: Boolean(existingDraft?.average),
-          tabular: Boolean(existingDraft?.tabular),
-          repeat_only: Boolean(existingDraft?.repeat_only),
-          repeat_n: existingDraft?.repeat_n ?? null,
-          start: existingDraft?.start ?? null,
-          end: existingDraft?.end ?? null,
+          ...(existing ?? {}),
+          name: name.trim() || (existing as LegacyExistingChart | null | undefined)?.name || "Custom analysis",
           template_mode: "custom",
           custom_analysis: parsedCustomState,
-        } satisfies ExtendedDashboardChartRequest;
+        };
 
-        await saveDashboardChart(payload);
+        if (existing?.id) {
+          await chartService.updateChart(dashboard.id, existing.id, payload);
+        } else {
+          await chartService.saveChart(dashboard.id, payload);
+        }
       } else {
         const payload = {
-          id: existing?.id,
+          ...(existing ?? {}),
           name: name.trim(),
-          indicators: persistedIndicatorIds,
           chart_type: chartType,
-          axis: canSetAxis ? axis : null as DashboardChartRequest["axis"],
-          legend: legend === "none" ? null : legend as DashboardChartRequest["legend"],
-          stack: stack === "none" ? null : stack as DashboardChartRequest["stack"],
-          use_target: canUseTargets ? useTarget : false,
+          axis: canSetAxis ? axis : null,
+          legend: legend === "none" ? null : legend,
+          stack: stack === "none" ? null : stack,
+          target: canUseTargets ? useTarget : false,
           average: canAverage ? average : false,
           tabular,
           trendline: chartType === "line" ? useTrendLine : false,
           date_from: start || null,
           date_to: end || null,
           indicator_ids: selectedIndicatorIds,
-          project_ids: projects.map((project) => project.id),
-          organization_ids: organizations.map((organization) => organization.id),
+          project_ids: projects.map((project) => Number(project.id)),
+          organization_ids: organizations.map((organization) => Number(organization.id)),
           dashboard_breakdowns: dashboardBreakdowns,
           template_mode: "standard",
-        } satisfies ExtendedDashboardChartRequest;
+        };
 
-        await saveDashboardChart(payload);
+        if (existing?.id) {
+          await chartService.updateChart(dashboard.id, existing.id, payload);
+        } else {
+          await chartService.saveChart(dashboard.id, payload);
+        }
       }
 
       await onSaved(dashboard.id);

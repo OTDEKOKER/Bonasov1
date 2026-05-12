@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useCallback, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Plus, ClipboardList, ChevronRight, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { PageHeader } from "@/components/shared/page-header"
 import { useAssessments } from "@/lib/hooks/use-api"
 import { assessmentsService, indicatorsService } from "@/lib/api"
+import { useAuth } from "@/lib/contexts/auth-context"
 import {
   Dialog,
   DialogContent,
@@ -34,7 +35,7 @@ import {
 } from "@/components/ui/accordion"
 import { useToast } from "@/hooks/use-toast"
 import type { CreateIndicatorRequest } from "@/lib/api"
-import { useAuth } from "@/lib/contexts/auth-context"
+import type { Assessment } from "@/lib/types"
 import { getUserOrganizationId } from "@/lib/utils/organization"
 
 const typeLabels: Record<string, string> = {
@@ -53,12 +54,18 @@ export default function AssessmentsPage() {
   const { toast } = useToast()
   const { user } = useAuth()
   const organizationId = getUserOrganizationId(user)
-  const assessmentFilters = organizationId ? { organizations: String(organizationId) } : undefined
+  const assessmentFilters = organizationId
+    ? { organizations: String(organizationId), page_size: "100" }
+    : { page_size: "100" }
   const { data, isLoading, error, mutate } = useAssessments(assessmentFilters)
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isTemplatesOpen, setIsTemplatesOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isTemplateSubmitting, setIsTemplateSubmitting] = useState(false)
+  const [openAssessmentIds, setOpenAssessmentIds] = useState<Record<string, boolean>>({})
+  const [assessmentDetailsById, setAssessmentDetailsById] = useState<Record<string, Assessment>>({})
+  const [loadingAssessmentId, setLoadingAssessmentId] = useState<string | null>(null)
+  const [assessmentDetailErrors, setAssessmentDetailErrors] = useState<Record<string, string>>({})
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -66,43 +73,59 @@ export default function AssessmentsPage() {
 
   const assessments = data?.results || []
 
+  const loadAssessmentDetails = useCallback(async (assessmentId: string) => {
+    if (assessmentDetailsById[assessmentId] || loadingAssessmentId === assessmentId) return
+
+    setLoadingAssessmentId(assessmentId)
+    setAssessmentDetailErrors((current) => {
+      if (!current[assessmentId]) return current
+      const next = { ...current }
+      delete next[assessmentId]
+      return next
+    })
+
+    try {
+      const detail = await assessmentsService.get(assessmentId)
+      setAssessmentDetailsById((current) => ({ ...current, [assessmentId]: detail }))
+    } catch (detailError) {
+      const message =
+        detailError instanceof Error && detailError.message
+          ? detailError.message
+          : "Failed to load assessment questions."
+      setAssessmentDetailErrors((current) => ({ ...current, [assessmentId]: message }))
+    } finally {
+      setLoadingAssessmentId((current) => (current === assessmentId ? null : current))
+    }
+  }, [assessmentDetailsById, loadingAssessmentId])
+
   const ensureIndicator = async (request: CreateIndicatorRequest): Promise<number> => {
     const organizationFilter = request.organizations?.[0]
       ? String(request.organizations[0])
       : undefined
 
-    const listParams: { search: string; page_size: string; organizations?: string } = {
+    const listFilters: { search: string; page_size: string; organizations?: string } = {
       search: request.code,
       page_size: "100",
     }
     if (organizationFilter) {
-      listParams.organizations = organizationFilter
+      listFilters.organizations = organizationFilter
     }
 
-    const findExactMatchId = (
-      results: Array<{ code?: string; id?: number | string; organizations?: unknown }>,
-    ) => {
-      const exactMatch = (results || []).find((indicator) => {
-        if (indicator.code !== request.code) return false
+    const findExactMatchId = (results: Array<{ code?: string; id?: number | string; organizations?: unknown }>) => {
+      const exactMatch = (results || []).find((i) => {
+        if (i.code !== request.code) return false
         if (!request.organizations?.length) return true
-
         const orgId = String(request.organizations[0])
-        if (!Array.isArray(indicator.organizations) || indicator.organizations.length === 0) {
-          return true
-        }
-
-        return indicator.organizations.some((org) => {
-          const orgValue =
-            typeof org === "object" && org !== null ? (org as { id?: string | number }).id : org
+        return Array.isArray(i.organizations) && i.organizations.some((org) => {
+          const orgValue = typeof org === 'object' && org !== null ? (org as { id?: string | number }).id : org
           return String(orgValue) === orgId
         })
       })
-
       return exactMatch?.id ? Number(exactMatch.id) : null
     }
 
     try {
-      const list = await indicatorsService.list(listParams)
+      const list = await indicatorsService.list(listFilters)
       const existingId = findExactMatchId(list.results || [])
       if (existingId) return existingId
     } catch (listError) {
@@ -114,19 +137,12 @@ export default function AssessmentsPage() {
       return Number(created.id)
     } catch {
       try {
-        const retry = await indicatorsService.list(listParams)
+        const retry = await indicatorsService.list(listFilters)
         const retryMatchId = findExactMatchId(retry.results || [])
         if (retryMatchId) return retryMatchId
       } catch (retryError) {
         console.warn("Indicator retry lookup failed", retryError)
       }
-
-      const all = await indicatorsService.listAll(
-        organizationFilter ? { organizations: organizationFilter } : undefined,
-      )
-      const allMatch = findExactMatchId(all)
-      if (allMatch) return allMatch
-
       throw new Error(`Failed to create indicator: ${request.code}`)
     }
   }
@@ -142,7 +158,7 @@ export default function AssessmentsPage() {
       })
 
       const category = "hiv_prevention"
-      const orgArray = organizationId ? [organizationId] : undefined
+      const orgArray = organizationId ? [organizationId] : []
       const indicators: Array<{
         request: CreateIndicatorRequest
         order: number
@@ -292,7 +308,15 @@ export default function AssessmentsPage() {
 
       for (const item of indicators) {
         const indicatorId = await ensureIndicator(item.request)
-        await assessmentsService.addIndicator(Number(assessment.id), indicatorId, item.order, item.required)
+        await assessmentsService.saveQuestion(Number(assessment.id), {
+          indicator_id: indicatorId,
+          question_text: item.request.name,
+          response_type: item.request.type,
+          response_options: item.request.options,
+          response_sub_labels: item.request.sub_labels,
+          order: item.order,
+          is_required: item.required,
+        })
       }
 
       toast({
@@ -304,9 +328,10 @@ export default function AssessmentsPage() {
       router.push(`/indicators/assessments/${assessment.id}`)
     } catch (err) {
       console.error("Failed to create template assessment", err)
+      const description = err instanceof Error && err.message ? err.message : "Failed to create template assessment."
       toast({
         title: "Error",
-        description: "Failed to create template assessment.",
+        description,
         variant: "destructive",
       })
     } finally {
@@ -352,9 +377,10 @@ export default function AssessmentsPage() {
   }
 
   if (error) {
+    const errorMessage = error instanceof Error && error.message ? error.message : "Failed to load assessments"
     return (
       <div className="flex h-[60vh] flex-col items-center justify-center gap-4">
-        <p className="text-muted-foreground">Failed to load assessments</p>
+        <p className="max-w-xl text-center text-muted-foreground">{errorMessage}</p>
         <Button onClick={() => mutate()}>Retry</Button>
       </div>
     )
@@ -386,7 +412,11 @@ export default function AssessmentsPage() {
       {/* Assessment cards */}
       <div className="grid gap-6 lg:grid-cols-2">
         {assessments.map((assessment) => {
-          const indicators = assessment.indicators_detail || []
+          const assessmentId = String(assessment.id)
+          const isExpanded = Boolean(openAssessmentIds[assessmentId])
+          const indicators = assessmentDetailsById[assessmentId]?.indicators_detail || []
+          const isIndicatorLoading = loadingAssessmentId === assessmentId
+          const detailError = assessmentDetailErrors[assessmentId]
           
           return (
             <Card key={assessment.id} className="overflow-hidden">
@@ -407,7 +437,19 @@ export default function AssessmentsPage() {
                 </div>
               </CardHeader>
               <CardContent className="p-0">
-                <Accordion type="single" collapsible className="w-full">
+                <Accordion
+                  type="single"
+                  collapsible
+                  className="w-full"
+                  value={isExpanded ? "indicators" : undefined}
+                  onValueChange={(value) => {
+                    const nextExpanded = value === "indicators"
+                    setOpenAssessmentIds((current) => ({ ...current, [assessmentId]: nextExpanded }))
+                    if (nextExpanded) {
+                      void loadAssessmentDetails(assessmentId)
+                    }
+                  }}
+                >
                   <AccordionItem value="indicators" className="border-0">
                     <AccordionTrigger className="px-6 py-4 hover:no-underline">
                       <span className="text-sm text-muted-foreground">
@@ -415,36 +457,56 @@ export default function AssessmentsPage() {
                       </span>
                     </AccordionTrigger>
                     <AccordionContent className="px-6 pb-4">
-                      <div className="space-y-2">
-                        {indicators.map((indicator, index) => (
-                          <div
-                            key={indicator.id}
-                            className="flex items-center gap-3 rounded-lg border border-border bg-card p-3"
-                          >
-                            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-secondary text-xs font-medium text-muted-foreground">
-                              {index + 1}
-                            </div>
-                            <div className="flex-1">
-                              <p className="text-sm font-medium text-foreground">
-                                {indicator.indicator_detail?.name || "Indicator"}
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                {indicator.indicator_detail?.code || "—"}
-                              </p>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Badge variant="outline" className="text-xs">
-                                {typeLabels[indicator.indicator_detail?.type || ""] || indicator.indicator_detail?.type || "—"}
-                              </Badge>
-                              {indicator.is_required && (
-                                <Badge variant="secondary" className="bg-destructive/10 text-destructive text-xs">
-                                  Required
+                      {isIndicatorLoading ? (
+                        <div className="flex items-center gap-2 py-2 text-sm text-muted-foreground">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span>Loading questions...</span>
+                        </div>
+                      ) : detailError ? (
+                        <div className="space-y-3 py-2">
+                          <p className="text-sm text-muted-foreground">{detailError}</p>
+                          <Button variant="outline" size="sm" onClick={() => void loadAssessmentDetails(assessmentId)}>
+                            Retry
+                          </Button>
+                        </div>
+                      ) : indicators.length ? (
+                        <div className="space-y-2">
+                          {indicators.map((indicator, index) => (
+                            <div
+                              key={indicator.id}
+                              className="flex items-center gap-3 rounded-lg border border-border bg-card p-3"
+                            >
+                              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-secondary text-xs font-medium text-muted-foreground">
+                                {index + 1}
+                              </div>
+                              <div className="flex-1">
+                                <p className="text-sm font-medium text-foreground">
+                                  {indicator.question_text_display || indicator.question_text || indicator.indicator_detail?.name || "Question"}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  {indicator.indicator_detail?.code || "—"}
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Badge variant="outline" className="text-xs">
+                                  {typeLabels[indicator.response_type_display || indicator.response_type || indicator.indicator_detail?.type || ""] ||
+                                    indicator.response_type_display ||
+                                    indicator.response_type ||
+                                    indicator.indicator_detail?.type ||
+                                    "—"}
                                 </Badge>
-                              )}
+                                {indicator.is_required && (
+                                  <Badge variant="secondary" className="bg-destructive/10 text-destructive text-xs">
+                                    Required
+                                  </Badge>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        ))}
-                      </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="py-2 text-sm text-muted-foreground">No questions in this assessment yet.</p>
+                      )}
                     </AccordionContent>
                   </AccordionItem>
                 </Accordion>
@@ -490,7 +552,7 @@ export default function AssessmentsPage() {
           <DialogHeader>
             <DialogTitle>Create Assessment</DialogTitle>
             <DialogDescription>
-              Create a new assessment form to group questions
+              Create a new assessment form to group linked reporting questions
             </DialogDescription>
           </DialogHeader>
           <form className="space-y-4">

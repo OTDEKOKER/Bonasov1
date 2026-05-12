@@ -10,17 +10,12 @@ npm install
 ### 2. Configure environment
 Create `frontend/.env.local` with:
 ```
-NEXT_PUBLIC_API_URL=/api
-BACKEND_API_URL=http://localhost:8000/api
+NEXT_PUBLIC_API_URL=http://localhost:8000/api
 ```
 
 Alternative supported keys:
 - `BACKEND_API_URL` for the Next.js `/api/*` rewrite target
 - `NEXT_PUBLIC_API_BASE_URL` as a legacy alias for `NEXT_PUBLIC_API_URL`
-
-Do not point `NEXT_PUBLIC_API_URL` at the same frontend host's `/api` URL in production
-without also setting `BACKEND_API_URL`. If the `/api` proxy targets itself, requests will
-recurse and eventually time out.
 
 ### 3. Start development server
 ```bash
@@ -34,7 +29,7 @@ This repo can now run as a Dockerized frontend.
 By default, `compose.yaml` builds the frontend with:
 ```
 NEXT_PUBLIC_API_URL=/api
-BACKEND_API_URL=http://host.docker.internal:8000/api
+BACKEND_API_URL=http://host.docker.internal:18000/api
 ```
 
 Then start it with:
@@ -42,7 +37,7 @@ Then start it with:
 docker compose up --build
 ```
 
-That setup assumes Django is still running on the host machine at `:8000`.
+That setup assumes Django is still running on the host machine at `:18000`.
 
 If you need to override those Docker values, use `DOCKER_NEXT_PUBLIC_API_URL` and
 `DOCKER_BACKEND_API_URL` instead of your normal local `.env.local` keys.
@@ -60,13 +55,13 @@ docker compose -f compose.full-stack.local.yaml up --build
 ```
 
 That file starts:
-- frontend on `http://localhost:3000`
-- Django on `http://localhost:8000`
+- frontend on `http://localhost:13000`
+- Django on `http://localhost:18000`
 - PostgreSQL on `localhost:5432`
 
 It uses:
 - `NEXT_PUBLIC_API_URL=/api` in the browser
-- `BACKEND_API_URL=http://backend:8000/api` inside the frontend container
+- `BACKEND_API_URL=http://backend:18000/api` inside the frontend container
 - `DATABASE_URL=postgres://bonaso:bonaso@postgres:5432/bonaso` for Django
 
 You can override the backend source path with:
@@ -75,9 +70,9 @@ $env:DJANGO_BACKEND_PATH="C:/Projects/django_backend"
 docker compose -f compose.full-stack.local.yaml up --build
 ```
 
-If port `3000` is already in use, override the frontend port:
+If port `13000` is already in use, override the frontend port:
 ```powershell
-$env:FRONTEND_PORT="3001"
+$env:FRONTEND_PORT="13001"
 docker compose -f compose.full-stack.local.yaml up --build
 ```
 
@@ -152,8 +147,7 @@ Relations are resolved client-side using IDs from the API.
 ## Deployment
 1. Set production API URL:
 ```
-NEXT_PUBLIC_API_URL=/api
-BACKEND_API_URL=https://your-api-domain/api
+NEXT_PUBLIC_API_URL=https://your-api-domain/api
 ```
 2. Build:
 ```bash
@@ -166,16 +160,11 @@ npm run start
 
 `npm run build` now validates environment configuration and runs lint before the production build.
 
-If you deploy behind the Next.js `/api` proxy, prefer:
+If you deploy in Docker behind the Next.js rewrite proxy, prefer:
 ```
 NEXT_PUBLIC_API_URL=/api
-BACKEND_API_URL=http://backend:8000/api
+BACKEND_API_URL=http://backend:18000/api
 ```
-
-If you intentionally bypass the Next.js proxy and call Django directly from the browser, set
-`NEXT_PUBLIC_API_URL` to the Django API origin and ensure CORS is configured there. Do not use
-the frontend host's `/api` URL as the browser API base unless `BACKEND_API_URL` points to a
-different upstream.
 
 `NEXT_PUBLIC_*` values are baked into the Next.js build, so rebuild the image when those change.
 

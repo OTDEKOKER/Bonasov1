@@ -32,4 +32,6 @@ export type CoordinatorTargetsFilterState = {
 export type NamedOption = {
   value: string;
   label: string;
+  hint?: string;
+  searchText?: string;
 };

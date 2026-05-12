@@ -45,6 +45,27 @@ export function ServiceWorkerRegister() {
       void scheduleMutationSync()
     }
 
+    let hasReloadedForSwUpdate = false
+    const handleControllerChange = () => {
+      if (hasReloadedForSwUpdate) return
+      hasReloadedForSwUpdate = true
+      window.location.reload()
+    }
+
+    const activateWaitingWorker = (registration: ServiceWorkerRegistration) => {
+      registration.waiting?.postMessage({ type: "SKIP_WAITING" })
+    }
+
+    const handleUpdateFound = (registration: ServiceWorkerRegistration) => {
+      const installingWorker = registration.installing
+      if (!installingWorker) return
+      installingWorker.addEventListener("statechange", () => {
+        if (installingWorker.state === "installed" && navigator.serviceWorker.controller) {
+          activateWaitingWorker(registration)
+        }
+      })
+    }
+
     const handleMessage = (event: MessageEvent<SyncUpdatePayload>) => {
       if (event.data?.type !== "OFFLINE_SYNC_UPDATE") return
       window.dispatchEvent(
@@ -60,7 +81,10 @@ export function ServiceWorkerRegister() {
 
     navigator.serviceWorker
       .register("/sw.js")
-      .then(() => {
+      .then((registration) => {
+        registration.addEventListener("updatefound", () => handleUpdateFound(registration))
+        activateWaitingWorker(registration)
+        void registration.update()
         triggerSync()
       })
       .catch((error) => {
@@ -68,10 +92,12 @@ export function ServiceWorkerRegister() {
       })
 
     window.addEventListener("online", triggerSync)
+    navigator.serviceWorker.addEventListener("controllerchange", handleControllerChange)
     navigator.serviceWorker.addEventListener("message", handleMessage)
 
     return () => {
       window.removeEventListener("online", triggerSync)
+      navigator.serviceWorker.removeEventListener("controllerchange", handleControllerChange)
       navigator.serviceWorker.removeEventListener("message", handleMessage)
     }
   }, [])

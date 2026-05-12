@@ -52,9 +52,14 @@ type ManualImportRecord = {
 
 const STATUS_OPTIONS = [
   { value: "all", label: "All statuses" },
+  { value: "uploaded", label: "Uploaded" },
+  { value: "analyzing", label: "Analyzing" },
+  { value: "ready_for_review", label: "Ready for review" },
   { value: "pending", label: "Pending" },
   { value: "processing", label: "Processing" },
+  { value: "validated", label: "Validated" },
   { value: "completed", label: "Completed" },
+  { value: "imported", label: "Imported" },
   { value: "failed", label: "Failed" },
 ];
 
@@ -229,7 +234,7 @@ export default function UploadImportsPage() {
       imports.filter((item) => item.status === "failed").length +
       manualImports.filter((item) => item.status === "failed").length;
     const processing =
-      imports.filter((item) => item.status === "processing").length +
+      imports.filter((item) => item.status === "processing" || item.status === "ready_for_review").length +
       manualImports.filter((item) => (item.status || "draft") === "draft").length;
     return { total, completed, failed, processing };
   }, [imports, manualImports]);
@@ -331,7 +336,7 @@ export default function UploadImportsPage() {
                       <div className="text-xs text-muted-foreground">Job #{job.id}</div>
                     </div>
                     <Badge variant={job.status === "completed" ? "default" : job.status === "failed" ? "destructive" : "secondary"}>
-                      {job.status}
+                      {job.status.replace(/_/g, " ")}
                     </Badge>
                   </div>
                   <div className="mt-2 grid gap-2 text-xs text-muted-foreground md:grid-cols-2 lg:grid-cols-4">
@@ -343,7 +348,13 @@ export default function UploadImportsPage() {
                     <div>Completed: {formatDateTime(job.completed_at)}</div>
                     <div>Created: {formatDateTime(job.created_at)}</div>
                     <div>
-                      Upload: <Link href="/uploads" className="text-primary hover:underline">View uploads</Link>
+                      Upload:{" "}
+                      <Link
+                        href={`/uploads?highlight=${job.upload}`}
+                        className="text-primary hover:underline"
+                      >
+                        View upload
+                      </Link>
                     </div>
                   </div>
                 </div>

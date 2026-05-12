@@ -327,7 +327,7 @@ export function VisualizationMatrixTable(props: VisualizationMatrixTableProps) {
           </table>
         </div>
 
-        {insightText ? <ChartInsightFooter>{insightText}</ChartInsightFooter> : null}
+        {insightText ? <ChartInsightFooter text={insightText} /> : null}
       </CardContent>
     </Card>
   );

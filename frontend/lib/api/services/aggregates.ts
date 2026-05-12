@@ -7,6 +7,11 @@
 
 import { api, fetchWithAuth, normalizeApiError, type PaginatedResponse } from '../client';
 import type { Aggregate } from '@/lib/types';
+import {
+  getCanonicalIndicatorLabelById,
+  normalizeIndicatorDisplayName,
+  resolveIndicatorIdString,
+} from '@/lib/indicators/id-aliases';
 
 // ============================================================================
 // Types
@@ -20,6 +25,8 @@ export interface AggregateFilters {
   date_from?: string;
   date_to?: string;
   organization?: string;
+  coordinator?: string;
+  include_org_descendants?: string;
   status?: string;
   page?: string;
   page_size?: string;
@@ -85,6 +92,12 @@ export interface AggregateReviewRequest {
   notes?: string;
 }
 
+export interface BulkApproveResponse {
+  approved: number;
+  skipped: number;
+  results: Aggregate[];
+}
+
 export interface AggregateFlagRequest {
   reason: 'duplicate' | 'incorrect_data' | 'suspicious' | 'incomplete' | 'other';
   description?: string;
@@ -118,57 +131,68 @@ const cleanParams = (filters?: Record<string, string | undefined | null>) => {
   return Object.keys(params).length ? params : undefined;
 };
 
+const normalizeAggregate = (aggregate: Aggregate): Aggregate => {
+  const resolvedIndicatorId = resolveIndicatorIdString(aggregate.indicator);
+  const canonicalLabel = getCanonicalIndicatorLabelById(aggregate.indicator);
+  const rawIndicatorName = String(aggregate.indicator_name || "").trim();
+  const normalizedName = normalizeIndicatorDisplayName(
+    canonicalLabel || rawIndicatorName || null,
+  );
+
+  return {
+    ...aggregate,
+    indicator: resolvedIndicatorId,
+    indicator_name: normalizedName || aggregate.indicator_name,
+    status: aggregate.status ?? 'approved',
+  };
+};
+
+const normalizeAggregateList = (aggregates?: Aggregate[] | null): Aggregate[] =>
+  (aggregates || []).map(normalizeAggregate);
+
 // ============================================================================
 // Aggregates Service
 // ============================================================================
 
 const LIST_ALL_PAGE_SIZE = '500';
+const LIST_ALL_MAX_PAGES = 500;
+const LIST_ALL_REQUEST_TIMEOUT_MS = 45_000;
+const LIST_ALL_MAX_RETRIES = 2;
+const LIST_ALL_RETRY_DELAY_MS = 700;
 
-async function listAllAggregatePages(filters?: AggregateFilters): Promise<{
-  count: number;
-  results: Aggregate[];
-}> {
-  const results: Aggregate[] = [];
-  const seenIds = new Set<string>();
-  const startPage = Math.max(1, Number(filters?.page || 1));
-  const baseFilters = cleanParams({ ...(filters || {}) } as Record<string, string | undefined>) || {};
-  delete baseFilters.page;
-  if (!baseFilters.page_size) {
-    baseFilters.page_size = LIST_ALL_PAGE_SIZE;
+type ListAllPageParams = Record<string, string>;
+
+async function delay(ms: number): Promise<void> {
+  await new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function fetchListAllPage(
+  params: ListAllPageParams,
+  page: string,
+): Promise<PaginatedResponse<Aggregate>> {
+  let lastError: unknown = null;
+
+  for (let attempt = 0; attempt <= LIST_ALL_MAX_RETRIES; attempt += 1) {
+    try {
+      const { data } = await api.get<PaginatedResponse<Aggregate>>(
+        '/aggregates/',
+        { ...params, page },
+        { timeoutMs: LIST_ALL_REQUEST_TIMEOUT_MS },
+      );
+      return data;
+    } catch (error) {
+      lastError = error;
+      const isLastAttempt = attempt >= LIST_ALL_MAX_RETRIES;
+      if (isLastAttempt) break;
+      await delay(LIST_ALL_RETRY_DELAY_MS * (attempt + 1));
+    }
   }
 
-  const appendPageResults = (items: Aggregate[]) => {
-    items.forEach((item) => {
-      const id = String(item?.id ?? "");
-      if (!id || seenIds.has(id)) return;
-      seenIds.add(id);
-      results.push(item);
-    });
-  };
-
-  const { data: firstPage } = await api.get<PaginatedResponse<Aggregate>>('/aggregates/', {
-    ...baseFilters,
-    page: String(startPage),
+  throw normalizeApiError({
+    status: (lastError as { status?: number } | null)?.status || 0,
+    payload: lastError,
+    fallbackMessage: `Failed to load aggregates page ${page}.`,
   });
-
-  appendPageResults(firstPage.results || []);
-
-  let nextUrl: string | null = firstPage.next;
-  const visitedPages = new Set<string>();
-
-  while (nextUrl) {
-    if (visitedPages.has(nextUrl)) break;
-    visitedPages.add(nextUrl);
-
-    const { data } = await api.get<PaginatedResponse<Aggregate>>(nextUrl);
-    appendPageResults(data.results || []);
-    nextUrl = data.next;
-  }
-
-  return {
-    count: Number(firstPage.count || results.length),
-    results,
-  };
 }
 
 export const aggregatesService = {
@@ -179,13 +203,57 @@ export const aggregatesService = {
   async list(filters?: AggregateFilters): Promise<PaginatedResponse<Aggregate>> {
     const params = cleanParams(filters as Record<string, string | undefined>);
     const { data } = await api.get<PaginatedResponse<Aggregate>>('/aggregates/', params);
-    return data;
+    return {
+      ...data,
+      results: normalizeAggregateList(data.results),
+    };
   },
   /**
    * List all aggregates across all pages
    */
   async listAll(filters?: AggregateFilters): Promise<Aggregate[]> {
-    const { results } = await listAllAggregatePages(filters);
+    const results: Aggregate[] = [];
+    const startPage = Math.max(1, Number(filters?.page || 1));
+    const baseFilters =
+      cleanParams({ ...(filters || {}) } as Record<string, string | undefined>) || {};
+    delete baseFilters.page;
+    if (!baseFilters.page_size) {
+      baseFilters.page_size = LIST_ALL_PAGE_SIZE;
+    }
+
+    const firstPage = await fetchListAllPage(baseFilters, String(startPage));
+
+    const firstPageResults = normalizeAggregateList(firstPage.results);
+    results.push(...firstPageResults);
+
+    if (!firstPage.next || firstPageResults.length === 0) {
+      return results;
+    }
+
+    let nextUrl: string | null = firstPage.next;
+    let pagesFetched = 1;
+
+    while (nextUrl && pagesFetched < LIST_ALL_MAX_PAGES) {
+      let nextPage: string | null = null;
+
+      try {
+        const parsedNextUrl = new URL(nextUrl, 'http://localhost');
+        nextPage = parsedNextUrl.searchParams.get('page');
+      } catch {
+        nextPage = null;
+      }
+
+      if (!nextPage) {
+        break;
+      }
+
+      const data = await fetchListAllPage(baseFilters, nextPage);
+
+      results.push(...normalizeAggregateList(data.results));
+      nextUrl = data.next;
+      pagesFetched += 1;
+    }
+
     return results;
   },
 
@@ -195,7 +263,7 @@ export const aggregatesService = {
    */
   async get(id: number): Promise<Aggregate> {
     const { data } = await api.get<Aggregate>(`/aggregates/${id}/`);
-    return data;
+    return normalizeAggregate(data);
   },
 
   /**
@@ -204,7 +272,7 @@ export const aggregatesService = {
    */
   async create(request: CreateAggregateRequest): Promise<Aggregate> {
     const { data } = await api.post<Aggregate>('/aggregates/', request);
-    return data;
+    return normalizeAggregate(data);
   },
 
   /**
@@ -213,7 +281,7 @@ export const aggregatesService = {
    */
   async update(id: number, request: UpdateAggregateRequest): Promise<Aggregate> {
     const { data } = await api.patch<Aggregate>(`/aggregates/${id}/`, request);
-    return data;
+    return normalizeAggregate(data);
   },
 
   /**
@@ -230,27 +298,39 @@ export const aggregatesService = {
    */
   async bulkCreate(request: BulkAggregateRequest): Promise<Aggregate[]> {
     const { data } = await api.post<{ results: Aggregate[] }>('/aggregates/bulk_create/', request);
-    return data.results || [];
+    return normalizeAggregateList(data.results);
   },
 
   async review(id: number, request?: AggregateReviewRequest): Promise<Aggregate> {
     const { data } = await api.post<Aggregate>(`/aggregates/${id}/review/`, request || {});
-    return data;
+    return normalizeAggregate(data);
   },
 
   async approve(id: number, request?: AggregateReviewRequest): Promise<Aggregate> {
     const { data } = await api.post<Aggregate>(`/aggregates/${id}/approve/`, request || {});
-    return data;
+    return normalizeAggregate(data);
+  },
+
+  async bulkApprove(ids: number[]): Promise<BulkApproveResponse> {
+    const { data } = await api.post<BulkApproveResponse>(
+      '/aggregates/bulk_approve/',
+      { ids },
+      { timeoutMs: 120_000 },
+    );
+    return {
+      ...data,
+      results: normalizeAggregateList(data.results),
+    };
   },
 
   async flag(id: number, request: AggregateFlagRequest): Promise<Aggregate> {
     const { data } = await api.post<Aggregate>(`/aggregates/${id}/flag/`, request);
-    return data;
+    return normalizeAggregate(data);
   },
 
   async reject(id: number, request?: AggregateFlagRequest): Promise<Aggregate> {
     const { data } = await api.post<Aggregate>(`/aggregates/${id}/reject/`, request || {});
-    return data;
+    return normalizeAggregate(data);
   },
 
   /**
@@ -295,7 +375,11 @@ export const aggregatesService = {
    * Django endpoint: GET /api/aggregates/export/
    */
   async export(filters?: AggregateFilters & { format?: 'csv' | 'excel' }): Promise<Blob> {
-    const params = cleanParams(filters as Record<string, string | undefined>);
+    const { format, ...rest } = filters ?? {};
+    const params = cleanParams({
+      ...(rest as Record<string, string | undefined>),
+      file_format: format,
+    });
     const qs = params ? `?${new URLSearchParams(params).toString()}` : '';
     const response = await fetchWithAuth(`/aggregates/export/${qs}`);
     if (!response.ok) {

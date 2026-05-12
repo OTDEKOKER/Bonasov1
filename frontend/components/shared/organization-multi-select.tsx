@@ -17,6 +17,7 @@ type OrganizationMultiSelectProps = {
   allLabel?: string;
   className?: string;
   disabled?: boolean;
+  emptyMeansAll?: boolean;
   emptyLabel?: string;
   organizations: OrganizationOption[];
   showSelectAll?: boolean;
@@ -31,6 +32,7 @@ export function OrganizationMultiSelect(props: OrganizationMultiSelectProps) {
     allLabel = "All organizations",
     className,
     disabled = false,
+    emptyMeansAll = false,
     emptyLabel,
     organizations,
     placeholder = "Select organizations",
@@ -56,14 +58,16 @@ export function OrganizationMultiSelect(props: OrganizationMultiSelectProps) {
 
   const summaryLabel = useMemo(() => {
     if (organizations.length === 0) return "No organizations";
-    if (selectedSet.size === 0) return emptyLabel || placeholder;
+    if (selectedSet.size === 0) {
+      return emptyMeansAll ? allLabel : emptyLabel || placeholder;
+    }
     if (allSelected) return allLabel;
     if (selectedSet.size === 1) {
       const singleId = Array.from(selectedSet)[0];
       return organizations.find((organization) => String(organization.id) === singleId)?.name || allLabel;
     }
     return `${selectedSet.size} organizations selected`;
-  }, [allLabel, allSelected, emptyLabel, organizations, placeholder, selectedSet]);
+  }, [allLabel, allSelected, emptyLabel, emptyMeansAll, organizations, placeholder, selectedSet]);
 
   const toggleOrganization = (organizationId: string) => {
     if (selectedSet.has(organizationId)) {

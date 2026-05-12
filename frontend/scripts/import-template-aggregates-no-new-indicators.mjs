@@ -24,22 +24,10 @@ const ORG_ALIASES = {
   tebelopele: "TEBELOPELE",
   sentebale: "Sentebale",
   bofwa: "BOFWA",
-  bonela: "BONELA",
-  makgabaneng: "MAKGABANENG",
-  "masego mental health org": "Masego Mental Health",
-  "mabogo aa thebana association": "MAATA",
-  "bona naledi": "BONA NALEDI",
-  "stop smoking support group": "SSSG",
-  "the fighters support group": "TFSG",
-  "vmf valour": "Valour Mental Health",
-  "the just hope foundation": "Just Hope Foundation",
-  "botswana association of the dea": "Botswana Association for the Deaf",
-  "men for health gender justice": "Men for Health and Gender Justice Org.",
   "stepping stone international": "Stepping Stone International",
   "bobonong home based care": "Bobonong Home Based Care",
   "mabogo aa thebana association s": "Mabogo aa Thebana Association South",
-  ovajua: "Ovajhu",
-  ovajhuha: "Ovajhuha",
+  ovajua: "Ovajua",
   "gumare advisory": "Gumare Advisory",
   "positive moments": "Positive Moments",
   "mind power": "Mind Power",
@@ -50,8 +38,6 @@ const ORG_ALIASES = {
   "rena le seabe": "Rena le Seabe",
   "social dialogue": "Social Dialogue",
   inerela: "INERELA",
-  "botswana council of the disable": "BCD",
-  "lesbians gays bisexuals of b": "LEGABIBO",
 };
 
 const normalize = (value) =>
@@ -63,14 +49,7 @@ const normalize = (value) =>
 const canonicalIndicatorKey = (value) =>
   normalize(value)
     .replace(/\bnunber\b/g, "number")
-    .replace(/\bpeopel\b/g, "people")
-    .replace(/\breffered\b/g, "referred")
     .replace(/\bno\.?\b/g, "number")
-    .replace(/\bkey and vulnerable populations\b/g, "people")
-    .replace(/\breached with\b/g, "reached with")
-    .replace(/\btotal number of people reached with\b/g, "number of people reached with")
-    .replace(/\brepeated collecting condoms for the repeated time\b/g, "reported collecting condoms for a repeated time")
-    .replace(/\blubricants distributed\b/g, "total number of lubricants distributed")
     .replace(/\s+/g, " ")
     .trim();
 
@@ -151,37 +130,6 @@ const AGE_BANDS = [
   "65+",
 ];
 
-const WORKBOOK_AGE_COLUMNS = [
-  "10",
-  "11",
-  "12",
-  "13",
-  "14",
-  "15",
-  "16",
-  "17",
-  "18",
-  "19",
-  "20-24",
-  "25-29",
-  "30-34",
-  "35-39",
-  "40-44",
-  "45-49",
-  "50-54",
-  "55-59",
-  "60-64",
-  "65+",
-];
-
-const mapWorkbookAgeColumnToBand = (value) => {
-  const raw = String(value || "").trim();
-  if (["10", "11", "12", "13", "14"].includes(raw)) return "10-14";
-  if (["15", "16", "17", "18", "19"].includes(raw)) return "15-19";
-  if (AGE_BANDS.includes(raw)) return raw;
-  return null;
-};
-
 const parseSex = (value) => {
   const v = normalize(value);
   if (v === "male" || v === "m") return "Male";
@@ -239,23 +187,16 @@ const detectRowBase = (row) => {
   return 0;
 };
 
-const resolveIndicatorId = (name, indicatorIdByCanonical, code = "") => {
+const resolveIndicatorId = (name, indicatorIdByCanonical) => {
   const candidates = new Set();
   const raw = String(name || "").trim();
-  const rawCode = String(code || "").trim().toLowerCase();
   if (!raw) return null;
 
   candidates.add(canonicalIndicatorKey(raw));
   candidates.add(canonicalIndicatorKey(`Number of ${raw}`));
-  candidates.add(canonicalIndicatorKey(`Total ${raw}`));
 
   if (/^total\s+number\s+of\s+/i.test(raw)) {
     candidates.add(canonicalIndicatorKey(`Number of ${raw}`));
-  }
-
-  if (/^number\s+of\s+lubricants\s+distributed$/i.test(raw)) {
-    candidates.add(canonicalIndicatorKey("Total number of lubricants distributed"));
-    candidates.add(canonicalIndicatorKey("Number of Lubricants distributed to PLHIV"));
   }
 
   if (/^number\s+(eligible|referred)\b/i.test(raw)) {
@@ -264,17 +205,6 @@ const resolveIndicatorId = (name, indicatorIdByCanonical, code = "") => {
 
   if (/^hiv\s+prevention\s+messages$/i.test(raw)) {
     candidates.add(canonicalIndicatorKey(`Number of ${raw}`));
-  }
-
-  if (
-    /^number\s+of\s+people\s+screened\s+for\s+ncds\s+behavioural\s+risk\s+factors\.?$/i.test(raw)
-  ) {
-    if (rawCode === "16") {
-      candidates.add(canonicalIndicatorKey("Number of people screened for NCDs behavioural risk factors( Tobacco Use)"));
-    }
-    if (rawCode === "19") {
-      candidates.add(canonicalIndicatorKey("Number of people screened for NCDs behavioural risk factors (Alcohol Use)"));
-    }
   }
 
   for (const key of candidates) {
@@ -338,9 +268,8 @@ const main = async () => {
       const name = String(row[base + 1] || "").replace(/[\r\n]+/g, " ").replace(/\s+/g, " ").trim();
 
       if (!isIndicatorRowStart(code) || !name) continue;
-      if (/^[A-Z ]+$/.test(name) && !/[a-z]/.test(name)) continue;
 
-      const indicatorId = resolveIndicatorId(name, indicatorIdByCanonical, code);
+      const indicatorId = resolveIndicatorId(name, indicatorIdByCanonical);
       if (!indicatorId) {
         skippedUnknownIndicator += 1;
         unknownIndicators.set(name, (unknownIndicators.get(name) || 0) + 1);
@@ -349,66 +278,47 @@ const main = async () => {
 
       let male;
       let female;
-      let total = parseNumber(row[base + 26]) ?? parseNumber(row[base + 25]);
+      let total = parseNumber(row[18]) ?? parseNumber(row[17]);
       const disaggregates = {};
-      let currentKeyPopulation = "";
 
-      for (let j = i; j < Math.min(i + 25, rows.length); j += 1) {
+      for (let j = i + 1; j < Math.min(i + 25, rows.length); j += 1) {
         const probe = rows[j] || [];
         const probeCode = String(probe[base] || "").trim();
-        if (j > i && isIndicatorRowStart(probeCode)) break;
+        if (isIndicatorRowStart(probeCode)) break;
 
         const label = normalize(probe[base + 3]);
         const kpRaw = String(probe[base + 3] || "").trim();
         const sex = parseSex(probe[base + 4]);
-        const keyPopulation = kpRaw || currentKeyPopulation;
-
-        if (kpRaw && !["age sex", "sub total", "total", "total male", "total female"].includes(label)) {
-          currentKeyPopulation = kpRaw;
-        }
 
         if (label === "total male") male = firstNumeric(probe, base + 5);
         if (label === "total female") female = firstNumeric(probe, base + 5);
         if ((label === "sub total" || label === "total") && total === undefined) {
-          total = parseNumber(probe[base + 26]) ?? parseNumber(probe[base + 25]) ?? firstNumeric(probe, base + 5);
+          total = parseNumber(probe[base + 18]) ?? parseNumber(probe[base + 17]) ?? firstNumeric(probe, base + 5);
         }
 
-        if (!keyPopulation || !sex) continue;
+        if (!kpRaw || !sex) continue;
         if (["age sex", "sub total", "total", "total male", "total female"].includes(label)) continue;
 
-        if (!disaggregates[keyPopulation]) {
-          disaggregates[keyPopulation] = { Male: {}, Female: {} };
+        if (!disaggregates[kpRaw]) {
+          disaggregates[kpRaw] = { Male: {}, Female: {} };
         }
 
-        WORKBOOK_AGE_COLUMNS.forEach((sourceBand, idx) => {
-          const targetBand = mapWorkbookAgeColumnToBand(sourceBand);
-          if (!targetBand) return;
+        AGE_BANDS.forEach((band, idx) => {
           const valueAtBand = parseNumber(probe[base + 5 + idx]);
           if (valueAtBand !== undefined) {
-            disaggregates[keyPopulation][sex][targetBand] =
-              Number(disaggregates[keyPopulation][sex][targetBand] || 0) + valueAtBand;
+            disaggregates[kpRaw][sex][band] = valueAtBand;
           }
         });
 
-        const ayp = parseNumber(probe[base + 27]);
+        const ayp = parseNumber(probe[base + 19]);
         if (ayp !== undefined) {
-          disaggregates[keyPopulation][sex]["AYP (10-24)"] = ayp;
+          disaggregates[kpRaw][sex]["AYP (10-24)"] = ayp;
         }
       }
 
-      const hasDisaggregates = Object.keys(disaggregates).length > 0;
-      const disaggregatedMale = hasDisaggregates ? sumDisaggregatesBySex(disaggregates, "Male") : undefined;
-      const disaggregatedFemale = hasDisaggregates ? sumDisaggregatesBySex(disaggregates, "Female") : undefined;
-
-      if (hasDisaggregates) {
-        male = disaggregatedMale;
-        female = disaggregatedFemale;
-      } else {
-        if (male === undefined) male = sumDisaggregatesBySex(disaggregates, "Male");
-        if (female === undefined) female = sumDisaggregatesBySex(disaggregates, "Female");
-      }
-
-      if (male !== undefined && female !== undefined && (total === undefined || total !== male + female)) {
+      if (male === undefined) male = sumDisaggregatesBySex(disaggregates, "Male");
+      if (female === undefined) female = sumDisaggregatesBySex(disaggregates, "Female");
+      if (total === undefined && male !== undefined && female !== undefined) {
         total = male + female;
       }
       if (total === undefined && male === undefined && female === undefined) {

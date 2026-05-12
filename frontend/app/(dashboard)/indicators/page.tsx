@@ -40,6 +40,7 @@ import {
   getIndicatorOrganizationIds,
   isIndicatorEffectivelyActive,
 } from "@/lib/indicators/activation"
+import { resolveIndicatorId } from "@/lib/indicators/id-aliases"
 import {
   INDICATOR_CATEGORY_BADGE_CLASSES,
   INDICATOR_CATEGORY_OPTIONS,
@@ -58,6 +59,22 @@ const typeIcons: Record<string, typeof Target> = {
 }
 
 const INDICATOR_LIST_STATE_KEY = "indicators:list-state"
+
+function toCanonicalIndicatorKey(indicatorId: string | number | null | undefined) {
+  const resolved = resolveIndicatorId(indicatorId)
+  return Number.isFinite(resolved) ? String(resolved) : ""
+}
+
+function indicatorQualityScore(indicator: Indicator) {
+  let score = 0
+  const numericId = Number(indicator.id)
+  const canonicalId = resolveIndicatorId(indicator.id)
+  if (Number.isFinite(numericId) && numericId === canonicalId) score += 100
+  if (indicator.short_name?.trim()) score += 10
+  if (indicator.unit?.trim()) score += 5
+  if (!indicator.code?.startsWith("AUTO_")) score += 2
+  return score
+}
 
 export default function IndicatorsPage() {
   const router = useRouter()
@@ -116,7 +133,26 @@ export default function IndicatorsPage() {
     )
   }, [activeTab, searchQuery, statusFilter])
 
-  const indicators = useMemo(() => indicatorsData || [], [indicatorsData])
+  const indicators = useMemo(() => {
+    const source = indicatorsData || []
+    const deduped = new Map<string, Indicator>()
+
+    source.forEach((indicator) => {
+      const canonicalKey = toCanonicalIndicatorKey(indicator.id)
+      if (!canonicalKey) return
+      const existing = deduped.get(canonicalKey)
+      if (!existing) {
+        deduped.set(canonicalKey, indicator)
+        return
+      }
+
+      if (indicatorQualityScore(indicator) > indicatorQualityScore(existing)) {
+        deduped.set(canonicalKey, indicator)
+      }
+    })
+
+    return Array.from(deduped.values())
+  }, [indicatorsData])
   const projects = useMemo(() => projectsData?.results || [], [projectsData?.results])
   const assessments = useMemo(() => assessmentsData?.results || [], [assessmentsData?.results])
   const assignedIndicatorIds = useMemo(() => {
@@ -124,10 +160,12 @@ export default function IndicatorsPage() {
 
     projects.forEach((project) => {
       ;(project.project_indicators || []).forEach((entry) => {
-        if (entry.indicator) ids.add(String(entry.indicator))
+        const canonicalIndicatorId = toCanonicalIndicatorKey(entry.indicator)
+        if (canonicalIndicatorId) ids.add(canonicalIndicatorId)
       })
       ;(project.organization_targets || []).forEach((entry) => {
-        if (entry.indicator) ids.add(String(entry.indicator))
+        const canonicalIndicatorId = toCanonicalIndicatorKey(entry.indicator)
+        if (canonicalIndicatorId) ids.add(canonicalIndicatorId)
       })
     })
 
@@ -138,7 +176,7 @@ export default function IndicatorsPage() {
 
     projects.forEach((project) => {
       ;(project.organization_targets || []).forEach((entry) => {
-        const indicatorId = String(entry.indicator || "").trim()
+        const indicatorId = toCanonicalIndicatorKey(entry.indicator)
         const organizationId = String(entry.organization || "").trim()
         if (!indicatorId || !organizationId) return
 
@@ -160,15 +198,17 @@ export default function IndicatorsPage() {
     (indicator: Indicator) => {
       if (!indicator.is_active) return false
 
+      const indicatorId = toCanonicalIndicatorKey(indicator.id)
+      if (!indicatorId) return false
       const organizationIds = new Set(getIndicatorOrganizationIds(indicator))
-      assignedIndicatorOrganizationIds.get(String(indicator.id))?.forEach((organizationId) => {
+      assignedIndicatorOrganizationIds.get(indicatorId)?.forEach((organizationId) => {
         organizationIds.add(organizationId)
       })
       const hasOrganizations = organizationIds.size > 0
       if (!hasOrganizations) return false
 
       if (hasProjectAssignmentData) {
-        return assignedIndicatorIds.has(String(indicator.id))
+        return assignedIndicatorIds.has(indicatorId)
       }
 
       if (indicator.project_targets !== undefined) {
@@ -352,9 +392,10 @@ export default function IndicatorsPage() {
   }
 
   if (error) {
+    const errorMessage = error instanceof Error && error.message ? error.message : "Failed to load indicators"
     return (
       <div className="flex h-[60vh] flex-col items-center justify-center gap-4">
-        <p className="text-muted-foreground">Failed to load indicators</p>
+        <p className="max-w-xl text-center text-muted-foreground">{errorMessage}</p>
         <Button onClick={() => mutate()}>Retry</Button>
       </div>
     )

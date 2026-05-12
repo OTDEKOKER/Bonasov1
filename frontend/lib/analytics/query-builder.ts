@@ -7,6 +7,7 @@ import {
   getAggregatePeriodLabel,
   type AggregatePeriodMode,
 } from "../aggregates/quarter-buckets.ts";
+import { resolveIndicatorIdString } from "../indicators/id-aliases.ts";
 import type { AnalyticsScopeMode } from "./org-scope.ts";
 
 export type AnalyticsPeriodMode = "date-range" | "month" | "quarter" | "year";
@@ -262,9 +263,9 @@ export function buildAnalyticsFacts(input: {
   } = input;
   const scopedSet = new Set(scopedOrgIds.map(String));
   const indicatorIds = (query.indicator_ids || [])
-    .map(String)
+    .map((indicatorId) => resolveIndicatorIdString(indicatorId))
     .filter(Boolean);
-  if (query.indicator_id) indicatorIds.push(String(query.indicator_id));
+  if (query.indicator_id) indicatorIds.push(resolveIndicatorIdString(query.indicator_id));
   const indicatorSet = new Set(indicatorIds);
   const selectedPeriods = new Set(
     [query.reporting_period_id || "", ...(query.selected_periods || [])]
@@ -277,7 +278,7 @@ export function buildAnalyticsFacts(input: {
   return aggregates.flatMap((aggregate) => {
     if (query.project_id && String(aggregate.project) !== String(query.project_id)) return [];
     if (!scopedSet.has(String(aggregate.organization))) return [];
-    if (indicatorSet.size > 0 && !indicatorSet.has(String(aggregate.indicator))) return [];
+    if (indicatorSet.size > 0 && !indicatorSet.has(resolveIndicatorIdString(aggregate.indicator))) return [];
 
     const aggregateStart = new Date(aggregate.period_start);
     const aggregateEnd = new Date(aggregate.period_end || aggregate.period_start);

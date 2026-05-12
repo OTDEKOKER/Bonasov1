@@ -82,6 +82,7 @@ export type {
   AssessmentFilters,
   CreateAssessmentRequest,
   UpdateAssessmentRequest,
+  SaveAssessmentQuestionRequest,
 } from './services/indicators';
 
 // Respondents & Interactions
@@ -136,6 +137,7 @@ export type {
   CreateScheduledReportRequest,
   AnalysisQuery,
   AnalysisResult,
+  DashboardOverviewFilters,
   FlagFilters,
   CreateFlagRequest,
   UpdateFlagRequest,

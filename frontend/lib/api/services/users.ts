@@ -51,6 +51,10 @@ export interface UserPermissionOption {
   name: string;
 }
 
+export interface UpdateCurrentUserDashboardPreferencesRequest {
+  home_dashboard_preferences: unknown;
+}
+
 export interface UserActivity {
   id: number;
   user_id: number;
@@ -65,6 +69,15 @@ export interface UserActivity {
 // ============================================================================
 
 export const usersService = {
+  /**
+   * Get current authenticated user profile
+   * Django endpoint: GET /api/users/me/
+   */
+  async getCurrentUser(): Promise<User> {
+    const { data } = await api.get<User>('/users/me/');
+    return data;
+  },
+
   /**
    * List all users with optional filters
    * Django endpoint: GET /api/users/
@@ -153,18 +166,19 @@ export const usersService = {
    * Django endpoint: GET /api/users/permissions/
    */
   async listPermissions(): Promise<UserPermissionOption[]> {
-    try {
-      const { data } = await api.get<UserPermissionOption[]>('/users/permissions/');
-      return data;
-    } catch (err) {
-      const status = (err as { status?: number })?.status;
-      // Permissions list is optional in some deployments.
-      // Keep user create/edit usable by falling back to no explicit permissions.
-      if (status !== 401) {
-        return [];
-      }
-      throw err;
-    }
+    const { data } = await api.get<UserPermissionOption[]>('/users/permissions/');
+    return data;
+  },
+
+  /**
+   * Save current user's home dashboard preferences
+   * Django endpoint: PATCH /api/users/me/
+   */
+  async updateCurrentUserDashboardPreferences(
+    request: UpdateCurrentUserDashboardPreferencesRequest,
+  ): Promise<User> {
+    const { data } = await api.patch<User>('/users/me/', request);
+    return data;
   },
 
   /**

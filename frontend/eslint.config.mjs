@@ -16,5 +16,5 @@ export default defineConfig([
       'react/no-children-prop': 'warn',
     },
   },
-  globalIgnores(['.next/**', 'out/**', 'build/**', 'next-env.d.ts']),
+  globalIgnores(['.next/**', '.next.predeploy-*/**', 'out/**', 'build/**', 'next-env.d.ts']),
 ])

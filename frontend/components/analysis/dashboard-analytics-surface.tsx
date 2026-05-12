@@ -27,7 +27,6 @@ import { compareMonthLabels, compareQuarterLabels, compareYearLabels } from "@/l
 import {
   buildAnalyticsFacts,
   computeReportingCompleteness,
-  type AnalyticsFact,
   type AnalyticsQueryContract,
 } from "@/lib/analytics/query-builder";
 import { resolveOrgScope } from "@/lib/analytics/org-scope";
@@ -41,6 +40,7 @@ import {
   buildVisualizationResult,
   type DrilldownTarget,
   type NormalizedAggregateRecord,
+  type VisualizationChart,
 } from "@/lib/visualization/engine";
 import { buildVisualizationResultV2Compat } from "@/lib/visualization/engine-v2-compat";
 import { ENABLE_VISUALIZATION_ENGINE_V2 } from "@/lib/visualization/feature-flags";
@@ -57,7 +57,7 @@ type DashboardChartCardConfig = {
   id: string;
   title: string;
   description: string;
-  chart: unknown;
+  chart: VisualizationChart | null;
   size: ChartSizeTier;
   footerText?: string | null;
 };
@@ -276,7 +276,7 @@ function DashboardChartCard(props: {
             compact
           />
         )}
-        {config.footerText ? <ChartInsightFooter>{config.footerText}</ChartInsightFooter> : null}
+        {config.footerText ? <ChartInsightFooter text={config.footerText} /> : null}
       </CardContent>
     </Card>
   );
@@ -284,7 +284,7 @@ function DashboardChartCard(props: {
 
 function DashboardVisualizationPanels(props: {
   dashboardId: number;
-  facts: AnalyticsFact[];
+  facts: NormalizedAggregateRecord["source"][];
   selectedIndicators: Indicator[];
   organizations: Organization[];
   organizationsById: Map<string, Organization>;
@@ -377,9 +377,7 @@ function DashboardVisualizationPanels(props: {
   const completeness = useMemo(
     () =>
       computeReportingCompleteness({
-        facts: visualization.normalizedRecords.map(
-          (record: NormalizedAggregateRecord) => record.source,
-        ),
+        facts: visualization.normalizedRecords.map((record) => record.source),
         scopedOrgIds,
       }),
     [scopedOrgIds, visualization.normalizedRecords],
@@ -388,22 +386,34 @@ function DashboardVisualizationPanels(props: {
   const handleDrilldown = (sourceChartId: string, target: DrilldownTarget) =>
     applyInteraction(sourceChartId, target);
 
+  const draftPeriodMode: CustomAnalysisState["periodMode"] =
+    filters.periodMode === "month"
+      ? "month"
+      : filters.periodMode === "date-range"
+        ? "date-range"
+        : "quarter";
   const draftCompareBy: CustomAnalysisState["compareBy"] =
-    filters.comparisonMode === "disaggregate" || filters.comparisonMode === "disaggregation"
-      ? "none"
-      : filters.comparisonMode;
+    filters.comparisonMode === "period" ||
+    filters.comparisonMode === "organization" ||
+    filters.comparisonMode === "coordinator" ||
+    filters.comparisonMode === "indicator"
+      ? filters.comparisonMode
+      : "none";
 
   const buildDraft = (): Partial<CustomAnalysisState> => ({
     indicatorIds: selectedIndicators.map((indicator) => String(indicator.id)),
+    projectId: filters.projectId,
+    periodMode: draftPeriodMode,
     selectedPeriods: [...selectedPeriods],
     selectedOrgIds: [...filters.selectedOrgIds],
+    parentOrgId: filters.parentOrgId,
     dateFrom: filters.dateFrom,
     dateTo: filters.dateTo,
     compareBy: draftCompareBy,
     breakDownBy: filters.disaggregationKeys[0] || "none",
     secondaryBreakdown: filters.disaggregationKeys[1] || "none",
     scopeMode: filters.scopeMode,
-    parentOrgId: filters.parentOrgId,
+    useDashboardFilters: true,
   });
 
   const cards: DashboardChartCardConfig[] = [
@@ -606,6 +616,7 @@ export function DashboardAnalyticsSurface(props: DashboardAnalyticsSurfaceProps)
             : undefined,
       date_from: filters.dateFrom || undefined,
       date_to: filters.dateTo || undefined,
+      status: "approved",
     }),
     [dashboard.project, filters.dateFrom, filters.dateTo, filters.projectId],
   );
@@ -676,7 +687,6 @@ export function DashboardAnalyticsSurface(props: DashboardAnalyticsSurfaceProps)
         organizations,
         scopeMode: filters.scopeMode,
         currentUserOrgId: userOrgId || null,
-        currentUserRole: user?.role || null,
         parentOrgId: filters.parentOrgId || null,
         selectedOrgIds: filters.selectedOrgIds,
       }),
@@ -685,7 +695,6 @@ export function DashboardAnalyticsSurface(props: DashboardAnalyticsSurfaceProps)
       filters.scopeMode,
       filters.selectedOrgIds,
       organizations,
-      user?.role,
       userOrgId,
     ],
   );

@@ -19,7 +19,13 @@ import { useToast } from "@/hooks/use-toast"
 import { indicatorsService, interactionsService, responsesService } from "@/lib/api"
 import { useAssessment, useAssessments, useEvents, useProjects, useRespondentProfile } from "@/lib/hooks/use-api"
 import { useSmartBack } from "@/lib/hooks/use-smart-back"
-import type { Indicator, IndicatorType, Interaction, Response as InteractionResponse } from "@/lib/types"
+import type {
+  AssessmentQuestion,
+  Indicator,
+  IndicatorType,
+  Interaction,
+  Response as InteractionResponse,
+} from "@/lib/types"
 
 type IndicatorOption = { label: string; value: string }
 
@@ -122,6 +128,40 @@ function formatFieldLabel(key: string): string {
   }
 
   return labels[key] || key.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase())
+}
+
+function getAssessmentQuestionText(item: AssessmentQuestion, indicator?: Indicator | null): string {
+  return item.question_text_display || item.question_text || indicator?.name || item.indicator_detail?.name || "Question"
+}
+
+function getAssessmentQuestionRawType(item: AssessmentQuestion, indicator?: Indicator | null): unknown {
+  return item.response_type_display || item.response_type || indicator?.type || item.indicator_detail?.type || "text"
+}
+
+function getAssessmentQuestionOptions(
+  item: AssessmentQuestion,
+  indicator?: Indicator | null,
+): Indicator["options"] {
+  if (Array.isArray(item.response_options_display) && item.response_options_display.length > 0) {
+    return item.response_options_display as Indicator["options"]
+  }
+  if (Array.isArray(item.response_options) && item.response_options.length > 0) {
+    return item.response_options as Indicator["options"]
+  }
+  return indicator?.options
+}
+
+function getAssessmentQuestionSubLabels(
+  item: AssessmentQuestion,
+  indicator?: Indicator | null,
+): string[] {
+  if (Array.isArray(item.response_sub_labels_display) && item.response_sub_labels_display.length > 0) {
+    return item.response_sub_labels_display
+  }
+  if (Array.isArray(item.response_sub_labels) && item.response_sub_labels.length > 0) {
+    return item.response_sub_labels
+  }
+  return Array.isArray(indicator?.sub_labels) ? indicator.sub_labels : []
 }
 
 function formatDisplayValue(value: unknown): string {
@@ -450,7 +490,7 @@ export default function RespondentDetailPage() {
           const indicatorId = String(item.indicator)
           const fullIndicator = indicatorDetailsById[indicatorId]
           const itemType = normalizeIndicatorType(
-            fullIndicator?.type || item.indicator_detail?.type || "text",
+            getAssessmentQuestionRawType(item, fullIndicator || null),
           )
           const value = newResponseValues[indicatorId]
           if (isEmptyResponseValue(itemType, value)) return null
@@ -531,11 +571,13 @@ export default function RespondentDetailPage() {
     rawType: unknown
     value: unknown
     indicator?: Indicator | null
+    options?: Indicator["options"]
+    subLabels?: string[]
     onChange: (value: unknown) => void
   }) => {
-    const { editorKey, rawType, value, indicator, onChange } = params
+    const { editorKey, rawType, value, indicator, options: optionOverrides, subLabels, onChange } = params
     const type = normalizeIndicatorType(rawType)
-    const options = normalizeOptions(indicator?.options)
+    const options = normalizeOptions(optionOverrides || indicator?.options)
 
     if (type === "yes_no") {
       const currentValue = toSelectYesNoValue(value)
@@ -618,14 +660,20 @@ export default function RespondentDetailPage() {
       )
     }
 
-    if (type === "multi_int" && Array.isArray(indicator?.sub_labels) && indicator.sub_labels.length > 0) {
+    const activeSubLabels = Array.isArray(subLabels) && subLabels.length > 0
+      ? subLabels
+      : Array.isArray(indicator?.sub_labels)
+        ? indicator.sub_labels
+        : []
+
+    if (type === "multi_int" && activeSubLabels.length > 0) {
       const currentObj =
         typeof value === "object" && value !== null && !Array.isArray(value)
           ? (value as Record<string, unknown>)
           : {}
       return (
         <div className="grid gap-2 sm:grid-cols-2">
-          {indicator.sub_labels.map((subLabel) => (
+          {activeSubLabels.map((subLabel) => (
             <div key={`${editorKey}-${subLabel}`} className="space-y-1">
               <Label className="text-xs text-muted-foreground">{subLabel}</Label>
               <Input
@@ -667,11 +715,18 @@ export default function RespondentDetailPage() {
   const renderResponseEditor = (response: InteractionResponse) => {
     const responseId = String(response.id)
     const fullIndicator = indicatorDetailsById[String(response.indicator)]
+    const assessmentItem = (responsesAssessment?.indicators_detail || []).find(
+      (item) => String(item.indicator) === String(response.indicator),
+    )
     return renderValueEditor({
       editorKey: `response-${responseId}`,
-      rawType: fullIndicator?.type || response.indicator_type || "text",
+      rawType: assessmentItem
+        ? getAssessmentQuestionRawType(assessmentItem, fullIndicator || null)
+        : fullIndicator?.type || response.indicator_type || "text",
       value: responseEdits[responseId],
       indicator: fullIndicator || null,
+      options: assessmentItem ? getAssessmentQuestionOptions(assessmentItem, fullIndicator || null) : undefined,
+      subLabels: assessmentItem ? getAssessmentQuestionSubLabels(assessmentItem, fullIndicator || null) : undefined,
       onChange: (nextValue) =>
         setResponseEdits((prev) => ({
           ...prev,
@@ -1160,20 +1215,37 @@ export default function RespondentDetailPage() {
                 No responses were saved for this interaction.
               </div>
             ) : (
-              (responsesInteraction?.responses || []).map((response) => (
-                <div key={response.id} className="space-y-2 rounded-lg border border-border p-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-medium">{response.indicator_name || "Indicator"}</p>
-                      <p className="text-xs text-muted-foreground">{response.indicator_code || "—"}</p>
+              (responsesInteraction?.responses || []).map((response) => {
+                const fullIndicator = indicatorDetailsById[String(response.indicator)]
+                const assessmentItem = (responsesAssessment?.indicators_detail || []).find(
+                  (item) => String(item.indicator) === String(response.indicator),
+                )
+                const rawType = assessmentItem
+                  ? getAssessmentQuestionRawType(assessmentItem, fullIndicator || null)
+                  : response.indicator_type || "text"
+
+                return (
+                  <div key={response.id} className="space-y-2 rounded-lg border border-border p-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-medium">
+                          {assessmentItem
+                            ? getAssessmentQuestionText(assessmentItem, fullIndicator || null)
+                            : response.indicator_name || "Indicator"}
+                        </p>
+                        <p className="text-xs text-muted-foreground">{response.indicator_code || "—"}</p>
+                        {assessmentItem?.help_text ? (
+                          <p className="text-xs text-muted-foreground">{assessmentItem.help_text}</p>
+                        ) : null}
+                      </div>
+                      <Badge variant="secondary" className="text-xs">
+                        {String(rawType).replace(/_/g, " ")}
+                      </Badge>
                     </div>
-                    <Badge variant="secondary" className="text-xs">
-                      {String(response.indicator_type || "text").replace(/_/g, " ")}
-                    </Badge>
+                    {renderResponseEditor(response)}
                   </div>
-                  {renderResponseEditor(response)}
-                </div>
-              ))
+                )
+              })
             )}
 
             {missingAssessmentItems.length > 0 ? (
@@ -1182,13 +1254,16 @@ export default function RespondentDetailPage() {
                 {missingAssessmentItems.map((item) => {
                   const indicatorId = String(item.indicator)
                   const fullIndicator = indicatorDetailsById[indicatorId]
-                  const rawType = fullIndicator?.type || item.indicator_detail?.type || "text"
+                  const rawType = getAssessmentQuestionRawType(item, fullIndicator || null)
                   return (
                     <div key={`missing-${indicatorId}`} className="space-y-2 rounded-lg border border-border p-3">
                       <div className="flex items-center justify-between gap-3">
                         <div>
-                          <p className="text-sm font-medium">{fullIndicator?.name || item.indicator_detail?.name || "Indicator"}</p>
+                          <p className="text-sm font-medium">{getAssessmentQuestionText(item, fullIndicator || null)}</p>
                           <p className="text-xs text-muted-foreground">{fullIndicator?.code || item.indicator_detail?.code || "—"}</p>
+                          {item.help_text ? (
+                            <p className="text-xs text-muted-foreground">{item.help_text}</p>
+                          ) : null}
                         </div>
                         <Badge variant="outline" className="text-xs">
                           {String(rawType).replace(/_/g, " ")}
@@ -1199,6 +1274,8 @@ export default function RespondentDetailPage() {
                         rawType,
                         value: newResponseValues[indicatorId],
                         indicator: fullIndicator || null,
+                        options: getAssessmentQuestionOptions(item, fullIndicator || null),
+                        subLabels: getAssessmentQuestionSubLabels(item, fullIndicator || null),
                         onChange: (nextValue) =>
                           setNewResponseValues((prev) => ({
                             ...prev,

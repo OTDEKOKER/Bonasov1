@@ -53,6 +53,7 @@ import {
   type PivotTableFilters,
   type LineListFilters,
   type CoordinatorTargetFilters,
+  type DashboardOverviewFilters,
 } from '@/lib/api';
 
 // Default SWR config
@@ -169,10 +170,16 @@ export function useAllProjectDetails(filters?: ProjectFilters, config?: SWRConfi
     ['projects-all-details', filters],
     async () => {
       const projects = await projectsService.listAll(filters);
-      const detailedProjects = await Promise.all(
+      const settled = await Promise.allSettled(
         projects.map((project) => projectsService.get(Number(project.id))),
       );
-      return { count: detailedProjects.length, next: null, previous: null, results: detailedProjects };
+      const detailedProjects = settled
+        .filter((result): result is PromiseFulfilledResult<(typeof projects)[number]> => result.status === 'fulfilled')
+        .map((result) => result.value);
+      const results = detailedProjects.length > 0 ? detailedProjects : projects;
+      const count = detailedProjects.length > 0 ? detailedProjects.length : projects.length;
+
+      return { count, next: null, previous: null, results };
     },
     { ...defaultConfig, ...config }
   );
@@ -443,6 +450,14 @@ export function useNotifications(filters?: NotificationFilters | null, config?: 
   );
 }
 
+export function useUnreadNotificationCount(enabled: boolean = true, config?: SWRConfiguration) {
+  return useSWR(
+    enabled ? 'notifications-unread-count' : null,
+    () => notificationsService.unreadCount(),
+    { ...defaultConfig, ...config },
+  );
+}
+
 export function useAggregateTemplates(
   filters?: { project?: string; organization?: string },
   config?: SWRConfiguration
@@ -585,10 +600,13 @@ export function useScheduledReports(config?: SWRConfiguration) {
 // Analysis Hooks
 // ============================================================================
 
-export function useDashboardStats(projectId?: number, config?: SWRConfiguration) {
+export function useDashboardStats(
+  filters?: number | DashboardOverviewFilters,
+  config?: SWRConfiguration,
+) {
   return useSWR(
-    ['dashboard', projectId],
-    () => analysisService.getDashboard(projectId),
+    ['dashboard', filters],
+    () => analysisService.getDashboard(filters),
     { ...defaultConfig, ...config }
   );
 }
@@ -598,6 +616,7 @@ export function useIndicatorTrends(
   params?: {
     months?: number;
     projectId?: number | null;
+    coordinatorId?: number | null;
     organizationId?: number | null;
     dateFrom?: string;
     dateTo?: string;
@@ -616,6 +635,7 @@ export function useIndicatorTrendsBulk(
   params?: {
     months?: number;
     projectId?: number | null;
+    coordinatorId?: number | null;
     organizationId?: number | null;
     dateFrom?: string;
     dateTo?: string;

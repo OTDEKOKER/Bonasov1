@@ -1,7 +1,7 @@
 import type { Aggregate } from "../types";
 
 export type QuarterBucket = {
-  year: number;
+  year: number; // first year of the April-to-March reporting cycle
   quarter: 1 | 2 | 3 | 4;
 };
 
@@ -15,7 +15,11 @@ export function getQuarterBucket(dateValue: string | null | undefined): QuarterB
   const parsed = new Date(dateValue);
   if (Number.isNaN(parsed.getTime())) return null;
   const month = parsed.getMonth();
-  const quarter = (Math.floor(month / 3) + 1) as 1 | 2 | 3 | 4;
+  if (month < 3) {
+    return { year: parsed.getFullYear() - 1, quarter: 4 };
+  }
+
+  const quarter = (Math.floor((month - 3) / 3) + 1) as 1 | 2 | 3 | 4;
   return { year: parsed.getFullYear(), quarter };
 }
 
@@ -39,11 +43,14 @@ export function getYearBucket(dateValue: string | null | undefined): number | nu
 }
 
 export function formatQuarterBucket(bucket: QuarterBucket): string {
-  return `Q${bucket.quarter} ${bucket.year}`;
+  const nextYearSuffix = String((bucket.year + 1) % 100).padStart(2, "0");
+  return `Q${bucket.quarter} ${bucket.year}/${nextYearSuffix}`;
 }
 
 export function parseQuarterLabel(label: string): QuarterBucket | null {
-  const match = String(label || "").trim().match(/^Q([1-4])\s+(\d{4})$/i);
+  const match = String(label || "")
+    .trim()
+    .match(/^Q([1-4])\s+(\d{4})(?:\s*\/\s*(\d{2}|\d{4}))?$/i);
   if (!match) return null;
   return {
     quarter: Number(match[1]) as 1 | 2 | 3 | 4,

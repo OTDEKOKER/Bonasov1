@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { Bell, Search, Menu, Settings2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -15,8 +15,9 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { useAuth } from "@/lib/contexts/auth-context"
 import { notificationsService } from "@/lib/api"
-import { useNotifications } from "@/lib/hooks/use-api"
+import { useNotifications, useUnreadNotificationCount } from "@/lib/hooks/use-api"
 import { getUserRoleLabel } from "@/lib/roles"
+import type { Notification } from "@/lib/types"
 import { usePathname, useSearchParams } from "next/navigation"
 import { ThemeToggle } from "@/components/layout/theme-toggle"
 
@@ -27,22 +28,6 @@ interface AppHeaderProps {
 interface HeaderSearchProps {
   initialValue: string
   onSubmit: (query: string) => void
-}
-
-const resolveUserName = (user: unknown): { first: string; last: string } => {
-  if (!user || typeof user !== "object") return { first: "", last: "" }
-
-  const candidate = user as {
-    firstName?: unknown
-    lastName?: unknown
-    first_name?: unknown
-    last_name?: unknown
-  }
-
-  return {
-    first: String(candidate.firstName ?? candidate.first_name ?? "").trim(),
-    last: String(candidate.lastName ?? candidate.last_name ?? "").trim(),
-  }
 }
 
 function HeaderSearch({ initialValue, onSubmit }: HeaderSearchProps) {
@@ -76,6 +61,10 @@ export function AppHeader({ onMenuClick }: AppHeaderProps) {
   const { user, logout } = useAuth()
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const [hasLoadedNotifications, setHasLoadedNotifications] = useState(false)
+  const { data: unreadNotificationCountData, mutate: mutateUnreadNotificationCount } =
+    useUnreadNotificationCount(true, {
+      refreshInterval: 60_000,
+    })
   const { data: notificationsData, isLoading: notificationsLoading, mutate: mutateNotifications } =
     useNotifications(
       hasLoadedNotifications
@@ -86,11 +75,15 @@ export function AppHeader({ onMenuClick }: AppHeaderProps) {
         : null,
     )
   const currentUser = user
-  const userName = resolveUserName(currentUser)
-  const displayName =
-    [userName.first, userName.last].filter(Boolean).join(" ") ||
-    String(currentUser?.email || "My Account")
-  const initials = `${(userName.first[0] || String(currentUser?.email || "U")[0] || "U").toUpperCase()}${(userName.last[0] || "").toUpperCase()}`
+  const userRecord = (currentUser ?? {}) as Record<string, unknown>
+  const firstName = String(
+    (userRecord.firstName ?? userRecord.first_name ?? "") as string
+  ).trim()
+  const lastName = String(
+    (userRecord.lastName ?? userRecord.last_name ?? "") as string
+  ).trim()
+  const displayName = [firstName, lastName].filter(Boolean).join(" ") || String(currentUser?.email || "My Account")
+  const initials = `${(firstName[0] || String(currentUser?.email || "U")[0] || "U").toUpperCase()}${(lastName[0] || "").toUpperCase()}`
   const searchQuery = pathname === "/search" ? (searchParams.get("q") ?? "") : ""
 
   const navigate = (href: string) => {
@@ -108,7 +101,32 @@ export function AppHeader({ onMenuClick }: AppHeaderProps) {
   }
 
   const recentNotifications = (notificationsData?.results || []).slice(0, 5)
-  const notificationCount = recentNotifications.filter((item) => !item.is_read).length
+  const fallbackUnreadCount = recentNotifications.filter((item) => !item.is_read).length
+  const unreadNotificationCount = Number(unreadNotificationCountData ?? fallbackUnreadCount)
+  const notificationCount = unreadNotificationCount
+
+  const resolveNotificationLink = useMemo(
+    () =>
+      (item: Notification): string => {
+        const rawLink = String(item.link || "").trim()
+        if (rawLink) {
+          if (rawLink.startsWith("http://") || rawLink.startsWith("https://") || rawLink.startsWith("/")) {
+            return rawLink
+          }
+          return `/${rawLink.replace(/^\/+/, "")}`
+        }
+
+        const text = `${item.title || ""} ${item.content || ""}`.toLowerCase()
+        if (text.includes("aggregate") || text.includes("review")) return "/aggregates"
+        if (text.includes("flag")) return "/flags"
+        if (text.includes("report")) return "/reports"
+        if (text.includes("project") || text.includes("deadline")) return "/projects"
+        if (text.includes("organization")) return "/organizations"
+        if (text.includes("user")) return "/users"
+        return "/settings?tab=notifications"
+      },
+    [],
+  )
 
   const formatNotificationTime = (timestamp?: string) => {
     if (!timestamp) return "No timestamp"
@@ -194,10 +212,15 @@ export function AppHeader({ onMenuClick }: AppHeaderProps) {
                   className="flex flex-col items-start gap-1 py-3"
                   onClick={async () => {
                     if (!item.is_read) {
-                      await notificationsService.markRead(Number(item.id))
+                      try {
+                        await notificationsService.markRead(Number(item.id))
+                      } catch {
+                        // Continue navigation even if mark-read fails.
+                      }
                       void mutateNotifications()
+                      void mutateUnreadNotificationCount()
                     }
-                    navigate(item.link || "/settings?tab=notifications")
+                    navigate(resolveNotificationLink(item))
                   }}
                 >
                   <span className="text-sm font-medium">

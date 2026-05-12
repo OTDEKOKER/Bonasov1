@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'bonaso-v1';
+const CACHE_VERSION = 'bonaso-v2';
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const API_CACHE = `${CACHE_VERSION}-api`;
 const OFFLINE_PAGE = '/offline/';
@@ -301,6 +301,11 @@ self.addEventListener('sync', (event) => {
 });
 
 self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+    return;
+  }
+
   if (event.data?.type === 'SYNC_MUTATIONS') {
     const task = replayQueuedMutations();
     if (typeof event.waitUntil === 'function') {

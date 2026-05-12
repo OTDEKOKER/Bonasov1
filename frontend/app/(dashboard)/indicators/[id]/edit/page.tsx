@@ -26,12 +26,12 @@ import DisaggregationBuilder from "@/components/indicators/disaggregation-builde
 import QuarterlyTargetsSection from "@/components/indicators/quarterly-targets-section"
 
 import { indicatorsService } from "@/lib/api"
+import type { ApiError, UpdateIndicatorRequest } from "@/lib/api"
 import { useAllProjectDetails, useIndicator } from "@/lib/hooks/use-api"
 import type { Indicator } from "@/lib/types"
 import { useToast } from "@/hooks/use-toast"
 import { useSmartBack } from "@/lib/hooks/use-smart-back"
 import {
-  buildDisaggregationConfigFromPresetKeys,
   getLegacySubLabelsFromPresetKeys,
   getPresetKeysFromConfig,
   type DisaggregationPresetKey,
@@ -229,21 +229,23 @@ export default function IndicatorEditPage() {
     setIsSubmitting(true)
 
     try {
-      await indicatorsService.update(id, {
+      const payload: UpdateIndicatorRequest = {
         name: formData.name.trim(),
-        short_name: formData.short_name.trim() || undefined,
         code: formData.code.trim(),
         description: formData.description.trim() || undefined,
-        category: formData.category as Indicator["category"],
         type: formData.type as Indicator["type"],
         unit: formData.unit.trim() || undefined,
         options: requiresOptions ? parsedOptions : undefined,
         sub_labels: getLegacySubLabelsFromPresetKeys(formData.disaggregation_preset_keys),
-        aggregate_disaggregation_config: buildDisaggregationConfigFromPresetKeys(
-          formData.disaggregation_preset_keys,
-        ),
         is_active: canActivateIndicator ? formData.is_active : false,
-      })
+      }
+
+      // Avoid resubmitting unchanged legacy categories that older backends reject.
+      if (formData.category && formData.category !== (indicator.category || "")) {
+        payload.category = formData.category as Indicator["category"]
+      }
+
+      await indicatorsService.update(id, payload)
 
       toast({
         title: "Indicator updated",
@@ -260,10 +262,14 @@ export default function IndicatorEditPage() {
       ])
       router.push("/indicators")
       router.refresh()
-    } catch {
+    } catch (error) {
+      const message =
+        typeof (error as ApiError)?.message === "string" && (error as ApiError).message.trim()
+          ? (error as ApiError).message
+          : "Failed to update indicator."
       toast({
         title: "Error",
-        description: "Failed to update indicator.",
+        description: message,
         variant: "destructive",
       })
     } finally {

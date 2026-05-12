@@ -941,6 +941,7 @@ export default function ReportsPage() {
   const { data: scheduledReportsData, mutate: mutateScheduled } = useScheduledReports();
   const { data: aggregatesData } = useAllAggregates({
     project: projectFilter !== "all" ? projectFilter : undefined,
+    status: "approved",
   });
   const { data: dashboardStats } = useDashboardStats(
     projectFilter === "all" ? undefined : Number(projectFilter),
@@ -1003,7 +1004,7 @@ export default function ReportsPage() {
     selectedOrganizationType === "coordinator" ||
     selectedOrganizationType === "senior_coordinator";
 
-  const coordinatorSubgranteeOptions = useMemo(() => {
+  const coordinatorScopeOptions = useMemo(() => {
     if (!selectedOrganization || !canUseSubgranteeScope) return [];
 
     const childrenByParent = new Map<string, (typeof organizations)>();
@@ -1028,9 +1029,7 @@ export default function ReportsPage() {
         if (visited.has(childId)) return;
         visited.add(childId);
         queue.push(childId);
-        if (normalizeOrganizationType(childOrganization.type) === "subgrantee") {
-          subgrantees.push(childOrganization);
-        }
+        subgrantees.push(childOrganization);
       });
     }
 
@@ -1039,8 +1038,8 @@ export default function ReportsPage() {
 
   const effectiveSubgranteeIds = useMemo(() => {
     if (selectedSubgranteeIds.length > 0) return selectedSubgranteeIds;
-    return coordinatorSubgranteeOptions.map((organization) => String(organization.id));
-  }, [coordinatorSubgranteeOptions, selectedSubgranteeIds]);
+    return coordinatorScopeOptions.map((organization) => String(organization.id));
+  }, [coordinatorScopeOptions, selectedSubgranteeIds]);
 
   useEffect(() => {
     if (reportOrgId === "all") {
@@ -1059,9 +1058,9 @@ export default function ReportsPage() {
   }, [canUseSubgranteeScope, reportOrgId, setIncludeSubgrantees, setSelectedSubgranteeIds]);
 
   useEffect(() => {
-    const allowedIds = new Set(coordinatorSubgranteeOptions.map((organization) => String(organization.id)));
+    const allowedIds = new Set(coordinatorScopeOptions.map((organization) => String(organization.id)));
     setSelectedSubgranteeIds((previous) => previous.filter((id) => allowedIds.has(String(id))));
-  }, [coordinatorSubgranteeOptions, setSelectedSubgranteeIds]);
+  }, [coordinatorScopeOptions, setSelectedSubgranteeIds]);
 
   const organizationScopedAggregates = useMemo(() => {
     if (reportOrgId === "all") return allAggregates;
@@ -2628,25 +2627,25 @@ export default function ReportsPage() {
                   <div>
                     <Label className="text-sm">Include sub-grantees</Label>
                     <p className="text-xs text-muted-foreground">
-                      Consolidate coordinator totals with selected sub-grantee data.
+                      Consolidate the selected coordinator with all descendant organizations.
                     </p>
                   </div>
                   <Switch checked={includeSubgrantees} onCheckedChange={setIncludeSubgrantees} />
                 </div>
                 <div className="space-y-2">
-                  <Label>Sub-grantee filter</Label>
+                  <Label>Descendant organization filter</Label>
                   <OrganizationMultiSelect
-                    organizations={coordinatorSubgranteeOptions.map((organization) => ({
+                    organizations={coordinatorScopeOptions.map((organization) => ({
                       id: String(organization.id),
                       name: organization.name,
                     }))}
                     selectedIds={selectedSubgranteeIds}
                     onChange={setSelectedSubgranteeIds}
-                    allLabel="All sub-grantees"
-                    disabled={!includeSubgrantees || coordinatorSubgranteeOptions.length === 0}
+                    allLabel="All descendants"
+                    disabled={!includeSubgrantees || coordinatorScopeOptions.length === 0}
                   />
-                  {coordinatorSubgranteeOptions.length === 0 ? (
-                    <p className="text-xs text-muted-foreground">No linked sub-grantees found for this coordinator.</p>
+                  {coordinatorScopeOptions.length === 0 ? (
+                    <p className="text-xs text-muted-foreground">No linked descendant organizations found for this coordinator.</p>
                   ) : null}
                 </div>
               </div>
@@ -3180,7 +3179,7 @@ export default function ReportsPage() {
                           data={indicatorBreakdown}
                           cx="50%"
                           cy="50%"
-                          innerRadius={60}
+                          innerRadius={0}
                           outerRadius={100}
                           paddingAngle={2}
                           dataKey="value"

@@ -159,6 +159,14 @@ export interface AnalysisResult {
   };
 }
 
+export interface DashboardOverviewFilters {
+  projectId?: number;
+  coordinatorId?: number;
+  organizationId?: number;
+  dateFrom?: string;
+  dateTo?: string;
+}
+
 export interface FlagFilters {
   search?: string;
   flag_type?: string;
@@ -453,7 +461,7 @@ export const analysisService = {
    * Get dashboard stats
    * Django endpoint: GET /api/analysis/dashboard/overview/
    */
-  async getDashboard(projectId?: number): Promise<{
+  async getDashboard(projectOrFilters?: number | DashboardOverviewFilters): Promise<{
     total_respondents: number;
     total_assessments: number;
     active_projects: number;
@@ -465,7 +473,16 @@ export const analysisService = {
       timestamp: string;
     }>;
   }> {
-    const params = projectId ? { project: projectId.toString() } : undefined;
+    const filters: DashboardOverviewFilters =
+      typeof projectOrFilters === 'number'
+        ? { projectId: projectOrFilters }
+        : (projectOrFilters || {});
+    const params: Record<string, string> = {};
+    if (filters.projectId) params.project = String(filters.projectId);
+    if (filters.coordinatorId) params.coordinator = String(filters.coordinatorId);
+    if (filters.organizationId) params.organization = String(filters.organizationId);
+    if (filters.dateFrom) params.date_from = filters.dateFrom;
+    if (filters.dateTo) params.date_to = filters.dateTo;
     const { data } = await api.get<{
       total_respondents: number;
       total_assessments: number;
@@ -477,7 +494,7 @@ export const analysisService = {
         description: string;
         timestamp: string;
       }>;
-    }>('/analysis/dashboard/overview/', params);
+    }>('/analysis/dashboard/overview/', Object.keys(params).length ? params : undefined);
     return data;
   },
 
@@ -490,6 +507,7 @@ export const analysisService = {
     params?: {
       months?: number;
       projectId?: number | null;
+      coordinatorId?: number | null;
       organizationId?: number | null;
       dateFrom?: string;
       dateTo?: string;
@@ -503,6 +521,7 @@ export const analysisService = {
     const months = params?.months ?? 12;
     if (months) query.months = months.toString();
     if (params?.projectId) query.project = String(params.projectId);
+    if (params?.coordinatorId) query.coordinator = String(params.coordinatorId);
     if (params?.organizationId) query.organization = String(params.organizationId);
     if (params?.dateFrom) query.date_from = params.dateFrom;
     if (params?.dateTo) query.date_to = params.dateTo;
@@ -519,6 +538,7 @@ export const analysisService = {
     params?: {
       months?: number;
       projectId?: number | null;
+      coordinatorId?: number | null;
       organizationId?: number | null;
       dateFrom?: string;
       dateTo?: string;
@@ -534,6 +554,7 @@ export const analysisService = {
     const months = params?.months ?? 12;
     if (months) query.months = months.toString();
     if (params?.projectId) query.project = String(params.projectId);
+    if (params?.coordinatorId) query.coordinator = String(params.coordinatorId);
     if (params?.organizationId) query.organization = String(params.organizationId);
     if (params?.dateFrom) query.date_from = params.dateFrom;
     if (params?.dateTo) query.date_to = params.dateTo;

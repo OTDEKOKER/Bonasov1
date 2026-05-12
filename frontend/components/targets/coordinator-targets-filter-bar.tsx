@@ -26,6 +26,7 @@ const activeOptions: Array<"all" | "true" | "false"> = ["all", "true", "false"];
 
 export function CoordinatorTargetsFilterBar(props: CoordinatorTargetsFilterBarProps) {
   const { filters, onFiltersChange, projects, coordinators, indicators, years, pending = false } = props;
+  const constrainedSelectContentClassName = "w-[var(--radix-select-trigger-width)] max-w-[min(90vw,26rem)]";
 
   const resetFilters = () => {
     onFiltersChange({
@@ -59,11 +60,13 @@ export function CoordinatorTargetsFilterBar(props: CoordinatorTargetsFilterBarPr
           <SelectTrigger>
             <SelectValue placeholder="Project" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className={constrainedSelectContentClassName}>
             <SelectItem value="all">All projects</SelectItem>
             {projects.map((option) => (
               <SelectItem key={option.value} value={option.value}>
-                {option.label}
+                <span className="block truncate" title={option.label}>
+                  {option.label}
+                </span>
               </SelectItem>
             ))}
           </SelectContent>
@@ -73,11 +76,13 @@ export function CoordinatorTargetsFilterBar(props: CoordinatorTargetsFilterBarPr
           <SelectTrigger>
             <SelectValue placeholder="Coordinator" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className={constrainedSelectContentClassName}>
             <SelectItem value="all">All coordinators</SelectItem>
             {coordinators.map((option) => (
               <SelectItem key={option.value} value={option.value}>
-                {option.label}
+                <span className="block truncate" title={option.label}>
+                  {option.label}
+                </span>
               </SelectItem>
             ))}
           </SelectContent>
@@ -87,11 +92,13 @@ export function CoordinatorTargetsFilterBar(props: CoordinatorTargetsFilterBarPr
           <SelectTrigger>
             <SelectValue placeholder="Indicator" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className={constrainedSelectContentClassName}>
             <SelectItem value="all">All indicators</SelectItem>
             {indicators.map((option) => (
               <SelectItem key={option.value} value={option.value}>
-                {option.label}
+                <span className="block truncate" title={option.label}>
+                  {option.label}
+                </span>
               </SelectItem>
             ))}
           </SelectContent>
@@ -101,7 +108,7 @@ export function CoordinatorTargetsFilterBar(props: CoordinatorTargetsFilterBarPr
           <SelectTrigger>
             <SelectValue placeholder="Year" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className={constrainedSelectContentClassName}>
             <SelectItem value="all">All years</SelectItem>
             {years.map((year) => (
               <SelectItem key={year} value={String(year)}>
@@ -118,7 +125,7 @@ export function CoordinatorTargetsFilterBar(props: CoordinatorTargetsFilterBarPr
           <SelectTrigger>
             <SelectValue placeholder="Quarter" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className={constrainedSelectContentClassName}>
             {quarterOptions.map((option) => (
               <SelectItem key={option} value={option}>
                 {option === "all" ? "All quarters" : option}
@@ -131,7 +138,7 @@ export function CoordinatorTargetsFilterBar(props: CoordinatorTargetsFilterBarPr
           <SelectTrigger>
             <SelectValue placeholder="Status" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className={constrainedSelectContentClassName}>
             {activeOptions.map((option) => (
               <SelectItem key={option} value={option}>
                 {option === "all" ? "All statuses" : option === "true" ? "Active only" : "Inactive only"}

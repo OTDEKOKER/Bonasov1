@@ -14,8 +14,8 @@ import {
 import type { Aggregate, Indicator, Organization, Project } from "@/lib/types";
 import { getAggregateTotal } from "@/lib/aggregates/aggregate-helpers";
 import { buildOrganizationDescendantMap } from "@/lib/analytics/org-scope";
+import { resolveIndicatorIdString } from "@/lib/indicators/id-aliases";
 import { useAuth } from "@/lib/contexts/auth-context";
-import type { BarLikeChart } from "@/lib/visualization/engine";
 import {
   useAllAggregates,
   useAllIndicators,
@@ -23,9 +23,8 @@ import {
   useAllProjects,
   useCoordinatorTargets,
 } from "@/lib/hooks/use-api";
-import { normalizeOrganizationType } from "@/lib/organization-hierarchy";
+import { isBonasoOrganizationName } from "@/lib/organization-hierarchy";
 import { canManageCoordinatorTargets } from "@/lib/permissions";
-import { SmartChartRenderer } from "@/components/analysis/smart-chart-renderer";
 import { PageHeader } from "@/components/shared/page-header";
 import {
   AlertDialog,
@@ -39,7 +38,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import {
   CoordinatorTargetBulkAssignDialog,
@@ -49,7 +48,6 @@ import {
   type CoordinatorTargetFormValue,
 } from "@/components/targets/coordinator-target-form-dialog";
 import { CoordinatorTargetsFilterBar } from "@/components/targets/coordinator-targets-filter-bar";
-import { CoordinatorPerformanceSummaryCards } from "@/components/targets/coordinator-performance-summary-cards";
 import { CoordinatorTargetsTable } from "@/components/targets/coordinator-targets-table";
 import type {
   CoordinatorPerformanceRow,
@@ -72,10 +70,6 @@ const quarterSortWeight: Record<string, number> = {
   Q3: 3,
   Q4: 4,
 };
-const TARGET_VS_ACTUAL_COLORS = {
-  target: "#4472c4",
-  actual: "#2e8b57",
-} as const;
 
 function isBackendUnavailable(error: unknown): boolean {
   if (
@@ -95,7 +89,10 @@ function isBackendUnavailable(error: unknown): boolean {
   return (
     message.includes("not available on this backend") ||
     message.includes("page not found at /api/analysis/coordinator-targets/") ||
-    message.includes("/api/analysis/coordinator-targets/")
+    message.includes("/api/analysis/coordinator-targets/") ||
+    message.includes("the requested resource was not found") ||
+    message.includes("<!doctype html>") ||
+    message.includes("<html")
   );
 }
 
@@ -155,7 +152,8 @@ function buildPerformanceRows(input: {
     .map((target) => {
       const coordinatorId = coerceId(target.coordinator_id);
       const targetProjectId = coerceId(target.project_id);
-      const targetIndicatorId = coerceId(target.indicator_id);
+      const targetIndicatorIdRaw = coerceId(target.indicator_id);
+      const targetIndicatorId = resolveIndicatorIdString(targetIndicatorIdRaw);
       const descendants = descendantsByParent[coordinatorId] || [];
       const scopeOrgIds = new Set([coordinatorId, ...descendants]);
       const fiscalRange = getFiscalQuarterDateRange(Number(target.year), target.quarter);
@@ -217,6 +215,7 @@ function buildPerformanceRows(input: {
           `Coordinator ${coordinatorId}`,
         indicatorName:
           target.indicator_name ||
+          indicatorsById.get(targetIndicatorIdRaw) ||
           indicatorsById.get(targetIndicatorId) ||
           `Indicator ${targetIndicatorId}`,
         ownActualValue,
@@ -238,51 +237,6 @@ function buildPerformanceRows(input: {
       if (quarterDiff !== 0) return quarterDiff;
       return left.coordinatorName.localeCompare(right.coordinatorName);
     });
-}
-
-function buildTargetVsActualChart(
-  rows: CoordinatorPerformanceRow[],
-  mode: "coordinator" | "indicator",
-): BarLikeChart | null {
-  if (rows.length === 0) return null;
-
-  const totalsByGroup = new Map<string, { target: number; actual: number }>();
-
-  rows.forEach((row) => {
-    const group = mode === "indicator" ? row.indicatorName : row.coordinatorName;
-    const current = totalsByGroup.get(group) || { target: 0, actual: 0 };
-    current.target += Number(row.target.target_value || 0);
-    current.actual += Number(row.actualValue || 0);
-    totalsByGroup.set(group, current);
-  });
-
-  const data = Array.from(totalsByGroup.entries())
-    .map(([category, values]) => ({
-      category,
-      target: values.target,
-      actual: values.actual,
-    }))
-    .sort((left, right) => right.actual - left.actual)
-    .slice(0, 12);
-
-  if (data.length === 0) return null;
-
-  return {
-    kind: "grouped-bar",
-    title: mode === "indicator" ? "Target vs Actual by Indicator" : "Target vs Actual by Coordinator",
-    description:
-      mode === "indicator"
-        ? "Compares configured quarterly targets against achieved totals for the selected coordinator scope."
-        : "Compares configured quarterly targets against achieved totals for coordinators in the selected scope.",
-    xKey: "category",
-    yAxisLabel: "Number of people",
-    data,
-    series: [
-      { key: "target", label: "Target", color: TARGET_VS_ACTUAL_COLORS.target },
-      { key: "actual", label: "Actual", color: TARGET_VS_ACTUAL_COLORS.actual },
-    ],
-    drilldownDimension: mode,
-  };
 }
 
 export function CoordinatorTargetsPage() {
@@ -363,27 +317,49 @@ export function CoordinatorTargetsPage() {
   );
 
   const coordinatorOptions = useMemo<NamedOption[]>(
-    () =>
-      organizations
+    () => {
+      const organizationsById = new Map(
+        organizations.map((organization) => [coerceId(organization.id), organization]),
+      );
+      const parentOrganizationIds = new Set<string>();
+      organizations.forEach((organization) => {
+        const parentId = coerceId(organization.parentId);
+        if (!parentId) return;
+        if (!organizationsById.has(parentId)) return;
+        parentOrganizationIds.add(parentId);
+      });
+
+      return organizations
         .filter((organization) => {
-          const normalizedType = normalizeOrganizationType(organization.type);
-          return normalizedType === "coordinator" || normalizedType === "senior_coordinator";
+          const organizationId = coerceId(organization.id);
+          if (!parentOrganizationIds.has(organizationId)) return false;
+          return !isBonasoOrganizationName(organization.name);
         })
         .map((organization) => ({
           value: coerceId(organization.id),
           label: String(organization.name || `Coordinator ${organization.id}`),
         }))
-        .sort((left, right) => left.label.localeCompare(right.label)),
+        .sort((left, right) => left.label.localeCompare(right.label));
+    },
     [organizations],
   );
 
   const indicatorOptions = useMemo<NamedOption[]>(
     () =>
       indicators
-        .map((indicator) => ({
-          value: coerceId(indicator.id),
-          label: String(indicator.short_name || indicator.name || `Indicator ${indicator.id}`),
-        }))
+        .map((indicator) => {
+          const label = String(indicator.short_name || indicator.name || `Indicator ${indicator.id}`);
+          const fullName = String(indicator.name || "").trim();
+          const code = String(indicator.code || "").trim();
+          const hint = [code, fullName !== label ? fullName : ""].filter(Boolean).join(" • ");
+
+          return {
+            value: coerceId(indicator.id),
+            label,
+            hint: hint || undefined,
+            searchText: [label, fullName, code].filter(Boolean).join(" "),
+          };
+        })
         .sort((left, right) => left.label.localeCompare(right.label)),
     [indicators],
   );
@@ -414,6 +390,7 @@ export function CoordinatorTargetsPage() {
         query.date_to = range.end;
       }
     }
+    query.status = "approved";
 
     return query;
   }, [coordinatorTargetsUnavailable, filters.indicatorId, filters.projectId, filters.quarter, filters.year, targets.length]);
@@ -448,11 +425,6 @@ export function CoordinatorTargetsPage() {
         aggregates: normalizedAggregates,
       }),
     [indicatorsById, normalizedAggregates, organizations, projectsById, targets],
-  );
-  const chartMode = filters.coordinatorId !== "all" ? "indicator" : "coordinator";
-  const targetVsActualChart = useMemo(
-    () => buildTargetVsActualChart(performanceRows, chartMode),
-    [chartMode, performanceRows],
   );
 
   const applyFilters = (patch: Partial<CoordinatorTargetsFilterState>) => {
@@ -600,31 +572,6 @@ export function CoordinatorTargetsPage() {
             years={fiscalYears}
             pending={coordinatorTargetsLoading}
           />
-
-          <CoordinatorPerformanceSummaryCards rows={performanceRows} totalCount={totalCount} />
-
-          <Card className="border-border/70 shadow-sm">
-            <CardHeader>
-              <CardTitle>Achievement vs Target</CardTitle>
-              <CardDescription>
-                Visual comparison of achieved totals against configured targets for the current filter selection.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {allAggregatesLoading ? (
-                <div className="flex items-center text-sm text-muted-foreground">
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Building achievement chart...
-                </div>
-              ) : targetVsActualChart ? (
-                <SmartChartRenderer chart={targetVsActualChart} size="medium" density="compact" showTitle={false} />
-              ) : (
-                <div className="rounded-xl border border-border/70 p-4 text-sm text-muted-foreground">
-                  No chartable target/actual data is available for the current filters.
-                </div>
-              )}
-            </CardContent>
-          </Card>
 
           {aggregateWarning ? (
             <Card className="border-amber-500/30 bg-amber-500/5">

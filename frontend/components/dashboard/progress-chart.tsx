@@ -17,9 +17,9 @@ interface ProgressChartProps {
 
 export function ProgressChart({ data, title }: ProgressChartProps) {
   return (
-    <div className="rounded-xl border border-border bg-card p-6">
+    <div className="min-w-0 w-full max-w-full overflow-hidden rounded-xl border border-border bg-card p-6">
       <h3 className="mb-4 text-sm font-medium text-muted-foreground">{title}</h3>
-      <div className="h-[300px]">
+      <div className="h-[320px] w-full min-w-0 overflow-hidden">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
             <defs>

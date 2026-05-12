@@ -1,8 +1,9 @@
 ﻿"use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Plus, Search, Download, Trash2, FileUp, RefreshCcw, FileSpreadsheet } from "lucide-react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -44,8 +45,18 @@ const FILE_TYPES = [
   { value: "other", label: "Other" },
 ];
 
+const SPREADSHEET_EXTENSIONS = [".xlsx", ".xls", ".xlsm", ".csv"];
+
+function isSpreadsheetLikeUpload(upload: UploadRecord) {
+  if (upload.file_type === "spreadsheet") return true;
+
+  const value = String(upload.file_url || upload.file || upload.name || "").toLowerCase();
+  return SPREADSHEET_EXTENSIONS.some((extension) => value.endsWith(extension));
+}
+
 export default function UploadsPage() {
   const { toast } = useToast();
+  const searchParams = useSearchParams();
   const [search, setSearch] = useState("");
   const [fileTypeFilter, setFileTypeFilter] = useState("all");
   const [organizationFilter, setOrganizationFilter] = useState("all");
@@ -64,6 +75,12 @@ export default function UploadsPage() {
   const { data: uploadsData, isLoading, error, mutate: mutateUploads } = useAllUploads();
   const { data: orgsData } = useAllOrganizations();
   const { data: importJobsData, mutate: mutateImports } = useImportJobs();
+
+  const highlightedUploadId = useMemo(() => {
+    const raw = searchParams.get("highlight");
+    const parsed = raw ? Number(raw) : NaN;
+    return Number.isFinite(parsed) ? parsed : null;
+  }, [searchParams]);
 
   const uploads = useMemo(() => uploadsData?.results ?? [], [uploadsData?.results]);
   const organizations = orgsData?.results || [];
@@ -87,11 +104,20 @@ export default function UploadsPage() {
 
   const stats = useMemo(() => {
     const total = uploads.length;
-    const spreadsheets = uploads.filter((u) => u.file_type === "spreadsheet").length;
+    const spreadsheets = uploads.filter((u) => isSpreadsheetLikeUpload(u)).length;
     const documents = uploads.filter((u) => u.file_type === "document").length;
     const images = uploads.filter((u) => u.file_type === "image").length;
     return { total, spreadsheets, documents, images };
   }, [uploads]);
+
+  useEffect(() => {
+    if (!highlightedUploadId) return;
+
+    const row = document.getElementById(`upload-row-${highlightedUploadId}`);
+    if (!row) return;
+
+    row.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [highlightedUploadId, filteredUploads.length, isLoading]);
 
   const resetForm = () => {
     setUploadForm({
@@ -158,7 +184,7 @@ export default function UploadsPage() {
   const handleStartImport = async (upload: UploadRecord) => {
     try {
       await uploadsService.startImport(upload.id);
-      toast({ title: "Import started", description: "Import job created." });
+      toast({ title: "Import queued", description: "Import job created and queued for review." });
       mutateImports();
     } catch (err) {
       console.error("Failed to start import", err);
@@ -364,7 +390,10 @@ export default function UploadsPage() {
                 {filteredUploads.map((upload) => (
                   <div
                     key={upload.id}
-                    className="rounded-lg border border-border p-4"
+                    id={`upload-row-${upload.id}`}
+                    className={`rounded-lg border border-border p-4 transition-colors ${
+                      highlightedUploadId === upload.id ? "border-primary bg-primary/5 shadow-sm" : ""
+                    }`}
                   >
                     <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                       <div>
@@ -384,7 +413,7 @@ export default function UploadsPage() {
                             Download
                           </Button>
                         )}
-                        {upload.file_type === "spreadsheet" && (
+                        {isSpreadsheetLikeUpload(upload) && (
                           <Button
                             variant="secondary"
                             size="sm"

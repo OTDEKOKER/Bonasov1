@@ -93,16 +93,28 @@ function isBrowserEnvironment() {
 }
 
 function isCoordinatorTargetsEndpointUnavailable(error: unknown) {
+  if (
+    typeof error !== "object" ||
+    error === null ||
+    !("status" in error) ||
+    (error as { status?: unknown }).status !== 404
+  ) {
+    return false;
+  }
+
+  const message =
+    "message" in error && typeof (error as { message?: unknown }).message === "string"
+      ? (error as { message: string }).message.toLowerCase()
+      : "";
+
   return (
-    typeof error === "object" &&
-    error !== null &&
-    "status" in error &&
-    (error as { status?: unknown }).status === 404 &&
-    "message" in error &&
-    typeof (error as { message?: unknown }).message === "string" &&
-    ((error as { message: string }).message.toLowerCase().includes("not available on this backend") ||
-      (error as { message: string }).message.toLowerCase().includes("page not found at") ||
-      (error as { message: string }).message.toLowerCase().includes("/coordinator-targets/"))
+    message.includes("not available on this backend") ||
+    message.includes("page not found at") ||
+    message.includes("/coordinator-targets/") ||
+    message.includes("/analysis/coordinator-targets/") ||
+    message.includes("the requested resource was not found") ||
+    message.includes("<!doctype html>") ||
+    message.includes("<html")
   );
 }
 

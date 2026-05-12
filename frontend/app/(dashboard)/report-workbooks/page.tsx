@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import * as XLSX from "xlsx-js-style";
 import {
   AlertCircle,
   CheckCircle2,
@@ -29,16 +30,18 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   buildCreateMissingIndicatorsRequest,
   reportWorkbooksService,
+  uploadsService,
   type WorkbookImportSession,
 } from "@/lib/api";
 import { useAllIndicators, useAllOrganizations, useAllProjects } from "@/lib/hooks/use-api";
 import { useToast } from "@/hooks/use-toast";
+import type { ImportJob, UploadRecord } from "@/lib/api/services/uploads";
 
 const workbookSignals = [
   "The workbook has one Indicator matrix sheet plus one reporting sheet per organization.",
   "Worksheet name is the primary organization identifier for reporting sheets.",
   "The Indicator matrix sheet contains coordinator-assigned indicators for sub-partners.",
-  "Quarter targets follow the April-to-March reporting year, so Quarter 3 2025 means October 1, 2025 to December 31, 2025.",
+  "Quarter targets follow the April-to-March reporting year, so Quarter 3 2025/26 means October 1, 2025 to December 31, 2025.",
 ];
 
 const parserStages = [
@@ -75,6 +78,15 @@ const exportScopes = [
   { value: "all_organizations", label: "All organizations" },
   { value: "consolidated", label: "Consolidated report" },
 ];
+
+const reportingPeriodOptions = [
+  { value: "Q1 2025/26", label: "Q1 2025/26" },
+  { value: "Q2 2025/26", label: "Q2 2025/26" },
+  { value: "Q3 2025/26", label: "Q3 2025/26" },
+  { value: "Q4 2025/26", label: "Q4 2025/26" },
+] as const;
+
+const defaultReportingPeriod = reportingPeriodOptions[2].value;
 
 const endpointRows = [
   ["POST", "/api/report-workbooks/imports/", "Upload workbook and create import session"],
@@ -138,6 +150,162 @@ function detectCoordinatorFromFileName(fileName: string): string {
   return tokens || "Unresolved";
 }
 
+function inferSheetRole(sheetName: string) {
+  const normalized = sheetName.toLowerCase();
+
+  if (normalized.includes("indicator") && normalized.includes("matrix")) {
+    return "indicator_matrix" as const;
+  }
+
+  if (normalized.includes("summary")) {
+    return "summary" as const;
+  }
+
+  return "organization_report" as const;
+}
+
+type LocalWorkbookImportSession = WorkbookImportSession & {
+  localOnly?: boolean;
+  sourceUploadId?: number | null;
+};
+type UnknownIndicatorTitle = {
+  title: string;
+  count: number;
+};
+
+async function buildLocalWorkbookPreview(
+  file: File,
+  input: {
+    projectId?: number;
+    projectName?: string | null;
+    reportingPeriod?: string | null;
+    upload?: UploadRecord | null;
+  },
+): Promise<LocalWorkbookImportSession> {
+  const buffer = await file.arrayBuffer();
+  const workbook = XLSX.read(buffer, { type: "array" });
+  const sheetNames = workbook.SheetNames || [];
+  const createdAt = input.upload?.created_at || new Date().toISOString();
+
+  return {
+    id: input.upload?.id || Date.now(),
+    file_name: input.upload?.name || file.name,
+    status: "ready_for_review",
+    project: input.projectId ?? null,
+    project_name: input.projectName ?? null,
+    organization: input.upload?.organization ?? null,
+    organization_name: input.upload?.organization_name ?? null,
+    reporting_period: input.reportingPeriod ?? null,
+    template_id: null,
+    template_name: "Local preview",
+    created_at: createdAt,
+    updated_at: createdAt,
+    financial_year_start_month: 4,
+    summary: {
+      sheets_scanned: sheetNames.length,
+      sheets_skipped: 0,
+      rows_imported: 0,
+      rows_skipped: 0,
+      assignments_detected: 0,
+      target_cells_detected: 0,
+      warnings: 1,
+      errors: 0,
+    },
+    assignments: [],
+    missing_indicators: [],
+    sheets: sheetNames.map((sheetName, index) => {
+      const sheet = workbook.Sheets[sheetName];
+      const mergedRanges = Array.isArray(sheet?.["!merges"])
+        ? sheet["!merges"].map((range) => XLSX.utils.encode_range(range))
+        : [];
+
+      return {
+        id: index + 1,
+        sheet_name: sheetName,
+        sheet_index: index + 1,
+        sheet_role: inferSheetRole(sheetName),
+        detected_indicator: null,
+        detected_organization: sheetName,
+        detected_project: input.projectName ?? null,
+        detected_reporting_period: input.reportingPeriod ?? null,
+        merged_ranges: mergedRanges,
+        title_blocks: [],
+        metadata_cells: {},
+        table_previews: [],
+        issues: [],
+      };
+    }),
+    issues: [
+      {
+        severity: "warning",
+        code: "WORKBOOK_BACKEND_UNAVAILABLE",
+        message:
+          "Workbook API routes are not mounted in this deployment. Showing a local upload preview instead.",
+      },
+    ],
+    localOnly: true,
+    sourceUploadId: input.upload?.id ?? null,
+  };
+}
+
+function getImportableSheetNames(session: LocalWorkbookImportSession) {
+  return (session.sheets || [])
+    .filter((sheet) => sheet.sheet_role !== "indicator_matrix" && sheet.sheet_role !== "summary")
+    .map((sheet) => sheet.sheet_name)
+    .filter((sheetName, index, names) => sheetName && names.indexOf(sheetName) === index);
+}
+
+function toNumericId(value: string | number | null | undefined) {
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed <= 0) return null;
+  return parsed;
+}
+
+function extractUnknownIndicatorTitles(summary?: ImportJob["aggregate_import_summary"]): UnknownIndicatorTitle[] {
+  const unknownMap = summary?.unknown_titles;
+  if (!unknownMap || typeof unknownMap !== "object") return [];
+
+  return Object.entries(unknownMap)
+    .map(([title, count]) => ({
+      title,
+      count: Number(count) || 0,
+    }))
+    .sort((left, right) => right.count - left.count || left.title.localeCompare(right.title));
+}
+
+function extractUnresolvedSheetNames(error: unknown): string[] {
+  if (!error || typeof error !== "object") return [];
+  const maybeApiError = error as { errors?: unknown };
+  const payload = maybeApiError.errors;
+  if (!payload) return [];
+
+  if (Array.isArray(payload)) {
+    for (const item of payload) {
+      if (
+        item &&
+        typeof item === "object" &&
+        Array.isArray((item as { unresolved_sheet_names?: unknown }).unresolved_sheet_names)
+      ) {
+        return ((item as { unresolved_sheet_names: unknown[] }).unresolved_sheet_names || [])
+          .map((value) => String(value || "").trim())
+          .filter(Boolean);
+      }
+    }
+  }
+
+  if (
+    payload &&
+    typeof payload === "object" &&
+    Array.isArray((payload as { unresolved_sheet_names?: unknown }).unresolved_sheet_names)
+  ) {
+    return ((payload as { unresolved_sheet_names: unknown[] }).unresolved_sheet_names || [])
+      .map((value) => String(value || "").trim())
+      .filter(Boolean);
+  }
+
+  return [];
+}
+
 export default function ReportWorkbooksPage() {
   const { toast } = useToast();
   const { data: projectsData } = useAllProjects();
@@ -146,17 +314,17 @@ export default function ReportWorkbooksPage() {
 
   const projects = projectsData?.results ?? [];
   const organizations = organizationsData?.results ?? [];
-  const indicators = indicatorsData ?? [];
+  const indicators = useMemo(() => indicatorsData ?? [], [indicatorsData]);
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [importProject, setImportProject] = useState("all");
-  const [importPeriod, setImportPeriod] = useState("Q3 2025 (Oct-Dec)");
+  const [importPeriod, setImportPeriod] = useState(defaultReportingPeriod);
   const [exportProject, setExportProject] = useState("all");
   const [exportScope, setExportScope] = useState("single_organization");
   const [exportOrganization, setExportOrganization] = useState("all");
-  const [exportPeriod, setExportPeriod] = useState("Q3 2025 (Oct-Dec)");
+  const [exportPeriod, setExportPeriod] = useState(defaultReportingPeriod);
   const [notes, setNotes] = useState("");
-  const [importSession, setImportSession] = useState<WorkbookImportSession | null>(null);
+  const [importSession, setImportSession] = useState<LocalWorkbookImportSession | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isCreatingMissingIndicators, setIsCreatingMissingIndicators] = useState(false);
   const [isConfirmingImport, setIsConfirmingImport] = useState(false);
@@ -165,6 +333,8 @@ export default function ReportWorkbooksPage() {
   const [applyIndicatorAssignments, setApplyIndicatorAssignments] = useState(true);
   const [syncProjectIndicatorLinks, setSyncProjectIndicatorLinks] = useState(true);
   const [createMissingOnConfirm, setCreateMissingOnConfirm] = useState(false);
+  const [unknownIndicatorTitles, setUnknownIndicatorTitles] = useState<UnknownIndicatorTitle[]>([]);
+  const [indicatorOverrides, setIndicatorOverrides] = useState<Record<string, string>>({});
 
   const detectedCoordinator = useMemo(() => {
     if (!selectedFile) return "Upload a workbook to preview workbook-level coordinator hints";
@@ -213,6 +383,33 @@ export default function ReportWorkbooksPage() {
     () => importSession?.issues?.filter((issue) => issue.severity !== "info") ?? [],
     [importSession],
   );
+  const unresolvedUnknownIndicatorCount = useMemo(
+    () =>
+      unknownIndicatorTitles.filter(
+        ({ title }) => toNumericId(indicatorOverrides[title]) === null,
+      ).length,
+    [indicatorOverrides, unknownIndicatorTitles],
+  );
+  const indicatorResolverOptions = useMemo(
+    () =>
+      [...indicators]
+        .map((indicator) => {
+          const id = String(indicator.id || "");
+          return {
+            id,
+            label: `${indicator.name}${indicator.code ? ` (${indicator.code})` : ""}`,
+          };
+        })
+        .filter((option) => Boolean(option.id))
+        .sort((left, right) => left.label.localeCompare(right.label)),
+    [indicators],
+  );
+  const confirmImportLabel = useMemo(() => {
+    if (!importSession?.localOnly) return "Upload aggregated values";
+    if (!unknownIndicatorTitles.length) return "Queue for review";
+    if (unresolvedUnknownIndicatorCount > 0) return "Resolve indicators then queue";
+    return "Queue with resolver mappings";
+  }, [importSession?.localOnly, unresolvedUnknownIndicatorCount, unknownIndicatorTitles.length]);
 
   const canConfirmImport = Boolean(importSession?.id) && !isConfirmingImport;
 
@@ -228,17 +425,32 @@ export default function ReportWorkbooksPage() {
 
     try {
       setIsUploading(true);
-      const created = await reportWorkbooksService.createImportSession({
+      const projectId = importProject !== "all" ? Number(importProject) : undefined;
+      const projectName =
+        projectId !== undefined
+          ? projects.find((project) => project.id === projectId)?.name || null
+          : null;
+
+      const uploaded = (await uploadsService.create({
+        name: selectedFile.name,
         file: selectedFile,
-        project: importProject !== "all" ? Number(importProject) : undefined,
-        reporting_period: importPeriod || undefined,
-        notes: notes || undefined,
+        description: notes || `Workbook preview for ${importPeriod}`,
+        content_type: "report-workbook",
+      })) as UploadRecord;
+
+      const preview = await buildLocalWorkbookPreview(selectedFile, {
+        projectId,
+        projectName,
+        reportingPeriod: importPeriod || null,
+        upload: uploaded,
       });
-      const analyzed = await reportWorkbooksService.analyzeImportSession(created.id);
-      setImportSession(analyzed);
+
+      setUnknownIndicatorTitles([]);
+      setIndicatorOverrides({});
+      setImportSession(preview);
       toast({
-        title: "Workbook analyzed",
-        description: `Analyzed ${analyzed.file_name}. Missing indicators and assignments are ready for review.`,
+        title: "Workbook preview ready",
+        description: `Uploaded ${selectedFile.name} and scanned ${preview.summary?.sheets_scanned || 0} sheet(s) locally.`,
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to analyze workbook.";
@@ -264,6 +476,97 @@ export default function ReportWorkbooksPage() {
 
     try {
       setIsConfirmingImport(true);
+      if (importSession.localOnly) {
+        if (!importSession.sourceUploadId) {
+          toast({
+            title: "Preview only",
+            description: "This workbook preview does not have an upload record to queue.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        const projectId = typeof importSession.project === "number" ? importSession.project : undefined;
+        if (!projectId) {
+          toast({
+            title: "Project required",
+            description: "Select a project before queueing workbook data for aggregate review.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        const reportingPeriod = importSession.reporting_period || importPeriod;
+        const sheetNames = getImportableSheetNames(importSession);
+        const indicatorOverridesPayload = Object.entries(indicatorOverrides).reduce(
+          (accumulator, [title, indicatorId]) => {
+            const resolvedId = toNumericId(indicatorId);
+            if (resolvedId !== null) {
+              accumulator[title] = resolvedId;
+            }
+            return accumulator;
+          },
+          {} as Record<string, number>,
+        );
+        const dryRun = await uploadsService.startImport(importSession.sourceUploadId, {
+          queue_aggregate_review: true,
+          dry_run: true,
+          project_id: projectId,
+          reporting_period: reportingPeriod,
+          sheet_names: sheetNames,
+          indicator_overrides: indicatorOverridesPayload,
+        });
+        const unknownFromDryRun = extractUnknownIndicatorTitles(dryRun.aggregate_import_summary);
+        setUnknownIndicatorTitles(unknownFromDryRun);
+        setImportSession((current) =>
+          current
+            ? {
+                ...current,
+                status: dryRun.status === "failed" ? "failed" : "validated",
+                updated_at: new Date().toISOString(),
+              }
+            : current,
+        );
+        const unresolvedCount = unknownFromDryRun.filter(
+          ({ title }) => toNumericId(indicatorOverridesPayload[title]) === null,
+        ).length;
+        if (unresolvedCount > 0) {
+          toast({
+            title: "Indicator resolver required",
+            description:
+              unresolvedCount === 1
+                ? "1 indicator title still needs a mapping before queueing the import."
+                : `${unresolvedCount} indicator titles still need mappings before queueing the import.`,
+            variant: "destructive",
+          });
+          return;
+        }
+
+        const queuedImport = await uploadsService.startImport(importSession.sourceUploadId, {
+          queue_aggregate_review: true,
+          project_id: projectId,
+          reporting_period: reportingPeriod,
+          sheet_names: sheetNames,
+          indicator_overrides: indicatorOverridesPayload,
+        });
+        setUnknownIndicatorTitles([]);
+        setImportSession((current) =>
+          current
+            ? {
+                ...current,
+                status: queuedImport.status === "failed" ? "failed" : "imported",
+                updated_at: new Date().toISOString(),
+              }
+            : current,
+        );
+        toast({
+          title: "Queued for aggregate review",
+          description:
+            "The workbook rows were imported into pending aggregates and will show in the review queue.",
+        });
+        return;
+      }
+
       const updated = await reportWorkbooksService.confirmImportSession(importSession.id, {
         import_mode: confirmImportMode,
         overwrite_existing: overwriteExisting,
@@ -281,9 +584,13 @@ export default function ReportWorkbooksPage() {
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to import workbook values.";
+      const unresolvedSheetNames = extractUnresolvedSheetNames(error);
+      const description = unresolvedSheetNames.length
+        ? `${message} Unresolved workbook sheets: ${unresolvedSheetNames.join(", ")}.`
+        : message;
       toast({
         title: "Upload failed",
-        description: message,
+        description,
         variant: "destructive",
       });
     } finally {
@@ -296,6 +603,16 @@ export default function ReportWorkbooksPage() {
       toast({
         title: "No missing indicators",
         description: "Analyze a workbook with unresolved indicators first.",
+      });
+      return;
+    }
+
+    if (importSession.localOnly) {
+      toast({
+        title: "Preview only",
+        description:
+          "Missing-indicator creation is not available in the local workbook preview mode.",
+        variant: "destructive",
       });
       return;
     }
@@ -345,7 +662,7 @@ export default function ReportWorkbooksPage() {
         <AlertCircle className="h-4 w-4" />
         <AlertTitle>Quarter mapping locked</AlertTitle>
         <AlertDescription>
-          For this workbook family, <strong>Quarter 3 2025</strong> means <strong>October 1, 2025</strong> through{" "}
+          For this workbook family, <strong>Quarter 3 2025/26</strong> means <strong>October 1, 2025</strong> through{" "}
           <strong>December 31, 2025</strong>. The importer should not treat this as a January-to-September calendar quarter.
         </AlertDescription>
       </Alert>
@@ -444,7 +761,18 @@ export default function ReportWorkbooksPage() {
 
                   <div className="grid gap-2">
                     <Label>Reporting period</Label>
-                    <Input value={importPeriod} onChange={(event) => setImportPeriod(event.target.value)} />
+                    <Select value={importPeriod} onValueChange={setImportPeriod}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select reporting period" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {reportingPeriodOptions.map((period) => (
+                          <SelectItem key={period.value} value={period.value}>
+                            {period.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
 
@@ -535,8 +863,8 @@ export default function ReportWorkbooksPage() {
                     <Badge variant="secondary">Apr-Mar year</Badge>
                   </div>
                   <div className="flex items-center justify-between rounded-md border px-3 py-2">
-                    <span>Q3 2025 window</span>
-                    <Badge variant="secondary">Oct 1-Dec 31 2025</Badge>
+                    <span>Reporting period</span>
+                    <Badge variant="secondary">{importPeriod}</Badge>
                   </div>
                   <div className="flex items-center justify-between rounded-md border px-3 py-2">
                     <span>Indicator references catalogued</span>
@@ -568,10 +896,10 @@ export default function ReportWorkbooksPage() {
                     <TableHead>Organization sheet</TableHead>
                     <TableHead>Assigned indicator</TableHead>
                     <TableHead>Source</TableHead>
-                    <TableHead>Q1 Apr-Jun</TableHead>
-                    <TableHead>Q2 Jul-Sep</TableHead>
-                    <TableHead>Q3 Oct-Dec</TableHead>
-                    <TableHead>Q4 Jan-Mar</TableHead>
+                    <TableHead>Q1 2025/26</TableHead>
+                    <TableHead>Q2 2025/26</TableHead>
+                    <TableHead>Q3 2025/26</TableHead>
+                    <TableHead>Q4 2025/26</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -658,7 +986,7 @@ export default function ReportWorkbooksPage() {
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground">Session status</span>
                     <Badge variant={importSession?.status === "imported" ? "default" : "secondary"}>
-                      {importSession?.status || "No session"}
+                      {importSession?.status ? importSession.status.replace(/_/g, " ") : "No session"}
                     </Badge>
                   </div>
                   <div className="grid gap-2 text-sm">
@@ -721,11 +1049,62 @@ export default function ReportWorkbooksPage() {
                       <span>Create any remaining missing indicators during confirm if the backend supports it.</span>
                     </label>
                   </div>
+                  {importSession?.localOnly && unknownIndicatorTitles.length > 0 ? (
+                    <div className="space-y-3 rounded-md border border-amber-200 bg-amber-50/60 p-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="text-sm font-medium text-amber-950">Indicator resolver</div>
+                          <div className="text-xs text-amber-900/80">
+                            Map workbook titles to existing indicators, then queue import.
+                          </div>
+                        </div>
+                        <Badge variant={unresolvedUnknownIndicatorCount > 0 ? "destructive" : "secondary"}>
+                          {unresolvedUnknownIndicatorCount} unresolved
+                        </Badge>
+                      </div>
+                      <div className="space-y-2">
+                        {unknownIndicatorTitles.map(({ title, count }) => (
+                          <div key={title} className="space-y-2 rounded-md border border-amber-200 bg-white px-3 py-2">
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="text-sm font-medium">{title}</div>
+                              <Badge variant="outline">{count} row(s)</Badge>
+                            </div>
+                            <Select
+                              value={indicatorOverrides[title] || "__unmapped__"}
+                              onValueChange={(value) =>
+                                setIndicatorOverrides((current) => {
+                                  const next = { ...current };
+                                  if (value === "__unmapped__") {
+                                    delete next[title];
+                                  } else {
+                                    next[title] = value;
+                                  }
+                                  return next;
+                                })
+                              }
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select indicator mapping" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="__unmapped__">Unmapped</SelectItem>
+                                {indicatorResolverOptions.map((option) => (
+                                  <SelectItem key={option.id} value={option.id}>
+                                    {option.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
 
                   <div className="flex flex-wrap gap-2">
                     <Button onClick={handleConfirmImport} disabled={!canConfirmImport}>
                       {isConfirmingImport ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                      Upload aggregated values
+                      {confirmImportLabel}
                     </Button>
                     <Button asChild variant="outline">
                       <Link href="/aggregates">View aggregates</Link>
@@ -818,7 +1197,18 @@ export default function ReportWorkbooksPage() {
 
                   <div className="grid gap-2">
                     <Label>Reporting period</Label>
-                    <Input value={exportPeriod} onChange={(event) => setExportPeriod(event.target.value)} />
+                    <Select value={exportPeriod} onValueChange={setExportPeriod}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select reporting period" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {reportingPeriodOptions.map((period) => (
+                          <SelectItem key={period.value} value={period.value}>
+                            {period.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
 

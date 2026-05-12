@@ -1,12 +1,20 @@
 "use client";
 
-import { useState } from "react";
-import { Loader2 } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Check, Loader2, Search } from "lucide-react";
 
 import type { CoordinatorTarget, CoordinatorTargetQuarter } from "@/lib/api";
 import { getCurrentFiscalYear } from "@/components/targets/coordinator-targets-utils";
 import type { NamedOption } from "@/components/targets/coordinator-targets-types";
 import { Button } from "@/components/ui/button";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import {
   Dialog,
   DialogContent,
@@ -17,9 +25,11 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 
 export type CoordinatorTargetFormValue = {
   project_id: number;
@@ -83,6 +93,22 @@ export function CoordinatorTargetFormDialog(props: CoordinatorTargetFormDialogPr
   const { open, onOpenChange, submitting = false, existing, projects, coordinators, indicators, onSubmit } = props;
   const [form, setForm] = useState<FormState>(() => toFormState(existing));
   const [errorMessage, setErrorMessage] = useState("");
+  const [indicatorSearchOpen, setIndicatorSearchOpen] = useState(false);
+  const [indicatorSearch, setIndicatorSearch] = useState("");
+
+  const filteredIndicators = useMemo(() => {
+    const query = indicatorSearch.trim().toLowerCase();
+    if (!query) return indicators;
+
+    return indicators.filter((indicator) =>
+      `${indicator.label} ${indicator.hint || ""} ${indicator.searchText || ""}`.toLowerCase().includes(query),
+    );
+  }, [indicatorSearch, indicators]);
+
+  const selectedIndicator = useMemo(
+    () => indicators.find((indicator) => indicator.value === form.indicatorId) || null,
+    [form.indicatorId, indicators],
+  );
 
   const canSubmit = Boolean(
     form.projectId &&
@@ -119,6 +145,12 @@ export function CoordinatorTargetFormDialog(props: CoordinatorTargetFormDialogPr
     });
   };
 
+  const handleIndicatorSelect = (value: string) => {
+    setForm((current) => ({ ...current, indicatorId: value }));
+    setIndicatorSearch("");
+    setIndicatorSearchOpen(false);
+  };
+
   return (
     <Dialog open={open} onOpenChange={(nextOpen) => !submitting && onOpenChange(nextOpen)}>
       <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
@@ -134,7 +166,7 @@ export function CoordinatorTargetFormDialog(props: CoordinatorTargetFormDialogPr
             <div className="grid gap-2">
               <Label>Project</Label>
               <Select value={form.projectId} onValueChange={(value) => setForm((current) => ({ ...current, projectId: value }))}>
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select project" />
                 </SelectTrigger>
                 <SelectContent>
@@ -153,7 +185,7 @@ export function CoordinatorTargetFormDialog(props: CoordinatorTargetFormDialogPr
                 value={form.coordinatorId}
                 onValueChange={(value) => setForm((current) => ({ ...current, coordinatorId: value }))}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select coordinator" />
                 </SelectTrigger>
                 <SelectContent>
@@ -167,29 +199,80 @@ export function CoordinatorTargetFormDialog(props: CoordinatorTargetFormDialogPr
             </div>
           </div>
 
-          <div className="grid gap-2 md:grid-cols-3">
-            <div className="grid gap-2 md:col-span-2">
-              <Label>Indicator</Label>
-              <Select
-                value={form.indicatorId}
-                onValueChange={(value) => setForm((current) => ({ ...current, indicatorId: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select indicator" />
-                </SelectTrigger>
-                <SelectContent>
-                  {indicators.map((indicator) => (
-                    <SelectItem key={indicator.value} value={indicator.value}>
-                      {indicator.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_200px] md:items-start">
+            <div className="grid gap-2 min-w-0">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <Label>Indicator</Label>
+                <Popover open={indicatorSearchOpen} onOpenChange={setIndicatorSearchOpen}>
+                  <PopoverTrigger asChild>
+                    <Button type="button" variant="outline" size="sm" className="shrink-0" disabled={indicators.length === 0}>
+                      <Search className="h-4 w-4" />
+                      Search Indicator
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent align="end" className="z-[60] w-[calc(100vw-3rem)] p-0 sm:w-[540px]">
+                    <Command shouldFilter={false}>
+                      <CommandInput
+                        placeholder="Search indicators..."
+                        value={indicatorSearch}
+                        onValueChange={setIndicatorSearch}
+                      />
+                      <CommandList className="max-h-[320px]">
+                        <CommandEmpty>No indicators found.</CommandEmpty>
+                        <CommandGroup heading="Indicators">
+                          {filteredIndicators.map((indicator) => (
+                            <CommandItem
+                              key={indicator.value}
+                              value={indicator.searchText || indicator.label}
+                              onSelect={() => handleIndicatorSelect(indicator.value)}
+                              className="flex items-start justify-between gap-3"
+                            >
+                              <div className="min-w-0">
+                                <div className="truncate">{indicator.label}</div>
+                                {indicator.hint ? (
+                                  <div className="truncate text-xs text-muted-foreground">{indicator.hint}</div>
+                                ) : null}
+                              </div>
+                              <Check
+                                className={cn(
+                                  "mt-0.5 h-4 w-4 shrink-0",
+                                  indicator.value === form.indicatorId ? "opacity-100" : "opacity-0",
+                                )}
+                              />
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <div className="grid gap-2">
+                <Select
+                  value={form.indicatorId}
+                  onValueChange={(value) => setForm((current) => ({ ...current, indicatorId: value }))}
+                >
+                  <SelectTrigger className="w-full min-w-0 [&>span]:truncate">
+                    <SelectValue placeholder="Select indicator" className="truncate" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {indicators.map((indicator) => (
+                      <SelectItem key={indicator.value} value={indicator.value}>
+                        {indicator.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {selectedIndicator?.hint ? (
+                  <p className="text-xs text-muted-foreground">{selectedIndicator.hint}</p>
+                ) : null}
+              </div>
             </div>
 
-            <div className="grid gap-2">
+            <div className="grid gap-2 min-w-0">
               <Label>Target Value</Label>
               <Input
+                className="w-full"
                 type="number"
                 inputMode="decimal"
                 value={form.targetValue}
@@ -215,7 +298,7 @@ export function CoordinatorTargetFormDialog(props: CoordinatorTargetFormDialogPr
                 value={form.quarter}
                 onValueChange={(value) => setForm((current) => ({ ...current, quarter: value as CoordinatorTargetQuarter }))}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select quarter" />
                 </SelectTrigger>
                 <SelectContent>

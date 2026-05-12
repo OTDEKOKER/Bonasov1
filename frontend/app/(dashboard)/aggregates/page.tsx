@@ -1,11 +1,12 @@
 "use client";
 
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
-import { Calendar, Clock3, Download, Filter, Loader2, Search, Upload } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Calendar, Clock3, Download, Filter, Loader2, RefreshCcw, Search, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -37,8 +38,9 @@ import {
 import {
   buildEmptyEntryMatrix,
   buildEntryMatrixPayload,
-  calculateAggregateTotals,
   computeEntryMatrixTotal,
+  dedupeRollupAggregates,
+  getAggregateTotal,
   getAggregateEntryMatrixConfig,
   groupAggregatesByIndicator,
   parseNumberInput,
@@ -69,8 +71,23 @@ import {
 function AggregatesPageContent() {
   const { toast } = useToast();
   const { user } = useAuth();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const reviewAggregateIdParam = searchParams.get("reviewAggregateId");
+  const urlProjectParam = searchParams.get("project");
+  const urlCoordinatorParam = searchParams.get("coordinator");
+  const urlOrganizationsParam = searchParams.get("organizations");
+  const urlSearchParam = searchParams.get("search");
+  const urlDateFromParam = searchParams.get("date_from");
+  const urlDateToParam = searchParams.get("date_to");
+  const urlOrganizationIds = useMemo(
+    () =>
+      String(urlOrganizationsParam || "")
+        .split(",")
+        .map((value) => value.trim())
+        .filter(Boolean),
+    [urlOrganizationsParam],
+  );
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isAutoCalcOpen, setIsAutoCalcOpen] = useState(false);
@@ -80,6 +97,7 @@ function AggregatesPageContent() {
   const [isAutoCalcSubmitting, setIsAutoCalcSubmitting] = useState(false);
 
   const importInputRef = useRef<HTMLInputElement | null>(null);
+  const appliedUrlFiltersRef = useRef(false);
 
   const {
     formDataSource,
@@ -119,6 +137,9 @@ function AggregatesPageContent() {
     revalidateOnFocus: true,
     revalidateOnReconnect: true,
     revalidateIfStale: true,
+    shouldRetryOnError: true,
+    errorRetryCount: 2,
+    errorRetryInterval: 1500,
     dedupingInterval: 0,
   });
   const { data: projectsData } = useAllProjects();
@@ -138,6 +159,15 @@ function AggregatesPageContent() {
   });
 
   const aggregates = useMemo(() => aggregatesData || [], [aggregatesData]);
+  const aggregateLoadErrorMessage = useMemo(() => {
+    if (!error) return "";
+    const message = typeof error === "object" && error && "message" in error ? String(error.message || "") : "";
+    return message.trim() || "Failed to load aggregate data.";
+  }, [error]);
+  const aggregateLoadErrorStatus = useMemo(() => {
+    if (!error || typeof error !== "object") return null;
+    return "status" in error ? Number(error.status) || null : null;
+  }, [error]);
   const projects = useMemo(
     () =>
       [...(projectsData?.results || [])].sort((left, right) =>
@@ -170,6 +200,13 @@ function AggregatesPageContent() {
   const projectNameById = useMemo<Map<string, string>>(
     () => new Map<string, string>(projects.map((project) => [String(project.id), project.name])),
     [projects],
+  );
+  const organizationNameById = useMemo<Map<string, string>>(
+    () =>
+      new Map<string, string>(
+        organizations.map((organization) => [String(organization.id), String(organization.name || "")]),
+      ),
+    [organizations],
   );
   const selectedProjectSummary = useMemo(
     () => projects.find((project) => String(project.id) === formProject) || null,
@@ -230,6 +267,68 @@ function AggregatesPageContent() {
     availableCoordinatorOrganizations,
     visibleOrganizations,
   });
+
+  useEffect(() => {
+    if (appliedUrlFiltersRef.current) return;
+    if (!organizationsData) return;
+
+    if (urlProjectParam && urlProjectParam !== "all") {
+      setProjectFilter(urlProjectParam);
+    }
+
+    if (
+      urlCoordinatorParam &&
+      availableCoordinatorOrganizations.some(
+        (organization) => String(organization.id) === urlCoordinatorParam,
+      )
+    ) {
+      setCoordinatorFilter(urlCoordinatorParam);
+    }
+
+    if (urlOrganizationIds.length > 0) {
+      const visibleOrganizationIdSet = new Set(
+        visibleOrganizations.map((organization) => String(organization.id)),
+      );
+      const allowedOrganizationIds = urlOrganizationIds.filter((id) =>
+        visibleOrganizationIdSet.has(id),
+      );
+      if (allowedOrganizationIds.length > 0) {
+        setSelectedOrganizationIdsList(allowedOrganizationIds);
+      }
+    }
+
+    if (urlSearchParam && urlSearchParam.trim()) {
+      setSearchQuery(urlSearchParam.trim());
+    }
+
+    if (urlDateFromParam && urlDateToParam) {
+      const matchingPeriod = periodOptions.find(
+        (option) =>
+          option.periodStart === urlDateFromParam && option.periodEnd === urlDateToParam,
+      );
+      if (matchingPeriod) {
+        setPeriodFilter(matchingPeriod.id);
+      }
+    }
+
+    appliedUrlFiltersRef.current = true;
+  }, [
+    availableCoordinatorOrganizations,
+    organizationsData,
+    periodOptions,
+    setCoordinatorFilter,
+    setPeriodFilter,
+    setProjectFilter,
+    setSearchQuery,
+    setSelectedOrganizationIdsList,
+    urlCoordinatorParam,
+    urlDateFromParam,
+    urlDateToParam,
+    urlOrganizationIds,
+    urlProjectParam,
+    urlSearchParam,
+    visibleOrganizations,
+  ]);
 
   const availableFormOrganizations = useMemo(() => {
     if (!formProject) return [];
@@ -443,18 +542,26 @@ function AggregatesPageContent() {
         aggregate.indicator_name || indicatorNameById.get(indicatorId) || "";
       const indicatorCode =
         aggregate.indicator_code || indicatorCodeById.get(indicatorId) || "";
+      const organizationName =
+        aggregate.organization_name || organizationNameById.get(aggregateOrganizationId) || "";
+      const projectName =
+        aggregate.project_name || projectNameById.get(String(aggregate.project || "")) || "";
 
       return (
         indicatorName.toLowerCase().includes(query) ||
         indicatorCode.toLowerCase().includes(query) ||
-        indicatorId.toLowerCase().includes(query)
+        indicatorId.toLowerCase().includes(query) ||
+        organizationName.toLowerCase().includes(query) ||
+        projectName.toLowerCase().includes(query)
       );
     });
   }, [
     aggregates,
     indicatorCodeById,
     indicatorNameById,
+    organizationNameById,
     periodFilter,
+    projectNameById,
     projectFilter,
     searchQuery,
     selectedOrganizationIds,
@@ -462,12 +569,47 @@ function AggregatesPageContent() {
     visibleOrganizationIds,
   ]);
 
+  const dedupedFilteredAggregates = useMemo(() => {
+    const shouldDedupeRollups =
+      parentOrgFilter === "all" && selectedOrganizationIdsList.length === 0;
+
+    if (!shouldDedupeRollups) {
+      return filteredAggregates;
+    }
+
+    return dedupeRollupAggregates(filteredAggregates, organizations);
+  }, [
+    filteredAggregates,
+    organizations,
+    parentOrgFilter,
+    selectedOrganizationIdsList.length,
+  ]);
+
   const aggregateGroups = useMemo<AggregateIndicatorGroup[]>(
-    () => groupAggregatesByIndicator(filteredAggregates, indicatorNameById, indicatorCodeById),
-    [filteredAggregates, indicatorCodeById, indicatorNameById],
+    () =>
+      groupAggregatesByIndicator(
+        dedupedFilteredAggregates,
+        indicatorNameById,
+        indicatorCodeById,
+      ),
+    [dedupedFilteredAggregates, indicatorCodeById, indicatorNameById],
+  );
+  const reportedAggregateGroups = useMemo<AggregateIndicatorGroup[]>(
+    () =>
+      aggregateGroups.filter((group) =>
+        group.items.some((aggregate) => getAggregateTotal(aggregate) > 0),
+      ),
+    [aggregateGroups],
+  );
+  const reportedAggregateRowsCount = useMemo(
+    () =>
+      reportedAggregateGroups.reduce(
+        (sum, group) => sum + group.items.length,
+        0,
+      ),
+    [reportedAggregateGroups],
   );
 
-  const totals = useMemo(() => calculateAggregateTotals(filteredAggregates), [filteredAggregates]);
   const {
     chartData,
     chartMeta,
@@ -478,7 +620,7 @@ function AggregatesPageContent() {
     openChartForGroup,
     setIsChartOpen,
   } = useAggregateChartState({
-    aggregateGroups,
+    aggregateGroups: reportedAggregateGroups,
     indicatorById,
   });
 
@@ -523,6 +665,7 @@ function AggregatesPageContent() {
     actingAggregateId,
     actingReviewAction,
     handleApproveAggregate,
+    handleBulkApproveAggregates,
     handleDeleteAggregate,
     handleFlagAggregate,
     handleReviewAggregate,
@@ -549,19 +692,80 @@ function AggregatesPageContent() {
     setAutoComputed(null);
   };
 
+  const autoCalcAvailable = true;
+
+  const hasActiveFilters =
+    searchQuery.trim().length > 0 ||
+    projectFilter !== "all" ||
+    parentOrgFilter !== "all" ||
+    selectedOrganizationIdsList.length > 0 ||
+    periodFilter !== "all";
+
+  const activeFilterBadges = useMemo(() => {
+    const filters: string[] = [];
+
+    if (searchQuery.trim()) {
+      filters.push(`Search: ${searchQuery.trim()}`);
+    }
+
+    if (projectFilter !== "all") {
+      filters.push(`Project: ${projectNameById.get(projectFilter) || "Selected"}`);
+    }
+
+    if (parentOrgFilter !== "all") {
+      const coordinatorName =
+        availableCoordinatorOptions.find(
+          (organization) => String(organization.id) === parentOrgFilter,
+        )?.name || "Selected coordinator";
+      filters.push(`Coordinator: ${coordinatorName}`);
+    }
+
+    if (selectedOrganizationIdsList.length > 0) {
+      filters.push(
+        `Organizations: ${selectedOrganizationIdsList.length} selected`,
+      );
+    }
+
+    if (periodFilter !== "all" && selectedPeriodOption) {
+      filters.push(`Period: ${selectedPeriodOption.label}`);
+    }
+
+    return filters;
+  }, [
+    availableCoordinatorOptions,
+    parentOrgFilter,
+    periodFilter,
+    projectFilter,
+    projectNameById,
+    searchQuery,
+    selectedOrganizationIdsList.length,
+    selectedPeriodOption,
+  ]);
+
+  const handleResetFilters = () => {
+    setSearchQuery("");
+    setProjectFilter("all");
+    setCoordinatorFilter("all");
+    setSelectedOrganizationIdsList([]);
+    setPeriodFilter("all");
+  };
+
   const handleExport = async () => {
     try {
-      const exportOrganizationIds = Array.from(selectedOrganizationIds);
+      const exportOrganizationIds = Array.from(
+        new Set(dedupedFilteredAggregates.map((aggregate) => String(aggregate.organization))),
+      );
       if (exportOrganizationIds.length === 0) {
         toast({
-          title: "No organizations in scope",
-          description: "Update your coordinator/organization filters before exporting.",
+          title: "No aggregate rows in scope",
+          description: "Update your filters before exporting.",
           variant: "destructive",
         });
         return;
       }
       const blob = await aggregatesService.export({
         format: "excel",
+        search: searchQuery.trim() || undefined,
         project: projectFilter !== "all" ? projectFilter : undefined,
         organization: exportOrganizationIds.join(","),
         date_from: selectedPeriodOption?.periodStart,
@@ -906,8 +1110,15 @@ function AggregatesPageContent() {
   if (error) {
     return (
       <div className="flex h-[60vh] flex-col items-center justify-center gap-4">
-        <p className="text-muted-foreground">Failed to load aggregates</p>
-        <Button onClick={() => mutate()}>Retry</Button>
+        <p className="text-center text-muted-foreground">{aggregateLoadErrorMessage}</p>
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          <Button onClick={() => mutate()}>Retry</Button>
+          {aggregateLoadErrorStatus === 401 ? (
+            <Button variant="outline" onClick={() => router.push("/login")}>
+              Go to Login
+            </Button>
+          ) : null}
+        </div>
       </div>
     );
   }
@@ -922,7 +1133,8 @@ function AggregatesPageContent() {
           { label: "Aggregates" },
         ]}
         actions={
-          <div className="flex items-center gap-2">
+          <div className="flex w-full justify-end sm:w-auto">
+            <div className="flex w-full items-center justify-end gap-2 overflow-x-auto whitespace-nowrap pb-1 sm:w-auto sm:overflow-visible [&_button]:shrink-0">
             {canReviewAggregates ? (
               <Button variant="outline" onClick={() => setIsReviewQueueOpen(true)}>
                 <Clock3 className="mr-2 h-4 w-4" />
@@ -955,42 +1167,44 @@ function AggregatesPageContent() {
               }}
             />
 
-            <AggregateAutoCalcDialog
-              open={isAutoCalcOpen}
-              onOpenChange={(open) => {
-                setIsAutoCalcOpen(open);
-                if (!open) resetAutoCalcForm();
-              }}
-              onCalculate={handleAutoCalculate}
-              isSubmitting={isAutoCalcSubmitting}
-              computedValue={autoComputed}
-              projects={projectOptions}
-              organizations={writableOrganizationOptions}
-              indicators={indicatorOptions}
-              isOrganizationSelectionLocked={isOrganizationSelectionLocked}
-              autoProject={autoProject}
-              setAutoProject={setAutoProject}
-              autoOrganization={autoOrganization}
-              setAutoOrganization={setAutoOrganization}
-              autoOutputIndicator={autoOutputIndicator}
-              setAutoOutputIndicator={setAutoOutputIndicator}
-              autoSourceIndicator={autoSourceIndicator}
-              setAutoSourceIndicator={setAutoSourceIndicator}
-              autoOperator={autoOperator}
-              setAutoOperator={setAutoOperator}
-              autoMatchValue={autoMatchValue}
-              setAutoMatchValue={setAutoMatchValue}
-              autoCountDistinct={autoCountDistinct}
-              setAutoCountDistinct={setAutoCountDistinct}
-              autoPeriodStart={autoPeriodStart}
-              setAutoPeriodStart={setAutoPeriodStart}
-              autoPeriodEnd={autoPeriodEnd}
-              setAutoPeriodEnd={setAutoPeriodEnd}
-              autoSaveRule={autoSaveRule}
-              setAutoSaveRule={setAutoSaveRule}
-              autoSaveAggregate={autoSaveAggregate}
-              setAutoSaveAggregate={setAutoSaveAggregate}
-            />
+            {autoCalcAvailable ? (
+              <AggregateAutoCalcDialog
+                open={isAutoCalcOpen}
+                onOpenChange={(open) => {
+                  setIsAutoCalcOpen(open);
+                  if (!open) resetAutoCalcForm();
+                }}
+                onCalculate={handleAutoCalculate}
+                isSubmitting={isAutoCalcSubmitting}
+                computedValue={autoComputed}
+                projects={projectOptions}
+                organizations={writableOrganizationOptions}
+                indicators={indicatorOptions}
+                isOrganizationSelectionLocked={isOrganizationSelectionLocked}
+                autoProject={autoProject}
+                setAutoProject={setAutoProject}
+                autoOrganization={autoOrganization}
+                setAutoOrganization={setAutoOrganization}
+                autoOutputIndicator={autoOutputIndicator}
+                setAutoOutputIndicator={setAutoOutputIndicator}
+                autoSourceIndicator={autoSourceIndicator}
+                setAutoSourceIndicator={setAutoSourceIndicator}
+                autoOperator={autoOperator}
+                setAutoOperator={setAutoOperator}
+                autoMatchValue={autoMatchValue}
+                setAutoMatchValue={setAutoMatchValue}
+                autoCountDistinct={autoCountDistinct}
+                setAutoCountDistinct={setAutoCountDistinct}
+                autoPeriodStart={autoPeriodStart}
+                setAutoPeriodStart={setAutoPeriodStart}
+                autoPeriodEnd={autoPeriodEnd}
+                setAutoPeriodEnd={setAutoPeriodEnd}
+                autoSaveRule={autoSaveRule}
+                setAutoSaveRule={setAutoSaveRule}
+                autoSaveAggregate={autoSaveAggregate}
+                setAutoSaveAggregate={setAutoSaveAggregate}
+              />
+            ) : null}
 
             <AggregateEntryDialog
               open={isDialogOpen}
@@ -1023,6 +1237,7 @@ function AggregatesPageContent() {
               formNotes={formNotes}
               setFormNotes={setFormNotes}
             />
+            </div>
           </div>
         }
       />
@@ -1050,11 +1265,13 @@ function AggregatesPageContent() {
                 indicators={indicatorOptions}
                 onReview={handleReviewAggregate}
                 onApprove={handleApproveAggregate}
+                onApproveAll={handleBulkApproveAggregates}
                 onFlag={handleFlagAggregate}
                 onUpdate={handleUpdateAggregate}
                 onDelete={handleDeleteAggregate}
                 actingAggregateId={actingAggregateId}
                 actingReviewAction={actingReviewAction}
+                canBulkApproveAll
                 embedded
                 initialReviewAggregateId={reviewAggregateIdParam}
               />
@@ -1090,6 +1307,7 @@ function AggregatesPageContent() {
           indicators={indicatorOptions}
           onReview={handleReviewAggregate}
           onApprove={handleApproveAggregate}
+          onApproveAll={handleBulkApproveAggregates}
           onFlag={handleFlagAggregate}
           onUpdate={handleUpdateAggregate}
           onDelete={handleDeleteAggregate}
@@ -1100,122 +1318,173 @@ function AggregatesPageContent() {
         />
       ) : null}
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-        <div className="relative sm:col-span-2 xl:col-span-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search indicators..."
-            value={searchQuery}
-            onChange={(event) => setSearchQuery(event.target.value)}
-            className="pl-9"
-          />
-        </div>
+      <Card className="border-border/70 shadow-sm">
+        <CardHeader className="gap-4 pb-4">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+            <div className="space-y-1">
+              <CardTitle className="text-xl">Browse Aggregate Data</CardTitle>
+              <CardDescription>
+                Narrow the table by project, coordinator, organization, and reporting period.
+              </CardDescription>
+            </div>
+            <div className="flex items-center gap-2 overflow-x-auto">
+              <Badge variant="secondary" className="h-7 shrink-0 rounded-full px-2.5 text-xs font-medium">
+                {reportedAggregateRowsCount.toLocaleString()} rows
+              </Badge>
+              <Badge variant="outline" className="h-7 shrink-0 rounded-full px-2.5 text-xs font-medium">
+                {reportedAggregateGroups.length.toLocaleString()} indicator groups
+              </Badge>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 shrink-0 px-2.5 text-xs"
+                onClick={handleResetFilters}
+                disabled={!hasActiveFilters}
+              >
+                <RefreshCcw className="mr-2 h-4 w-4" />
+                Reset filters
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid items-end gap-2 md:grid-cols-2 lg:grid-cols-[minmax(220px,1.15fr)_repeat(4,minmax(170px,1fr))]">
+            <div className="space-y-1">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                Search
+              </p>
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Search indicators..."
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  className="h-9 pl-9"
+                />
+              </div>
+            </div>
 
-        <div className="space-y-1">
-          <p className="text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">Project</p>
-          <Select value={projectFilter} onValueChange={setProjectFilter}>
-            <SelectTrigger className="w-full">
-              <Filter className="mr-2 h-4 w-4" />
-              <SelectValue placeholder="Project" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Projects</SelectItem>
-              {projects.map((project) => (
-                <SelectItem key={project.id} value={String(project.id)}>
-                  {project.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+            <div className="space-y-1">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                Project
+              </p>
+              <Select value={projectFilter} onValueChange={setProjectFilter}>
+                <SelectTrigger className="h-9 w-full">
+                  <Filter className="mr-2 h-4 w-4" />
+                  <SelectValue placeholder="Project" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Projects</SelectItem>
+                  {projects.map((project) => (
+                    <SelectItem key={project.id} value={String(project.id)}>
+                      {project.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-        <div className="space-y-1">
-          <p className="text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">Coordinator</p>
-          <Select value={parentOrgFilter} onValueChange={setCoordinatorFilter}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Coordinator" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Coordinators</SelectItem>
-              {availableCoordinatorOptions.map((organization) => (
-                <SelectItem key={organization.id} value={String(organization.id)}>
-                  {organization.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+            <div className="space-y-1">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                Coordinator
+              </p>
+              <Select value={parentOrgFilter} onValueChange={setCoordinatorFilter}>
+                <SelectTrigger className="h-9 w-full">
+                  <SelectValue placeholder="Coordinator" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Coordinators</SelectItem>
+                  {availableCoordinatorOptions.map((organization) => (
+                    <SelectItem key={organization.id} value={String(organization.id)}>
+                      {organization.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-        <div className="space-y-1">
-          <p className="text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">Organizations</p>
-          <OrganizationMultiSelect
-            organizations={scopedOrganizations.map((organization) => ({
-              id: organization.id,
-              name: organization.name || "Organization",
-            }))}
-            selectedIds={selectedOrganizationIdsList}
-            onChange={setSelectedOrganizationIdsList}
-            allLabel="All organizations"
-          />
+            <div className="space-y-1">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                Organizations
+              </p>
+              <OrganizationMultiSelect
+                className="h-9"
+                allLabel={
+                  parentOrgFilter === "all"
+                    ? "All organizations"
+                    : "All organizations in coordinator scope"
+                }
+                emptyMeansAll
+                organizations={scopedOrganizations.map((organization) => ({
+                  id: organization.id,
+                  name: organization.name || "Organization",
+                }))}
+                selectedIds={selectedOrganizationIdsList}
+                onChange={setSelectedOrganizationIdsList}
+              />
+            </div>
+
+            <div className="space-y-1">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                Period
+              </p>
+              <Select value={periodFilter} onValueChange={setPeriodFilter}>
+                <SelectTrigger className="h-9 w-full">
+                  <Calendar className="mr-2 h-4 w-4" />
+                  <SelectValue placeholder="Period" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Periods</SelectItem>
+                  {periodOptions.map((period) => (
+                    <SelectItem key={period.id} value={period.id}>
+                      {period.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
           <p className="text-xs text-muted-foreground">
             {selectedOrganizationIdsList.length > 0
-              ? `${selectedOrganizationIdsList.length} selected`
-              : `${scopedOrganizations.length} in scope`}
+              ? `${selectedOrganizationIdsList.length} organizations selected`
+              : `${scopedOrganizations.length} in scope, all included`}
+          </p>
+
+          <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+            {activeFilterBadges.length > 0 ? (
+              activeFilterBadges.map((filterLabel) => (
+                <Badge key={filterLabel} variant="outline" className="rounded-full">
+                  {filterLabel}
+                </Badge>
+              ))
+            ) : (
+              <span>Showing all approved aggregate data in your current access scope.</span>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      <section className="space-y-3">
+        <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 className="text-lg font-semibold tracking-tight text-foreground">Results</h2>
+            <p className="text-sm text-muted-foreground">
+              Aggregates are grouped by indicator, project scope, organization scope, and reporting period.
+            </p>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Click <span className="font-medium text-foreground">Chart</span> on any group for a quick visual breakdown.
           </p>
         </div>
 
-        <div className="space-y-1">
-          <p className="text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">Period</p>
-          <Select value={periodFilter} onValueChange={setPeriodFilter}>
-            <SelectTrigger className="w-full">
-              <Calendar className="mr-2 h-4 w-4" />
-              <SelectValue placeholder="Period" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Periods</SelectItem>
-              {periodOptions.map((period) => (
-                <SelectItem key={period.id} value={period.id}>
-                  {period.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Total Entries</CardDescription>
-            <CardTitle className="text-2xl">{filteredAggregates.length}</CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Male Total</CardDescription>
-            <CardTitle className="text-2xl text-chart-2">{totals.male.toLocaleString()}</CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Female Total</CardDescription>
-            <CardTitle className="text-2xl text-chart-5">{totals.female.toLocaleString()}</CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Grand Total</CardDescription>
-            <CardTitle className="text-2xl text-primary">{totals.total.toLocaleString()}</CardTitle>
-          </CardHeader>
-        </Card>
-      </div>
-
-      <AggregateMatrixTable
-        aggregateGroups={aggregateGroups}
-        projectNameById={projectNameById}
-        indicatorById={indicatorById}
-        onViewChart={openChartForGroup}
-      />
+        <AggregateMatrixTable
+          aggregateGroups={reportedAggregateGroups}
+          projectNameById={projectNameById}
+          indicatorById={indicatorById}
+          onViewChart={openChartForGroup}
+        />
+      </section>
 
       <AggregateChartDialog
         open={isChartOpen}

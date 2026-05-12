@@ -31,24 +31,32 @@ function DashboardShell({
   setDesktopSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>
 }) {
   const pathname = usePathname()
-  const [showDisclaimer, setShowDisclaimer] = useState(false)
-
-  useEffect(() => {
-    if (typeof window === "undefined") return
-
-    const shouldShowFromLogin = sessionStorage.getItem("show_login_disclaimer") === "1"
-    const isDashboardHome = pathname === "/dashboard"
-
-    if (shouldShowFromLogin) {
+  const [showDisclaimerFromLogin, setShowDisclaimerFromLogin] = useState(() => {
+    if (typeof window === "undefined") return false
+    const shouldShow = sessionStorage.getItem("show_login_disclaimer") === "1"
+    if (shouldShow) {
       sessionStorage.removeItem("show_login_disclaimer")
     }
+    return shouldShow
+  })
+  const [dismissedPathname, setDismissedPathname] = useState<string | null>(null)
 
-    setShowDisclaimer(shouldShowFromLogin || isDashboardHome)
-  }, [pathname])
+  const isDashboardHome = pathname === "/dashboard"
+  const showDisclaimer =
+    dismissedPathname !== pathname && (showDisclaimerFromLogin || isDashboardHome)
+
+  const handleDisclaimerOpenChange = (open: boolean) => {
+    if (open) {
+      setDismissedPathname(null)
+      return
+    }
+    setShowDisclaimerFromLogin(false)
+    setDismissedPathname(pathname)
+  }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Dialog open={showDisclaimer} onOpenChange={setShowDisclaimer}>
+    <div className="min-h-screen w-full min-w-0 max-w-full overflow-x-hidden bg-background">
+      <Dialog open={showDisclaimer} onOpenChange={handleDisclaimerOpenChange}>
         <DialogContent
           showCloseButton={false}
           className="top-1/2 w-[calc(100vw-1rem)] max-w-[76rem] overflow-hidden border-0 bg-transparent p-0 shadow-none sm:w-[min(calc(100vw-2rem),76rem)]"
@@ -75,7 +83,7 @@ function DashboardShell({
                     {" "}Any violations of client confidentiality is against the law and is punishable by fines
                     and/or jail time.
                   </strong>{" "}
-                  By entering this portal, you agree to maintain confidentiality of all data you see here and also
+                  By entering this portal, you agree to maintain confidentiality of all data you see here and
                   agree that you will not misuse any information here.
                 </p>
                 <p className="w-full text-justify text-sm leading-6 [text-wrap:pretty] sm:text-base">
@@ -87,7 +95,7 @@ function DashboardShell({
 
           <div className="mx-auto mt-5 flex w-full max-w-[62rem] justify-center">
             <Button
-              onClick={() => setShowDisclaimer(false)}
+              onClick={() => handleDisclaimerOpenChange(false)}
               className="min-h-11 w-full whitespace-normal rounded-none bg-primary px-5 py-2.5 text-center text-sm font-semibold leading-5 text-primary-foreground shadow-none hover:bg-primary/90"
             >
               I understand, and will not misuse any data I access on this portal.
@@ -134,7 +142,12 @@ function DashboardShell({
       </div>
 
       {/* Main content */}
-      <div className={cn("transition-[padding] duration-200 ease-in-out", desktopSidebarOpen ? "lg:pl-64" : "lg:pl-0")}>
+      <div
+        className={cn(
+          "min-w-0 flex-1 w-full max-w-full overflow-x-hidden transition-[padding] duration-200 ease-in-out",
+          desktopSidebarOpen ? "lg:pl-64" : "lg:pl-0",
+        )}
+      >
         <AppHeader
           onMenuClick={() => {
             if (typeof window !== "undefined" && window.matchMedia("(min-width: 1024px)").matches) {
@@ -144,7 +157,7 @@ function DashboardShell({
             setSidebarOpen(true)
           }}
         />
-        <main className="min-h-[calc(100vh-4rem)] p-4 lg:p-6">
+        <main className="min-h-[calc(100vh-4rem)] min-w-0 w-full max-w-full overflow-x-hidden p-4 lg:p-6">
           {children}
         </main>
       </div>

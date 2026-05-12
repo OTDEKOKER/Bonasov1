@@ -63,6 +63,10 @@ TITLE_RESOLUTION_ALIASES = {
     "number of plwhs provided with treatment literacy": [
         "Total Number of People Reached with ARV Based Prevention Messages",
     ],
+    "number of plwh who tested positive for tb and are on treatment": [
+        "Number of PLWH who tested positive for TB and are on treatment",
+        "Number of people living with HIV who tested positive for TB and are on treatment",
+    ],
 }
 
 
@@ -86,9 +90,20 @@ def canonical_indicator_key(value):
         "visists": "visits",
         "perforamance": "performance",
         "identifies": "identified",
+        "identifies needs": "identified needs",
+        "elligible": "eligible",
+        "reffered": "referred",
+        "pyschosocial": "psychosocial",
+        "descrimination": "discrimination",
+        "field visists": "field visits",
+        "virsual presentations": "visual presentations",
+        "redness": "redress",
         "targetted": "targeted",
+        "number of number of people": "number of people",
         "number of number of": "number of",
         "total number of": "number of",
+        "people living with hiv": "plwh",
+        "persons living with hiv": "plwh",
         "people engaged with": "people reached with",
         "  ": " ",
     }

@@ -1,7 +1,8 @@
-import React from "react"
 import type { Metadata } from "next"
+import Script from "next/script"
 
 import { Analytics } from "@vercel/analytics/next"
+import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/toaster"
 import { ServiceWorkerRegister } from "@/components/pwa/register-sw"
 import { NetworkStatus } from "@/components/pwa/network-status"
@@ -13,7 +14,6 @@ export const metadata: Metadata = {
   description:
     "Enterprise data management system for health indicators, projects, and analytics",
   generator: "v0.app",
-  manifest: "/manifest.webmanifest",
   icons: {
     icon: "/favicon.ico",
     apple: "/apple-icon.png",
@@ -21,6 +21,8 @@ export const metadata: Metadata = {
 }
 
 const isVercelDeployment = process.env.VERCEL === "1"
+const enableSwInDev = process.env.NEXT_PUBLIC_ENABLE_SW === "true"
+const disableSwInDev = process.env.NODE_ENV !== "production" && !enableSwInDev
 
 export default function RootLayout({
   children,
@@ -28,14 +30,41 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className="font-sans antialiased">
-        <ServiceWorkerRegister />
-        <NetworkStatus />
-        <SyncStatus />
-        {children}
-        <Toaster />
-        {isVercelDeployment ? <Analytics debug={false} /> : null}
+        {disableSwInDev ? (
+          <Script id="disable-dev-sw" strategy="beforeInteractive">
+            {`
+              try {
+                if ('serviceWorker' in navigator) {
+                  navigator.serviceWorker.getRegistrations().then(function (registrations) {
+                    registrations.forEach(function (registration) { registration.unregister(); });
+                  });
+                }
+                if ('caches' in window) {
+                  caches.keys().then(function (keys) {
+                    keys.forEach(function (key) {
+                      if (key.indexOf('bonaso-') === 0) { caches.delete(key); }
+                    });
+                  });
+                }
+              } catch (e) {}
+            `}
+          </Script>
+        ) : null}
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <ServiceWorkerRegister />
+          <NetworkStatus />
+          <SyncStatus />
+          {children}
+          <Toaster />
+          {isVercelDeployment ? <Analytics debug={false} /> : null}
+        </ThemeProvider>
       </body>
     </html>
   )

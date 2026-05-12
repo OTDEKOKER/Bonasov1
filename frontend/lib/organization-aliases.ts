@@ -22,6 +22,23 @@ const ORG_CANONICAL_ALIASES: Array<{ canonical: string; aliases: string[] }> = [
     ],
   },
   {
+    canonical: "Gende Fountain",
+    aliases: [
+      "gfc",
+      "gender fountain",
+      "gender fountain center",
+      "gende fountain",
+    ],
+  },
+  {
+    canonical: "Ovajuha",
+    aliases: ["ovajua", "ovajhuha", "ovajuha"],
+  },
+  {
+    canonical: "Inpired Horizons",
+    aliases: ["inspired horizons", "inspired hozirons", "inpired horizons"],
+  },
+  {
     canonical: "TEBELOPELE",
     aliases: ["tebelopele", "tebe lopele"],
   },
@@ -32,6 +49,10 @@ const ORG_CANONICAL_ALIASES: Array<{ canonical: string; aliases: string[] }> = [
   {
     canonical: "MAKGABANENG",
     aliases: ["makgabaneng", "mak gabaneng"],
+  },
+  {
+    canonical: "AHEEME",
+    aliases: ["aheeme", "a he eme"],
   },
 ];
 

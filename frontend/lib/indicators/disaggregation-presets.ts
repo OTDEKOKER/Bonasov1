@@ -333,6 +333,22 @@ function hasSameValues(left: string[], right: string[]): boolean {
   return leftSorted.every((value, index) => value === rightSorted[index])
 }
 
+function normalizeDimensionValuesForConsistency(
+  key: string,
+  label: string,
+  values: string[],
+): string[] {
+  if (
+    normalizeText(key) === "age band" &&
+    normalizeText(label) === "age range" &&
+    hasSameValues(values, DISAGGREGATION_PRESETS.age_band_bonela.values)
+  ) {
+    return [...DISAGGREGATION_PRESETS.age_band_long.values]
+  }
+
+  return values
+}
+
 export function getDisaggregationPreset(
   presetKey: DisaggregationPresetKey,
 ): AggregateDisaggregationDimension {
@@ -408,6 +424,9 @@ export function migrateLegacySubLabelsToConfig(
 
   const normalized = subLabels.map((value) => value.toLowerCase().trim())
   const presetKeys: DisaggregationPresetKey[] = []
+  const hasGenericDisaggregate = normalized.some((value) =>
+    ["disaggregate", "disaggregation", "service category", "service type"].includes(value),
+  )
 
   const addPreset = (key: DisaggregationPresetKey) => {
     if (!presetKeys.includes(key)) presetKeys.push(key)
@@ -676,6 +695,25 @@ export function migrateLegacySubLabelsToConfig(
     addPreset("target_group")
   }
 
+  const groupedPresetKeys = groupPresetKeysForTableLayout(presetKeys)
+  const hasPrimaryRowPreset = groupedPresetKeys.rowPresetKeys.length > 0
+  if (hasGenericDisaggregate && !hasPrimaryRowPreset) {
+    const baseConfig = buildDisaggregationConfigFromPresetKeys(presetKeys)
+    const dimensions: AggregateDisaggregationDimension[] = [
+      {
+        key: "disaggregate",
+        label: "Disaggregate",
+        values: [],
+      },
+      ...baseConfig.dimensions,
+    ]
+    return {
+      enabled: true,
+      layout: inferLayoutFromDimensions(dimensions),
+      dimensions,
+    }
+  }
+
   return buildDisaggregationConfigFromPresetKeys(presetKeys)
 }
 
@@ -702,13 +740,19 @@ export function normalizeAggregateDisaggregationConfig(
         config.layout === "none"
           ? config.layout
           : "none",
-      dimensions: config.dimensions.map((dimension) => ({
-        key: String(dimension.key || "").trim(),
-        label: String(dimension.label || "").trim(),
-        values: Array.isArray(dimension.values)
+      dimensions: config.dimensions.map((dimension) => {
+        const key = String(dimension.key || "").trim()
+        const label = String(dimension.label || "").trim()
+        const values = Array.isArray(dimension.values)
           ? dimension.values.map((value) => String(value).trim()).filter(Boolean)
-          : [],
-      })),
+          : []
+
+        return {
+          key,
+          label,
+          values: normalizeDimensionValuesForConsistency(key, label, values),
+        }
+      }),
       notes: config.notes ? String(config.notes) : undefined,
     }
   }
@@ -754,7 +798,7 @@ export function inferPresetKeyFromDimension(
   const dimensionLabel = normalizeText(dimension.label)
   const dimensionValues = (dimension.values || []).map((value) => String(value))
 
-  if (dimensionKey === "age_band" && dimensionLabel === "age range") {
+  if (dimensionKey === "age band" && dimensionLabel === "age range") {
     if (hasSameValues(dimensionValues, DISAGGREGATION_PRESETS.age_band_bonela.values)) {
       return "age_band_bonela"
     }

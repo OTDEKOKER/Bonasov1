@@ -25,20 +25,7 @@ const META_KEYS = new Set([
   "message_type",
 ]);
 
-const AGE_RANGES = [
-  "10-14",
-  "15-19",
-  "20-24",
-  "25-29",
-  "30-34",
-  "35-39",
-  "40-44",
-  "45-49",
-  "50-54",
-  "55-59",
-  "60-64",
-  "65+",
-] as const;
+const AYP_AGE_BAND_LABEL = "AYP (10-24)";
 
 function normalizeKey(value: string) {
   return String(value || "")
@@ -48,28 +35,28 @@ function normalizeKey(value: string) {
     .trim();
 }
 
-function toAgeRange(value: string): string {
+function normalizeAgeBandLabel(value: string) {
   const trimmed = String(value || "").trim();
-  const numericMatch = trimmed.match(/^(\d{1,3})$/);
-  if (!numericMatch) return trimmed;
+  if (!trimmed) return trimmed;
 
-  const age = Number(numericMatch[1]);
-  if (!Number.isFinite(age)) return trimmed;
+  const normalized = normalizeKey(trimmed);
+  if (normalized === "ayp" || normalized === "ayp 10 24") return AYP_AGE_BAND_LABEL;
 
-  for (const range of AGE_RANGES) {
-    const closedMatch = range.match(/^(\d+)-(\d+)$/);
-    if (closedMatch) {
-      const start = Number(closedMatch[1]);
-      const end = Number(closedMatch[2]);
-      if (age >= start && age <= end) return range;
-      continue;
+  const rangeMatch = trimmed.match(/^(\d{1,2})\s*-\s*(\d{1,2})$/);
+  if (rangeMatch) {
+    const start = Number(rangeMatch[1]);
+    const end = Number(rangeMatch[2]);
+    if (Number.isFinite(start) && Number.isFinite(end) && (start >= 65 || end >= 65)) {
+      return "65+";
     }
+    return `${start}-${end}`;
+  }
 
-    const plusMatch = range.match(/^(\d+)\+$/);
-    if (plusMatch) {
-      const start = Number(plusMatch[1]);
-      if (age >= start) return range;
-    }
+  const plusMatch = trimmed.match(/^(\d{1,2})\s*\+$/);
+  if (plusMatch) {
+    const start = Number(plusMatch[1]);
+    if (Number.isFinite(start) && start >= 65) return "65+";
+    return `${start}+`;
   }
 
   return trimmed;
@@ -132,7 +119,7 @@ function parseNestedDisaggregates(value: Record<string, unknown>): NormalizedDis
           rows.push({
             first: levelOne || "General",
             second: levelTwo || "Total",
-            third: levelThree || "Total",
+            third: normalizeAgeBandLabel(levelThree || "Total"),
             value: toSafeAggregateNumber(rawValue),
           });
         });
@@ -141,7 +128,7 @@ function parseNestedDisaggregates(value: Record<string, unknown>): NormalizedDis
 
       rows.push({
         first: levelOne || "General",
-        second: levelTwo || "Total",
+        second: normalizeAgeBandLabel(levelTwo || "Total"),
         third: "Total",
         value: toSafeAggregateNumber(thirdLevel),
       });
@@ -192,7 +179,7 @@ function parseAggregateTable(value: Record<string, unknown>): NormalizedDisaggre
       rows.push({
         first: category,
         second: sex,
-        third: levelThree || "Total",
+        third: normalizeAgeBandLabel(levelThree || "Total"),
         value: toSafeAggregateNumber(rawValue),
       });
     });
@@ -229,7 +216,7 @@ function parseCategories(value: Record<string, unknown>): NormalizedDisaggregate
       subEntries.forEach(([subKey, nestedValue]) => {
         rows.push({
           first: category || "General",
-          second: subKey || "Total",
+          second: normalizeAgeBandLabel(subKey || "Total"),
           third: "Total",
           value: toSafeAggregateNumber(nestedValue),
         });
@@ -301,9 +288,8 @@ export function normalizeAggregateValueToDisaggregateMap(
     if (!map[row.first]) map[row.first] = {};
     const secondLevel = map[row.first];
     const existing = secondLevel[row.second];
-    const normalizedThird = toAgeRange(row.third);
 
-    if (normalizedThird === "Total") {
+    if (row.third === "Total") {
       if (existing && typeof existing === "object" && existing !== null) {
         (existing as Record<string, unknown>).TOTAL = toSafeAggregateNumber(
           (existing as Record<string, unknown>).TOTAL,
@@ -318,7 +304,7 @@ export function normalizeAggregateValueToDisaggregateMap(
       existing && typeof existing === "object" && existing !== null
         ? (existing as Record<string, number>)
         : {};
-    thirdLevel[normalizedThird] = toSafeAggregateNumber(thirdLevel[normalizedThird]) + row.value;
+    thirdLevel[row.third] = toSafeAggregateNumber(thirdLevel[row.third]) + row.value;
     secondLevel[row.second] = thirdLevel;
   });
 

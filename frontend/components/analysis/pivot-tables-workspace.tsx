@@ -13,12 +13,7 @@ import {
   Trash2,
 } from "lucide-react";
 
-import {
-  cleanLabel,
-  formatAnalyticsValue,
-  triggerBlobDownload,
-  type BreakdownMap,
-} from "@/components/analysis/analytics-utils";
+import { cleanLabel, formatAnalyticsValue, triggerBlobDownload, type BreakdownMap } from "@/components/analysis/analytics-utils";
 import { SmartChartRenderer } from "@/components/analysis/smart-chart-renderer";
 import { PageHeader } from "@/components/shared/page-header";
 import {
@@ -89,11 +84,6 @@ type PivotTableDialogProps = {
 };
 
 type PivotMatrixCell = string | number | null;
-type PivotBreakdownOption = {
-  value: unknown;
-  label?: string;
-};
-type PivotBreakdownMap = Record<string, PivotBreakdownOption[]>;
 
 type PivotTableFormState = {
   name: string;
@@ -792,7 +782,7 @@ export function PivotTablesWorkspace() {
     isLoading: detailLoading,
     error: detailError,
   } = usePivotTable(selectedId);
-  const dashboardBreakdowns: BreakdownMap | undefined = undefined;
+  const dashboardBreakdowns = undefined;
 
   const pivotTablesUnavailable = isBackendUnavailable(listError);
   const pivotTables = pivotTablesData?.results ?? EMPTY_ITEMS;

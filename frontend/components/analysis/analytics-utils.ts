@@ -2,7 +2,7 @@
 
 import { formatDate } from "../../lib/date-utils";
 
-type BreakdownOption = {
+export type BreakdownOption = {
   value: unknown;
   label?: string;
 };

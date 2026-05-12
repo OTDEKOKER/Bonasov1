@@ -10,7 +10,7 @@ Design a workbook-driven reporting pipeline that can:
 4. Normalize disaggregated values into relational records.
 5. Reproduce a near-identical Excel workbook for export.
 
-This design is based on the current BONASO frontend architecture and an inspected sample workbook:
+This design is based on the current BONASO frontend architecture and an inspected sample workbook from the Q3 2025/26 cycle:
 `Quarter 3 2025 Makgabaneng NCD REPORT.xlsx`.
 
 ## Observed Workbook Shape
@@ -282,7 +282,7 @@ Quarter mapping must follow the April-to-March reporting year used by this workb
 
 Example:
 
-- `Quarter 3 2025` means `October 1, 2025` through `December 31, 2025`.
+- `Quarter 3 2025/26` means `October 1, 2025` through `December 31, 2025`.
 
 ### Step 5: Organization table detection
 
@@ -352,7 +352,7 @@ Rules:
 - duplicate source cells must not create duplicate fact rows
 - sheet name must match a known organization
 - indicator must be assigned to that organization in the `Indicator matrix`
-- quarterly target mapping must respect `Q3 2025 = October 1, 2025 to December 31, 2025`
+- quarterly target mapping must respect `Q3 2025/26 = October 1, 2025 to December 31, 2025`
 
 If an indicator referenced in the `Indicator matrix` or organization sheets does not exist in the system:
 

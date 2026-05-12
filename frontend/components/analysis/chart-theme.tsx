@@ -230,10 +230,13 @@ export function ChartSectionStat(props: {
   );
 }
 
-export function ChartInsightFooter(props: { children: ReactNode }) {
+export function ChartInsightFooter(props: { children?: ReactNode; text?: string | null }) {
+  const content = props.children ?? props.text;
+  if (!content) return null;
+
   return (
     <div className="rounded-[1rem] border border-[#dbe5ec] bg-[#f8fafc] px-3.5 py-2.5 text-sm text-[#475569]">
-      {props.children}
+      {content}
     </div>
   );
 }

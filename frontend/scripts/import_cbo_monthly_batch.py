@@ -19,7 +19,8 @@ django.setup()
 from django.db import transaction  # noqa: E402
 
 from aggregates.models import Aggregate  # noqa: E402
-from indicators.models import Indicator  # noqa: E402
+from indicators.models import Indicator, IndicatorAlias  # noqa: E402
+from indicator_import_aliases import canonical_resolution_aliases, preferred_duplicate_rank  # noqa: E402
 from openpyxl import load_workbook  # noqa: E402
 from organizations.models import Organization  # noqa: E402
 from projects.models import Project, ProjectIndicator  # noqa: E402
@@ -135,6 +136,7 @@ def is_importable_section(title: str) -> bool:
 
 def indicator_sort_key(indicator: Indicator, project_indicator_ids: set[int]) -> tuple:
     return (
+        preferred_duplicate_rank(indicator.id, canonical_indicator_name(indicator.name)),
         0 if indicator.id in project_indicator_ids else 1,
         0 if not indicator.code.upper().startswith("AUTO_") else 1,
         indicator.name.lower(),
@@ -149,8 +151,13 @@ class ExactFirstIndicatorResolver:
         )
         self.exact_index: dict[str, list[Indicator]] = {}
         for indicator in Indicator.objects.all():
-            key = canonical_indicator_name(indicator.name)
-            self.exact_index.setdefault(key, []).append(indicator)
+            for candidate in [indicator.name, *canonical_resolution_aliases(indicator.name)]:
+                key = canonical_indicator_name(candidate)
+                self.exact_index.setdefault(key, []).append(indicator)
+        for alias in IndicatorAlias.objects.select_related('indicator').filter(is_active=True):
+            for candidate in [alias.name, *canonical_resolution_aliases(alias.name)]:
+                key = canonical_indicator_name(candidate)
+                self.exact_index.setdefault(key, []).append(alias.indicator)
 
     def resolve(self, title: str, section_index: str | None = None) -> Indicator | None:
         for override_name in get_code_resolution_overrides(section_index, title):
@@ -162,13 +169,14 @@ class ExactFirstIndicatorResolver:
                     key=lambda item: indicator_sort_key(item, self.project_indicator_ids),
                 )[0]
 
-        key = canonical_indicator_name(title)
-        exact_matches = self.exact_index.get(key, [])
-        if exact_matches:
-            return sorted(
-                exact_matches,
-                key=lambda item: indicator_sort_key(item, self.project_indicator_ids),
-            )[0]
+        for candidate in [title, *canonical_resolution_aliases(title)]:
+            key = canonical_indicator_name(candidate)
+            exact_matches = self.exact_index.get(key, [])
+            if exact_matches:
+                return sorted(
+                    exact_matches,
+                    key=lambda item: indicator_sort_key(item, self.project_indicator_ids),
+                )[0]
         return self.delegate.resolve(title, section_index)
 
     def remember(self, indicator: Indicator):

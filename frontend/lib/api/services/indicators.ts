@@ -64,11 +64,25 @@ export interface BulkAssessmentRequest {
   assessments: CreateAssessmentRequest[];
 }
 
+export interface SaveAssessmentQuestionRequest {
+  question_id?: number | string;
+  indicator_id: number | string;
+  question_text?: string;
+  help_text?: string;
+  response_type?: IndicatorType | "";
+  response_options?: Array<string | { label: string; value: string }>;
+  response_sub_labels?: string[];
+  aggregate_mode?: "none" | "count_all" | "count_selected" | "sum_numeric";
+  aggregate_match_values?: unknown[];
+  order?: number;
+  is_required?: boolean;
+}
+
 // ============================================================================
 // Indicators Service
 // ============================================================================
 
-const LIST_ALL_PAGE_SIZE = '500';
+const LIST_ALL_PAGE_SIZE = '100';
 
 export const indicatorsService = {
   /**
@@ -246,9 +260,28 @@ export const assessmentsService = {
     });
   },
 
-  async removeIndicator(assessmentId: number | string, indicatorId: number | string): Promise<void> {
+  async saveQuestion(
+    assessmentId: number | string,
+    request: SaveAssessmentQuestionRequest,
+  ): Promise<void> {
+    await api.post(`/indicators/assessments/${assessmentId}/add_indicator/`, request);
+  },
+
+  async removeIndicator(
+    assessmentId: number | string,
+    indicatorId: number | string,
+  ): Promise<void> {
     await api.post(`/indicators/assessments/${assessmentId}/remove_indicator/`, {
       indicator_id: indicatorId,
+    });
+  },
+
+  async removeQuestion(
+    assessmentId: number | string,
+    questionId: number | string,
+  ): Promise<void> {
+    await api.post(`/indicators/assessments/${assessmentId}/remove_indicator/`, {
+      question_id: questionId,
     });
   },
 };

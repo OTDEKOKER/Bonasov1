@@ -441,7 +441,8 @@ export function DashboardWorkspace() {
                               dashboard={currentDashboard}
                               onEdit={() => openEditChart(chart)}
                               onDelete={() => handleDeleteChart(chart)}
-                              onRefresh={() => refreshDashboards(currentDashboard.id)}
+                              onRefresh={() => mutateSelectedDashboard()}
+                              deleteDisabled={deletingChartId === chart.id}
                             />
                           ))}
                         </div>
